@@ -1,45 +1,5 @@
 import Ember from 'ember';
-
-class Schema {
-  constructor({ propertyWhitelist,  propertyTransforms } = {}) {
-    this._propertyWhitelist = propertyWhitelist;
-    this._propertyTransforms = propertyTransforms || {};
-  }
-
-  isPropertyIncluded(propName) {
-    return !this._propertyWhitelist || this._propertyWhitelist.includes(propName);
-  }
-
-  transformValue(propName, value) {
-    let transformer = this._propertyTransforms[propName];
-    return transformer ? transformer(value) : value;
-  }
-
-  static get schemas() {
-    return this._schemas || (this._schemas = Object.create(null));
-  }
-
-  static schemaFor(modelName) {
-    return this.schemas[modelName] || NullSchema;
-  }
-
-  static registerSchema(modelName, schema) {
-    this.schemas[modelName] = schema;
-  }
-}
-
-const NullSchema = new Schema();
-
-function dateTransform(value) {
-  return new Date(Date.parse(value));
-}
-
-Schema.registerSchema('com.linkedin.voyager.collection', new Schema({
-  propertyTransforms: {
-    'dateAttr': dateTransform,
-  }
-}));
-
+import SchemaSingleton from './schema';
 
 function resolveValue(value, store) {
   if (typeof value === 'string' && /^urn:li:/.test(value)) {
@@ -65,9 +25,10 @@ export default class MegamorphicModel extends Ember.Object {
     this._super(...arguments);
     this._store = properties.store;
     this._internalModel = properties._internalModel;
+    this._modelName = this._internalModel.modelName;
     this.id = this._internalModel.id;
     this._cache = Object.create(null);
-    this._schema = Schema.schemaFor(this._internalModel.modelName);
+    this._schema = SchemaSingleton;
   }
 
   static get isModel() {
@@ -121,10 +82,10 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   unknownProperty(key) {
-    if (! this._schema.isPropertyIncluded(key)) { return; }
+    if (! this._schema.isAttributeIncluded(this._modelName, key)) { return; }
 
     let rawValue = this._internalModel._data[key];
-    let value = this._schema.transformValue(key, rawValue);
+    let value = this._schema.transformValue(this._modelName, key, rawValue);
 
     return (this._cache[key] = this._cache[key] || resolveValue(value, this._store));
   }
