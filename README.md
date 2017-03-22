@@ -1,13 +1,12 @@
-# ember-cli-m3
+# ember-m3
 
 This README outlines the details of collaborating on this Ember addon.
 
 ## Installation
 
 * `git clone <repository-url>` this repository
-* `cd ember-cli-m3`
-* `npm install`
-* `bower install`
+* `cd ember-m3`
+* `yarn install`
 
 ## Running
 

@@ -1,0 +1,57 @@
+Name: {{model._internalModel.modelName}}<br>
+
+<button {{action "updateData" target=this.target}} class='update-data'>
+  Update Data (via existing ED subsystem)
+</button>
+
+<button {{action "updateArray" target=this.target}} class='update-array'>
+  Update Array(via existing ED subsystem)
+</button>
+
+<ul class='books'>
+{{#each model.results as |book|}}
+  <li>
+    {{book._internalModel.modelName}}
+    <br>
+    id: <span class='id'>{{book.id}}</span>
+    <ul>
+      <li>name: <span class='name'>{{book.name}}</span></li>
+      <li>author: <span class='author'>{{book.author.name}}</span></li>
+      <li>pubmonth: <span class='pubmonth'>{{month-of book.pubDate}}</span></li>
+      {{#if book.readerComments}}
+        <li>
+          <ul class='comments'>
+            {{#each book.readerComments as |comment|}}
+            <li>
+              {{comment._internalModel.modelName}}: {{comment.id}}<br>
+              {{#with comment.commenter as |commenter|}}
+                {{commenter._internalModel.modelName}}: {{commenter.id}}<br>
+                {{commenter.name}}
+                {{#if commenter.favouriteBook}}
+                  (<em>Favourite: ({{commenter.favouriteBook.name}})</em>)
+                {{/if}}
+              {{/with}}
+              <br>
+              {{#if comment.body}}
+                <span class='comment-body'>
+                  {{comment.body}}
+                </span>
+              {{else}}{{#if comment.parts}}
+                <ul class='comment-parts'>
+                {{#each comment.parts as |part|}}
+                  <li>{{part.value}}</li>
+                {{/each}}
+                </ul>
+              {{/if}}
+              {{/if}}
+              <br>
+            </li>
+            {{/each}}
+          </ul>
+        </li>
+      {{/if}}
+    </ul>
+  </li>
+{{/each}}
+</ul>
+{{outlet}}

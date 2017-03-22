@@ -15,3 +15,7 @@
 /libpeerconnection.log
 npm-debug.log*
 testem.log
+/instrumentation.*
+/yarn-error.log
+/bin/*api*.sh
+/.npmrc

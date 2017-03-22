@@ -2,5 +2,15 @@
 'use strict';
 
 module.exports = {
-  name: 'ember-cli-m3'
+  name: 'ember-m3',
+
+  options: {
+    babel: {
+      loose: true,
+    }
+  },
+
+  isDevelopingAddon() {
+    return true;
+  },
 };
