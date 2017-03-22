@@ -128,4 +128,8 @@ export default class MegamorphicModel extends Ember.Object {
 
     return (this._cache[key] = this._cache[key] || resolveValue(value, this._store));
   }
+
+  static toString() {
+    return 'MegamorphicModel';
+  }
 }

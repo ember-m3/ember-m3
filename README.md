@@ -6,8 +6,7 @@ This README outlines the details of collaborating on this Ember addon.
 
 * `git clone <repository-url>` this repository
 * `cd ember-m3`
-* `npm install`
-* `bower install`
+* `yarn install`
 
 ## Running
 
