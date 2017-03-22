@@ -4,11 +4,22 @@ function dateTransform(value) {
   return new Date(Date.parse(value));
 }
 const LinkedInRegExp = /^com\.linkedin\.voyager\./;
+const UrnRegExp = /^urn:li:/;
 
 export function initialize(/* application */) {
   Schema.registerSchema({
-    matcher(modelName) {
-      return LinkedInRegExp.test(modelName);
+    matchers: {
+      id(value) {
+        return typeof value === 'string' && UrnRegExp.test(value)
+      },
+
+      type(modelName) {
+        return LinkedInRegExp.test(modelName);
+      },
+
+      nestedModel(value) {
+        return typeof value === 'object' && value !== null && typeof value.$type === 'string'
+      },
     },
 
     schema: {

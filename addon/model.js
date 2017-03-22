@@ -1,10 +1,10 @@
 import Ember from 'ember';
 import SchemaSingleton from './schema';
 
-function resolveValue(value, store) {
-  if (typeof value === 'string' && /^urn:li:/.test(value)) {
-    return store.peekRecord('com.linkedin.voyager.bagel', value);
-  } else if (typeof value === 'object' && value !== null && typeof value.$type === 'string') {
+function resolveValue(value, store, schema) {
+  if (schema._idMatcher(value)) {
+    return store.peekRecord('m3-model', value);
+  } else if (schema._nestedModelMatcher(value)) {
     return new MegamorphicModel({
       store: store,
       _internalModel: {
@@ -14,7 +14,7 @@ function resolveValue(value, store) {
     });
   } else if (Array.isArray(value)) {
     // arrays are strange
-    return value.map(entry => resolveValue(entry, store));
+    return value.map(entry => resolveValue(entry, store, schema));
   }
 
   return value;
@@ -47,7 +47,6 @@ export default class MegamorphicModel extends Ember.Object {
     return new this(properties);
   }
 
-  // TURBO
   __defineNonEnumerable(property) {
     this[property.name] = property.descriptor.value;
   }
@@ -63,7 +62,7 @@ export default class MegamorphicModel extends Ember.Object {
     Ember.endPropertyChanges();
   }
 
-  trigger() { }
+  trigger() {}
 
   get _debugContainerKey() {
     return 'com.voyager.*';
@@ -87,7 +86,7 @@ export default class MegamorphicModel extends Ember.Object {
     let rawValue = this._internalModel._data[key];
     let value = this._schema.transformValue(this._modelName, key, rawValue);
 
-    return (this._cache[key] = this._cache[key] || resolveValue(value, this._store));
+    return (this._cache[key] = this._cache[key] || resolveValue(value, this._store, this._schema));
   }
 
   static toString() {

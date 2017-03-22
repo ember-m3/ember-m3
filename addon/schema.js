@@ -1,6 +1,10 @@
 export class Schema {
   constructor() {
     this._matcher = () => false;
+
+    this._typeMatcher = () => false;
+    this._idMatcher = () => false;
+    this._nestedModelMatcher = () => false;
     this._schema = Object.create(null);
   }
 
@@ -19,8 +23,13 @@ export class Schema {
   }
 
   registerSchema(globalSchema) {
-    this._matcher = globalSchema.matcher;
-    this._schema = globalSchema.schema;
+    let matchers = globalSchema.matchers || {};
+
+    this._typeMatcher = matchers.type || this._typeMatcher;
+    this._idMatcher = matchers.id || this._idMatcher;
+    this._nestedModelMatcher = matchers.nestedModel || this._nestedModelMatcher;
+
+    this._schema = globalSchema.schema || this._schema;
   }
 }
 

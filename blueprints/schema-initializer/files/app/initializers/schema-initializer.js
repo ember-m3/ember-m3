@@ -6,6 +6,20 @@ export function initialize(/* application */) {
       return false;
     },
 
+    matchers: {
+      id(/* value */) {
+        return false;
+      },
+
+      type(/* modelName */) {
+        return false;
+      },
+
+      nestedModel(/* object */) {
+        return false;
+      },
+    },
+
     schema: {
       'my-model-type': {
         // an optional whitelist of attributes.  If undefined, all attributes
