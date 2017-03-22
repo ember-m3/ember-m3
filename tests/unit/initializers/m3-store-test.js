@@ -3,7 +3,7 @@ import { initialize } from 'dummy/initializers/m3-store';
 import { module, test } from 'qunit';
 import destroyApp from '../../helpers/destroy-app';
 
-module('Unit | Initializer | m3 store', {
+module('unit/initializers/m3-store', {
   beforeEach() {
     Ember.run(() => {
       this.application = Ember.Application.create();
