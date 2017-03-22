@@ -2,5 +2,5 @@
 'use strict';
 
 module.exports = {
-  name: 'ember-cli-m3'
+  name: 'ember-m3'
 };
