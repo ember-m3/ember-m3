@@ -1,0 +1,43 @@
+Name: {{model._internalModel.modelName}}<br>
+Date: {{month-of model.dateAttr}}<br>
+
+<button {{action "updateData" target=this.target}}> Update Data (via existing ED subsystem) </button>
+<ul>
+{{#each model.elements as |update|}}
+  <li>
+    {{update._internalModel.modelName}}<br>id: {{update.id}}
+    <ul>
+      <li>permalink: {{update.permalink}}</li>
+      <li>socialDetail: {{update.socialDetail.id}}</li>
+      <li> socialDetail.totalSocialActivityCounts.numComments: {{update.socialDetail.totalSocialActivityCounts.numComments}}</li>
+      <li>
+        <ul>
+          {{#each update.socialDetail.comments.elements as |comment|}}
+          <li>
+            {{comment._internalModel.modelName}}: {{comment.id}}<br>
+            {{#with comment.commenter.miniProfile as |commenter|}}
+              {{commenter._internalModel.modelName}}: {{commenter.id}}<br>
+              {{commenter.firstName}} {{commenter.lastName}}
+              <em>({{commenter.occupation}})</em><br>
+            {{/with}}
+            {{#each comment.comment.values as |cfrag|}}
+              {{cfrag.value}}
+            {{/each}}
+          </li>
+          {{/each}}
+        </ul>
+      </li>
+      <li>
+        {{update.value.$type}}#{{update.value.id}}<br>
+        Actions:
+        <ul>
+          {{#each update.value.actions as |action|}}
+            <li><button title={{action.subtext}}>{{action.value.$type}}:{{action.text}}</button></li>
+          {{/each}}
+        </ul>
+      </li>
+    </ul>
+  </li>
+{{/each}}
+</ul>
+{{outlet}}
