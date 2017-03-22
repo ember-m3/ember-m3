@@ -7,7 +7,7 @@ export default Ember.Route.extend({
 
   actions: {
     updateData() {
-      let first = this.modelFor('index').get('elements.firstObject');
+      let first = this.modelFor('index').get('elements')[0];
       let attributes = JSON.parse(JSON.stringify(first.debugJSON()));
       attributes.permalink = Math.random();
 
@@ -18,7 +18,7 @@ export default Ember.Route.extend({
           type: 'com.linkedin.voyager.appleface' }
       });
 
-      let firstComment = first.get('socialDetail.comments.elements.firstObject')
+      let firstComment = first.get('socialDetail.comments.elements')[0];
       let firstCommentAttributes = JSON.parse(JSON.stringify(firstComment.debugJSON()));
       firstCommentAttributes.comment.values[0].value = `INTERRUPT MESSAGE [${Math.random()}]`
 
