@@ -1,26 +1,21 @@
-import Schema from 'ember-m3/schema';
+import SchemaManager from 'ember-m3/schema-manager';
 
 export function initialize(/* application */) {
-  Schema.registerSchema({
-    matcher(/* modelName */) {
+  SchemaManager.registerSchema({
+
+    computeAttributeReference()/* key, value */ {
+      return null;
+    },
+
+    isAttributeANestedModel(/* key, value */) {
       return false;
     },
 
-    matchers: {
-      id(/* value */) {
-        return false;
-      },
-
-      type(/* modelName */) {
-        return false;
-      },
-
-      nestedModel(/* object */) {
-        return false;
-      },
+    includesModel(/* modelName */) {
+      return false;
     },
 
-    schema: {
+    models: {
       'my-model-type': {
         // an optional whitelist of attributes.  If undefined, all attributes
         // returned by the API will be available on the model

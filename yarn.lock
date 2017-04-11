@@ -1976,9 +1976,9 @@ ember-cli@2.12.0-beta.1:
     walk-sync "^0.3.0"
     yam "0.0.22"
 
-ember-data@emberjs/data#8e600fe3c4d295be3d80b75ea0dca793c8ed889d:
-  version "2.14.0-canary"
-  resolved "https://codeload.github.com/emberjs/data/tar.gz/8e600fe3c4d295be3d80b75ea0dca793c8ed889d"
+ember-data@^2.13.0-beta.3:
+  version "2.13.0-beta.3"
+  resolved "https://registry.yarnpkg.com/ember-data/-/ember-data-2.13.0-beta.3.tgz#3a55019e34d104598ec1a3bb002352ab7b155744"
   dependencies:
     amd-name-resolver "0.0.5"
     babel-plugin-feature-flags "^0.3.1"

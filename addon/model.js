@@ -1,10 +1,11 @@
 import Ember from 'ember';
-import SchemaSingleton from './schema';
+import SchemaManager from './schema-manager';
 
-function resolveValue(value, store, schema) {
-  if (schema._idMatcher(value)) {
-    return store.peekRecord('m3-model', value);
-  } else if (schema._nestedModelMatcher(value)) {
+function resolveValue(key, value, store, schema) {
+  let reference = schema.computeAttributeReference(key, value);
+  if (reference) {
+    return store.peekRecord(reference.type || 'm3-model', reference.id);
+  } else if (schema.isAttributeANestedModel(key, value)) {
     return new MegamorphicModel({
       store: store,
       _internalModel: {
@@ -14,7 +15,7 @@ function resolveValue(value, store, schema) {
     });
   } else if (Array.isArray(value)) {
     // arrays are strange
-    return value.map(entry => resolveValue(entry, store, schema));
+    return value.map(entry => resolveValue(key, entry, store, schema));
   }
 
   return value;
@@ -28,7 +29,7 @@ export default class MegamorphicModel extends Ember.Object {
     this._modelName = this._internalModel.modelName;
     this.id = this._internalModel.id;
     this._cache = Object.create(null);
-    this._schema = SchemaSingleton;
+    this._schema = SchemaManager;
   }
 
   static get isModel() {
@@ -65,7 +66,7 @@ export default class MegamorphicModel extends Ember.Object {
   trigger() {}
 
   get _debugContainerKey() {
-    return 'com.voyager.*';
+    return 'MegamorphicModel';
   }
 
   debugJSON() {
@@ -86,7 +87,7 @@ export default class MegamorphicModel extends Ember.Object {
     let rawValue = this._internalModel._data[key];
     let value = this._schema.transformValue(this._modelName, key, rawValue);
 
-    return (this._cache[key] = this._cache[key] || resolveValue(value, this._store, this._schema));
+    return (this._cache[key] = this._cache[key] || resolveValue(key, value, this._store, this._schema));
   }
 
   static toString() {

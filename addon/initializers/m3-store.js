@@ -2,48 +2,34 @@ import Ember from 'ember';
 import DS from 'ember-data';
 
 import MegamorphicModel from '../model';
-import SchemaSingleton from '../schema';
+import MegamorphicModelFactory from '../factory';
+import SchemaManager from '../schema-manager';
 
 // TODO: this is a stopgap.  We want to replace this with a public
 // DS.Model/Schema API
 //
 export function initialize(application) {
   application.register('service:store', DS.Store.extend({
-    init() {
-      this._super(...arguments);
-      this._typeMatcher = SchemaSingleton._typeMatcher;
-    },
-
     _hasModelFor(modelName) {
-      return this._typeMatcher(modelName) || this._super(modelName);
+      return SchemaManager.includesModel(modelName) || this._super(modelName);
     },
 
     _internalModelsFor(modelName) {
-      if (this._typeMatcher(modelName)) {
+      if (SchemaManager.includesModel(modelName)) {
         return this._super('m3-model');
       }
       return this._super(modelName);
     },
 
     modelFactoryFor(modelName) {
-      if (this._typeMatcher(modelName)) {
-        return {
-          class: MegamorphicModel,
-          create(props) {
-            return new MegamorphicModel(props);
-          }
-        };
+      if (SchemaManager.includesModel(modelName)) {
+        return MegamorphicModelFactory;
       }
       return this._super(modelName);
     }
   }));
 
   Ember.DataAdapter.reopen({
-    init() {
-      this._super(...arguments);
-      this._typeMatcher = SchemaSingleton._typeMatcher;
-    },
-
     getModelTypes() {
       return this._super(...arguments).concat({
         klass: MegamorphicModel,
@@ -52,7 +38,7 @@ export function initialize(application) {
     },
 
     _nameToClass(modelName) {
-      if (this._typeMatcher(modelName)) {
+      if (SchemaManager.includesModel(modelName)) {
         return MegamorphicModel;
       }
       return this._super(...arguments);
