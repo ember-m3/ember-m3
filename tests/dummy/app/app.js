@@ -11,12 +11,6 @@ App = Ember.Application.extend({
   modulePrefix: config.modulePrefix,
   podModulePrefix: config.podModulePrefix,
   Resolver,
-  init() {
-    this._super(...arguments);
-    // TODO: remove console short hands
-    self.container = this.__container__;
-    self.store =this.__container__.lookup('service:store');
-  }
 });
 
 loadInitializers(App, config.modulePrefix);

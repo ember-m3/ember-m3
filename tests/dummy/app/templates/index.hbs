@@ -1,17 +1,19 @@
 Name: {{model._internalModel.modelName}}<br>
 Month: {{month-of model.dateAttr}}<br>
 
-<button {{action "updateData" target=this.target}}> Update Data (via existing ED subsystem) </button>
-<ul>
+<button {{action "updateData" target=this.target}} class='update-data'> Update Data (via existing ED subsystem) </button>
+<ul class='feed-updates'>
 {{#each model.elements as |update|}}
   <li>
-    {{update._internalModel.modelName}}<br>id: {{update.id}}
+    {{update._internalModel.modelName}}
+    <br>
+    id: <span class='id'>{{update.id}}</span>
     <ul>
-      <li>permalink: {{update.permalink}}</li>
-      <li>socialDetail: {{update.socialDetail.id}}</li>
-      <li> socialDetail.totalSocialActivityCounts.numComments: {{update.socialDetail.totalSocialActivityCounts.numComments}}</li>
+      <li>permalink: <span class='permalink'>{{update.permalink}}</span></li>
+      <li>socialDetail: <span class='social-detail-id'>{{update.socialDetail.id}}</span></li>
+      <li>socialDetail.totalSocialActivityCounts.numComments: {{update.socialDetail.totalSocialActivityCounts.numComments}}</li>
       <li>
-        <ul>
+        <ul class='comments'>
           {{#each update.socialDetail.comments.elements as |comment|}}
           <li>
             {{comment._internalModel.modelName}}: {{comment.id}}<br>
@@ -20,9 +22,11 @@ Month: {{month-of model.dateAttr}}<br>
               {{commenter.firstName}} {{commenter.lastName}}
               <em>({{commenter.occupation}})</em><br>
             {{/with}}
-            {{#each comment.comment.values as |cfrag|}}
-              {{cfrag.value}}
-            {{/each}}
+            <span class='comment-body'>
+              {{#each comment.comment.values as |cfrag|}}
+                {{cfrag.value}}
+              {{/each}}
+            </span>
           </li>
           {{/each}}
         </ul>

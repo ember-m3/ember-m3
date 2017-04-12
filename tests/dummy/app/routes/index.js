@@ -1,6 +1,11 @@
 import Ember from 'ember';
 
 export default Ember.Route.extend({
+  init(...args) {
+    this._super(...args);
+    this.invocation = 0;
+  },
+
   model() {
     return this.store.queryRecord('com.linkedin.voyager.collection', {});
   },
@@ -9,7 +14,12 @@ export default Ember.Route.extend({
     updateData() {
       let first = this.modelFor('index').get('elements')[0];
       let attributes = JSON.parse(JSON.stringify(first.debugJSON()));
-      attributes.permalink = Math.random();
+
+      if (this.invocation++ === 0) {
+        attributes.permalink = 'update data';
+      } else {
+        attributes.permalink = Math.random();
+      }
 
       this.store.pushPayload('com.linkedin.voyager.badger', {
         data: {
