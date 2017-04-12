@@ -38,11 +38,32 @@ moduleFor('m3:model', 'unit/model', {
             type: 'baz',
             id: value,
           };
+        } else if (key === 'bars' && !Array.isArray(value)) {
+          return {
+            type: 'gg.bar',
+            id: value,
+          };
+        } else if (key === 'arrayMixed' && /^bar_(\d)/.test(value)) {
+          return {
+            type: 'gg.bar',
+            id: /^bar_(\d)/.exec(value)[1],
+          };
+        } else if (key === 'arrayMixed' && /^baz_(\d)/.test(value)) {
+          return {
+            type: 'baz',
+            id: /^baz_(\d)/.exec(value)[1],
+          };
         }
       },
 
       computeNestedModel(key, value) {
         if (key === 'nested') {
+          return {
+            id: value.id,
+            type: 'gg.nested',
+            attributes: value,
+          };
+        } else if (key === 'nesteds' && !Array.isArray(value)) {
           return {
             id: value.id,
             type: 'gg.nested',
@@ -198,14 +219,104 @@ test('.unknownProperty resolves nested-matched values as nested m3-models', func
 });
 
 test('.unknownProperty resolves arrays of id-matched values', function(assert) {
+  let model = run(() => {
+    return this.store().push({
+      data: {
+        id: 1,
+        type: 'gg.foo',
+        attributes: {
+          bars: ['5', '6', '7'],
+        },
+      },
 
+      included: [{
+        id: 5,
+        type: 'gg.foo',
+        attributes: {
+          secretName: 'foo5',
+        }
+      }, {
+        id: 6,
+        type: 'gg.foo',
+        attributes: {
+          secretName: 'foo6',
+        }
+      }, {
+        id: 7,
+        type: 'gg.foo',
+        attributes: {
+          secretName: 'foo7',
+        }
+      }]
+    });
+  });
+
+  assert.deepEqual(get(model, 'bars').map(x => get(x, 'secretName')), ['foo5', 'foo6', 'foo7']);
 });
 
 test('.unknownProperty resolves arrays of nested-matched values', function(assert) {
+  let model = run(() => {
+    return this.store().push({
+      data: {
+        id: 1,
+        type: 'gg.foo',
+        attributes: {
+          nesteds: [{
+            id: 1,
+            name: 'nested1',
+          }, {
+            id: 2,
+            name: 'nested2',
+          }, {
+            id: 3,
+            name: 'nested3',
+          }],
+        },
+      },
+    });
+  });
 
+  assert.deepEqual(get(model, 'nesteds').map(x => get(x, 'name')), ['nested1', 'nested2', 'nested3']);
 });
 
 test('.unknownProperty resolves heterogenous arrays of id-matched, nested-matched and unmatched values', function(assert) {
+  let model = run(() => {
+    return this.store().push({
+      data: {
+        id: 1,
+        type: 'gg.foo',
+        attributes: {
+          arrayMixed: [
+            {
+              id: 1,
+              name: 'nested1',
+            },
+            'bar_6',
+            'baz_7'
+          ],
+        },
+      },
 
+      included: [{
+        id: 6,
+        type: 'gg.bar',
+        attributes: {
+          suchBar: 'very',
+        },
+      }, {
+        id: 7,
+        type: 'baz',
+        attributes: {
+          suchBaz: 'indeed',
+        }
+      }]
+    });
+  });
+
+  let arrayMixed = get(model, 'arrayMixed');
+  assert.equal(arrayMixed.length, 3, 'array has right length');
+  assert.equal(get(arrayMixed[0], 'name'), 'nested1', 'array nested');
+  assert.equal(get(arrayMixed[1], 'suchBar'), 'very', 'array ref-to-m3');
+  assert.equal(get(arrayMixed[2], 'suchBaz'), 'indeed', 'array ref-to-ds.model');
 });
 
