@@ -7,27 +7,27 @@ module('unit/schema-manager', function() {
       let schema1 = {
         includesModel: function() {},
         computeAttributeReference: function() {},
-        isAttributeANestedModel: function() {},
+        computeNestedModel: function() {},
         models: {},
       };
 
       let schema2 = {
         includesModel: function() {},
         computeAttributeReference: function() {},
-        isAttributeANestedModel: function() {},
+        computeNestedModel: function() {},
         models: {},
       };
 
       SchemaManager.registerSchema(schema1);
       assert.equal(SchemaManager.includesModel, schema1.includesModel);
       assert.equal(SchemaManager.computeAttributeReference, schema1.computeAttributeReference);
-      assert.equal(SchemaManager.isAttributeANestedModel, schema1.isAttributeANestedModel);
+      assert.equal(SchemaManager.computeNestedModel, schema1.computeNestedModel);
       assert.equal(SchemaManager._models, schema1.models);
 
       SchemaManager.registerSchema(schema2);
       assert.equal(SchemaManager.includesModel, schema2.includesModel);
       assert.equal(SchemaManager.computeAttributeReference, schema2.computeAttributeReference);
-      assert.equal(SchemaManager.isAttributeANestedModel, schema2.isAttributeANestedModel);
+      assert.equal(SchemaManager.computeNestedModel, schema2.computeNestedModel);
       assert.equal(SchemaManager._models, schema2.models);
     });
   });
@@ -63,13 +63,13 @@ module('unit/schema-manager', function() {
 
     test('can specify a nested model matcher', function(assert) {
       SchemaManager.registerSchema({
-        isAttributeANestedModel(key) {
+        computeNestedModel(key) {
           return /gg\./i.test(key);
         }
       });
 
-      assert.equal(SchemaManager.isAttributeANestedModel('gg.foo'), true);
-      assert.equal(SchemaManager.isAttributeANestedModel('name'), false);
+      assert.equal(SchemaManager.computeNestedModel('gg.foo'), true);
+      assert.equal(SchemaManager.computeNestedModel('name'), false);
     });
 
     test('can specify per-modelName transforms', function(assert) {

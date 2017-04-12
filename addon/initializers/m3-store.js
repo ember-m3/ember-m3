@@ -43,7 +43,7 @@ export function initialize(application) {
       }
       return this._super(...arguments);
     }
-  })
+  });
 }
 
 export default {

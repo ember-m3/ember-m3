@@ -7,8 +7,8 @@ export function initialize(/* application */) {
       return null;
     },
 
-    isAttributeANestedModel(/* key, value */) {
-      return false;
+    computeNestedModel(/* key, value */) {
+      return null;
     },
 
     includesModel(/* modelName */) {

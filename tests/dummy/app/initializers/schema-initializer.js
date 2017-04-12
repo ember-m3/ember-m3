@@ -21,8 +21,14 @@ export function initialize(/* application */) {
       return LinkedInRegExp.test(modelName);
     },
 
-    isAttributeANestedModel(key, value) {
-      return typeof value === 'object' && value !== null && typeof value.$type === 'string'
+    computeNestedModel(key, value) {
+      if (typeof value === 'object' && value !== null && typeof value.$type === 'string') {
+        return {
+          id: value.urn,
+          type: value.$type,
+          attributes: value,
+        };
+      }
     },
 
     models: {

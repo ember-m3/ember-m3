@@ -4,13 +4,13 @@ const DEFAULT_REFERENCE = () => null;
 export class SchemaManager {
   constructor() {
     this.computeAttributeReference = DEFAULT_REFERENCE;
-    this.isAttributeANestedModel = DEFAULT_MATCHER;
+    this.computeNestedModel = DEFAULT_REFERENCE;
     this.includesModel = DEFAULT_MATCHER;
     this._models = Object.create(null);
   }
 
   // computeAttributeReference,
-  // isAttributeANestedModel,
+  // computeNestedModel,
   // includesModel,
 
   isAttributeIncluded(modelName, attrName) {
@@ -29,12 +29,12 @@ export class SchemaManager {
 
   registerSchema({
     computeAttributeReference,
-    isAttributeANestedModel,
+    computeNestedModel,
     includesModel,
     models,
   }) {
     this.computeAttributeReference = computeAttributeReference || DEFAULT_REFERENCE;
-    this.isAttributeANestedModel = isAttributeANestedModel || DEFAULT_MATCHER;
+    this.computeNestedModel = computeNestedModel || DEFAULT_REFERENCE;
     this.includesModel = includesModel || DEFAULT_MATCHER;
     this._models = models || Object.create(null);
   }

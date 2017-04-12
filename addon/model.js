@@ -5,15 +5,21 @@ function resolveValue(key, value, store, schema) {
   let reference = schema.computeAttributeReference(key, value);
   if (reference) {
     return store.peekRecord(reference.type || 'm3-model', reference.id);
-  } else if (schema.isAttributeANestedModel(key, value)) {
+  }
+
+  let nested = schema.computeNestedModel(key, value);
+  if (nested) {
     return new MegamorphicModel({
       store: store,
       _internalModel: {
-        id: value.urn,
-        _data: value
+        id: nested.id,
+        modelName: nested.type,
+        _data: nested.attributes,
       }
     });
-  } else if (Array.isArray(value)) {
+  }
+
+  if (Array.isArray(value)) {
     // arrays are strange
     return value.map(entry => resolveValue(key, entry, store, schema));
   }
@@ -42,6 +48,9 @@ export default class MegamorphicModel extends Ember.Object {
 
   static get attributes () {
     return [];
+  }
+
+  static eachRelationship(/* callback */) {
   }
 
   static create(properties) {
