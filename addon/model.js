@@ -103,3 +103,5 @@ export default class MegamorphicModel extends Ember.Object {
     return 'MegamorphicModel';
   }
 }
+
+MegamorphicModel.relationshipsByName = new Ember.Map();

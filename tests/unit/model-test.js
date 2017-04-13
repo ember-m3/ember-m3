@@ -18,6 +18,7 @@ moduleFor('m3:model', 'unit/model', {
 
     this.Baz = DS.Model.extend({
       suchBaz: DS.attr(),
+      foo: DS.belongsTo('gg.foo', { async: false }),
     });
     this.Baz.toString = () => 'Baz';
     this.register('model:baz', this.Baz);
@@ -320,3 +321,35 @@ test('.unknownProperty resolves heterogenous arrays of id-matched, nested-matche
   assert.equal(get(arrayMixed[2], 'suchBaz'), 'indeed', 'array ref-to-ds.model');
 });
 
+test('DS.Models can have relationships into m3 models', function(assert) {
+  let model = run(() => {
+    return this.store().push({
+      data: {
+        id: 3,
+        type: 'baz',
+        attributes: {
+          suchBaz: 'indeed',
+        },
+        relationships: {
+          foo: {
+            data: {
+              id: 1,
+              type: 'gg.foo'
+            }
+          }
+        }
+      },
+
+      included: [{
+        id: 1,
+        type: 'gg.foo',
+        attributes: {
+          secretName: 'secret ohai',
+        }
+      }]
+    });
+  });
+
+  assert.equal(get(model, 'suchBaz'), 'indeed', 'ds.model loaded');
+  assert.equal(get(model, 'foo.secretName'), 'secret ohai', 'ds.model can access m3 model via relationship');
+});
