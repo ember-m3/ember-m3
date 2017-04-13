@@ -1,5 +1,10 @@
 import Ember from 'ember';
 import SchemaManager from './schema-manager';
+// TODO: rollup lodash or write our own setdiff; also lodash's difference
+// doesn't seem to require sort so it's presumably O(n^2) but w/e
+import { difference as setDiff} from 'lodash';
+
+const { isEqual } = Ember;
 
 function resolveValue(key, value, store, schema) {
   let reference = schema.computeAttributeReference(key, value);
@@ -9,6 +14,7 @@ function resolveValue(key, value, store, schema) {
 
   let nested = schema.computeNestedModel(key, value);
   if (nested) {
+    console.log('CREATE m3', key);
     return new MegamorphicModel({
       store: store,
       _internalModel: {
@@ -20,11 +26,38 @@ function resolveValue(key, value, store, schema) {
   }
 
   if (Array.isArray(value)) {
-    // arrays are strange
     return value.map(entry => resolveValue(key, entry, store, schema));
   }
 
   return value;
+}
+
+/**
+  Calculate the changed keys from prior and new `data`s.  This follows similar
+  semantics to `InternalModel._changedKeys`.
+
+  The key difference is that omitted attributes and new attributes are treated
+  as changes, instead of ignored.
+
+  There is another difference, which is that there's no notion of
+  `_inflightAttributes` or `_attributes`, but this will likely need to change
+  when m3 composes a write story.
+*/
+function calculateChangedKeys(oldValue, newValue) {
+  let oldKeys = Object.keys(oldValue).sort();
+  let newKeys = Object.keys(newValue).sort();
+
+  // omitted keys are treated as changes
+  let result = setDiff(oldKeys, newKeys);
+
+  for (let i=0; i<newKeys.length; ++i) {
+    let key = newKeys[i];
+    if (!isEqual(oldValue[key], newValue[key])) {
+      result.push(key);
+    }
+  }
+
+  return result;
 }
 
 export default class MegamorphicModel extends Ember.Object {
@@ -66,10 +99,27 @@ export default class MegamorphicModel extends Ember.Object {
     let key;
     for (let i = 0, length = keys.length; i < length; i++) {
       key = keys[i];
-      delete this._cache[key];
-      this.notifyPropertyChange(key);
+      let oldValue = this._cache[key];
+      if (oldValue && oldValue.constructor === MegamorphicModel) {
+        oldValue._didReceiveNestedProperties(this._internalModel._data[key]);
+      } else {
+        delete this._cache[key];
+        this.notifyPropertyChange(key);
+      }
     }
     Ember.endPropertyChanges();
+  }
+
+  _didReceiveNestedProperties(data) {
+    let changedKeys = calculateChangedKeys(this._internalModel._data, data);
+    this._internalModel._data = data;
+    if (changedKeys.length > 0) {
+      this._notifyProperties(changedKeys);
+    }
+  }
+
+  _changedKeys(data) {
+    return calculateChangedKeys(this._internalModel._data, data);
   }
 
   trigger() {}
@@ -101,6 +151,10 @@ export default class MegamorphicModel extends Ember.Object {
 
   static toString() {
     return 'MegamorphicModel';
+  }
+
+  toString() {
+    return `<MegamorphicModel:${this.id}>`;
   }
 }
 
