@@ -14,7 +14,6 @@ function resolveValue(key, value, store, schema) {
 
   let nested = schema.computeNestedModel(key, value);
   if (nested) {
-    console.log('CREATE m3', key);
     return new MegamorphicModel({
       store: store,
       _internalModel: {
@@ -94,15 +93,25 @@ export default class MegamorphicModel extends Ember.Object {
     this[property.name] = property.descriptor.value;
   }
 
+  _assignAttributes(attributes) {
+    this._internalModel._data = attributes;
+  }
+
   _notifyProperties(keys) {
     Ember.beginPropertyChanges();
     let key;
     for (let i = 0, length = keys.length; i < length; i++) {
       key = keys[i];
       let oldValue = this._cache[key];
-      if (oldValue && oldValue.constructor === MegamorphicModel) {
+      let newValue = this._internalModel._data[key];
+
+      let oldWasModel = oldValue && oldValue.constructor === MegamorphicModel;
+      let newIsObject = typeof newValue === 'object';
+
+      if (oldWasModel && newIsObject) {
         oldValue._didReceiveNestedProperties(this._internalModel._data[key]);
       } else {
+        // anything -> undefined | primitive
         delete this._cache[key];
         this.notifyPropertyChange(key);
       }

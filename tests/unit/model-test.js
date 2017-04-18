@@ -61,6 +61,8 @@ moduleFor('m3:model', 'unit/model', {
       },
 
       computeNestedModel(key, value) {
+        if (!value || typeof value !== 'object') { return; }
+
         if (key === 'nested') {
           return {
             id: value.id,
@@ -556,11 +558,111 @@ test('omitted attributes in nested models are treated as deleted', function(asse
 });
 
 test('new attributes are treated as changed', function(assert) {
+  let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
+  let model = run(() => {
+    return this.store().push({
+      data: {
+        id: 1,
+        type: 'gg.foo',
+        attributes: {
+          secretName: 'secret',
+        },
+      },
+    });
+  });
+
+  assert.equal(get(model, 'secretName'), 'secret');
+  assert.equal(get(model, 'anotherAttribute'), undefined);
+
+  run(() => {
+    return this.store().push({
+      data: {
+        id: 1,
+        type: 'gg.foo',
+        attributes: {
+          secretName: 'secret',
+          anotherAttribute: 'another',
+        }
+      }
+    });
+  });
+
+  assert.deepEqual(zip(propChange.thisValues.map(x => x+''), propChange.args), [
+    [model+'', ['anotherAttribute']],
+  ], 'new attributes are treated as changes');
+
+  assert.equal(get(model, 'secretName'), 'secret');
+  assert.equal(get(model, 'anotherAttribute'), 'another');
 });
 
 test('new attributes in nested models are treated as changed', function(assert) {
+  let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
+  let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
+  let model = run(() => {
+    return this.store().push({
+      data: {
+        id: 1,
+        type: 'gg.foo',
+        attributes: {
+          nested: {
+            id: 4,
+            name: 'i am nest',
+            nested: {
+              id: 6,
+              name: 'i nest again!',
+            }
+          }
+        },
+      },
+    });
+  });
+
+  assert.equal(init.callCount, 1, 'one model is initially created');
+  assert.equal(propChange.callCount, 0, 'no property changes');
+
+  let nested = get(model, 'nested');
+  let doubleNested = get(model, 'nested.nested');
+
+  assert.equal(init.callCount, 3, 'models created lazily');
+
+  assert.equal(get(nested, 'name'), 'i am nest');
+  assert.equal(get(nested, 'anotherAttribute'), undefined);
+  assert.equal(get(doubleNested, 'name'), 'i nest again!');
+  assert.equal(get(doubleNested, 'anotherAttribute'), undefined);
+
+  run(() => {
+    return this.store().push({
+      data: {
+        id: 1,
+        type: 'gg.foo',
+        attributes: {
+          nested: {
+            id: 4,
+            name: 'still nest',
+            anotherAttribute: 'another',
+            nested: {
+              id: 6,
+              name: 'i nest again!',
+              anotherAttribute: 'wat',
+            }
+          }
+        }
+      }
+    });
+  });
+
+  assert.deepEqual(zip(propChange.thisValues.map(x => x+''), propChange.args), [
+    [nested+'', ['anotherAttribute']],
+    [nested+'', ['name']],
+    [doubleNested+'', ['anotherAttribute']],
+  ], 'new attributes are treated as changed');
+
+  assert.equal(get(nested, 'name'), 'still nest');
+  assert.equal(get(nested, 'anotherAttribute'), 'another');
+  assert.equal(get(doubleNested, 'name'), 'i nest again!');
+  assert.equal(get(doubleNested, 'anotherAttribute'), 'wat');
 });
 
 test('nested model attribute changes are properly detected', function(assert) {
@@ -639,7 +741,7 @@ test('nested model updates null -> model', function(assert) {
     });
   });
 
-  assert.equal(get(model, 'secretName'), 'ohai');
+  assert.equal(get(model, 'secretName'), 'ohai', 'property get as expected');
   assert.equal(init.callCount, 1, 'one model is initially created');
 
   run(() => {
@@ -648,6 +750,7 @@ test('nested model updates null -> model', function(assert) {
         id: 1,
         type: 'gg.foo',
         attributes: {
+          secretName: 'ohai',
           nested: {
             id: 4,
             name: 'still nest',
@@ -668,11 +771,209 @@ test('nested model updates null -> model', function(assert) {
     [model+'', ['nested']],
   ], 'nested model from null is treated as a change');
 
-  assert.equal(get(model, 'nested.nested.name'), 'stuck in nest');
+  assert.equal(get(model, 'nested.nested.name'), 'stuck in nest', 'nested model attrs set');
   assert.equal(init.callCount, 3, 'nested models are lazily created');
 });
 
-test('nested model updates model -> null', function(assert) {
+test('nested model updates primitive -> model', function(assert) {
+  let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
+  let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
+
+  let model = run(() => {
+    return this.store().push({
+      data: {
+        id: 1,
+        type: 'gg.foo',
+        attributes: {
+          secretName: 'ohai',
+          nested: 24601,
+        },
+      },
+    });
+  });
+
+  assert.equal(get(model, 'secretName'), 'ohai', 'get model.secretName');
+  assert.equal(get(model, 'nested'), 24601, 'get model.nested');
+  assert.equal(init.callCount, 1, 'one model is initially created');
+
+  run(() => {
+    return this.store().push({
+      data: {
+        id: 1,
+        type: 'gg.foo',
+        attributes: {
+          secretName: 'ohai',
+          nested: {
+            id: 4,
+            name: 'still nest',
+            anotherAttribute: 'another',
+            nested: {
+              id: 6,
+              name: 'stuck in nest',
+              anotherAttribute: 'wat',
+            }
+          }
+        }
+      }
+    });
+  });
+
+  assert.equal(init.callCount, 1, 'nested models are not eaagerly created from changes');
+  assert.deepEqual(zip(propChange.thisValues.map(x => x+''), propChange.args), [
+    [model+'', ['nested']],
+  ], 'nested model from null is treated as a change');
+
+  assert.equal(get(model, 'nested.nested.name'), 'stuck in nest', 'nested model attrs set');
+  assert.equal(init.callCount, 3, 'nested models are lazily created');
+});
+
+test('nested model updates model -> null (model reified)', function(assert) {
+  let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
+  let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
+
+  let model = run(() => {
+    return this.store().push({
+      data: {
+        id: 1,
+        type: 'gg.foo',
+        attributes: {
+          secretName: 'ohai',
+          nested: {
+            id: 4,
+            name: 'still nest',
+            anotherAttribute: 'another',
+            nested: {
+              id: 6,
+              name: 'stuck in nest',
+              anotherAttribute: 'wat',
+            }
+          }
+        }
+      }
+    });
+  });
+
+  assert.equal(get(model, 'nested.nested.name'), 'stuck in nest', 'nested model attrs set');
+  assert.equal(init.callCount, 3, 'nested models are created');
+
+  run(() => {
+    self.halt = true;
+    return this.store().push({
+      data: {
+        id: 1,
+        type: 'gg.foo',
+        attributes: {
+          secretName: 'ohai'
+        },
+      },
+    });
+  });
+
+  assert.equal(init.callCount, 3, 'no additional models created');
+  assert.equal(get(model, 'nested.nested.name'), undefined, 'nested model is cleared');
+  assert.deepEqual(zip(propChange.thisValues.map(x => x+''), propChange.args), [
+    [model+'', ['nested']],
+  ], 'nested model to null is treated as a change');
+});
+
+test('nested model updates model -> primitive', function(assert) {
+  let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
+  let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
+
+  let model = run(() => {
+    return this.store().push({
+      data: {
+        id: 1,
+        type: 'gg.foo',
+        attributes: {
+          secretName: 'ohai',
+          nested: {
+            id: 4,
+            name: 'still nest',
+            anotherAttribute: 'another',
+            nested: {
+              id: 6,
+              name: 'stuck in nest',
+              anotherAttribute: 'wat',
+            }
+          }
+        }
+      }
+    });
+  });
+
+  assert.equal(get(model, 'secretName'), 'ohai', 'get model.secretName');
+  assert.equal(get(model, 'nested.nested.name'), 'stuck in nest', 'nested model attrs set');
+  assert.equal(init.callCount, 3, 'three models is initially created');
+
+  run(() => {
+    return this.store().push({
+      data: {
+        id: 1,
+        type: 'gg.foo',
+        attributes: {
+          secretName: 'ohai',
+          nested: 24601,
+        },
+      },
+    });
+  });
+
+  assert.equal(init.callCount, 3, 'no new models created');
+  assert.deepEqual(zip(propChange.thisValues.map(x => x+''), propChange.args), [
+    [model+'', ['nested']],
+  ], 'nested model from null is treated as a change');
+
+  assert.equal(get(model, 'nested'), 24601, 'nested model -> primitive');
+});
+
+test('nested model updates model -> null (model inert)', function(assert) {
+  let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
+  let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
+
+  let model = run(() => {
+    return this.store().push({
+      data: {
+        id: 1,
+        type: 'gg.foo',
+        attributes: {
+          secretName: 'ohai',
+          nested: {
+            id: 4,
+            name: 'still nest',
+            anotherAttribute: 'another',
+            nested: {
+              id: 6,
+              name: 'stuck in nest',
+              anotherAttribute: 'wat',
+            }
+          }
+        }
+      }
+    });
+  });
+
+  assert.equal(init.callCount, 1, 'one model is initially created');
+
+  run(() => {
+    return this.store().push({
+      data: {
+        id: 1,
+        type: 'gg.foo',
+        attributes: {
+          secretName: 'ohai'
+        },
+      },
+    });
+  });
+
+  assert.equal(init.callCount, 1, 'nested models are not eaagerly created from changes');
+  assert.deepEqual(zip(propChange.thisValues.map(x => x+''), propChange.args), [
+    [model+'', ['nested']],
+  ], 'nested model from null is treated as a change');
+
+  assert.equal(get(model, 'nested.nested.name'), undefined, 'nested model not set');
+  assert.equal(init.callCount, 1, 'nested model not created');
 });
 
 test('nested array attribute changes are properly detected', function(assert) {
