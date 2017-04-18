@@ -39,6 +39,25 @@ export default Ember.Route.extend({
           type: 'com.linkedin.voyager.potato',
         }
       });
-    }
+    },
+
+    updateArray() {
+      let first = this.modelFor('index').get('elements')[0];
+
+      let firstComment = first.get('socialDetail.comments.elements')[0];
+      let firstCommentAttributes = JSON.parse(JSON.stringify(firstComment.debugJSON()));
+      firstCommentAttributes.comment.values.unshift({
+        value: `A NEW SECRET MESSAGE HAS APPEARED ${Math.random()}`,
+        $type: 'com.linkedin.voyager.feed.shared.AnnotatedString',
+      });
+
+      this.store.pushPayload('com.linkedin.voyager.actually_might_be_a_potatoe', {
+        data: {
+          attributes: firstCommentAttributes,
+          id: firstComment.id,
+          type: 'com.linkedin.voyager.nevermind_not_a_potatoe',
+        }
+      });
+    },
   }
 });

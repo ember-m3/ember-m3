@@ -1,7 +1,14 @@
 Name: {{model._internalModel.modelName}}<br>
 Month: {{month-of model.dateAttr}}<br>
 
-<button {{action "updateData" target=this.target}} class='update-data'> Update Data (via existing ED subsystem) </button>
+<button {{action "updateData" target=this.target}} class='update-data'>
+  Update Data (via existing ED subsystem)
+</button>
+
+<button {{action "updateArray" target=this.target}} class='update-array'>
+  Update Array(via existing ED subsystem)
+</button>
+
 <ul class='feed-updates'>
 {{#each model.elements as |update|}}
   <li>

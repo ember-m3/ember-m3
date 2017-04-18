@@ -976,6 +976,112 @@ test('nested model updates model -> null (model inert)', function(assert) {
   assert.equal(init.callCount, 1, 'nested model not created');
 });
 
-test('nested array attribute changes are properly detected', function(assert) {
+test('nested model updates (model -> model) no changes', function(assert) {
+  let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
+  let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
+  let model = run(() => {
+    return this.store().push({
+      data: {
+        id: 1,
+        type: 'gg.foo',
+        attributes: {
+          secretName: 'ohai',
+          nested: {
+            id: 4,
+            name: 'still nest',
+            anotherAttribute: 'another',
+            nested: {
+              id: 6,
+              name: 'stuck in nest',
+              anotherAttribute: 'wat',
+            }
+          }
+        }
+      }
+    });
+  });
+
+  assert.equal(init.callCount, 1, 'one model is initially created');
+
+  run(() => {
+    return this.store().push({
+      data: {
+        id: 1,
+        type: 'gg.foo',
+        attributes: {
+          secretName: 'ohai',
+          nested: {
+            id: 4,
+            name: 'still nest',
+            anotherAttribute: 'another',
+            nested: {
+              id: 6,
+              name: 'stuck in nest',
+              anotherAttribute: 'wat',
+            }
+          }
+        }
+      }
+    });
+  });
+
+  assert.equal(init.callCount, 1, 'nested models are not eaagerly created from changes');
+  assert.deepEqual(zip(propChange.thisValues.map(x => x+''), propChange.args), [
+    [model+'', ['nested']],
+  ], 'nested pojo -> pojo change even if the values are deep equal');
+});
+
+test('nested array attribute changes are properly detected', function(assert) {
+  let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
+  let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
+
+  let model = run(() => {
+    return this.store().push({
+      data: {
+        id: 1,
+        type: 'gg.foo',
+        attributes: {
+          secretName: 'ohai',
+          nesteds: [{
+            name: 'still nest',
+          }, {
+            name: 'sibling nest',
+          }, {
+            name: 'another sibling nest',
+          }]
+        }
+      }
+    });
+  });
+
+  let childModel = get(model, 'nesteds')[1];
+  assert.equal(init.callCount, 4, 'nested models in arrays are eagerly reified');
+
+  run(() => {
+    return this.store().push({
+      data: {
+        id: 1,
+        type: 'gg.foo',
+        attributes: {
+          secretName: 'ohai',
+          nesteds: [{
+            name: 'still nest',
+          }, {
+            name: 'sibling nest',
+          }, {
+            name: 'another sibling nest',
+          }]
+        }
+      }
+    });
+  });
+
+  assert.equal(init.callCount, 4, 'nested models are not eaagerly created from changes');
+  assert.deepEqual(zip(propChange.thisValues.map(x => x+''), propChange.args), [
+    [model+'', ['nesteds']],
+  ], 'nested array -> array change even if the values are deep equal');
+
+  assert.notEqual(get(model, 'nesteds')[1], childModel, 'previous nested models in arrays are not re-used');
+  assert.equal(init.callCount, 7, 'nested models in arrays are not re-used');
 });
