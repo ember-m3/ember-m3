@@ -4,12 +4,18 @@ import DS from 'ember-data';
 import MegamorphicModel from '../model';
 import MegamorphicModelFactory from '../factory';
 import SchemaManager from '../schema-manager';
+import QueryCache from '../query-cache';
 
 // TODO: this is a stopgap.  We want to replace this with a public
 // DS.Model/Schema API
 //
 export function initialize(application) {
   application.register('service:store', DS.Store.extend({
+    init() {
+      this._queryCache = new QueryCache({ store: this });
+      this._super(...arguments);
+    },
+
     _hasModelFor(modelName) {
       return SchemaManager.includesModel(modelName) || this._super(modelName);
     },
@@ -26,7 +32,11 @@ export function initialize(application) {
         return MegamorphicModelFactory;
       }
       return this._super(modelName);
-    }
+    },
+
+    queryURL(url, params, options) {
+      return this._queryCache.queryURL(url, params, options);
+    },
   }));
 
   Ember.DataAdapter.reopen({
