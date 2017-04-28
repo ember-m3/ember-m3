@@ -2087,9 +2087,9 @@ ember-cli@^2.12.1:
     walk-sync "^0.3.0"
     yam "0.0.22"
 
-ember-data@^2.13.0-beta.3:
-  version "2.13.0-beta.3"
-  resolved "https://registry.yarnpkg.com/ember-data/-/ember-data-2.13.0-beta.3.tgz#3a55019e34d104598ec1a3bb002352ab7b155744"
+ember-data@hjdivad/data#hjdivad/public-ds-model-interface:
+  version "2.14.0-canary"
+  resolved "https://codeload.github.com/hjdivad/data/tar.gz/3fc1a8915b39689b0f80a4dfc1b420f144c714ad"
   dependencies:
     amd-name-resolver "0.0.5"
     babel-plugin-feature-flags "^0.3.1"
