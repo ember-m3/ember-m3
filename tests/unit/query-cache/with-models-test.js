@@ -165,7 +165,7 @@ test('multiple cache entries are invalidated if they both involve the same unloa
     assert.equal(record.id, '2');
     assert.equal(this.adapterAjax.callCount, 3);
 
-    return this.queryCache.queryURL('/alt-uwot', options);
+    return this.queryCache.queryURL('/alt-uwot', siblingOptions);
   }).then(record => {
     assert.equal(record.id, '2');
     assert.equal(this.adapterAjax.callCount, 4);
