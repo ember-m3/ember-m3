@@ -15,10 +15,6 @@ module('unit/initializers/m3-store', {
   }
 });
 
-// Replace this with your real tests.
-test('it works', function(assert) {
-  initialize(this.application);
+test('it adds `store.queryURL`', function(assert) {
 
-  // you would normally confirm the results of the initializer here
-  assert.ok(true);
 });
