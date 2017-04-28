@@ -128,6 +128,47 @@ test('the cache entry for an array of records is invalidated when any record is 
 });
 
 test('multiple cache entries are invalidated if they both involve the same unloaded record', function(assert) {
+  let firstPayload = {
+    data: {
+      id: 1,
+      type: 'my-type',
+      attributes: {},
+    }
+  };
+  let secondPayload = {
+    data: {
+      id: 2,
+      type: 'my-type',
+      attributes: {},
+    }
+  };
 
+  this.adapterAjax.returns(resolve(firstPayload));
+
+  let options = { cacheKey: 'uwot' };
+  let siblingOptions = { cacheKey: 'alt-uwot' };
+
+  return this.queryCache.queryURL('/uwot', options).then((record) => {
+    assert.equal(record.id, '1');
+    assert.equal(this.adapterAjax.callCount, 1);
+    return this.queryCache.queryURL('/alt-uwot', siblingOptions);
+  }).then((record) => {
+    assert.equal(record.id, '1');
+    assert.equal(this.adapterAjax.callCount, 2);
+    // we expect this to invalidate both caches
+    record.unloadRecord();
+
+    this.adapterAjax.returns(resolve(secondPayload));
+
+    return this.queryCache.queryURL('/uwot', options);
+  }).then(record => {
+    assert.equal(record.id, '2');
+    assert.equal(this.adapterAjax.callCount, 3);
+
+    return this.queryCache.queryURL('/alt-uwot', options);
+  }).then(record => {
+    assert.equal(record.id, '2');
+    assert.equal(this.adapterAjax.callCount, 4);
+  });
 });
 
