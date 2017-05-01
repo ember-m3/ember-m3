@@ -34,8 +34,8 @@ export function initialize(application) {
       return this._super(modelName);
     },
 
-    queryURL(url, params, options) {
-      return this._queryCache.queryURL(url, params, options);
+    queryURL(url, options) {
+      return this._queryCache.queryURL(url, options);
     },
   }));
 
