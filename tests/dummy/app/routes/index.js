@@ -7,7 +7,7 @@ export default Ember.Route.extend({
   },
 
   model() {
-    return this.store.queryRecord('com.linkedin.voyager.collection', {});
+    return this.store.queryURL('/new-api-jsonapi.json');
   },
 
   actions: {

@@ -1,0 +1,17 @@
+{
+  "data": {
+    "id": "whatever",
+    "type": "com.linkedin.voyager.bagel",
+    "attributes": {
+      "name": "whatever",
+      "thing": "urn:li:badger2"
+    }
+  },
+  "included": [{
+    "id": "urn:li:badger2",
+    "type": "com.linkedin.voyager.not_really_a_badger",
+    "attributes": {
+      "name": "sneaky notabadger"
+    }
+  }]
+}
