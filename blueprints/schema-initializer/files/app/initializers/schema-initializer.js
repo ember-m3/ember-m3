@@ -15,6 +15,7 @@ export function initialize(/* application */) {
       return false;
     },
 
+    /*
     models: {
       'my-model-type': {
         // an optional whitelist of attributes.  If undefined, all attributes
@@ -33,6 +34,7 @@ export function initialize(/* application */) {
         },
       }
     }
+    */
   });
 }
 
