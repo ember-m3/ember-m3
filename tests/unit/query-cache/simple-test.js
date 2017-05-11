@@ -186,3 +186,11 @@ test('queryURL does not cache results when not given a cacheKey', function(asser
     assert.equal(this.adapterAjax.callCount, 2, 'adapter.ajax is called again');
   });
 });
+
+test('queryURL supports a reload option', function(assert) {
+
+});
+
+test('queryURL supports a backgroundReload option', function(assert) {
+
+});

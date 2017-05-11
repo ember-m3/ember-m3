@@ -12,8 +12,8 @@ import QueryCache from '../query-cache';
 export function initialize(application) {
   application.register('service:store', DS.Store.extend({
     init() {
-      this._queryCache = new QueryCache({ store: this });
       this._super(...arguments);
+      this._queryCache = new QueryCache({ store: this });
     },
 
     _hasModelFor(modelName) {
@@ -22,6 +22,7 @@ export function initialize(application) {
 
     _internalModelsFor(modelName) {
       if (SchemaManager.includesModel(modelName)) {
+        // Here we could allow schemas to have multiple id-spaces
         return this._super('m3-model');
       }
       return this._super(modelName);

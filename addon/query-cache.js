@@ -1,12 +1,17 @@
+import Ember from 'ember';
+
+import QueryCachePopulatedRecordArray from './query-cache-populated-record-array';
+
 export default class QueryCache {
   constructor({ store }) {
     this._store = store;
+    this._recordArrayManager = this._store.recordArrayManager;
     this._queryCache = new Object(null);
     this._reverseQueryCache = new Object(null);
     this.__adapter = null;
   }
 
-  queryURL(url, { params=null, method='GET', cacheKey=null }={}) {
+  queryURL(url, { params=null, method='GET', cacheKey=null }={}, array) {
     let options = {};
     if (params) {
       options.data = params;
@@ -22,7 +27,9 @@ export default class QueryCache {
       method,
       options
     ).then(payload => {
-      let result = this._store.push(payload)
+      // TODO: serializer?
+      let result = this._createResult(payload, { url, params, method, cacheKey }, array);
+
       if (cacheKey) {
         this._addResultToCache(result, cacheKey);
       }
@@ -42,23 +49,53 @@ export default class QueryCache {
     delete this._reverseQueryCache[id];
   }
 
+  _createResult(payload, query, array) {
+    let internalModelOrModels = this._store._push(payload);
+
+    if (array) {
+      array._setInternalModels(internalModelOrModels);
+      return array;
+    } else if (Array.isArray(internalModelOrModels)) {
+      return this._createRecordArray(internalModelOrModels, query);
+    } else {
+      return internalModelOrModels.getRecord();
+    }
+  }
+
   _addResultToCache(result, cacheKey) {
     this._queryCache[cacheKey] = result;
 
-    if (Array.isArray(result)) {
-      for (let i=0; i<result.length; ++i) {
-        this._addRecordToReverseCache(result[i], cacheKey);
+    if (result.constructor === QueryCachePopulatedRecordArray) {
+      for (let i=0; i<result.content.length; ++i) {
+        this._addRecordToReverseCache(result.content[i], cacheKey);
       }
     } else {
       this._addRecordToReverseCache(result, cacheKey);
     }
   }
 
-  _addRecordToReverseCache(record, cacheKey) {
-    let { id } = record;
+  _addRecordToReverseCache({ id }, cacheKey) {
     let cacheKeys = this._reverseQueryCache[id] = this._reverseQueryCache[id] || [];
     // no need to check for presence as we're only here b/c of a cache miss
     cacheKeys.push(cacheKey);
+  }
+
+  _createRecordArray(internalModels, query) {
+    let array = QueryCachePopulatedRecordArray.create({
+      modelName: 'm3-model',
+      content: Ember.A(),
+      store: this._store,
+      manager: this._recordArrayManager,
+
+      queryCache: this,
+      query,
+    });
+
+    array._setInternalModels(internalModels);
+
+    this._recordArrayManager._adapterPopulatedRecordArrays.push(array);
+
+    return array;
   }
 
   get _adapter() {
