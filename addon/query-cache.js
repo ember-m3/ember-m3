@@ -12,32 +12,39 @@ export default class QueryCache {
     this.__adapter = null;
   }
 
-  queryURL(url, { params=null, method='GET', cacheKey=null }={}, array) {
+  queryURL(url, { params=null, method='GET', cacheKey=null, reload=false, backgroundReload=false }={}, array) {
     let options = {};
     if (params) {
       options.data = params;
     }
 
-    let cachedValue;
-    if (cacheKey && (cachedValue = this._queryCache[cacheKey]) !== undefined) {
-      return cachedValue;
+    let cachedValue = cacheKey ? this._queryCache[cacheKey] : undefined;
+    let loadPromise;
+
+    if (backgroundReload || reload || cachedValue === undefined) {
+      loadPromise = this._adapter.ajax(
+        url,
+        method,
+        options
+      ).then(rawPayload => {
+        let serializer = this._store.serializerFor('-m3-model');
+        let payload = serializer.normalizeResponse(this._store, MegamorphicModel, rawPayload, null, 'query-url');
+        let result = this._createResult(payload, { url, params, method, cacheKey }, array);
+
+        if (cacheKey) {
+          this._addResultToCache(result, cacheKey);
+        }
+        return result;
+      });
+      // TODO: .catch ?
     }
 
-    return this._adapter.ajax(
-      url,
-      method,
-      options
-    ).then(rawPayload => {
-      let serializer = this._store.serializerFor('-m3-model');
-      let payload = serializer.normalizeResponse(this._store, MegamorphicModel, rawPayload, null, 'query-url');
-      let result = this._createResult(payload, { url, params, method, cacheKey }, array);
-
-      if (cacheKey) {
-        this._addResultToCache(result, cacheKey);
-      }
-      return result;
-    });
-    // TODO: .catch ?
+    if (reload || cachedValue === undefined) {
+      return loadPromise;
+    } else {
+      // TODO: resolve cachedvalue
+      return cachedValue;
+    }
   }
 
   unloadRecord(record) {

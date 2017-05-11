@@ -10,7 +10,7 @@ import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
 import SchemaManager from 'ember-m3/schema-manager';
 import MegamorphicModel from 'ember-m3/model';
 
-const { RSVP: { resolve, Promise }, run } = Ember;
+const { RSVP: { resolve, defer, Promise }, run } = Ember;
 const { Serializer } = DS;
 
 function stubCalls(stub) {
@@ -234,12 +234,74 @@ test('.queryURL does not cache results when not given a cacheKey', function(asse
   });
 });
 
-test('queryURL supports a reload option', function(assert) {
+test('queryURL skips the cache when reload: true', function(assert) {
+  let firstPayload = {
+    data: {
+      id: 1,
+      type: 'something-or-other',
+      attributes: {},
+    }
+  };
+  let secondPayload = {
+    data: {
+      id: 2,
+      type: 'something-or-other',
+      attributes: {},
+    }
+  }
+  this.adapterAjax.returns(resolve(firstPayload));
 
+  let cacheKey = 'uwot';
+
+  return this.queryCache.queryURL('/uwot', { cacheKey }).then((model) => {
+    assert.equal(model.id, 1, 'the returned promise fulfills with the model');
+  }).then(() => {
+    this.adapterAjax.returns(resolve(secondPayload));
+    return this.queryCache.queryURL('/uwot', { cacheKey, reload: true });
+  }).then((model) => {
+    assert.equal(model.id, 2, 'the returned promise fulfills with the model');
+    assert.equal(this.adapterAjax.callCount, 2, 'adapter.ajax is called again');
+  });
 });
 
-test('queryURL supports a backgroundReload option', function(assert) {
+test('queryURL returns the cached result but still updates when backgroundReload: true', function(assert) {
+  let firstPayload = {
+    data: {
+      id: 1,
+      type: 'something-or-other',
+      attributes: {
+        name: 'sally',
+      },
+    }
+  };
+  let secondPayload = {
+    data: {
+      id: 1,
+      type: 'something-or-other',
+      attributes: {
+        name: 'sandy',
+      },
+    }
+  }
+  let deferredBackgroundReload = defer();
+  this.adapterAjax.returns(resolve(firstPayload));
 
+  let cacheKey = 'uwot';
+
+  return this.queryCache.queryURL('/uwot', { cacheKey }).then((model) => {
+    assert.equal(model.get('name'), 'sally', 'the returned promise fulfills with the model');
+  }).then(() => {
+    this.adapterAjax.returns(deferredBackgroundReload.promise);
+    return this.queryCache.queryURL('/uwot', { cacheKey, backgroundReload: true });
+  }).then((model) => {
+    assert.equal(model.get('name'), 'sally', 'the returned promise fulfills with the cached model');
+    assert.equal(this.adapterAjax.callCount, 2, 'adapter.ajax is called again');
+
+    deferredBackgroundReload.resolve(secondPayload);
+    return deferredBackgroundReload.promise.then(() => {
+      assert.equal(model.get('name'), 'sandy', 'the internal model is asynchronously updated');
+    });
+  });
 });
 
 test('the cache entry for a single model is invalidated when that model is unloaded', function(assert) {
