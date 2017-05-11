@@ -8,6 +8,7 @@ import DS from 'ember-data';
 
 import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
 import SchemaManager from 'ember-m3/schema-manager';
+import MegamorphicModel from 'ember-m3/model';
 
 const { RSVP: { resolve, Promise }, run } = Ember;
 const { Serializer } = DS;
@@ -19,7 +20,7 @@ function stubCalls(stub) {
   );
 }
 
-moduleFor('m3:query-cache', 'unit/query-cache/with-models', {
+moduleFor('m3:query-cache', 'unit/query-cache', {
   integration: true,
 
   beforeEach() {
@@ -56,6 +57,189 @@ moduleFor('m3:query-cache', 'unit/query-cache/with-models', {
   adapter: function() {
     return this.store().adapterFor('application');
   },
+});
+
+test('.queryURL uses adapter.ajax to send requests', function(assert) {
+  assert.equal(this.adapterAjax.callCount, 0, 'initial callCount 0');
+
+  this.adapterAjax.returns(resolve({
+    data: {
+      id: 1,
+      type: 'my-type',
+    }
+  }));
+
+  return this.queryCache.queryURL('/uwot').then(() => {
+    assert.deepEqual(
+      stubCalls(this.adapterAjax),
+      [[this.adapter()+'', ['/uwot', 'GET', {}]]],
+      'adapter.ajax called with right args'
+    );
+  });
+});
+
+test('.queryURL can accept params', function(assert) {
+  assert.equal(this.adapterAjax.callCount, 0, 'initial callCount 0');
+
+  this.adapterAjax.returns(resolve({
+    data: {
+      id: 1,
+      type: 'my-type',
+    }
+  }));
+
+  return this.queryCache.queryURL('/uwot', { params: { param: 'value' }}).then(() => {
+    assert.deepEqual(
+      stubCalls(this.adapterAjax),
+      [[this.adapter()+'', ['/uwot', 'GET', { data: { param: 'value' }}]]],
+      'adapter.ajax called with right args'
+    );
+  });
+});
+
+test('.queryURL can accept a method', function(assert) {
+  assert.equal(this.adapterAjax.callCount, 0, 'initial callCount 0');
+
+  this.adapterAjax.returns(resolve({
+    data: {
+      id: 1,
+      type: 'my-type',
+    }
+  }));
+
+  return this.queryCache.queryURL('/uwot', { method: 'POST' }).then(() => {
+    assert.deepEqual(
+      stubCalls(this.adapterAjax),
+      [[this.adapter()+'', ['/uwot', 'POST', {}]]],
+      'adapter.ajax called with right args'
+    );
+  });
+});
+
+test('a custom -ember-m3 adapter can be registered', function(assert) {
+  let payload = {
+    data: {
+      id: 1,
+      type: 'my-type',
+    }
+  };
+  let customAdapter = {
+    ajax: this.sinon.stub().returns(resolve(payload)),
+    toString: () => 'my-adapter',
+    destroy() {},
+  };
+  this.register('adapter:-ember-m3', customAdapter, { singleton: true, instantiate: false });
+
+  return this.queryCache.queryURL('/uwot').then(() => {
+    assert.deepEqual(
+      stubCalls(customAdapter.ajax),
+      [['my-adapter', ['/uwot', 'GET', {}]]],
+      'adapter.ajax called with right args'
+    );
+  });
+});
+
+test('.queryURL can resolve with individual models', function(assert) {
+  let payload = {
+    data: {
+      id: 1,
+      type: 'something-or-other',
+      attributes: {},
+    }
+  };
+
+  this.adapterAjax.returns(resolve(payload));
+
+  return this.queryCache.queryURL('/uwot').then((fulfilledValue) => {
+    assert.equal(fulfilledValue.constructor, MegamorphicModel);
+    assert.equal(fulfilledValue.get('id'), 1);
+  });
+});
+
+test('.queryURL can resolve with a record array of models', function(assert) {
+  let payload = {
+    data: [{
+      id: 1,
+      type: 'something-or-other',
+      attributes: {},
+    }, {
+      id: 2,
+      type: 'something-or-other',
+      attributes: {},
+    }]
+  };
+
+  this.adapterAjax.returns(resolve(payload));
+
+  return this.queryCache.queryURL('/uwot').then((fulfilledValue) => {
+    assert.deepEqual(fulfilledValue.toArray().map(x => x.id), ['1', '2']);
+  });
+});
+
+test('.queryURL caches its results when given a cacheKey', function(assert) {
+  let firstPayload = {
+    data: {
+      id: 1,
+      type: 'something-or-other',
+      attributes: {},
+    }
+  };
+  let secondPayload = {
+    data: {
+      id: 2,
+      type: 'something-or-other',
+      attributes: {},
+    }
+  }
+  this.adapterAjax.returns(resolve(firstPayload));
+
+  let options = { cacheKey: 'uwot' };
+
+  return this.queryCache.queryURL('/uwot', options).then((model) => {
+    assert.equal(model.id, 1, 'the returned promise fulfills with the model');
+  }).then(() => {
+    this.adapterAjax.returns(resolve(secondPayload));
+    return this.queryCache.queryURL('/uwot', options);
+  }).then((model) => {
+    assert.equal(model.id, 1, 'the returned promise fulfills with the model');
+    assert.equal(this.adapterAjax.callCount, 1, 'adapter.ajax is not called again (cache hit)');
+  });
+});
+
+test('.queryURL does not cache results when not given a cacheKey', function(assert) {
+  let firstPayload = {
+    data: {
+      id: 1,
+      type: 'something-or-other',
+      attributes: {},
+    }
+  };
+  let secondPayload = {
+    data: {
+      id: 2,
+      type: 'something-or-other',
+      attributes: {},
+    }
+  }
+  this.adapterAjax.returns(resolve(firstPayload));
+
+  return this.queryCache.queryURL('/uwot').then((model) => {
+    assert.equal(model.id, 1, 'the returned promise fulfills with the model');
+  }).then(() => {
+    this.adapterAjax.returns(resolve(secondPayload));
+    return this.queryCache.queryURL('/uwot');
+  }).then((model) => {
+    assert.equal(model.id, 2, 'the returned promise fulfills with the model');
+    assert.equal(this.adapterAjax.callCount, 2, 'adapter.ajax is called again');
+  });
+});
+
+test('queryURL supports a reload option', function(assert) {
+
+});
+
+test('queryURL supports a backgroundReload option', function(assert) {
+
 });
 
 test('the cache entry for a single model is invalidated when that model is unloaded', function(assert) {

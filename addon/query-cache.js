@@ -37,6 +37,7 @@ export default class QueryCache {
       }
       return result;
     });
+    // TODO: .catch ?
   }
 
   unloadRecord(record) {
