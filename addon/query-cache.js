@@ -1,5 +1,6 @@
 import Ember from 'ember';
 
+import MegamorphicModel from './model';
 import QueryCachePopulatedRecordArray from './query-cache-populated-record-array';
 
 export default class QueryCache {
@@ -26,8 +27,9 @@ export default class QueryCache {
       url,
       method,
       options
-    ).then(payload => {
-      // TODO: serializer?
+    ).then(rawPayload => {
+      let serializer = this._store.serializerFor('-m3-model');
+      let payload = serializer.normalizeResponse(this._store, MegamorphicModel, rawPayload, null, 'query-url');
       let result = this._createResult(payload, { url, params, method, cacheKey }, array);
 
       if (cacheKey) {

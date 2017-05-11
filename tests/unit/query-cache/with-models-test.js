@@ -1,14 +1,23 @@
 import { test } from 'qunit';
 import { default as moduleFor }  from 'ember-qunit/module-for';
 import sinon from 'sinon';
+import { zip } from 'lodash';
 
 import Ember from 'ember';
+import DS from 'ember-data';
 
 import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
 import SchemaManager from 'ember-m3/schema-manager';
 
 const { RSVP: { resolve, Promise }, run } = Ember;
+const { Serializer } = DS;
 
+function stubCalls(stub) {
+  return zip(
+    stub.thisValues.map(x => x+''),
+    stub.args
+  );
+}
 
 moduleFor('m3:query-cache', 'unit/query-cache/with-models', {
   integration: true,
@@ -281,14 +290,55 @@ test('queryURL returns a record array that can be updated', function(assert) {
   });
 });
 
-test('update uses the original http method', function(assert) {
+test('update uses the original http method and query params', function(assert) {
+  let payload = {
+    data: [{
+      id: 1,
+      type: 'my-type',
+      attributes: {},
+    }, {
+      id: 2,
+      type: 'my-type',
+      attributes: {},
+    }]
+  };
 
-});
-
-test('update uses the original query params', function(assert) {
-
+  this.adapterAjax.returns(resolve(payload));
+  this.queryCache.queryURL('/ohai', { method: 'POST', params: { q: 'v' }}).
+    then(models => models.update()).
+    then(() => {
+      assert.deepEqual(
+        stubCalls(this.adapterAjax),
+        [
+          [this.adapter()+'', ['/ohai', 'POST', { data: { q: 'v' }}]],
+          [this.adapter()+'', ['/ohai', 'POST', { data: { q: 'v' }}]],
+        ],
+        'adapter.ajax called with right args'
+      );
+    });
 });
 
 test('queryURL goes through a serializer to normalize responses', function(assert) {
+  let payload = {
+    name: 'name name?',
+    wat: 'definitely'
+  };
 
+  this.register('serializer:application', Serializer.extend({
+    normalizeResponse(store, modelClass, payload /*, id, requestType */) {
+      return {
+        data: {
+          id: 1,
+          type: 'my-type',
+          attributes: payload,
+        }
+      }
+    },
+  }));
+
+  this.adapterAjax.returns(resolve(payload));
+  this.queryCache.queryURL('/hello').then(model => {
+    assert.equal(model.get('name'), 'name name?');
+    assert.equal(model.get('wat'), 'definitely');
+  });
 });
