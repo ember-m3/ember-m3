@@ -9,8 +9,11 @@ import QueryCache from '../query-cache';
 // TODO: this is a stopgap.  We want to replace this with a public
 // DS.Model/Schema API
 //
-export function initialize(application) {
-  application.register('service:store', DS.Store.extend({
+export function initialize() {
+  // application.register('service:store', DS.Store.extend({
+  // }));
+
+  DS.Store.reopen({
     init() {
       this._super(...arguments);
       this._queryCache = new QueryCache({ store: this });
@@ -23,7 +26,7 @@ export function initialize(application) {
     _internalModelsFor(modelName) {
       if (SchemaManager.includesModel(modelName)) {
         // Here we could allow schemas to have multiple id-spaces
-        return this._super('m3-model');
+        return this._super('-ember-m3');
       }
       return this._super(modelName);
     },
@@ -38,13 +41,13 @@ export function initialize(application) {
     queryURL(url, options) {
       return this._queryCache.queryURL(url, options);
     },
-  }));
+  })
 
   Ember.DataAdapter.reopen({
     getModelTypes() {
       return this._super(...arguments).concat({
         klass: MegamorphicModel,
-        name: 'm3-model'
+        name: '-ember-m3'
       });
     },
 

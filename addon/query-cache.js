@@ -27,8 +27,8 @@ export default class QueryCache {
         method,
         options
       ).then(rawPayload => {
-        let serializer = this._store.serializerFor('-m3-model');
-        let payload = serializer.normalizeResponse(this._store, MegamorphicModel, rawPayload, null, 'query-url');
+        let serializer = this._store.serializerFor('-ember-m3');
+        let payload = serializer.normalizeResponse(this._store, MegamorphicModel, rawPayload, cacheKey, 'query-url');
         let result = this._createResult(payload, { url, params, method, cacheKey }, array);
 
         if (cacheKey) {
@@ -92,7 +92,7 @@ export default class QueryCache {
 
   _createRecordArray(internalModels, query) {
     let array = QueryCachePopulatedRecordArray.create({
-      modelName: 'm3-model',
+      modelName: '-ember-m3',
       content: Ember.A(),
       store: this._store,
       manager: this._recordArrayManager,

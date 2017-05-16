@@ -2,5 +2,9 @@
 'use strict';
 
 module.exports = {
-  name: 'ember-m3'
+  name: 'ember-m3',
+
+  isDevelopingAddon() {
+    return true;
+  }
 };

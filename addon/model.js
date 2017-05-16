@@ -2,14 +2,14 @@ import Ember from 'ember';
 import SchemaManager from './schema-manager';
 // TODO: rollup lodash or write our own setdiff; also lodash's difference
 // doesn't seem to require sort so it's presumably O(n^2) but w/e
-import { difference as setDiff} from 'lodash';
+// import { difference as setDiff} from 'lodash';
 
 const { isEqual } = Ember;
 
 function resolveValue(key, value, store, schema) {
   let reference = schema.computeAttributeReference(key, value);
   if (reference) {
-    return store.peekRecord(reference.type || 'm3-model', reference.id);
+    return store.peekRecord(reference.type || '-ember-m3', reference.id);
   }
 
   let nested = schema.computeNestedModel(key, value);
@@ -29,6 +29,20 @@ function resolveValue(key, value, store, schema) {
   }
 
   return value;
+}
+
+function setDiff(a, b) {
+  let result = [];
+  for (let i=0, j=0; i < a.length; ++i) {
+    for (; j<b.length && b[j] < a[i]; ++j);
+
+    if (j < b.length && a[i] === b[j]) {
+      continue;
+    } else {
+      result.push(a[i]);
+    }
+  }
+  return result;
 }
 
 /**
@@ -151,8 +165,9 @@ export default class MegamorphicModel extends Ember.Object {
     this._store._queryCache.unloadRecord(this);
   }
 
-  set() {
-    throw new TypeError('not implemented');
+  set(key, value) {
+    this._internalModel._data[key] = value;
+    delete this._cache[key];
   }
 
   unknownProperty(key) {
