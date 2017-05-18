@@ -4,7 +4,7 @@ import SchemaManager from './schema-manager';
 // doesn't seem to require sort so it's presumably O(n^2) but w/e
 // import { difference as setDiff} from 'lodash';
 
-const { isEqual } = Ember;
+const { get, isEqual } = Ember;
 
 function resolveValue(key, value, store, schema) {
   let reference = schema.computeAttributeReference(key, value);
@@ -171,12 +171,36 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   unknownProperty(key) {
+    if (key in this._cache) {
+      return this._cache[key];
+    }
+
     if (! this._schema.isAttributeIncluded(this._modelName, key)) { return; }
 
+    let alias = this._schema.getAttributeAlias(this._modelName, key);
+    if (alias) {
+      return this._cache[key] = get(this, alias);
+    }
+
     let rawValue = this._internalModel._data[key];
+    if (rawValue === undefined) {
+      let defaultValue = this._schema.getDefaultValue(this._modelName, key);
+if(defaultValue === undefined
+  && !(this._internalModel._data.$deletedFields || []).includes(key)
+  && ![
+    'doNotShowInFeed','cachedCommentTotal', 'shouldAutofocus', 'shareType',
+    'socialDetail', 'highlightedComments', 'originalUpdate', 'header', 'searchId',
+    'publicIdentifier', 'originalId', 'entity', 'videoPlayMetadata', 'aspectRatio',
+    'description', 'title', 'likedByOrganizationActor',
+  ].includes(key)) {
+  self.console.log('qq', this._internalModel._data.$type, key);
+}
+      return (this._cache[key] = defaultValue);
+    }
+
     let value = this._schema.transformValue(this._modelName, key, rawValue);
 
-    return (this._cache[key] = this._cache[key] || resolveValue(key, value, this._store, this._schema));
+    return (this._cache[key] = resolveValue(key, value, this._store, this._schema));
   }
 
   static toString() {

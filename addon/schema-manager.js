@@ -9,13 +9,23 @@ export class SchemaManager {
     this._models = Object.create(null);
   }
 
-  // computeAttributeReference,
-  // computeNestedModel,
-  // includesModel,
-
   isAttributeIncluded(modelName, attrName) {
     let whitelist = this._models[modelName] && this._models[modelName].attributes;
     return !whitelist || whitelist.includes(attrName);
+  }
+
+  getDefaultValue(modelName, keyName) {
+    let defaults = this._models[modelName] && this._models[modelName].defaults;
+    if (!defaults) { return; }
+
+    return defaults[keyName];
+  }
+
+  getAttributeAlias(modelName, attrName) {
+    let aliases = this._models[modelName] && this._models[modelName].aliases;
+    if (!aliases) { return; }
+
+    return aliases[attrName];
   }
 
   transformValue(modelName, attrName, value) {

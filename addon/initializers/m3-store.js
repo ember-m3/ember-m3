@@ -10,9 +10,6 @@ import QueryCache from '../query-cache';
 // DS.Model/Schema API
 //
 export function initialize() {
-  // application.register('service:store', DS.Store.extend({
-  // }));
-
   DS.Store.reopen({
     init() {
       this._super(...arguments);
