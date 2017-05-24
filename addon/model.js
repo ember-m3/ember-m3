@@ -185,16 +185,7 @@ export default class MegamorphicModel extends Ember.Object {
     let rawValue = this._internalModel._data[key];
     if (rawValue === undefined) {
       let defaultValue = this._schema.getDefaultValue(this._modelName, key);
-if(defaultValue === undefined
-  && !(this._internalModel._data.$deletedFields || []).includes(key)
-  && ![
-    'doNotShowInFeed','cachedCommentTotal', 'shouldAutofocus', 'shareType',
-    'socialDetail', 'highlightedComments', 'originalUpdate', 'header', 'searchId',
-    'publicIdentifier', 'originalId', 'entity', 'videoPlayMetadata', 'aspectRatio',
-    'description', 'title', 'likedByOrganizationActor',
-  ].includes(key)) {
-  self.console.log('qq', this._internalModel._data.$type, key);
-}
+
       return (this._cache[key] = defaultValue);
     }
 
