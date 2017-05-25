@@ -145,6 +145,13 @@ export default class MegamorphicModel extends Ember.Object {
     return calculateChangedKeys(this._internalModel._data, data);
   }
 
+  changedAttributes() {
+    // TODO: this will always report nothing has changed; bc we just `set` to
+    // `_data` and don't make a data/attributes distinction.  We coooould, if
+    // serializers actually need to know changed attrs.
+    return this._internalModel.changedAttributes();
+  }
+
   trigger() {}
 
   get _debugContainerKey() {
@@ -157,6 +164,9 @@ export default class MegamorphicModel extends Ember.Object {
 
   eachAttribute(callback) {
     Object.keys(this._internalModel._data).forEach(callback);
+  }
+
+  eachRelationship(/* callback */) {
   }
 
   unloadRecord() {
