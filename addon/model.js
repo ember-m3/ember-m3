@@ -1,8 +1,5 @@
 import Ember from 'ember';
 import SchemaManager from './schema-manager';
-// TODO: rollup lodash or write our own setdiff; also lodash's difference
-// doesn't seem to require sort so it's presumably O(n^2) but w/e
-// import { difference as setDiff} from 'lodash';
 
 const { get, isEqual } = Ember;
 
