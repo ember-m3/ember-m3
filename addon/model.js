@@ -3,6 +3,26 @@ import SchemaManager from './schema-manager';
 
 const { get, isEqual } = Ember;
 
+class EmbeddedInternalModel {
+  constructor({ id, modelName, _data}) {
+    this.id = id;
+    this.modelName = modelName;
+    this._data = _data;
+
+    this.record = null;
+  }
+
+  createSnapshot() {
+    return {
+      record: this.record,
+
+      serialize(options) {
+        return this.record._store.serializerFor('-ember-m3').serialize(this, options);
+      }
+    };
+  }
+}
+
 function resolveValue(key, value, store, schema) {
   let reference = schema.computeAttributeReference(key, value);
   if (reference) {
@@ -11,14 +31,18 @@ function resolveValue(key, value, store, schema) {
 
   let nested = schema.computeNestedModel(key, value);
   if (nested) {
-    return new MegamorphicModel({
-      store: store,
-      _internalModel: {
-        id: nested.id,
-        modelName: nested.type,
-        _data: nested.attributes,
-      }
+    let internalModel = new EmbeddedInternalModel({
+      id: nested.id,
+      modelName: nested.type,
+      _data: nested.attributes,
     });
+    let model = new MegamorphicModel({
+      store,
+      _internalModel: internalModel,
+    });
+    internalModel.record = model;
+
+    return model;
   }
 
   if (Array.isArray(value)) {
@@ -70,6 +94,12 @@ function calculateChangedKeys(oldValue, newValue) {
   return result;
 }
 
+const YesManAttributes = {
+  has() {
+    return true;
+  }
+};
+
 export default class MegamorphicModel extends Ember.Object {
   init(properties) {
     this._super(...arguments);
@@ -90,7 +120,7 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   static get attributes () {
-    return [];
+    return YesManAttributes;
   }
 
   static eachRelationship(/* callback */) {
@@ -160,10 +190,9 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   eachAttribute(callback) {
+    // Properties in `data` are treated as attributes for serialization purposes
+    // if the schema does not consider them references
     Object.keys(this._internalModel._data).forEach(callback);
-  }
-
-  eachRelationship(/* callback */) {
   }
 
   unloadRecord() {
@@ -173,8 +202,13 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   set(key, value) {
+    // TODO: need to be able to update relationships
     this._internalModel._data[key] = value;
     delete this._cache[key];
+  }
+
+  serialize(options) {
+    return this._internalModel.createSnapshot().serialize(options);
   }
 
   unknownProperty(key) {

@@ -35,6 +35,13 @@ export function initialize() {
       return this._super(modelName);
     },
 
+    serializerFor(modelName) {
+      if (SchemaManager.includesModel(modelName)) {
+        return this._super('-ember-m3');
+      }
+      return this._super(modelName);
+    },
+
     queryURL(url, options) {
       return this._queryCache.queryURL(url, options);
     },
