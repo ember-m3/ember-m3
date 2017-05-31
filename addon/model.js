@@ -3,6 +3,27 @@ import SchemaManager from './schema-manager';
 
 const { get, isEqual } = Ember;
 
+class EmbeddedSnapshot {
+  constructor(record) {
+    this.record = record;
+    this.modelName = this.record._internalModel.modelName;
+    this.attrs = Object.create(null);
+    this.eachAttribute(key => this.attrs[key] = this.record.get(key));
+  }
+
+  serialize(options) {
+    return this.record._store.serializerFor('-ember-m3').serialize(this, options);
+  }
+
+  eachAttribute(callback, binding) {
+    return this.record.eachAttribute(callback, binding);
+  }
+
+  attr(key) {
+    return this.attrs[key];
+  }
+}
+
 class EmbeddedInternalModel {
   constructor({ id, modelName, _data}) {
     this.id = id;
@@ -13,13 +34,7 @@ class EmbeddedInternalModel {
   }
 
   createSnapshot() {
-    return {
-      record: this.record,
-
-      serialize(options) {
-        return this.record._store.serializerFor('-ember-m3').serialize(this, options);
-      }
-    };
+    return new EmbeddedSnapshot(this.record);
   }
 }
 
@@ -189,10 +204,10 @@ export default class MegamorphicModel extends Ember.Object {
     return this._internalModel._data;
   }
 
-  eachAttribute(callback) {
+  eachAttribute(callback, binding) {
     // Properties in `data` are treated as attributes for serialization purposes
     // if the schema does not consider them references
-    Object.keys(this._internalModel._data).forEach(callback);
+    Object.keys(this._internalModel._data).forEach(callback, binding);
   }
 
   unloadRecord() {
