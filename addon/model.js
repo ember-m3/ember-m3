@@ -228,7 +228,7 @@ export default class MegamorphicModel extends Ember.Object {
 
   save(options) {
     // TODO: we could return a PromiseObject as DS.Model does
-    return this._internalModel.save(options);
+    return this._internalModel.save(options).then(() => this);
   }
 
   unknownProperty(key) {
