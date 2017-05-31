@@ -211,6 +211,11 @@ export default class MegamorphicModel extends Ember.Object {
     return this._internalModel.createSnapshot().serialize(options);
   }
 
+  save(options) {
+    // TODO: we could return a PromiseObject as DS.Model does
+    return this._internalModel.save(options);
+  }
+
   unknownProperty(key) {
     if (key in this._cache) {
       return this._cache[key];
@@ -235,6 +240,10 @@ export default class MegamorphicModel extends Ember.Object {
     return (this._cache[key] = resolveValue(key, value, this._store, this._schema));
   }
 
+  setUnknownProperty(key, value) {
+    this.set(key, value);
+  }
+
   static toString() {
     return 'MegamorphicModel';
   }
@@ -243,5 +252,12 @@ export default class MegamorphicModel extends Ember.Object {
     return `<MegamorphicModel:${this.id}>`;
   }
 }
+
+MegamorphicModel.prototype.store = null;
+MegamorphicModel.prototype._internalModel = null;
+MegamorphicModel.prototype.id = null;
+MegamorphicModel.prototype.currentState = null;
+MegamorphicModel.prototype.isError = null;
+MegamorphicModel.prototype.adapterError = null;
 
 MegamorphicModel.relationshipsByName = new Ember.Map();
