@@ -257,6 +257,7 @@ export default class MegamorphicModel extends Ember.Object {
 
   setUnknownProperty(key, value) {
     this.set(key, value);
+    this.notifyPropertyChange(key);
   }
 
   static toString() {
