@@ -230,9 +230,18 @@ export default class MegamorphicModel extends Ember.Object {
     return this._internalModel.createSnapshot().serialize(options);
   }
 
+  deleteRecord() {
+    this._internalModel.deleteRecord();
+  }
+
   save(options) {
     // TODO: we could return a PromiseObject as DS.Model does
     return this._internalModel.save(options).then(() => this);
+  }
+
+  destroyRecord(options) {
+    this.deleteRecord();
+    return this.save(options);
   }
 
   unknownProperty(key) {
