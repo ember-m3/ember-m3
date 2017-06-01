@@ -1,7 +1,9 @@
 import Ember from 'ember';
 import SchemaManager from './schema-manager';
 
-const { get, isEqual } = Ember;
+const {
+  get, set, isEqual, propertyWillChange, propertyDidChange
+} = Ember;
 
 class EmbeddedSnapshot {
   constructor(record) {
@@ -61,7 +63,11 @@ function resolveValue(key, value, store, schema) {
   }
 
   if (Array.isArray(value)) {
-    return value.map(entry => resolveValue(key, entry, store, schema));
+    let result = new Array(value.length);
+    for (let i=0; i<result.length; ++i) {
+      result[i] = resolveValue(key, value[i], store, schema);
+    }
+    return result;
   }
 
   return value;
@@ -217,9 +223,7 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   set(key, value) {
-    // TODO: need to be able to update relationships
-    this._internalModel._data[key] = value;
-    delete this._cache[key];
+    set(this, key, value);
   }
 
   serialize(options) {
@@ -256,8 +260,13 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   setUnknownProperty(key, value) {
-    this.set(key, value);
-    this.notifyPropertyChange(key);
+    propertyWillChange(this, key);
+
+    // TODO: need to be able to update relationships
+    this._internalModel._data[key] = value;
+    delete this._cache[key];
+
+    propertyDidChange(this, key);
   }
 
   static toString() {
