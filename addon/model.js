@@ -1,9 +1,19 @@
 import Ember from 'ember';
 import SchemaManager from './schema-manager';
+import ModelRootState from 'ember-data/-private/system/model/states';
 
 const {
   get, set, isEqual, propertyWillChange, propertyDidChange
 } = Ember;
+
+const {
+  deleted: {
+    uncommitted: deletedUncommitted
+  },
+  loaded: {
+    saved: loadedSaved
+  }
+} = ModelRootState;
 
 class EmbeddedSnapshot {
   constructor(record) {
@@ -230,18 +240,27 @@ export default class MegamorphicModel extends Ember.Object {
     return this._internalModel.createSnapshot().serialize(options);
   }
 
-  deleteRecord() {
-    this._internalModel.deleteRecord();
-  }
-
   save(options) {
     // TODO: we could return a PromiseObject as DS.Model does
     return this._internalModel.save(options).then(() => this);
   }
 
+  reload() {
+    return this._store.findRecord(this._modelName, this.id, { reload: true });
+  }
+
+  deleteRecord() {
+    this._internalModel.currentState = deletedUncommitted;
+  }
+
   destroyRecord(options) {
     this.deleteRecord();
-    return this.save(options);
+    return this._internalModel.save(options);
+  }
+
+  rollbackAttributes() {
+    // TODO: we could actually support this feature
+    this._internalModel.currentState = loadedSaved;
   }
 
   unknownProperty(key) {
@@ -272,6 +291,10 @@ export default class MegamorphicModel extends Ember.Object {
     propertyWillChange(this, key);
 
     // TODO: need to be able to update relationships
+    // TODO: also on set(x) ask schema if this should be a ref (eg if it has an
+    // entityUrn)
+    // TODO: similarly this.get('arr').pushObject doesn't update the underlying
+    // _data
     this._internalModel._data[key] = value;
     delete this._cache[key];
 
