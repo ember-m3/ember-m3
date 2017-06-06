@@ -41,7 +41,5 @@ export default RecordArray.extend({
 
       internalModel._recordArrays.add(this);
     }
-
-    this.length = internalModels.length;
   },
 });
