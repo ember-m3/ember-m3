@@ -3,11 +3,15 @@ import SchemaManager from 'ember-m3/schema-manager';
 export function initialize(/* application */) {
   SchemaManager.registerSchema({
 
-    computeAttributeReference()/* key, value */ {
+    computeAttributeReference(/* key, value, modelName */) {
       return null;
     },
 
-    computeNestedModel(/* key, value */) {
+    isAttributeArrayReference(/* key, value, modelName */) {
+      return false;
+    },
+
+    computeNestedModel(/* key, value, modelName */) {
       return null;
     },
 

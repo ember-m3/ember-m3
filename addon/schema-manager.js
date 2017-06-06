@@ -1,52 +1,62 @@
-const DEFAULT_MATCHER = () => false;
-const DEFAULT_REFERENCE = () => null;
-
 export class SchemaManager {
   constructor() {
-    this.computeAttributeReference = DEFAULT_REFERENCE;
-    this.computeNestedModel = DEFAULT_REFERENCE;
-    this.includesModel = DEFAULT_MATCHER;
-    this._models = Object.create(null);
+    this.schema = null;
+  }
+
+  computeAttributeReference(key, value, modelname) {
+    return this.schema.computeAttributeReference(key, value, modelname);
+  }
+
+  isAttributeArrayReference(key, value, modelname) {
+    return this.schema.isAttributeArrayReference(key, value, modelname);
+  }
+
+  computeNestedModel(key, value, modelname) {
+    return this.schema.computeNestedModel(key, value, modelname);
+  }
+
+  includesModel(key, value, modelName) {
+    return this.schema.includesModel(key, value, modelName);
   }
 
   isAttributeIncluded(modelName, attrName) {
-    let whitelist = this._models[modelName] && this._models[modelName].attributes;
+    let whitelist = this._modelSchemaProperty(modelName, 'attributes');
     return !whitelist || whitelist.includes(attrName);
   }
 
   getDefaultValue(modelName, keyName) {
-    let defaults = this._models[modelName] && this._models[modelName].defaults;
+    let defaults = this._modelSchemaProperty(modelName, 'defaults');
     if (!defaults) { return; }
 
     return defaults[keyName];
   }
 
   getAttributeAlias(modelName, attrName) {
-    let aliases = this._models[modelName] && this._models[modelName].aliases;
+    let aliases = this._modelSchemaProperty(modelName, 'aliases');
     if (!aliases) { return; }
 
     return aliases[attrName];
   }
 
   transformValue(modelName, attrName, value) {
-    let transform =
-      this._models[modelName] &&
-      this._models[modelName].transforms &&
-      this._models[modelName].transforms[attrName];
+    let transforms = this._modelSchemaProperty(modelName, 'transforms');
+    let transform = transforms && transforms[attrName];
 
     return transform ? transform(value) : value;
   }
 
-  registerSchema({
-    computeAttributeReference,
-    computeNestedModel,
-    includesModel,
-    models,
-  }) {
-    this.computeAttributeReference = computeAttributeReference || DEFAULT_REFERENCE;
-    this.computeNestedModel = computeNestedModel || DEFAULT_REFERENCE;
-    this.includesModel = includesModel || DEFAULT_MATCHER;
-    this._models = models || Object.create(null);
+  registerSchema(schema) {
+    this.schema = schema;
+  }
+
+  _modelSchema(modelName) {
+    let models = this.schema.models;
+    return models && models[modelName];
+  }
+
+  _modelSchemaProperty(modelName, property) {
+    let modelSchema = this._modelSchema(modelName);
+    return modelSchema && modelSchema[property];
   }
 }
 

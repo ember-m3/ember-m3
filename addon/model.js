@@ -50,13 +50,13 @@ class EmbeddedInternalModel {
   }
 }
 
-function resolveValue(key, value, store, schema) {
-  let reference = schema.computeAttributeReference(key, value);
+function resolveValue(key, value, modelName, store, schema, model) {
+  let reference = schema.computeAttributeReference(key, value, modelName);
   if (reference) {
     return store.peekRecord(reference.type || '-ember-m3', reference.id);
   }
 
-  let nested = schema.computeNestedModel(key, value);
+  let nested = schema.computeNestedModel(key, value, modelName);
   if (nested) {
     let internalModel = new EmbeddedInternalModel({
       id: nested.id,
@@ -75,7 +75,7 @@ function resolveValue(key, value, store, schema) {
   if (Array.isArray(value)) {
     let result = new Array(value.length);
     for (let i=0; i<result.length; ++i) {
-      result[i] = resolveValue(key, value[i], store, schema);
+      result[i] = resolveValue(key, value[i], modelName, store, schema, model);
     }
     return result;
   }
@@ -284,7 +284,7 @@ export default class MegamorphicModel extends Ember.Object {
 
     let value = this._schema.transformValue(this._modelName, key, rawValue);
 
-    return (this._cache[key] = resolveValue(key, value, this._store, this._schema));
+    return (this._cache[key] = resolveValue(key, value, this._modelName, this._store, this._schema, this));
   }
 
   setUnknownProperty(key, value) {
