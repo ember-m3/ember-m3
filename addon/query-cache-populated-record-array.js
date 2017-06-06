@@ -1,6 +1,8 @@
 import RecordArray from 'ember-data/-private/system/record-arrays/record-array';
 
 export default RecordArray.extend({
+  // TODO: implement more of recorarray but make this not an arrayproxy
+
   replaceContent(idx, removeAmt, newModels) {
     let addAmt = newModels.length;
 
@@ -11,6 +13,7 @@ export default RecordArray.extend({
       newInternalModels[i] = newModels[i]._internalModel;
     }
     this.content.splice(idx, removeAmt, ...newInternalModels);
+    // TODO: update the backing m3's internalModel._data
 
     this.arrayContentDidChange(idx, removeAmt, addAmt);
   },
@@ -38,5 +41,7 @@ export default RecordArray.extend({
 
       internalModel._recordArrays.add(this);
     }
+
+    this.length = internalModels.length;
   },
 });

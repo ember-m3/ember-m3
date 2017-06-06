@@ -346,10 +346,28 @@ export default class MegamorphicModel extends Ember.Object {
     // entityUrn)
     // TODO: similarly this.get('arr').pushObject doesn't update the underlying
     // _data
-    this._internalModel._data[key] = value;
-    delete this._cache[key];
+    if (this._schema.isAttributeArrayReference(key, value, this._modelName)) {
+      this._setRecordArray(key, value);
+    } else {
+      this._internalModel._data[key] = value;
+      delete this._cache[key];
+    }
 
     propertyDidChange(this, key);
+  }
+
+  _setRecordArray(key, models) {
+    let ids = new Array(models.length);
+    for (let i=0; i<ids.length; ++i) {
+      // TODO: should have a schema hook for this
+      ids[i] = get(models[i], 'id');
+    }
+    this._internalModel._data[key] = ids;
+
+    if (key in this._cache) {
+      let recordArray = this._cache[key];
+      recordArray.replaceContent(0, recordArray.length, models);
+    }
   }
 
   static toString() {
