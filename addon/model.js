@@ -4,7 +4,7 @@ import ModelRootState from 'ember-data/-private/system/model/states';
 import QueryCachePopulatedRecordArray from './query-cache-populated-record-array';
 
 const {
-  get, set, isEqual, propertyWillChange, propertyDidChange
+  get, set, isEqual, propertyWillChange, propertyDidChange, computed
 } = Ember;
 
 const {
@@ -175,6 +175,10 @@ const YesManAttributes = {
     return true;
   }
 };
+
+const retrieveFromCurrentState = computed('currentState', function(key) {
+  return this._topModel._internalModel.currentState[key];
+}).readOnly();
 
 export default class MegamorphicModel extends Ember.Object {
   init(properties) {
@@ -389,3 +393,13 @@ MegamorphicModel.prototype.isError = null;
 MegamorphicModel.prototype.adapterError = null;
 
 MegamorphicModel.relationshipsByName = new Ember.Map();
+
+// STATE PROPS
+MegamorphicModel.prototype.isEmpty = retrieveFromCurrentState
+MegamorphicModel.prototype.isLoading = retrieveFromCurrentState
+MegamorphicModel.prototype.isLoaded = retrieveFromCurrentState
+MegamorphicModel.prototype.isDirty = retrieveFromCurrentState
+MegamorphicModel.prototype.isSaving = retrieveFromCurrentState
+MegamorphicModel.prototype.isDeleted = retrieveFromCurrentState
+MegamorphicModel.prototype.isNew = retrieveFromCurrentState
+MegamorphicModel.prototype.isValid = retrieveFromCurrentState;
