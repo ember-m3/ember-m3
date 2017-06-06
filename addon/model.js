@@ -63,13 +63,15 @@ function resolveValue(key, value, modelName, store, schema, model) {
       modelName: nested.type,
       _data: nested.attributes,
     });
-    let model = new MegamorphicModel({
+    let nestedModel = new MegamorphicModel({
       store,
       _internalModel: internalModel,
+      _parentModel: model,
+      _topModel: model._topModel,
     });
-    internalModel.record = model;
+    internalModel.record = nestedModel;
 
-    return model;
+    return nestedModel;
   }
 
   if (Array.isArray(value)) {
@@ -136,10 +138,12 @@ export default class MegamorphicModel extends Ember.Object {
     this._super(...arguments);
     this._store = properties.store;
     this._internalModel = properties._internalModel;
-    this._modelName = this._internalModel.modelName;
     this.id = this._internalModel.id;
     this._cache = Object.create(null);
     this._schema = SchemaManager;
+
+    this._topModel = this._topModel || this;
+    this._parentModel = this._parentModel || null;
   }
 
   static get isModel() {
@@ -159,6 +163,10 @@ export default class MegamorphicModel extends Ember.Object {
 
   static create(properties) {
     return new this(properties);
+  }
+
+  get _modelName() {
+    return this._internalModel.modelName;
   }
 
   __defineNonEnumerable(property) {
@@ -312,6 +320,8 @@ export default class MegamorphicModel extends Ember.Object {
 
 MegamorphicModel.prototype.store = null;
 MegamorphicModel.prototype._internalModel = null;
+MegamorphicModel.prototype._parentModel = null;
+MegamorphicModel.prototype._topModel = null;
 MegamorphicModel.prototype.id = null;
 MegamorphicModel.prototype.currentState = null;
 MegamorphicModel.prototype.isError = null;
