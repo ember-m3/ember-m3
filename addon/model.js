@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import SchemaManager from './schema-manager';
 import ModelRootState from 'ember-data/-private/system/model/states';
+import QueryCachePopulatedRecordArray from './query-cache-populated-record-array';
 
 const {
   get, set, isEqual, propertyWillChange, propertyDidChange
@@ -75,14 +76,56 @@ function resolveValue(key, value, modelName, store, schema, model) {
   }
 
   if (Array.isArray(value)) {
-    let result = new Array(value.length);
-    for (let i=0; i<result.length; ++i) {
-      result[i] = resolveValue(key, value[i], modelName, store, schema, model);
-    }
-    return result;
+    return resolveArray(key, value, modelName, store, schema, model);
   }
 
   return value;
+}
+
+function resolveArray(key, value, modelName, store, schema, model) {
+  if (value.length === 0) {
+    return [];
+  }
+
+  if (schema.isAttributeArrayReference(key, value, modelName)) {
+    return resolveRecordArray(key, value, modelName, store, schema, model);
+  } else  {
+    return resolvePlainArray(key, value, modelName, store, schema, model);
+  }
+}
+
+function resolvePlainArray(key, value, modelName, store, schema, model) {
+  let result = new Array(value.length);
+
+  for (let i=0; i<value.length; ++i) {
+    result[i] = resolveValue(key, value[i], modelName, store, schema, model);
+  }
+
+  return result;
+}
+
+function resolveRecordArray(key, value, modelName, store, schema) {
+  let recordArrayManager = store._recordArrayManager;
+
+  // TODO: rename this to something more generic? such M3RecordArray
+  let array = QueryCachePopulatedRecordArray.create({
+    modelName: '-ember-m3',
+    content: Ember.A(),
+    store: store,
+    manager: recordArrayManager,
+  });
+
+  let internalModels = new Array(value.length);
+  for (let i=0; i<internalModels.length; ++i) {
+    let reference = schema.computeAttributeReference(key, value[i], modelName);
+    if (reference) {
+      internalModels[i] = store._internalModelForId(reference.type || '-ember-m3', reference.id);
+    }
+  }
+
+  array._setInternalModels(internalModels);
+
+  return array;
 }
 
 function setDiff(a, b) {
