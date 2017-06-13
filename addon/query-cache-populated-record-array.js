@@ -3,6 +3,10 @@ import RecordArray from 'ember-data/-private/system/record-arrays/record-array';
 export default RecordArray.extend({
   // TODO: implement more of recorarray but make this not an arrayproxy
 
+  replace(idx, removeAmt, newModels) {
+    this.replaceContent(idx, removeAmt, newModels);
+  },
+
   replaceContent(idx, removeAmt, newModels) {
     let addAmt = newModels.length;
 
