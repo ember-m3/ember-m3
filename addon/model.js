@@ -295,6 +295,10 @@ export default class MegamorphicModel extends Ember.Object {
     return this._internalModel.createSnapshot().serialize(options);
   }
 
+  toJSON() {
+    return this.serialize();
+  }
+
   save(options) {
     // TODO: we could return a PromiseObject as DS.Model does
     return this._internalModel.save(options).then(() => this);
