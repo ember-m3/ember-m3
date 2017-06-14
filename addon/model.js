@@ -329,15 +329,14 @@ export default class MegamorphicModel extends Ember.Object {
 
     if (! this._schema.isAttributeIncluded(this._modelName, key)) { return; }
 
-    let alias = this._schema.getAttributeAlias(this._modelName, key);
-    if (alias) {
-      return this._cache[key] = get(this, alias);
-    }
-
     let rawValue = this._internalModel._data[key];
     if (rawValue === undefined) {
-      let defaultValue = this._schema.getDefaultValue(this._modelName, key);
+      let alias = this._schema.getAttributeAlias(this._modelName, key);
+      if (alias) {
+        return this._cache[key] = get(this, alias);
+      }
 
+      let defaultValue = this._schema.getDefaultValue(this._modelName, key);
       return (this._cache[key] = defaultValue);
     }
 
