@@ -52,6 +52,14 @@ class EmbeddedInternalModel {
 }
 
 function resolveValue(key, value, modelName, store, schema, model) {
+  if (schema.isAttributeArrayReference(key, value, modelName)) {
+    return resolveRecordArray(key, value, modelName, store, schema, model);
+  }
+
+  if (Array.isArray(value)) {
+    return resolvePlainArray(key, value, modelName, store, schema, model);
+  }
+
   let reference = schema.computeAttributeReference(key, value, modelName);
   if (reference) {
     return store.peekRecord(reference.type || '-ember-m3', reference.id);
@@ -75,26 +83,14 @@ function resolveValue(key, value, modelName, store, schema, model) {
     return nestedModel;
   }
 
-  if (Array.isArray(value)) {
-    return resolveArray(key, value, modelName, store, schema, model);
-  }
-
   return value;
 }
 
-function resolveArray(key, value, modelName, store, schema, model) {
-  if (value.length === 0) {
-    return [];
-  }
-
-  if (schema.isAttributeArrayReference(key, value, modelName)) {
-    return resolveRecordArray(key, value, modelName, store, schema, model);
-  } else  {
-    return resolvePlainArray(key, value, modelName, store, schema, model);
-  }
-}
-
 function resolvePlainArray(key, value, modelName, store, schema, model) {
+  if (value == null) {
+    return new Array(0);
+  }
+
   let result = new Array(value.length);
 
   for (let i=0; i<value.length; ++i) {
@@ -114,6 +110,10 @@ function resolveRecordArray(key, value, modelName, store, schema) {
     store: store,
     manager: recordArrayManager,
   });
+
+  if (value == null) {
+    return array;
+  }
 
   let internalModels = new Array(value.length);
   for (let i=0; i<internalModels.length; ++i) {
@@ -364,6 +364,7 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   _setRecordArray(key, models) {
+    // TODO Should we add support for array proxy as well
     let ids = new Array(models.length);
     for (let i=0; i<ids.length; ++i) {
       // TODO: should have a schema hook for this
