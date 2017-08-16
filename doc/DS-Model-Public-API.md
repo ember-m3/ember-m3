@@ -1,3 +1,6 @@
+These are notes re the intimate API that would need to become public for a
+non-private swappable model class.
+
 # Klass
 
 ## Impl (schema.x(?))
