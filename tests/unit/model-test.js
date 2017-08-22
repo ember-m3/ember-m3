@@ -1335,7 +1335,16 @@ test('.save saves via the store', function(assert) {
   this.register('adapter:-ember-m3', Ember.Object.extend({
     updateRecord(store, type, snapshot) {
       assert.equal(snapshot.record.get('isSaving'), true, 'record is saving');
-      return Promise.resolve();
+      return Promise.resolve({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+            estimatedRating: '11/10',
+          }
+        }
+      });
     },
   }));
 
@@ -1362,7 +1371,7 @@ test('.save saves via the store', function(assert) {
       assert.equal(model.get('isSaving'), false, 'model done saving');
       assert.deepEqual(model._internalModel._data, {
         name: 'The Winds of Winter',
-        estimatedPubDate: '2231?',
+        estimatedRating: '11/10',
       }, 'data post save resolve');
     })
   );
@@ -1486,4 +1495,276 @@ test('.rollbackAttributes resets state from dirty', function(assert) {
     // attributes
     name: 'Some other book',
   }, 'rollbackAttributes does not alter _data');
+});
+
+test('store.findRecord', function(assert) {
+  assert.expect(5);
+
+  this.register('adapter:-ember-m3', Ember.Object.extend({
+    findRecord(store, modelClass, id, snapshot) {
+      // TODO: this is annoying but name normalization means we get the wrong
+      // model name in snapshots.  Should fix this upstream by dropping name
+      // normalization.  See #11
+      assert.equal(snapshot.modelName, 'com.example.bookstore.book', 'snapshot.modelName');
+      assert.equal(modelClass, MegamorphicModel);
+      assert.equal(id, 'isbn:9780439708180', 'findRecord(id)');
+
+      return Promise.resolve({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+        }
+      });
+    },
+  }));
+
+  return run(() =>
+    this.store().
+    findRecord('com.example.bookstore.Book', 'isbn:9780439708180').
+    then(model => {
+      assert.equal(model.get('id'), 'isbn:9780439708180', 'model.id');
+      assert.equal(model.constructor, MegamorphicModel, 'model.constructor');
+    })
+  );
+});
+
+test('store.deleteRecord', function(assert) {
+  let model = run(() =>
+    this.store().push({
+      data: {
+        id: 'isbn:9780439708180',
+        type: 'com.example.bookstore.Book',
+      }
+    })
+  );
+
+  assert.equal(this.store().hasRecordForId('com.example.bookstore.Book', 'isbn:9780439708180'), true, 'model present');
+  run(() => {
+    this.store().deleteRecord(model);
+    this.store().unloadRecord(model);
+  });
+  assert.equal(this.store().hasRecordForId('com.example.bookstore.Book', 'isbn:9780439708180'), false, 'model gone');
+
+  assert.equal(model.get('isDestroyed'), true, 'model.isDestroyed');
+});
+
+test('store.findAll', function(assert) {
+  assert.expect(4);
+
+  this.register('adapter:-ember-m3', Ember.Object.extend({
+    shouldReloadAll() { return true; },
+
+    findAll(store, modelClass) {
+      assert.equal(modelClass, MegamorphicModel);
+
+      return Promise.resolve({
+        data: [{
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.book',
+        }, {
+          id: 'isbn:9780439064873',
+          type: 'com.example.bookstore.book',
+        }]
+      });
+    },
+  }));
+
+  return run(() =>
+    this.store().
+    findAll('com.example.bookstore.book').
+    then(models => {
+      assert.deepEqual(models.mapBy('id'), ['isbn:9780439708180', 'isbn:9780439064873'], 'models.[id]');
+      assert.deepEqual(models.mapBy('constructor'), [MegamorphicModel, MegamorphicModel], 'models.[constructor]');
+
+      this.store().push({
+        data: {
+          id: 'isbn:9780439136365',
+          type: 'com.example.bookstore.book',
+        },
+      });
+
+      assert.deepEqual(models.mapBy('id'), ['isbn:9780439708180', 'isbn:9780439064873'], 'models.[id]');
+    })
+  );
+});
+
+test('store.query', function(assert) {
+  assert.expect(5);
+
+  this.register('adapter:-ember-m3', Ember.Object.extend({
+    shouldReloadAll() { return true; },
+
+    query(store, modelClass, query /*, recordArray */) {
+      assert.equal(modelClass, MegamorphicModel, 'modelClass arg');
+      assert.deepEqual(query, { author: 'JK Rowling' }, 'query arg');
+
+      return Promise.resolve({
+        data: [{
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.book',
+        }, {
+          id: 'isbn:9780439064873',
+          type: 'com.example.bookstore.book',
+        }]
+      });
+    },
+  }));
+
+  return run(() =>
+    this.store().
+    query('com.example.bookstore.book', { author: 'JK Rowling' }).
+    then(models => {
+      assert.deepEqual(models.mapBy('id'), ['isbn:9780439708180', 'isbn:9780439064873'], 'models.[id]');
+      assert.deepEqual(models.mapBy('constructor'), [MegamorphicModel, MegamorphicModel], 'models.[constructor]');
+
+      this.store().push({
+        data: {
+          id: 'isbn:9780439136365',
+          type: 'com.example.bookstore.book',
+        },
+      });
+
+      assert.deepEqual(models.mapBy('id'), ['isbn:9780439708180', 'isbn:9780439064873'], 'models.[id]');
+    })
+  );
+});
+
+test('store.queryRecord', function(assert) {
+  assert.expect(4);
+
+  this.register('adapter:-ember-m3', Ember.Object.extend({
+    shouldReloadAll() { return true; },
+
+    queryRecord(store, modelClass, query) {
+      assert.equal(modelClass, MegamorphicModel, 'modelClass arg');
+      assert.deepEqual(query, { author: 'JK Rowling' }, 'query arg');
+
+      return Promise.resolve({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.book',
+        },
+      });
+    },
+  }));
+
+  return run(() =>
+    this.store().
+    queryRecord('com.example.bookstore.book', { author: 'JK Rowling' }).
+    then(model => {
+      assert.equal(model.get('id'), 'isbn:9780439708180', 'model.id');
+      assert.equal(model.constructor, MegamorphicModel, 'model.constructor');
+    })
+  );
+});
+
+test('store.unloadRecord', function(assert) {
+  run(() => {
+    this.store().push({
+      data: {
+        id: 'isbn:9780439136365',
+        type: 'com.example.bookstore.book',
+      },
+    });
+
+    assert.equal(this.store().hasRecordForId('com.example.bookstore.book', 'isbn:9780439136365'), true, 'book in store');
+    let model = this.store().peekRecord('com.example.bookstore.book', 'isbn:9780439136365');
+    this.store().unloadRecord(model);
+  });
+
+  assert.equal(this.store().hasRecordForId('com.example.bookstore.book', 'isbn:9780439136365'), false, 'book unloaded');
+});
+
+test('store.getReference', function(assert) {
+  assert.expect(10);
+
+  this.register('adapter:-ember-m3', Ember.Object.extend({
+    findRecord(store, modelClass, id, snapshot) {
+      assert.equal(snapshot.modelName, 'com.example.bookstore.book', 'snapshot.modelName');
+      assert.equal(modelClass, MegamorphicModel);
+      assert.equal(id, 'isbn:9780439708180', 'findRecord(id)');
+
+      return Promise.resolve({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+        }
+      });
+    },
+  }));
+
+  run(() => {
+    let ref = this.store().getReference('com.example.bookstore.book', 'isbn:9780439708180');
+
+    return ref.load().
+      then(model => {
+        assert.deepEqual(model.get('id'), 'isbn:9780439708180', 'ref.load(x => x.id)');
+        assert.deepEqual(model.constructor, MegamorphicModel, 'ref.load(x => x.constructor)');
+
+        return ref.reload();
+      }).then(model => {
+        assert.deepEqual(model.get('id'), 'isbn:9780439708180', 'ref.reload(x => x.id)');
+        assert.deepEqual(model.constructor, MegamorphicModel, 'ref.reload(x => x.constructor)');
+      });
+  });
+});
+
+test('store.hasRecordForId', function(assert) {
+  return run(() => {
+    this.store().push({
+      data: {
+        id: 'isbn:9780439708180',
+        type: 'com.example.bookstore.Book',
+      }
+    });
+
+    assert.equal(this.store().hasRecordForId('com.example.bookstore.Book', 'isbn:9780439708180'), true, 'store has model');
+    assert.equal(this.store().hasRecordForId('com.example.bookstore.Book', 'isbn:12345'), false, 'store does not have model');
+  });
+});
+
+test('store.modelFor', function(assert) {
+  let bookModel = this.store().modelFor('com.example.bookstore.Book');
+  let chapterModel = this.store().modelFor('com.example.bookstore.Chapter');
+  let authorModel = this.store().modelFor('author');
+
+  assert.equal(authorModel, this.Author, 'modelFor DS.Model');
+  assert.equal(bookModel, MegamorphicModel, 'modelFor schema-matching');
+  assert.equal(chapterModel, MegamorphicModel, 'modelFor other schema-matching');
+});
+
+// TODO: peekAll should live update; see #7 (and also #11)
+test('store.peekAll', function(assert) {
+  return run(() => {
+    this.store().push({
+      data: [{
+        id: 'isbn:9780439708180',
+        type: 'com.example.bookstore.book',
+      }, {
+        id: 'isbn:9780439064873',
+        type: 'com.example.bookstore.book',
+      }]
+    });
+
+    let models = this.store().peekAll('com.example.bookstore.book');
+    assert.deepEqual(models.mapBy('id'), ['isbn:9780439708180', 'isbn:9780439064873'], 'store.peekAll().[id]');
+
+    this.store().push({
+      data: {
+        id: 'isbn:9780439136365',
+        type: 'com.example.bookstore.book',
+      },
+    });
+
+    assert.deepEqual(models.mapBy('id'), ['isbn:9780439708180', 'isbn:9780439064873'], 'peekAll.[id] does not live update');
+
+    this.store().push({
+      data: {
+        id: 'isbn:9780439136365',
+        type: 'com.example.bookstore.chapter',
+      },
+    });
+
+    assert.deepEqual(models.mapBy('id'), ['isbn:9780439708180', 'isbn:9780439064873'], 'peekAll.[id] does not live update');
+  });
 });

@@ -246,6 +246,7 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   _assignAttributes(attributes) {
+    // Don't merge; overwrite
     this._internalModel._data = attributes;
   }
 
@@ -286,6 +287,8 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   _changedKeys(data) {
+    if (!data) { return []; }
+
     return calculateChangedKeys(this._internalModel._data, data);
   }
 
@@ -307,6 +310,11 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   eachAttribute(callback, binding) {
+    if (!this._internalModel._data) {
+      // see #14
+      return;
+    }
+
     // Properties in `data` are treated as attributes for serialization purposes
     // if the schema does not consider them references
     Object.keys(this._internalModel._data).forEach(callback, binding);
