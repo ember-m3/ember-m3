@@ -1,3 +1,7 @@
+import Ember from 'ember';
+
+const { setOwner } = Ember;
+
 export function setDiff(a, b) {
   let result = [];
   for (let i=0, j=0; i < a.length; ++i) {
@@ -12,4 +16,11 @@ export function setDiff(a, b) {
   return result;
 }
 
-
+export const OWNER_KEY = (function() {
+  let f = Object.create(null);
+  let u = {};
+  setOwner(f, u);
+  for (let ownerSymbol in f) {
+    return ownerSymbol;
+  }
+})();
