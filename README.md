@@ -22,7 +22,7 @@ schema from the payload and API-specific conventions.
 
 For example, if your API returns responses like the following:
 
-```json
+```js
 {
   "data": {
     "id": "isbn:9780439708180",
@@ -55,43 +55,51 @@ For example, if your API returns responses like the following:
 You could support it with the following schema:
 
 ```js
+// app/initializers/schema-initializer.js
 const BookstoreRegExp = /^com\.example\.bookstore\.*/;
 const ISBNRegExp = /^isbn:.*/;
 const URNRegExp = /^urn:(\w+):(.*)/;
 
-SchemaManager.registerSchema({
-  includesModel(modelName) {
-    return BookstoreRegExp.test(modelName);
-  },
+export function initialize() {
+  SchemaManager.registerSchema({
+    includesModel(modelName) {
+      return BookstoreRegExp.test(modelName);
+    },
 
-  computeAttributeReference(key, value) {
-    if (!value) { return; }
+    computeAttributeReference(key, value) {
+      if (!value) { return; }
 
-    let match;
+      let match;
 
-    if (ISBNRegExp.test(value)) {
-      return {
-        id: value,
-        type: 'com.example.bookstore.Book',
-      };
-    } else if (match = URNRegExp.exec(value)) {
-      return {
-        id: match[2],
-        type: `com.example.bookstore.${match[1]}`,
+      if (ISBNRegExp.test(value)) {
+        return {
+          id: value,
+          type: 'com.example.bookstore.Book',
+        };
+      } else if (match = URNRegExp.exec(value)) {
+        return {
+          id: match[2],
+          type: `com.example.bookstore.${match[1]}`,
+        }
       }
-    }
-  },
+    },
 
-  computeNestedModel(key, value) {
-    if (value && typeof value === 'object') {
-      return {
-        id: value.id,
-        type: value.type,
-        attributes: value,
+    computeNestedModel(key, value) {
+      if (value && typeof value === 'object') {
+        return {
+          id: value.id,
+          type: value.type,
+          attributes: value,
+        }
       }
-    }
-  },
-})
+    },
+  });
+}
+
+export default {
+  name: 'm3-schema-initializer',
+  initialize,
+}
 ```
 
 Notice that in this case, the schema doesn't specify anything model-specific and
@@ -103,13 +111,13 @@ the [Schema](#Schema) section for details.
 
 ## Trade-Offs
 
-The benefits of using m3 over `DS.Model` are:
+The benefits of using ember-m3 over `DS.Model` are:
 
   - handle dynamic schemas whose structure is not known in advance
   - handle relationship references at arbitrary points in the payload seamlessly (eg relationship references within POJO attributes)
   - limit the payload size of schema information by inferring as much as
     possible from the structure of the payload itself
-  - more easily query arbitrary URLs, especially when the returned models are
+  - more easily query arbitrary URLs, especially when the types of the returned models are
     not known in advance
 
 The trade-offs made for this include:
@@ -138,7 +146,7 @@ For example
 store.findRecord('com.example.bookstore.book', 'isbn:9780439708180');
 ```
 
-Results in an adaapter call
+Results in an adapter call
 
 ```js
 import MegamorphicModel from 'ember-m3/model';
@@ -150,7 +158,7 @@ findRecord(store, modelClass, id, snapshot) {
 }
 ```
 
-Ember-m3 does not define an `-ember-m3` adapter but you can define one in your
+ember-m3 does not define an `-ember-m3` adapter but you can define one in your
 app.  Otherwise the default adapter lookup rules are followed (ie your
 `application` adapter will be used).
 
@@ -195,11 +203,14 @@ normalization to JSON API.
   - `options.params` defaults to `null`.  The parameters to include, either in the URL (for `GET`
     requests) or request body (for others).
 
-  - `options.cacheKey` defaults to `null`.  A string to uniquely identify this request.  `null` or `undefined` indicates the result should not be cached.
+  - `options.cacheKey` defaults to `null`.  A string to uniquely identify this
+    request.  `null` or `undefined` indicates the result should not be cached.
+    It is passed to `serializer.normalizeResponse` as the `id` parameter, but
+    the serializer is free to ignore it.
 
-  - `options.reload` defaults to `false`.  If `true`, make a request even if an entry was found under
-    `cacheKey`.  Do not resolve the returned promise until that request
-    completes.
+  - `options.reload` defaults to `false`.  If `true`, make a request even if an
+    entry was found under `cacheKey`.  Do not resolve the returned promise
+    until that request completes.
 
   - `options.backgroundReload`  defaults to `false`.  If `true`, make a request
     even if an entry was found under `cacheKey`.  If `true` and a cached entry
@@ -208,36 +219,369 @@ normalization to JSON API.
 
 #### Caching
 
-TODO: talk about cachekey
+When `cacheKey` is provided the response payload is cached.  This can be useful
+to show, eg dashboard data or any other data that changes over time.
+
+Consider the following:
+
+```js
+store.queryURL('/newsfeed/latest', { cacheKey: 'newsfeed.latest', backgroundReload: true });
+```
+
+In this example, the first time the user visits a route that makes this query,
+the promise will wait to resolve until the request completes.  The second time
+the request is made the promise will resolve immediately with the cached values
+while loading fresh values in the background.
+
+Note that what is actually cached is the result: ie either a `MegamorphicModel`
+or, more likely, a `RecordArray` of `MegamorphicModel`s.  
+
+---
+
+It is possible to do the same thing in stock Ember Data by making a `DS.Model`
+class to wrap your search results and querying via:
+
+```js
+// app/models/news-feed.js
+import DS from 'ember-data';
+export DS.Model.extend({
+  feedItems: DS.hasMany('feed-item'),
+});
+
+// somewhere, presumably in a route
+store.findRecord('news-feed', 'latest', { backgroundReload: true });
+```
+
+As with ember-m3 generally, similar functionality is provided without the need
+to create models and relationships within your app code.
+
+##### Cache Eviction
+
+Because models (or `RecordArray`s of models are cached) the cache can be emptied
+automatically when the models are unloaded.  In the case of `RecordArray`s of
+models, the entire cache entry is evicted if *any* of the member models is
+unloaded.
+
 
 ## Schema
 
+You have to register a schema to tell ember-m3 what types it should be enabled
+for, as well as information that cannot be inferred from the response payload.
+You can think of the schema as a single POJO that represents the same
+information, more or less, as all of your `DS.Model` files.
+
+### What is a schema
+
+When modeling a payload it is necessary to know what properties of the payload
+are attributes that should be accessible to the application & templates, what
+properties are relationships that should look up other models, and what
+properties should be ignored.
+
+`DS.Model` achieves this by enumerating the attributes and relationships on a
+`DS.Model` subclass inside your `app/models` directory.
+
+By contrast ember-m3 relies on application-wide conventions to know the
+difference between attributes and relationships and otherwise reports all
+properties returned by the API as accessible to the application.
+
+For APIs with many models, the ember-m3 approach can produce a substantially
+smaller application.  Similarly the approach uses fewer classes which reduces
+the runtime cost of relationships.
+
+### API
+
+You register your schema with a call to `SchemaManager.registerSchema(schema)`.
+The `schema` you pass in is an object with the following properties.
+
+- `includesModel(modelName)` Whether or not ember-m3 should handle this
+  `modelName`.  It's fine to just `return true` here but this hook allows
+  `ember-m3` to work alongside `DS.Model`.
+
+- `computeAttributeReference(key, value)`  A function that determines
+  whether an attribute is a reference.  If it is not, return `null` or
+  `undefined`.
+  Otherwise return an object with properties:
+    - `id` The id of the referenced model (either m3 or `DS.Model`)
+    - `type` The type of the referenced model (either m3 or `DS.Model`)
+
+  Note that attribute references are all treated as synchronous.  There is no
+  ember-m3 analogue to `DS.Model` async relationships.
+
+-  `isAttributeArrayReference(key, value, modelName)` Whether the attribute
+   should be treated as an array reference.  If `false` array values whose members are
+   attribute references will still be resolved as an array of models.  If `true`
+   they will be resoled as a `RecordArray` of models; additionally a
+   `RecordArray` will be returned even for `null` values.
+
+- `computeNestedModel(key, value, modelName)` Whether `value` should be treated
+  as a nested model.  Useful for deeply nested references, eg with the following
+  data:
+  ```js
+  {
+    id: 1,
+    type: 'com.example.library.book',
+    attributes: {
+      bestChapter: {
+        number: 7,
+        characterPOV: 'urn:character:2'
+      }
+    }
+  }
+  ```
+  We would want `model.get('bestChapter.characterPOV')` to return the
+  `character` model with id `2`, but this requires that the `bestChapter`
+  attribute is treated as a nested m3 model and not a simple object.
+
+  If `value` is a nested model, `computeNestedModel` must return an object with
+  the properties `id`, `type` and `attributes`.  It is fine for this to simply
+  treat all objects as nested models (be careful with transforms; you may
+  want to explicitly check `value.constructor`).  eg
+  ```js
+  computeNestedModel(key, value, modelName) {
+    if(value && value.constructor === Object) {
+      return {
+        id: value.id,
+        type: value.type,
+        attributes: value,
+      };
+    }
+  }
+  ```
+
+- `models` an object containing type-specific information that cannot be
+  inferred from the payload.  The `models` property has the form:
+  ```js
+  {
+    models: {
+      myModelName: {
+        attributes: [],
+        defaults: {
+          attributeName: 'defaultValue',
+        },
+        aliases: {
+          aliasName: 'attributeName',
+        }
+        transforms: {
+          attributeName: transformFunctionn /* value */
+        }
+      }
+    }
+  }
+  ```
+  The keys to `models` are the types of your models, as they exist in your
+  normalized payload.
+
+  - `attributes` A list of whitelisted attributes.  It is recommended to omit
+    this unless you explicitly want to prevent unknown properties returned in
+    the API payload from being read.  If present, it is an array of strings that
+    list whitelisted attributes.  Reads of non-whitelisted properties will
+    return `undefined`.
+
+  - `defaults` An object whose key-value pairs map attribute names to default
+    values.  Reads of properties not included in the API will return the default
+    value instead, if it is specified in the schema.
+
+  - `aliases` Alternate names for payload attributes.  Aliases are read-only, ie
+    equivalent to `Ember.computed.reads` and not `Ember.computed.alias`
+
+  - `transforms` An object whose key-value pairs map attribute names to
+    functions that transform their values.  This is useful to handle attributes
+    that should be treated as `Date`s instead of strings, for instance.
+    ```js
+    function dateTransform(value) {
+      if (!value) { return; }
+      return new Date(Date.parse());
+    }
+
+    {
+      models: {
+        'com.example.bookstore.book': {
+          transforms: {
+            publishDate: dateTransform,
+          }
+        }
+      }
+    }
+    ```
+
 ## Serializer / Adapter
+
+ember-m3 will use the `-ember-m3` adapter to make queries via `findRecord`,
+`queryRecord, `queryURL` &c.  Responses will be normalized via the `-ember-m3`
+serializer.
+
+ember-m3 provides neither an adapter nor a serializer.  If your app does not
+define an `-ember-m3` adapter, the normal lookup rules are followed and your
+`application` adapter is used instead 
+
+It is perfectly fine to use your `application` adapter and serializer.  However,
+if you have an app that uses both m3 models as well as `DS.Model`s you may
+want to have different request headers, serialization or normalization for
+your m3 models.  The `-ember-m3` adapter and serializer are the appropriate
+places for this.
 
 ## Alternative Patterns
 
-### DS.Model Computed Properties
+If you are converting an application that uses `DS.Model`s (perhaps because it
+has a very large number of them and ember-m3 can help with performance) you may
+have some patterns in your model classes beyond schema specification.
 
-### DS.Model Methods
+There are no particular requirements around refactoring these except that when
+you only have a single class for your models you won't be able to use typical
+object-oriented patterns.
+
+The following are simply recommendations for common patterns.
+
+### Constants
+
+Use the schema `defaults` feature to replace constant values in your `DS.Model`
+classes.  For example:
+
+```js
+// app/models/my-model.js
+
+export DS.Model.extend({
+  myConstant: 24601,
+});
+
+// convert to
+
+// app/initializers/schema-initializer.js
+{
+  models: {
+    'my-model': {
+      defaults: {
+        myConstant: 24601,
+      }
+    }
+  }
+}
+```
+
+### Ember.computed.reads
+
+Use the schema `aliases` feature to replace use of `Ember.computed.reads`.  You
+can likely do this also to replace the use of `Ember.computed.alias` as quite
+often they can be read only.
+
+```js
+// app/models/my-model.js
+
+export DS.Model.extend({
+  name: DS.attr(),
+  aliasName: Ember.computed.reads('name'),
+});
+
+// convert to
+
+// app/initializers/schema-initializer.js
+{
+  models: {
+    'my-model': {
+      aliases: {
+        aliasName: 'name',
+      }
+    }
+  }
+}
+```
+
+
+### Other Computed Properties
+
+More involved computed properites can be converted to either utility functions
+(if used within JavaScript) or helper functions (if used in templates).
+
+For properties used in both templates and elsewhere (eg components) a convenient
+pattern is to define a helper that exports both.
+
+
+```js
+// app/models/my-model.js
+export DS.Model.extend({
+  name: DS.attr('string'),
+  sillyName: Ember.computed('name', function() {
+    return `silly ${this.get('name')}`;
+  }).readOnly(),
+});
+```
+```hbs
+{{! some-template.hbs }}
+{{model.sillyName}}
+{{my-component name=model.sillyName}}
+```
+```js
+// app/routes/index.js
+let sn = model.get('sillyName');
+```
+
+Coverted to
+
+```js
+// app/helpers/silly-name.js
+
+export function getSillyName(model) {
+  if (!model) { return; }
+  return `silly ${model.get('name')}`;
+};
+
+function sillyNameHelper(positionalArgs) {
+  if (positionalArgs.length < 1) {
+    return;
+  }
+
+  return getSillyName(positionalArgs[0]);
+}
+
+export default Ember.Helper.helper(sillyNameHelper);
+```
+```hbs
+{{! some-template.hbs }}
+{{silly-name model}}
+{{my-component name=(silly-name model)}}
+```
+```js
+// app/routes/index.js
+import { getSillyName } from '../helpers/silly-name'
+
+// ...
+let sn = getSillyName(model);
+```
 
 ### Saving
 
-- minimum schema config
+ember-m3 does not impose any particular requirements with saving models.  If
+your endpoints cannot reliably be determined via `snapshot.modelName` it is
+recommended to add support for `adapterOptions.url` in your adapter.  For
+example:
 
-- querying resources
-- relationships
-- reference arrays
-- schema docs
-- differences (helpers vs cps &c.)
+```js
+// app/adapters/-ember-m3.js
+import ApplicationAdapter from './application';
+export default ApplicationAdapter.extend({
+  findRecord(store, type, id, snapshot) {
+    let adapterOptions = snapshot.adapterOptions || {};
+    let url = adapterOptions.url;
+    if (!url) {
+      url = this.buildURL(snapshot.modelName, id, snapshot, 'findRecord');
+    }
+
+    return this.ajax(url, 'GET');
+  },
+
+  // &c.
+});
+
+
+// somewhere else, perhaps in a route
+this.store.findRecord('com.example.bookstore.book', 1, { url: '/book/from/surprising/endpoint' });
+```
 
 
 ## Requirements
 
-* ember@^2.14
-* ember-data@^2.15
-
-
-## Examples
+* ember@^2.12.0
+* ember-data@~2.14.10
 
 ## Contributing
 
