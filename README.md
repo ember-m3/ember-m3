@@ -1,4 +1,4 @@
-# ember-m3
+# ember-m3 [![Build Status](https://secure.travis-ci.org/hjdivad/ember-m3.svg?branch=master)](http://travis-ci.org/hjdivad/ember-m3)
 
 This addon provides an alternative model implementation to `DS.Model` that is
 compatible with the rest of the [ember-data](https://github.com/emberjs/data) ecosystem.
