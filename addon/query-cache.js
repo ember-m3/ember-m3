@@ -46,7 +46,6 @@ export default class QueryCache {
         }
         return result;
       });
-      // TODO: .catch ?
     }
 
     // TODO: if(loadPromise)
