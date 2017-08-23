@@ -3,7 +3,7 @@ import { RootState } from 'ember-data/-private';
 
 import SchemaManager from './schema-manager';
 import M3RecordArray from './record-array';
-import { setDiff } from './util';
+import { setDiff, OWNER_KEY } from './util';
 
 const {
   get, set, isEqual, propertyWillChange, propertyDidChange, computed, A
@@ -391,6 +391,11 @@ export default class MegamorphicModel extends Ember.Object {
 
   // TODO: drop change events for unretrieved properties
   setUnknownProperty(key, value) {
+    if (key === OWNER_KEY) {
+      // 2.12 support; later versions avoid this call entirely
+      return;
+    }
+
     if (!this._init) {
       initProperites[key] = value;
       return;
