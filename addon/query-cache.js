@@ -48,11 +48,9 @@ export default class QueryCache {
       });
     }
 
-    // TODO: if(loadPromise)
     if (reload || cachedValue === undefined) {
       return loadPromise;
     } else {
-      // TODO: test resolve cachedValue
       return resolve(cachedValue);
     }
   }

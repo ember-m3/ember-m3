@@ -291,7 +291,9 @@ test('.queryURL caches its results when given a cacheKey', function(assert) {
     assert.equal(model.id, 1, 'the returned promise fulfills with the model');
   }).then(() => {
     this.adapterAjax.returns(resolve(secondPayload));
-    return this.queryCache.queryURL('/uwot', options);
+    let cachedResult = this.queryCache.queryURL('/uwot', options);
+    assert.equal(typeof cachedResult.then, 'function', 'cached values are returned as thenables');
+    return cachedResult;
   }).then((model) => {
     assert.equal(model.id, 1, 'the returned promise fulfills with the model');
     assert.equal(this.adapterAjax.callCount, 1, 'adapter.ajax is not called again (cache hit)');
