@@ -67,6 +67,18 @@ export default class QueryCache {
     delete this._reverseQueryCache[id];
   }
 
+  unloadURL(cacheKey) {
+    if (this.contains(cacheKey)) {
+      delete this._queryCache[cacheKey];
+    }
+  }
+
+  contains(recordOrCacheKey) {
+    return recordOrCacheKey.constructor === String
+      ? !!this._queryCache[recordOrCacheKey]
+      : !!this._reverseQueryCache[recordOrCacheKey.id];
+  }
+
   _buildUrl(url) {
     let parts = [];
 
