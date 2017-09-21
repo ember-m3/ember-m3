@@ -521,6 +521,46 @@ test('multiple cache entries are invalidated if they both involve the same unloa
   });
 });
 
+test('the cache entry for a query is invalidated by cacheKey', function(assert) {
+  let firstPayload = {
+    data: {
+      id: 1,
+      type: 'my-type',
+      attributes: {},
+    }
+  };
+
+  this.adapterAjax.returns(resolve(firstPayload));
+
+  let cacheKey = 'uwot';
+  let options = { cacheKey };
+
+  return this.queryCache.queryURL('/uwot', options).then(() => {
+    this.queryCache.unloadURL(cacheKey);
+
+    assert.notOk(this.queryCache.contains(cacheKey));
+  })
+});
+
+test('contains by cacheKey correctly returns true when a query is cached', function(assert) {
+  let firstPayload = {
+    data: {
+      id: 1,
+      type: 'my-type',
+      attributes: {},
+    }
+  };
+
+  this.adapterAjax.returns(resolve(firstPayload));
+
+  let cacheKey = 'uwot';
+  let options = { cacheKey };
+
+  return this.queryCache.queryURL('/uwot', options).then(() => {
+
+    assert.ok(this.queryCache.contains(cacheKey));
+  })
+});
 
 test('models are removed from results when they are unloaded', function(assert) {
   let firstPayload = {

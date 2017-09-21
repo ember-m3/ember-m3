@@ -57,6 +57,40 @@ test('it adds `store.queryURL`', function(assert) {
   this.store.queryURL('/some-data', { params: { a: '1' }});
 });
 
+test('it adds `store.unloadURL`', function(assert) {
+  assert.expect(2);
+
+  const cacheKey = 'uwot';
+
+  assert.equal(typeof this.store.unloadURL, 'function', 'unloadURL added');
+  this.sinon.stub(this.store._queryCache, 'unloadURL').callsFake((...args) => {
+    assert.deepEqual(
+      [...args],
+      [cacheKey],
+      'arguments are passed down to queryCache'
+    );
+  });
+
+  this.store.unloadURL(cacheKey);
+});
+
+test('it adds `store.containsURL`', function(assert) {
+  assert.expect(1);
+
+  const cacheKey = 'uwot';
+
+  assert.equal(typeof this.store.containsURL, 'function', 'containsURL added');
+  this.sinon.stub(this.store._queryCache, 'containsURL').callsFake((...args) => {
+    assert.deepEqual(
+      [...args],
+      [cacheKey],
+      'arguments are passed down to queryCache'
+    );
+  });
+
+  this.store.containsURL(cacheKey);
+});
+
 test('uses the -ember-m3 adapter for schema-recognized types', function(assert) {
   this.store.adapterFor('non-matching-type');
 
