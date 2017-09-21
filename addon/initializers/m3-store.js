@@ -58,6 +58,10 @@ export function extendStore(Store) {
 
     unloadURL(cacheKey) {
       return this._queryCache.unloadURL(cacheKey);
+    },
+
+    containsURL(cacheKey) {
+      return this._queryCache.contains(cacheKey);
     }
   })
 }
