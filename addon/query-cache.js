@@ -68,9 +68,7 @@ export default class QueryCache {
   }
 
   unloadURL(cacheKey) {
-    if (this.contains(cacheKey)) {
-      delete this._queryCache[cacheKey];
-    }
+    delete this._queryCache[cacheKey];
   }
 
   contains(cacheKey) {
