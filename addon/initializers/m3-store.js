@@ -55,6 +55,10 @@ export function extendStore(Store) {
     queryURL(url, options) {
       return this._queryCache.queryURL(url, options);
     },
+
+    unloadURL(cacheKey) {
+      return this._queryCache.unloadURL(cacheKey);
+    }
   })
 }
 

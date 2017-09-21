@@ -562,26 +562,6 @@ test('contains by cacheKey correctly returns true when a query is cached', funct
   })
 });
 
-test('contains by record correctly returns true when a query is cached', function(assert) {
-  let firstPayload = {
-    data: {
-      id: 1,
-      type: 'my-type',
-      attributes: {},
-    }
-  };
-
-  this.adapterAjax.returns(resolve(firstPayload));
-
-  let cacheKey = 'uwot';
-  let options = { cacheKey };
-
-  return this.queryCache.queryURL('/uwot', options).then((model) => {
-
-    assert.ok(this.queryCache.contains(model));
-  })
-});
-
 test('models are removed from results when they are unloaded', function(assert) {
   let firstPayload = {
     data: [{

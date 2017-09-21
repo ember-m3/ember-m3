@@ -73,10 +73,8 @@ export default class QueryCache {
     }
   }
 
-  contains(recordOrCacheKey) {
-    return recordOrCacheKey.constructor === String
-      ? !!this._queryCache[recordOrCacheKey]
-      : !!this._reverseQueryCache[recordOrCacheKey.id];
+  contains(cacheKey) {
+    return !!this._queryCache[cacheKey];
   }
 
   _buildUrl(url) {
