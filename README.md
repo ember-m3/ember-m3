@@ -1,5 +1,7 @@
 # ember-m3 [![Build Status](https://secure.travis-ci.org/hjdivad/ember-m3.svg?branch=master)](http://travis-ci.org/hjdivad/ember-m3)
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/hjdivad/ember-m3.svg)](https://greenkeeper.io/)
+
 This addon provides an alternative model implementation to `DS.Model` that is
 compatible with the rest of the [ember-data](https://github.com/emberjs/data) ecosystem.
 
