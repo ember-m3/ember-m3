@@ -62,7 +62,20 @@ export function extendStore(Store) {
 
     containsURL(cacheKey) {
       return this._queryCache.contains(cacheKey);
-    }
+    },
+
+    _pushInternalModel(jsonAPIResource) {
+      let internalModel = this._super(jsonAPIResource);
+      if (SchemaManager.includesModel(jsonAPIResource.type)) {
+        this._globalM3Cache[internalModel.id] = internalModel;
+      }
+      return internalModel;
+    },
+
+    _internalModelDestroyed(internalModel) {
+      delete this._globalM3Cache[internalModel.id];
+      return this._super(internalModel);
+    },
   })
 }
 
@@ -103,7 +116,6 @@ export function extendInternalModel() {
     if (this.hasRecord) {
       this._record._notifyProperties(changedKeys);
     }
-    this.didInitializeData();
   }
 
   InternalModel.prototype._changedKeys = function monkeyPatchedChangedKeys(updates) {

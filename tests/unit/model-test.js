@@ -61,7 +61,7 @@ moduleFor('m3:model', 'unit/model', {
       },
 
       models: {
-        'com.example.bookstore.Book': {
+        'com.example.bookstore.book': {
           aliases: {
             title: 'name',
             cost: 'price',
@@ -549,7 +549,7 @@ test('m3 models can be created with initial properties (init prop buffering)', f
 
   assert.equal(get(model, 'name'), 'Marlborough: His Life and Times', 'init property set');
   assert.equal(get(model, 'isbn'), '978-0226106335', 'init property set');
-  assert.equal(get(model, 'publisher'), 'University Of Chicago Press', 'init property set');
+  assert.equal(get(model, 'publisher'), 'University Of Chicago Press, of course', 'init property set');
 });
 
 test('.setUnknownProperty updates data and clears simple attribute cache', function(assert) {
@@ -575,7 +575,7 @@ test('.setUnknownProperty updates data and clears simple attribute cache', funct
 
   assert.throws(() => {
     set(model, 'title', 'Volume I. The Birth of Britain');
-  }, /You tried to set 'title' to 'Volume I. The Birth of Britain', but 'title' is an alias in 'com.example.bookstore.Book' and aliases are read-only/, 'error to set an alias');
+  }, /You tried to set 'title' to 'Volume I. The Birth of Britain', but 'title' is an alias in 'com.example.bookstore.book' and aliases are read-only/, 'error to set an alias');
 });
 
 test('.setUnknownProperty triggers change events', function(assert) {
@@ -630,7 +630,8 @@ test('DS.Models can have relationships into m3 models', function(assert) {
           publishedBooks: {
             data: [{
               id: 'isbn:9780439708180',
-              type: 'com.example.bookstore.Book',
+              // Ember-Data requires model-name normalized types in relationship portions of a jsonapi resource
+              type: 'com.example.bookstore.book',
             }]
           }
         }
@@ -1383,8 +1384,7 @@ test('.reload calls findRecord with reload: true', function(assert) {
   this.register('adapter:-ember-m3', Ember.Object.extend({
     findRecord(store, type, id, snapshot) {
       // TODO: this is annoying but name normalization means we get the wrong
-      // model name in snapshots.  Should fix this upstream by dropping name
-      // normalization.  See #11
+      // model name in snapshots. See #11
       assert.equal(snapshot.modelName, 'com.example.bookstore.book', 'snapshot.modelName');
       assert.equal(id, '1', 'findRecord(id)');
       return Promise.resolve({
@@ -1733,38 +1733,43 @@ test('store.modelFor', function(assert) {
   assert.equal(chapterModel, MegamorphicModel, 'modelFor other schema-matching');
 });
 
-// TODO: peekAll should live update; see #7 (and also #11)
 test('store.peekAll', function(assert) {
-  return run(() => {
+  run(() => {
     this.store().push({
       data: [{
         id: 'isbn:9780439708180',
-        type: 'com.example.bookstore.book',
+        type: 'com.example.bookstore.Book',
       }, {
         id: 'isbn:9780439064873',
-        type: 'com.example.bookstore.book',
+        type: 'com.example.bookstore.Book',
       }]
     });
-
-    let models = this.store().peekAll('com.example.bookstore.book');
-    assert.deepEqual(models.mapBy('id'), ['isbn:9780439708180', 'isbn:9780439064873'], 'store.peekAll().[id]');
-
-    this.store().push({
-      data: {
-        id: 'isbn:9780439136365',
-        type: 'com.example.bookstore.book',
-      },
-    });
-
-    assert.deepEqual(models.mapBy('id'), ['isbn:9780439708180', 'isbn:9780439064873'], 'peekAll.[id] does not live update');
-
-    this.store().push({
-      data: {
-        id: 'isbn:9780439136365',
-        type: 'com.example.bookstore.chapter',
-      },
-    });
-
-    assert.deepEqual(models.mapBy('id'), ['isbn:9780439708180', 'isbn:9780439064873'], 'peekAll.[id] does not live update');
   });
+
+  let models = this.store().peekAll('com.example.bookstore.Book');
+  assert.deepEqual(models.mapBy('id'), ['isbn:9780439708180', 'isbn:9780439064873'], 'store.peekAll().[id]');
+
+  run(() => {
+    this.store().push({
+      data: {
+        id: 'isbn:9780439136365',
+        type: 'com.example.bookstore.Book',
+      },
+    });
+  });
+
+  assert.deepEqual(models.mapBy('id'), ['isbn:9780439708180', 'isbn:9780439064873', 'isbn:9780439136365'], 'peekAll.[id] live updates');
+
+  run(() => {
+    this.store().createRecord('com.example.bookstore.Book', {
+      title: 'A History of the English Speaking Peoples Volume I',
+    });
+  });
+
+  assert.equal(models.get('lastObject.title'), 'A History of the English Speaking Peoples Volume I', 'peekAll.[prop] live updates');
+
+  // TODO: batch by cacheKeyForType
+});
+
+test('store.peekRecord', function(assert) {
 });
