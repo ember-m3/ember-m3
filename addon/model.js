@@ -64,7 +64,15 @@ function resolveValue(key, value, modelName, store, schema, model) {
 
   let reference = schema.computeAttributeReference(key, value, modelName);
   if (reference) {
-    return store.peekRecord(reference.type || '-ember-m3', reference.id);
+    if(reference.type === null) {
+      // for schemas with a global id-space but multiple types, schemas may
+      // report a type of null
+      let internalModel = store._globalM3Cache[reference.id];
+      return internalModel ? internalModel.getRecord() : null;
+    } else {
+      // respect the user schema's type if provided
+      return store.peekRecord(reference.type, reference.id);
+    }
   }
 
   let nested = schema.computeNestedModel(key, value, modelName);
@@ -128,7 +136,13 @@ function resolveRecordArrayInternalModels(key, value, modelName, store, schema) 
   for (let i=0; i<internalModels.length; ++i) {
     let reference = schema.computeAttributeReference(key, value[i], modelName);
     if (reference) {
-      internalModels[i] = store._internalModelForId(reference.type || '-ember-m3', reference.id);
+      if (reference.type) {
+        // for schemas with a global id-space but multiple types, schemas may
+        // report a type of null
+        internalModels[i] = store._internalModelForId(reference.type, reference.id);
+      } else {
+        internalModels[i] = store._globalM3Cache[reference.id];
+      }
     }
   }
 
@@ -207,14 +221,16 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   _flushInitProperties() {
-    let keys = Object.keys(initProperites);
+    let propertiesToFlush = initProperites;
+    initProperites = Object.create(null);
+
+    let keys = Object.keys(propertiesToFlush);
     if (keys.length > 0) {
       for (let i=0; i<keys.length; ++i) {
         let key = keys[i];
-        let value = initProperites[key];
+        let value = propertiesToFlush[key];
         this.setUnknownProperty(key, value);
       }
-      initProperites = Object.create(null);
     }
   }
 

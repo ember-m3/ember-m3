@@ -12,6 +12,9 @@ import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
 
 const { get, set, run, RSVP: { Promise, } } = Ember;
 
+const UrnWithTypeRegex = /^urn:([a-zA-Z.]+):(.*)/;
+const UrnWithoutTypeRegex = /^urn:(.*)/;
+
 moduleFor('m3:model', 'unit/model', {
   integration: true,
 
@@ -37,11 +40,16 @@ moduleFor('m3:model', 'unit/model', {
             id: value,
             type: 'com.example.bookstore.Book',
           }
-        } else if (/^urn:(\w+):(.*)/.test(value)) {
-          let parts = /^urn:(\w+):(.*)/.exec(value);
+        } else if (UrnWithTypeRegex.test(value)) {
+          let parts = UrnWithTypeRegex.exec(value);
           return {
             type: parts[1],
             id: parts[2],
+          };
+        } else if (UrnWithoutTypeRegex.test(value)) {
+          return {
+            type: null,
+            id: value,
           };
         }
       },
@@ -164,6 +172,66 @@ test('.unknownProperty resolves id-matched values to external m3-models', functi
   assert.equal(get(model, 'followedBy').constructor, MegamorphicModel);
 });
 
+test('.unknownProperty resolves id-matched values to external m3-models of different types', function(assert) {
+  let model = run(() => {
+    return this.store().push({
+      data: {
+        id: 'isbn:9780439708180',
+        type: 'com.example.bookstore.Book',
+        attributes: {
+          name: `Harry Potter and the Sorcerer's Stone`,
+          // type embedded in value
+          firstChapter: 'urn:com.example.bookstore.Chapter:1',
+          // no type, requires global m3 index
+          lastChapter: 'urn:chapter17',
+        },
+      },
+      included: [{
+        id: '1',
+        type: 'com.example.bookstore.Chapter',
+        attributes: {
+          name: `The Boy Who Lived`,
+        },
+      }, {
+        id: 'urn:chapter17',
+        type: 'com.example.bookstore.Chapter',
+        attributes: {
+          name: `The Man with Two Faces`,
+        },
+      }]
+    });
+  });
+
+  assert.equal(get(model, 'firstChapter.name'), 'The Boy Who Lived', 'resolve with type');
+  assert.equal(get(model, 'lastChapter.name'), 'The Man with Two Faces', 'resolve with global m3 index');
+});
+
+test('global m3 cache removes unloaded records', function(assert) {
+  let model = run(() => {
+    return this.store().push({
+      data: {
+        id: 'isbn:9780439708180',
+        type: 'com.example.bookstore.Book',
+        attributes: {
+          name: `Harry Potter and the Sorcerer's Stone`,
+          // no type, requires global m3 index
+          lastChapter: 'urn:chapter17',
+        },
+      },
+      included: [{
+        id: 'urn:chapter17',
+        type: 'com.example.bookstore.Chapter',
+        attributes: {
+          name: `The Man with Two Faces`,
+        },
+      }]
+    });
+  });
+
+  run(() => this.store().peekRecord('com.example.bookstore.Chapter', 'urn:chapter17').unloadRecord());
+  assert.equal(get(model, 'lastChapter'), null, 'global m3 cache removed unloaded record');
+});
+
 test('.unknownProperty resolves id-matched values to external DS.models', function(assert) {
   let model = run(() => {
     return this.store().push({
@@ -265,6 +333,80 @@ test('.unknownProperty resolves arrays of id-matched values', function(assert) {
 
   assert.deepEqual(
     get(model, 'relatedBooks').map(x => get(x, 'name')), [
+      'Harry Potter and the Chamber of Secrets',
+      'Harry Potter and the Prisoner of Azkaban'
+    ]);
+});
+
+test('.unknownProperty resolves arrays of id-matched values against the global cache', function(assert) {
+  let model = run(() => {
+    return this.store().push({
+      data: {
+        id: 'isbn:9780439708180',
+        type: 'com.example.bookstore.Book',
+        attributes: {
+          name: `Harry Potter and the Sorcerer's Stone`,
+          relatedBooks: [
+            'urn:isbn9780439064873',
+            'urn:isbn9780439136365',
+          ]
+        },
+      },
+      included: [{
+        id: 'urn:isbn9780439064873',
+        type: 'com.example.bookstore.Book',
+        attributes: {
+          name: `Harry Potter and the Chamber of Secrets`,
+        },
+      }, {
+        id: 'urn:isbn9780439136365',
+        type: 'com.example.bookstore.Book',
+        attributes: {
+          name: `Harry Potter and the Prisoner of Azkaban`,
+        },
+      }]
+    });
+  });
+
+  assert.deepEqual(
+    get(model, 'relatedBooks').map(x => get(x, 'name')), [
+      'Harry Potter and the Chamber of Secrets',
+      'Harry Potter and the Prisoner of Azkaban'
+    ]);
+});
+
+test('.unknownProperty resolves record arrays of id-matched values against the global cache', function(assert) {
+  let model = run(() => {
+    return this.store().push({
+      data: {
+        id: 'isbn:9780439708180',
+        type: 'com.example.bookstore.Book',
+        attributes: {
+          name: `Harry Potter and the Sorcerer's Stone`,
+          otherBooksInSeries: [
+            'urn:isbn9780439064873',
+            'urn:isbn9780439136365',
+          ]
+        },
+      },
+      included: [{
+        id: 'urn:isbn9780439064873',
+        type: 'com.example.bookstore.Book',
+        attributes: {
+          name: `Harry Potter and the Chamber of Secrets`,
+        },
+      }, {
+        id: 'urn:isbn9780439136365',
+        type: 'com.example.bookstore.Book',
+        attributes: {
+          name: `Harry Potter and the Prisoner of Azkaban`,
+        },
+      }]
+    });
+  });
+
+  assert.deepEqual(
+    get(model, 'otherBooksInSeries').map(x => get(x, 'name')), [
       'Harry Potter and the Chamber of Secrets',
       'Harry Potter and the Prisoner of Azkaban'
     ]);
@@ -1762,14 +1904,98 @@ test('store.peekAll', function(assert) {
 
   run(() => {
     this.store().createRecord('com.example.bookstore.Book', {
-      title: 'A History of the English Speaking Peoples Volume I',
+      name: 'A History of the English Speaking Peoples Volume I',
     });
   });
 
-  assert.equal(models.get('lastObject.title'), 'A History of the English Speaking Peoples Volume I', 'peekAll.[prop] live updates');
+  assert.equal(models.get('lastObject.name'), 'A History of the English Speaking Peoples Volume I', 'peekAll.[prop] live updates');
 
   // TODO: batch by cacheKeyForType
 });
 
+test('store.peekAll - grouped by model name', function (assert) {
+  run(() => {
+    this.store().push({
+      data: [{
+        id: 'isbn:9780439708180',
+        type: 'com.example.bookstore.Book',
+      }, {
+        id: 'isbn:9780439708180/chapter/1',
+        type: 'com.example.bookstore.Chapter',
+      }, {
+        id: 'isbn:9780439064873',
+        type: 'com.example.bookstore.Book',
+      }, {
+        id: 'isbn:9780439708180/chapter/2',
+        type: 'com.example.bookstore.Chapter',
+      }]
+    });
+  });
+
+
+  let books = this.store().peekAll('com.example.bookstore.Book');
+  let chapters = this.store().peekAll('com.example.bookstore.Chapter');
+
+  assert.deepEqual(books.mapBy('id'), ['isbn:9780439708180', 'isbn:9780439064873'], 'store.peekAll().[id]');
+  assert.deepEqual(chapters.mapBy('id'), ['isbn:9780439708180/chapter/1', 'isbn:9780439708180/chapter/2'], 'store.peekAll groups by modelName');
+});
+
 test('store.peekRecord', function(assert) {
+  run(() => {
+    this.store().push({
+      data: [{
+        id: 'isbn:9780439708180',
+        type: 'com.example.bookstore.Book',
+      }, {
+        id: 'isbn:9780439708180/chapter/1',
+        type: 'com.example.bookstore.Chapter',
+      }, {
+        id: 'isbn:9780439064873',
+        type: 'com.example.bookstore.Book',
+      }, {
+        id: 'isbn:9780439708180/chapter/2',
+        type: 'com.example.bookstore.Chapter',
+      }]
+    });
+  });
+
+  assert.equal(get(this.store().peekRecord('com.example.bookstore.Book', 'isbn:9780439708180'), 'id'), 'isbn:9780439708180');
+  assert.equal(get(this.store().peekRecord('com.example.bookstore.Book', 'isbn:9780439064873'), 'id'), 'isbn:9780439064873');
+  assert.equal(this.store().peekRecord('com.example.bookstore.Book', 'isbn:9780439708180/chapter/1'), null);
+  assert.equal(this.store().peekRecord('com.example.bookstore.Book', 'isbn:9780439708180/chapter/2'), null);
+
+  assert.equal(get(this.store().peekRecord('com.example.bookstore.Chapter', 'isbn:9780439708180/chapter/1'), 'id'), 'isbn:9780439708180/chapter/1');
+  assert.equal(get(this.store().peekRecord('com.example.bookstore.Chapter', 'isbn:9780439708180/chapter/2'), 'id'), 'isbn:9780439708180/chapter/2');
+  assert.equal(this.store().peekRecord('com.example.bookstore.Chapter', 'isbn:9780439708180'), null);
+  assert.equal(this.store().peekRecord('com.example.bookstore.Chapter', 'isbn:9780439064873'), null);
+});
+
+test('store.hasRecordForId', function (assert) {
+  run(() => {
+    this.store().push({
+      data: [{
+        id: 'isbn:9780439708180',
+        type: 'com.example.bookstore.Book',
+      }, {
+        id: 'isbn:9780439708180/chapter/1',
+        type: 'com.example.bookstore.Chapter',
+      }, {
+        id: 'isbn:9780439064873',
+        type: 'com.example.bookstore.Book',
+      }, {
+        id: 'isbn:9780439708180/chapter/2',
+        type: 'com.example.bookstore.Chapter',
+      }]
+    });
+  });
+
+  assert.equal(this.store().hasRecordForId('com.example.bookstore.Book', 'isbn:9780439708180'), true);
+  assert.equal(this.store().hasRecordForId('com.example.bookstore.Book', 'isbn:9780439064873'), true);
+  assert.equal(this.store().hasRecordForId('com.example.bookstore.Book', 'isbn:9780439708180/chapter/1'), false);
+  assert.equal(this.store().hasRecordForId('com.example.bookstore.Book', 'isbn:9780439708180/chapter/2'), false);
+
+  assert.equal(this.store().hasRecordForId('com.example.bookstore.Chapter', 'isbn:9780439708180'), false);
+  assert.equal(this.store().hasRecordForId('com.example.bookstore.Chapter', 'isbn:9780439064873'), false);
+  assert.equal(this.store().hasRecordForId('com.example.bookstore.Chapter', 'isbn:9780439708180/chapter/1'), true);
+  assert.equal(this.store().hasRecordForId('com.example.bookstore.Chapter', 'isbn:9780439708180/chapter/2'), true);
 });

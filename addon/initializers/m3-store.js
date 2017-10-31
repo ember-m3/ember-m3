@@ -17,18 +17,11 @@ export function extendStore(Store) {
     init() {
       this._super(...arguments);
       this._queryCache = new QueryCache({ store: this });
+      this._globalM3Cache = new Object(null);
     },
 
     _hasModelFor(modelName) {
       return SchemaManager.includesModel(modelName) || this._super(modelName);
-    },
-
-    _internalModelsFor(modelName) {
-      if (SchemaManager.includesModel(modelName)) {
-        // Here we could allow schemas to have multiple id-spaces
-        return this._super('-ember-m3');
-      }
-      return this._super(modelName);
     },
 
     modelFactoryFor(modelName) {
