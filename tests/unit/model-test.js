@@ -92,6 +92,11 @@ moduleFor('m3:model', 'unit/model', {
               return new Date(Date.parse(value));
             }
           }
+        },
+        'com.example.bookstore.chapter': {
+          defaults: {
+            firstCharacterMentioned: 'Harry Potter',
+          }
         }
       }
     });
@@ -851,6 +856,45 @@ test('nested models are created lazily', function(assert) {
 
   assert.equal(get(model, 'nextChapter.nextChapter.name'), 'The Vanishing Glass');
   assert.equal(init.callCount, 3, 'doubly nested model is cached');
+});
+
+test('nested models have normalized model names', function(assert) {
+  let model = run(() => {
+    return this.store().push({
+      data: {
+        id: 'isbn:9780439708180',
+        type: 'com.example.bookstore.Book',
+        attributes: {
+          nextChapter: {
+            name: 'The Boy Who Lived',
+            type: 'com.example.bookstore.Chapter',
+          },
+        },
+      },
+    });
+  });
+
+  assert.equal(get(model, 'nextChapter._internalModel.modelName'), 'com.example.bookstore.chapter', 'nested models have normalized model names');
+});
+
+test('nested models with unnormalized model names can have defaults', function(assert) {
+  let model = run(() => {
+    return this.store().push({
+      data: {
+        id: 'isbn:9780439708180',
+        type: 'com.example.bookstore.Book',
+        attributes: {
+          nextChapter: {
+            name: 'The Boy Who Lived',
+            type: 'com.example.bookstore.Chapter',
+          },
+        },
+      },
+    });
+  });
+
+  // This will only work if nested model names are normalized
+  assert.equal(get(model, 'nextChapter.firstCharacterMentioned'), 'Harry Potter', 'nested models with non-normalized names can have defaults');
 });
 
 test('attribute property changes are properly detected', function(assert) {

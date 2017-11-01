@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import { RootState } from 'ember-data/-private';
+import { dasherize } from '@ember/string';
 
 import SchemaManager from './schema-manager';
 import M3RecordArray from './record-array';
@@ -79,7 +80,9 @@ function resolveValue(key, value, modelName, store, schema, model) {
   if (nested) {
     let internalModel = new EmbeddedInternalModel({
       id: nested.id,
-      modelName: nested.type,
+      // maintain consistency with internalmodel.modelName, which is normalized
+      // internally within ember-data
+      modelName: nested.type ? dasherize(nested.type) : null,
       _data: nested.attributes,
     });
     let nestedModel = new MegamorphicModel({
