@@ -103,7 +103,6 @@ export function extendInternalModel() {
     if (this.hasRecord) {
       this._record._notifyProperties(changedKeys);
     }
-    this.didInitializeData();
   }
 
   InternalModel.prototype._changedKeys = function monkeyPatchedChangedKeys(updates) {
