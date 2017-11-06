@@ -478,11 +478,11 @@ MegamorphicModel.prototype.adapterError = null;
 MegamorphicModel.relationshipsByName = new Ember.Map();
 
 // STATE PROPS
-MegamorphicModel.prototype.isEmpty = retrieveFromCurrentState
-MegamorphicModel.prototype.isLoading = retrieveFromCurrentState
-MegamorphicModel.prototype.isLoaded = retrieveFromCurrentState
-MegamorphicModel.prototype.isDirty = retrieveFromCurrentState
-MegamorphicModel.prototype.isSaving = retrieveFromCurrentState
-MegamorphicModel.prototype.isDeleted = retrieveFromCurrentState
-MegamorphicModel.prototype.isNew = retrieveFromCurrentState
+MegamorphicModel.prototype.isEmpty = retrieveFromCurrentState;
+MegamorphicModel.prototype.isLoading = retrieveFromCurrentState;
+MegamorphicModel.prototype.isLoaded = retrieveFromCurrentState;
+MegamorphicModel.prototype.isDirty = retrieveFromCurrentState;
+MegamorphicModel.prototype.isSaving = retrieveFromCurrentState;
+MegamorphicModel.prototype.isDeleted = retrieveFromCurrentState;
+MegamorphicModel.prototype.isNew = retrieveFromCurrentState;
 MegamorphicModel.prototype.isValid = retrieveFromCurrentState;

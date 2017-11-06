@@ -109,7 +109,7 @@ export function extendInternalModel() {
     if (this.hasRecord) {
       this._record._notifyProperties(changedKeys);
     }
-  }
+  };
 
   InternalModel.prototype._changedKeys = function monkeyPatchedChangedKeys(updates) {
     if (this.hasRecord && typeof this._record._changedKeys === 'function') {
@@ -150,7 +150,7 @@ export function extendInternalModel() {
     }
 
     return changedKeys;
-  }
+  };
 
   InternalModel.prototype.adapterDidCommit = function monkeyPatchedAdapterDidCommit(data) {
     if (data) {
@@ -175,7 +175,7 @@ export function extendInternalModel() {
     if (!data) { return; }
 
     this._record._notifyProperties(changedKeys);
-  }
+  };
   InternalModel.prototype._assignAttributes = function monkeyPatched_assignAttributes(attributes) {
     if (this.hasRecord && typeof this._record._assignAttributes === 'function') {
       return this._record._assignAttributes(attributes);
