@@ -1,5 +1,5 @@
 import Ember from 'ember';
-import DS from 'ember-data'
+import DS from 'ember-data';
 import { module, test } from 'qunit';
 import { setupTest }  from 'ember-qunit';
 import sinon from 'sinon';
