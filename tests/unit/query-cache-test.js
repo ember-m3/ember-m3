@@ -677,9 +677,9 @@ module('unit/query-cache', function(hooks) {
     };
 
     this.adapterAjax.returns(resolve(payload));
-    return this.queryCache.queryURL('/ohai', { method: 'POST', params: { q: 'v' }}).
-      then(models => models.update()).
-      then(() => {
+    return this.queryCache.queryURL('/ohai', { method: 'POST', params: { q: 'v' }})
+      .then(models => models.update())
+      .then(() => {
         assert.deepEqual(
           stubCalls(this.adapterAjax),
           [
