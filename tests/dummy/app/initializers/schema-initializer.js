@@ -39,7 +39,7 @@ export function initialize(/* application */) {
     },
 
     models: {
-      'com.example.bookstore.Book': {
+      'com.example.bookstore.book': {
         transforms: {
           pubDate: dateTransform
         }

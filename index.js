@@ -7,10 +7,6 @@ module.exports = {
   options: {
     babel: {
       loose: true,
-    }
-  },
-
-  isDevelopingAddon() {
-    return true;
+    },
   },
 };
