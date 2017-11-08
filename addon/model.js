@@ -207,12 +207,13 @@ const retrieveFromCurrentState = computed('currentState', function(key) {
 //      CP or setknownProperty can rely on any initialization
 let initProperites = Object.create(null);
 
-export default class MegamorphicModel extends Ember.Object {
+export default class MegamorphicModel extends Ember.ObjectProxy {
   init(properties) {
     this._super(...arguments);
     this._store = properties.store;
     this._internalModel = properties._internalModel;
     this.id = this._internalModel.id;
+    this._projectionName = properties._projectionName || null;
     this._cache = Object.create(null);
     this._schema = SchemaManager;
 
@@ -257,7 +258,7 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   get _modelName() {
-    return this._internalModel.modelName;
+    return this._projectionName || this._internalModel.modelName;
   }
 
   __defineNonEnumerable(property) {
@@ -420,6 +421,11 @@ export default class MegamorphicModel extends Ember.Object {
       return;
     }
 
+    if (this.content) {
+      set(this.content, key, value);
+      return;
+    }
+
     if(this._schema.getAttributeAlias(this._modelName, key)) {
       throw new Error(`You tried to set '${key}' to '${value}', but '${key}' is an alias in '${this._modelName}' and aliases are read-only`);
     }
@@ -457,6 +463,17 @@ export default class MegamorphicModel extends Ember.Object {
     }
   }
 
+  getProjection(projectionName) {
+    let projection = new MegamorphicModel({
+      content: this,
+      store: this.store,
+      _internalModel: this._internalModel,
+      id: this.id,
+      _projectionName: projectionName,
+    });
+    return projection;
+  }
+
   static toString() {
     return 'MegamorphicModel';
   }
@@ -474,6 +491,7 @@ MegamorphicModel.prototype.id = null;
 MegamorphicModel.prototype.currentState = null;
 MegamorphicModel.prototype.isError = null;
 MegamorphicModel.prototype.adapterError = null;
+MegamorphicModel.prototype._projectionName = null;
 
 MegamorphicModel.relationshipsByName = new Ember.Map();
 

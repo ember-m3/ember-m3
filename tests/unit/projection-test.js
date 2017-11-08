@@ -56,13 +56,19 @@ moduleFor('m3:projection', 'unit/projection', {
         return key === 'otherBooksInSeries';
       },
 
-      computeNestedModel(key, value) {
-        if (value && typeof value === 'object' && value.constructor !== Date) {
-          return {
-            type: value.type,
-            id: value.id,
-            attributes: value,
-          }
+      computeNestedModel(key, value, modelName) {
+        if (!value || typeof value !== 'object' || value.constructor === Date) {
+          return null;
+        }
+        let valueType = value.type;
+        let modelSchema = this.models[modelName];
+        if (modelSchema && modelSchema.attributesTypes && modelSchema.attributesTypes[key]) {
+          valueType = modelSchema.attributesTypes[key];
+        }
+        return {
+          type: valueType,
+          id: value.id,
+          attributes: value,
         }
       },
 
