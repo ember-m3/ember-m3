@@ -328,6 +328,16 @@ module('unit/projection', function(hooks) {
   });
 
   module('property notifications', function(hooks) {
+    /*
+      All of the tests in this module MUST implement the following:
+
+      - updates TITLE and CHAPTER
+      - DOES NOT update AUTHOR
+
+      Tests may optionally update DESCRIPTION but must assert the state
+      of baseRecord on their own in this case.
+     */
+
     // properties for use for initial state
     const BOOK_ID = 'isbn:9780439708181';
     const BOOK_TITLE = 'Adventures in Wonderland';
