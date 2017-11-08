@@ -151,19 +151,17 @@ module('unit/projection', function(hooks) {
       });
     });
 
-    run(() => {
-      let projection = store.peekRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, UNFETCHED_PROJECTION_ID);
-      assert.equal(projection, undefined, 'The unfetched projection with a fetched base-record is unfound by peekRecord()');
+    let projection = store.peekRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, UNFETCHED_PROJECTION_ID);
+    assert.equal(projection, undefined, 'The unfetched projection with a fetched base-record is unfound by peekRecord()');
 
-      projection = store.peekRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, FETCHED_PROJECTION_ID);
-      assert.ok(projection instanceof MegamorphicModel, 'The fetched projection is found by peekRecord()');
+    projection = store.peekRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, FETCHED_PROJECTION_ID);
+    assert.ok(projection instanceof MegamorphicModel, 'The fetched projection is found by peekRecord()');
 
-      let record = store.peekRecord(BOOK_CLASS_PATH, UNFETCHED_PROJECTION_ID);
-      assert.ok(record instanceof MegamorphicModel, 'The fetched base-record is found by peekRecord()');
+    let record = store.peekRecord(BOOK_CLASS_PATH, UNFETCHED_PROJECTION_ID);
+    assert.ok(record instanceof MegamorphicModel, 'The fetched base-record is found by peekRecord()');
 
-      record = store.peekRecord(BOOK_CLASS_PATH, FETCHED_PROJECTION_ID);
-      assert.equal(record, undefined, 'The unfetched base-record with a fetched projection is unfound by peekRecord()');
-    });
+    record = store.peekRecord(BOOK_CLASS_PATH, FETCHED_PROJECTION_ID);
+    assert.equal(record, undefined, 'The unfetched base-record with a fetched projection is unfound by peekRecord()');
   });
 
   test(`store.findRecord() will only fetch a projection or base-model if it has not been fetched previously`, function(assert) {
@@ -178,7 +176,7 @@ module('unit/projection', function(hooks) {
     let expectedFindRecordId;
     let findRecordCallCount = 0;
 
-    this.register('adapter:-ember-m3', Ember.Object.extend({
+    this.owner.register('adapter:-ember-m3', Ember.Object.extend({
       findRecord(store, modelClass, id, snapshot) {
         findRecordCallCount++;
         assert.equal(snapshot.modelName, expectedFindRecordModelName, 'findRecord snapshot has the correct modelName');
