@@ -543,12 +543,14 @@ module('unit/projection', function(hooks) {
 
       run(() => {
         store.push({
-          id: get(record, 'id'),
-          type: BOOK_CLASS_PATH,
-          attributes: {
-            title: NEW_TITLE,
-            'chapter-1': NEW_CHAPTER_TEXT,
-            description: NEW_DESCRIPTION
+          data: {
+            id: get(record, 'id'),
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              title: NEW_TITLE,
+              'chapter-1': NEW_CHAPTER_TEXT,
+              description: NEW_DESCRIPTION
+            }
           }
         });
       });
@@ -580,17 +582,19 @@ module('unit/projection', function(hooks) {
 
       run(() => {
         store.push({
-          id: get(excerpt, 'id'),
-          type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
-          attributes: {
-            title: NEW_TITLE,
-            'chapter-1': NEW_CHAPTER_TEXT,
-            /*
-              The below update is invalid because in the real world the schema was are given is also used
-              to create the payload the API gives us, so we could not have properties from the API that don't
-              exist in the whitelist.
-             */
-            // description: NEW_DESCRIPTION
+          data: {
+            id: get(excerpt, 'id'),
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {
+              title: NEW_TITLE,
+              'chapter-1': NEW_CHAPTER_TEXT,
+              /*
+                The below update is invalid because in the real world the schema was are given is also used
+                to create the payload the API gives us, so we could not have properties from the API that don't
+                exist in the whitelist.
+               */
+              // description: NEW_DESCRIPTION
+            }
           }
         });
       });
