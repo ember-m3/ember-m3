@@ -339,7 +339,7 @@ module('unit/projection', function(hooks) {
     const NEW_TITLE = 'Through the Looking Glass';
     const NEW_DESCRIPTION = 'Crazy Town';
 
-    hooks.beforeEach((assert) => {
+    hooks.beforeEach(function(assert) {
       const store = this.store();
 
       let baseRecord;
