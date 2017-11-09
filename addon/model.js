@@ -211,9 +211,8 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
   init(properties) {
     this._super(...arguments);
     this._store = properties.store;
-    this._internalModel = properties._internalModel;
     this.id = this._internalModel.id;
-    this._projectionName = properties._projectionName || null;
+    this._internalModel = properties._internalModel;
     this._cache = Object.create(null);
     this._schema = SchemaManager;
 
@@ -222,6 +221,11 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
     this._init = true;
 
     this._flushInitProperties();
+  }
+
+  setProxiedModel(baseModelName) {
+    let baseModel = this._store.peekRecord(baseModelName, this.id);
+    set(this, 'content', baseModel);
   }
 
   _flushInitProperties() {
@@ -258,7 +262,7 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
   }
 
   get _modelName() {
-    return this._projectionName || this._internalModel.modelName;
+    return this._internalModel.modelName;
   }
 
   __defineNonEnumerable(property) {
@@ -271,6 +275,15 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
   }
 
   _notifyProperties(keys) {
+    if (keys[0] === '__projects' && get(this, 'content') == null) {
+      this.setProxiedModel(this._internalModel.__data.__projects);
+      return;
+    }
+    if (get(this, 'content') != null) {
+      // we are a proxy, nothing to do really as all notifications should come from the base model
+      return;
+    }
+
     Ember.beginPropertyChanges();
     let key;
     for (let i = 0, length = keys.length; i < length; i++) {
@@ -390,7 +403,9 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
 
     if (! this._schema.isAttributeIncluded(this._modelName, key)) { return; }
 
-    let rawValue = this._internalModel._data[key];
+    let internalModel = this.content != null ? this.content._internalModel : this._internalModel;
+
+    let rawValue = internalModel._data[key];
     if (rawValue === undefined) {
       let alias = this._schema.getAttributeAlias(this._modelName, key);
       if (alias) {
@@ -461,17 +476,6 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
       let recordArray = this._cache[key];
       recordArray.replaceContent(0, get(recordArray, 'length'), models);
     }
-  }
-
-  getProjection(projectionName) {
-    let projection = new MegamorphicModel({
-      content: this,
-      store: this.store,
-      _internalModel: this._internalModel,
-      id: this.id,
-      _projectionName: projectionName,
-    });
-    return projection;
   }
 
   static toString() {
