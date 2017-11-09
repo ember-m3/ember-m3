@@ -317,8 +317,10 @@ module('unit/projection', function(hooks) {
       projectedRecord = store.push({
         data: {
           id: BOOK_ID,
-          projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
           type: BOOK_CLASS_PATH,
+          meta: {
+            projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
+          },
           attributes: {
             title: BOOK_TITLE
           }
@@ -382,8 +384,10 @@ module('unit/projection', function(hooks) {
         projectedExcerpt = store.push({
           data: {
             id: BOOK_ID,
-            projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
             type: BOOK_CLASS_PATH,
+            meta: {
+              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
+            },
             attributes: {}
           }
         });
@@ -391,8 +395,10 @@ module('unit/projection', function(hooks) {
         projectedPreview = store.push({
           data: {
             id: BOOK_ID,
-            projectionTypes: [BOOK_PREVIEW_PROJECTION_CLASS_PATH],
             type: BOOK_CLASS_PATH,
+            meta: {
+              projectionTypes: [BOOK_PREVIEW_PROJECTION_CLASS_PATH],
+            },
             attributes: {}
           }
         });
@@ -606,8 +612,10 @@ module('unit/projection', function(hooks) {
         store.push({
           data: {
             id: get(excerpt, 'id'),
-            projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
             type: BOOK_CLASS_PATH,
+            meta: {
+              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
+            },
             attributes: {
               title: NEW_TITLE,
               'chapter-1': NEW_CHAPTER_TEXT,

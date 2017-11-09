@@ -57,26 +57,33 @@ export function extendStore(Store) {
       return this._queryCache.contains(cacheKey);
     },
 
-    _pushInternalModel(jsonAPIResource) {
-      let internalModel = this._super(jsonAPIResource);
+    _pushInternalModel(JSONAPIResource) {
+      let internalModel = this._super(JSONAPIResource);
+      let projectionTypes;
+
       // TODO Fix the handling of the m3 global cache to correctly handle projected types
-      // the cache must work only for 
-      if (SchemaManager.includesModel(jsonAPIResource.type)) {
+      // the cache must work only for
+      if (SchemaManager.includesModel(JSONAPIResource.type)) {
         this._globalM3Cache[internalModel.id] = internalModel;
       }
-      if (!jsonAPIResource.projectionTypes) {
+
+      if (typeof JSONAPIResource.meta === 'object' && JSONAPIResource.meta !== null) {
+        projectionTypes = JSONAPIResource.meta.projectionTypes;
+      }
+
+      if (!Array.isArray(projectionTypes)) {
         return internalModel;
       }
+
       // model has been loaded with projections
       // push dummy internal models for the projections
-      let projectionTypes = jsonAPIResource.projectionTypes;
       let internalModels = new Array(projectionTypes.length);
       for (let i = 0; i < projectionTypes.length; i++) {
         let projectionData = {
-          id: jsonAPIResource.id,
+          id: JSONAPIResource.id,
           type: projectionTypes[i],
           attributes: {
-            __projects: jsonAPIResource.type
+            __projects: JSONAPIResource.type
           }
         };
         internalModels[i] = this._load(projectionData);
