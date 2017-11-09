@@ -21,7 +21,7 @@ const NORM_BOOK_CLASS_PATH = 'com.example.bookstore.book';
 const BOOK_EXCERPT_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.BookExcerpt';
 const NORM_BOOK_EXCERPT_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.book-excerpt';
 const BOOK_PREVIEW_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.BookPreview';
-const NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.book-preview';
+// const NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.book-preview';
 
 module('unit/projection', function(hooks) {
   setupTest(hooks);
@@ -78,9 +78,9 @@ module('unit/projection', function(hooks) {
       },
 
       models: {
-        [NORM_BOOK_CLASS_PATH]: {
+        [BOOK_CLASS_PATH]: {
           aliases: {
-            title: 'name',
+            name: 'title',
             cost: 'price',
             pub: 'publisher',
             releaseDate: 'pubDate',
@@ -102,11 +102,11 @@ module('unit/projection', function(hooks) {
             }
           }
         },
-        [NORM_BOOK_EXCERPT_PROJECTION_CLASS_PATH]: {
+        [BOOK_EXCERPT_PROJECTION_CLASS_PATH]: {
           projects: BOOK_CLASS_PATH,
           attributes: ['title', 'author', 'chapter-1'],
         },
-        [NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH]: {
+        [BOOK_PREVIEW_PROJECTION_CLASS_PATH]: {
           projects: BOOK_CLASS_PATH,
           attributes: ['title', 'author', 'foreword', 'chapter-1'],
         },
@@ -449,9 +449,9 @@ module('unit/projection', function(hooks) {
       assert.equal(get(projectedPreview, 'chapter-1'), undefined, 'preview has no chapter-1');
 
       // a whitelisted but unset property
-      // assert.equal(get(baseRecord, 'author'), undefined, 'base-record has the correct author');
-      // assert.equal(get(projectedExcerpt, 'author'), undefined, 'excerpt has the correct author');
-      // assert.equal(get(projectedPreview, 'author'), undefined, 'preview has the correct author');
+      assert.equal(get(baseRecord, 'author'), undefined, 'base-record has the correct author');
+      assert.equal(get(projectedExcerpt, 'author'), undefined, 'excerpt has the correct author');
+      assert.equal(get(projectedPreview, 'author'), undefined, 'preview has the correct author');
 
       assert.watchedPropertyCount(baseRecordTitle, 0, 'Initially we have not dirtied baseRecord.title');
       assert.watchedPropertyCount(baseRecordDescription, 0, 'Initially we have not dirtied baseRecord.description');
@@ -469,7 +469,7 @@ module('unit/projection', function(hooks) {
       assert.watchedPropertyCount(previewAuthor, 0, 'Initially we have not dirtied preview.author');
     });
 
-    hooks.afterEach(function (assert) {
+    hooks.afterEach(function(assert) {
       let {
         baseRecordTitle,
         baseRecordDescription,
@@ -491,19 +491,19 @@ module('unit/projection', function(hooks) {
         projectedPreview,
       } = this.records;
 
-      // assert.watchedPropertyCount(baseRecordTitle, 1, 'Afterwards we have dirtied baseRecord.title');
+      assert.watchedPropertyCount(baseRecordTitle, 1, 'Afterwards we have dirtied baseRecord.title');
       assert.watchedPropertyCount(baseRecordChapter, 1, 'Afterwards we have dirtied baseRecord.chapter');
       assert.watchedPropertyCount(baseRecordAuthor, 0, 'Afterwards we have not dirtied baseRecord.author');
 
-      // assert.watchedPropertyCount(excerptTitle, 1, 'Afterwards we have dirtied excerpt.title');
+      assert.watchedPropertyCount(excerptTitle, 1, 'Afterwards we have dirtied excerpt.title');
       // TODO This is reasonable, but impossible to handle with the proxy approach
-      // assert.watchedPropertyCount(excerptDescription, 0, 'Afterwards we have not dirtied excerpt.description');
+      assert.watchedPropertyCount(excerptDescription, 0, 'Afterwards we have not dirtied excerpt.description');
       assert.watchedPropertyCount(excerptChapter, 1, 'Afterwards we have dirtied excerpt.chapter');
       assert.watchedPropertyCount(excerptAuthor, 0, 'Afterwards we have not dirtied excerpt.author');
 
-      // assert.watchedPropertyCount(previewTitle, 1, 'Afterwards we have dirtied preview.title');
+      assert.watchedPropertyCount(previewTitle, 1, 'Afterwards we have dirtied preview.title');
       // TODO This is reasonable, but impossible to handle with the proxy approach
-      // assert.watchedPropertyCount(previewDescription, 0, 'Afterwards we have not dirtied preview.description');
+      assert.watchedPropertyCount(previewDescription, 0, 'Afterwards we have not dirtied preview.description');
       assert.watchedPropertyCount(previewChapter, 1, 'Afterwards we have dirtied preview.chapter');
       assert.watchedPropertyCount(previewAuthor, 0, 'Afterwards we have not dirtied preview.author');
 
@@ -523,9 +523,9 @@ module('unit/projection', function(hooks) {
       previewAuthor.unwatch();
 
       // set to an existing property
-      // assert.equal(get(baseRecord, 'title'), NEW_TITLE, 'base-record has the correct title');
-      // assert.equal(get(projectedExcerpt, 'title'), NEW_TITLE, 'excerpt has the correct title');
-      // assert.equal(get(projectedPreview, 'title'), NEW_TITLE, 'preview has the correct title');
+      assert.equal(get(baseRecord, 'title'), NEW_TITLE, 'base-record has the correct title');
+      assert.equal(get(projectedExcerpt, 'title'), NEW_TITLE, 'excerpt has the correct title');
+      assert.equal(get(projectedPreview, 'title'), NEW_TITLE, 'preview has the correct title');
 
       // set to a previously absent property
       assert.equal(get(baseRecord, 'chapter-1'), NEW_CHAPTER_TEXT, 'base-record has the correct chapter-1');
@@ -550,8 +550,7 @@ module('unit/projection', function(hooks) {
 
       run(() => {
         set(record, 'chapter-1', NEW_CHAPTER_TEXT);
-        // TODO 'title' is an alias an therefore read-only
-        // set(record, 'title', NEW_TITLE);
+        set(record, 'title', NEW_TITLE);
         set(record, 'description', NEW_DESCRIPTION);
       });
 
@@ -587,13 +586,13 @@ module('unit/projection', function(hooks) {
 
       run(() => {
         set(excerpt, 'chapter-1', NEW_CHAPTER_TEXT);
-        // set(excerpt, 'title', NEW_TITLE);
+        set(excerpt, 'title', NEW_TITLE);
       });
 
       assert.throws(() => {
         // TODO Runloop in test has options, which causes the error to be handled separately in the adapter
         // run(() => { set(excerpt, 'description', NEW_DESCRIPTION); });
-        set (excerpt, 'description', NEW_DESCRIPTION);
+        set(excerpt, 'description', NEW_DESCRIPTION);
       }, /whitelist/gi, 'Setting a non-whitelisted property throws an error');
       assert.watchedPropertyCount(this.watchers.baseRecordDescription, 0, 'Afterwards we have not dirtied baseRecord.description');
       assert.equal(get(baseRecord, 'description'), BOOK_DESCRIPTION, 'base-record has the correct description');
