@@ -13,15 +13,16 @@ const {
   RSVP: { Promise },
 } = Ember;
 
-// TODO: this is annoying but name normalization means we get the wrong
-//  for modelName in snapshots. Should fix this upstream by dropping name
-//  normalization.  See #11
+/*
+  Non-normalized ClassPaths are used for the data returned by the adapter and pushed to the store
+  but for everything post-entry we use the normalized version.
+ */
 const BOOK_CLASS_PATH = 'com.example.bookstore.Book';
 const NORM_BOOK_CLASS_PATH = 'com.example.bookstore.book';
 const BOOK_EXCERPT_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.BookExcerpt';
 const NORM_BOOK_EXCERPT_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.book-excerpt';
 const BOOK_PREVIEW_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.BookPreview';
-// const NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.book-preview';
+const NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.book-preview';
 
 module('unit/projection', function(hooks) {
   setupTest(hooks);
@@ -78,7 +79,7 @@ module('unit/projection', function(hooks) {
       },
 
       models: {
-        [BOOK_CLASS_PATH]: {
+        [NORM_BOOK_CLASS_PATH]: {
           aliases: {
             name: 'title',
             cost: 'price',
@@ -102,12 +103,12 @@ module('unit/projection', function(hooks) {
             }
           }
         },
-        [BOOK_EXCERPT_PROJECTION_CLASS_PATH]: {
-          projects: BOOK_CLASS_PATH,
+        [NORM_BOOK_EXCERPT_PROJECTION_CLASS_PATH]: {
+          projects: NORM_BOOK_CLASS_PATH,
           attributes: ['title', 'author', 'chapter-1'],
         },
-        [BOOK_PREVIEW_PROJECTION_CLASS_PATH]: {
-          projects: BOOK_CLASS_PATH,
+        [NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH]: {
+          projects: NORM_BOOK_CLASS_PATH,
           attributes: ['title', 'author', 'foreword', 'chapter-1'],
         },
       }
@@ -448,10 +449,10 @@ module('unit/projection', function(hooks) {
       assert.equal(get(projectedExcerpt, 'chapter-1'), undefined, 'excerpt has no chapter-1');
       assert.equal(get(projectedPreview, 'chapter-1'), undefined, 'preview has no chapter-1');
 
-      // a whitelisted but unset property
-      assert.equal(get(baseRecord, 'author'), undefined, 'base-record has the correct author');
-      assert.equal(get(projectedExcerpt, 'author'), undefined, 'excerpt has the correct author');
-      assert.equal(get(projectedPreview, 'author'), undefined, 'preview has the correct author');
+      // a whitelisted property that won't be updated
+      assert.equal(get(baseRecord, 'author'), BOOK_AUTHOR, 'base-record has the correct author');
+      assert.equal(get(projectedExcerpt, 'author'), BOOK_AUTHOR, 'excerpt has the correct author');
+      assert.equal(get(projectedPreview, 'author'), BOOK_AUTHOR, 'preview has the correct author');
 
       assert.watchedPropertyCount(baseRecordTitle, 0, 'Initially we have not dirtied baseRecord.title');
       assert.watchedPropertyCount(baseRecordDescription, 0, 'Initially we have not dirtied baseRecord.description');
@@ -496,13 +497,11 @@ module('unit/projection', function(hooks) {
       assert.watchedPropertyCount(baseRecordAuthor, 0, 'Afterwards we have not dirtied baseRecord.author');
 
       assert.watchedPropertyCount(excerptTitle, 1, 'Afterwards we have dirtied excerpt.title');
-      // TODO This is reasonable, but impossible to handle with the proxy approach
       assert.watchedPropertyCount(excerptDescription, 0, 'Afterwards we have not dirtied excerpt.description');
       assert.watchedPropertyCount(excerptChapter, 1, 'Afterwards we have dirtied excerpt.chapter');
       assert.watchedPropertyCount(excerptAuthor, 0, 'Afterwards we have not dirtied excerpt.author');
 
       assert.watchedPropertyCount(previewTitle, 1, 'Afterwards we have dirtied preview.title');
-      // TODO This is reasonable, but impossible to handle with the proxy approach
       assert.watchedPropertyCount(previewDescription, 0, 'Afterwards we have not dirtied preview.description');
       assert.watchedPropertyCount(previewChapter, 1, 'Afterwards we have dirtied preview.chapter');
       assert.watchedPropertyCount(previewAuthor, 0, 'Afterwards we have not dirtied preview.author');
