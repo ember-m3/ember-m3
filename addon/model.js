@@ -216,6 +216,10 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
     this._cache = Object.create(null);
     this._schema = SchemaManager;
 
+    if (this._internalModel.__data && this._internalModel.__data.__projects) {
+      this.setProxiedModel(this._internalModel.__data.__projects);
+    }
+
     this._topModel = this._topModel || this;
     this._parentModel = this._parentModel || null;
     this._init = true;

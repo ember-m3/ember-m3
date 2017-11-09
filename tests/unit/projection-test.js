@@ -102,7 +102,7 @@ module('unit/projection', function(hooks) {
             }
           }
         },
-        [BOOK_EXCERPT_PROJECTION_CLASS_PATH]: {
+        [NORM_BOOK_EXCERPT_PROJECTION_CLASS_PATH]: {
           projects: BOOK_CLASS_PATH,
           attributes: ['title', 'author', 'chapter-1'],
         },
@@ -316,7 +316,8 @@ module('unit/projection', function(hooks) {
       projectedRecord = store.push({
         data: {
           id: BOOK_ID,
-          type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+          projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
+          type: BOOK_CLASS_PATH,
           attributes: {
             title: BOOK_TITLE
           }
