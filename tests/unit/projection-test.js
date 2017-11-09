@@ -26,7 +26,7 @@ const BOOK_PREVIEW_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.Boo
 module('unit/projection', function(hooks) {
   setupTest(hooks);
 
-  hooks.beforeEach(function(assert) {
+  hooks.beforeEach(function() {
     initializeStore(this);
 
     this.store = function() {
@@ -191,6 +191,14 @@ module('unit/projection', function(hooks) {
             }
           }
         });
+      },
+
+      shouldReloadRecord() {
+        return false;
+      },
+
+      shouldBackgroundReloadRecord() {
+        return false;
       },
     }));
 
