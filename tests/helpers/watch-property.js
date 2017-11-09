@@ -44,7 +44,12 @@ export function watchProperty(obj, propertyName) {
 }
 
 QUnit.assert.watchedPropertyCount = function assertWatchedPropertyCount(watcher, expectedCount, label) {
-  this.pushResult(watcher.counter.count === expectedCount, watcher.counter.count, expectedCount, label);
+  this.pushResult({
+    result: watcher.counter.count === expectedCount,
+    actual: watcher.counter.count,
+    expected: expectedCount,
+    message: label
+  });
 };
 
 QUnit.assert.dirties = function assertDirties(options, updateMethodCallback, label) {
@@ -52,7 +57,12 @@ QUnit.assert.dirties = function assertDirties(options, updateMethodCallback, lab
   count = typeof count === 'number' ? count : 1;
   let { counter, unwatch } = watchProperty(obj, property);
   updateMethodCallback();
-  this.pushResult(counter.count === count, counter.count, count, label);
+  this.pushResult({
+    result: counter.count === count,
+    actual: counter.count,
+    expected: count,
+    message: label
+  });
   unwatch();
 };
 

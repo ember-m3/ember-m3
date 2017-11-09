@@ -6,6 +6,8 @@ import SchemaManager from './schema-manager';
 import M3RecordArray from './record-array';
 import { setDiff, OWNER_KEY } from './util';
 
+let $CACHE_TAG = 1;
+
 const {
   get, set, isEqual, propertyWillChange, propertyDidChange, computed, A
 } = Ember;
@@ -213,12 +215,19 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
     this._store = properties.store;
     this.id = this._internalModel.id;
     this._internalModel = properties._internalModel;
-    this._cache = Object.create(null);
-    this._schema = SchemaManager;
 
     if (this._internalModel.__data && this._internalModel.__data.__projects) {
       this.setProxiedModel(this._internalModel.__data.__projects);
     }
+
+    this._cache = Object.create(null);
+    // TODO We need this to save us the trouble of registering all projections with the parent
+    // otherwise we can stop using the proxy itself and let parent notify all projections
+    this._tags = this._isProjection ? null : Object.create(null);
+    this._cacheTags = this._isProjection ? Object.create(null) : null;
+
+    this._schema = SchemaManager;
+
 
     this._topModel = this._topModel || this;
     this._parentModel = this._parentModel || null;
@@ -269,6 +278,10 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
     return this._internalModel.modelName;
   }
 
+  get _isProjection() {
+    return this.content != null;
+  }
+
   __defineNonEnumerable(property) {
     this[property.name] = property.descriptor.value;
   }
@@ -288,10 +301,12 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
       return;
     }
 
+    let tag = ++$CACHE_TAG;
     Ember.beginPropertyChanges();
     let key;
     for (let i = 0, length = keys.length; i < length; i++) {
       key = keys[i];
+      this._tags[key] = tag;
       let oldValue = this._cache[key];
       let newValue = this._internalModel._data[key];
 
@@ -402,7 +417,10 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
 
   unknownProperty(key) {
     if (key in this._cache) {
-      return this._cache[key];
+      // validate the cache before using
+      if (this.validateCacheValue(key)) {
+        return this._cache[key];
+      }
     }
 
     if (! this._schema.isAttributeIncluded(this._modelName, key)) { return; }
@@ -420,12 +438,35 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
       }
 
       let defaultValue = this._schema.getDefaultValue(this._modelName, key);
-      return (this._cache[key] = defaultValue);
+      return this.cacheValue(key, defaultValue);
     }
 
     let value = this._schema.transformValue(this._modelName, key, rawValue);
 
-    return (this._cache[key] = resolveValue(key, value, this._modelName, this._store, this._schema, this));
+    return this.cacheValue(key, resolveValue(key, value, this._modelName, this._store, this._schema, this));
+  }
+
+  validateCacheValue(key) {
+    if (!this._isProjection) {
+      return true;
+    }
+    // compare the projection tags with the base tags for this key
+    return this._cacheTags[key] === this.content._tags[key];
+  }
+
+  cacheValue(key, value) {
+    this._cache[key] = value;
+    if (this._isProjection) {
+      this._cacheTags[key] = this.content._tags[key];
+    }
+    // capture the base model tag
+    return value;
+  }
+
+  invalidateCacheValue(key) {
+    let tag = ++$CACHE_TAG;
+    delete this._cache[key];
+    this._tags[key] = tag;
   }
 
   // TODO: drop change events for unretrieved properties
@@ -441,6 +482,9 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
     }
 
     if (this.content) {
+      if (!this._schema.isAttributeIncluded(this._modelName, key)) {
+        throw new Error(`Cannot set non-whitelisted property ${key} on type ${this._modelName}`);
+      }
       set(this.content, key, value);
       return;
     }
@@ -460,7 +504,7 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
       this._setRecordArray(key, value);
     } else {
       this._internalModel._data[key] = value;
-      delete this._cache[key];
+      this.invalidateCacheValue(key);
     }
 
     propertyDidChange(this, key);
