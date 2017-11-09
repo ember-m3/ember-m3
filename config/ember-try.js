@@ -3,95 +3,42 @@ module.exports = {
 	useYarn: true,
   scenarios: [
     {
-      name: 'ember-2.13.4',
-      bower: {
-        dependencies: {
-          'ember': 'components/ember#2.13.4'
-        },
-        resolutions: {
-          'ember': '2.13.4'
-        }
-      },
+      name: 'ember-lts-2.16',
       npm: {
         devDependencies: {
-          'ember-source': null
-        }
-      }
-    },
-    {
-      name: 'ember-2.14.1',
-      bower: {
-        dependencies: {
-          'ember': 'components/ember#2.14.1'
-        },
-        resolutions: {
-          'ember': '2.14.1'
-        }
-      },
-      npm: {
-        devDependencies: {
-          'ember-source': null
+          'ember-source': '~2.16.2'
         }
       }
     },
     {
       name: 'ember-lts-2.12',
-      bower: {
-        dependencies: {
-          'ember': '~2.12.2'
-        }
-      },
       npm: {
         devDependencies: {
-          'ember-source': null
+          'ember-source': '~2.12.2'
         }
       }
     },
     {
       name: 'ember-release',
-      bower: {
-        dependencies: {
-          'ember': 'components/ember#release'
-        },
-        resolutions: {
-          'ember': 'release'
-        }
-      },
       npm: {
         devDependencies: {
-          'ember-source': null
+          'ember-source': 'latest'
         }
       }
     },
     {
       name: 'ember-beta',
-      bower: {
-        dependencies: {
-          'ember': 'components/ember#beta'
-        },
-        resolutions: {
-          'ember': 'beta'
-        }
-      },
       npm: {
         devDependencies: {
-          'ember-source': null
+          'ember-source': 'beta'
         }
       }
     },
     {
       name: 'ember-canary',
-      bower: {
-        dependencies: {
-          'ember': 'components/ember#canary'
-        },
-        resolutions: {
-          'ember': 'canary'
-        }
-      },
       npm: {
         devDependencies: {
-          'ember-source': null
+          'ember-source': 'git:emberjs/ember.js'
         }
       }
     },
