@@ -1,5 +1,5 @@
 import { test } from 'qunit';
-import { default as moduleFor }  from 'ember-qunit/module-for';
+import { moduleFor }  from 'ember-qunit';
 import sinon from 'sinon';
 import { zip } from 'lodash';
 
