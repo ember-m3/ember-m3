@@ -74,8 +74,8 @@ module('unit/projection', function(hooks) {
         }
         let valueType = value.type;
         let modelSchema = this.models[modelName];
-        if (modelSchema && modelSchema.attributesTypes && modelSchema.attributesTypes[key]) {
-          valueType = modelSchema.attributesTypes[key];
+        if (modelSchema && modelSchema.resolvedTypes && modelSchema.resolvedTypes[key]) {
+          valueType = modelSchema.resolvedTypes[key];
         }
         return {
           type: valueType,

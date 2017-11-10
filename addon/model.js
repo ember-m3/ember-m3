@@ -90,6 +90,7 @@ function resolveValue(key, value, modelName, store, schema, model) {
       _internalModel: internalModel,
       _parentModel: model,
       _topModel: model._topModel,
+      _key: key
     });
     internalModel.record = nestedModel;
 
@@ -200,6 +201,14 @@ const retrieveFromCurrentState = computed('currentState', function(key) {
   return this._topModel._internalModel.currentState[key];
 }).readOnly();
 
+function batchNotifications(fn) {
+  Ember.beginPropertyChanges();
+  try {
+    fn();
+  } finally {
+    Ember.endPropertyChanges();
+  }
+}
 
 // global buffer for initial properties to work around
 //  a)  can't write to `this` before `super`
@@ -230,6 +239,7 @@ export default class MegamorphicModel extends Ember.Object {
 
     this._topModel = this._topModel || this;
     this._parentModel = this._parentModel || null;
+    this._key = this._key || null;
     this._init = true;
 
     this._flushInitProperties();
@@ -301,12 +311,31 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   _notifyProjections(keys) {
-    if (!this._projections) {
-      return;
+    if (this._projections) {
+      for (let i = 0; i < this._projections.length; i++) {
+        this._projections[i]._notifyProperties(keys);
+      }
     }
-    for (let i = 0; i < this._projections.length; i++) {
-      this._projections._notifyProperties(keys);
-    }
+  }
+
+  /**
+   * Dirtying embedded records is little weird, because there is no link between
+   * the embedded models of the projection - only link is at the top model. This
+   * means changes in one of the embedded model must surface up to the top model,
+   * where the projections are available and propagated down.
+   *
+   * The actual propagation is done in `didChagneNestedProperties`, which receives
+   * the path to the changes and it is responsible for correctly traversing the
+   * path of embedded records to find the correct model to invalidate.
+   */
+  _notifyProjectionsNestedProperties(path, keys) {
+     if (this._parentModel) {
+       this._parentModel._notifyProjectionsNestedProperties([this._key].concat(path), keys);
+     } else if (this._projections) {
+       for (let i = 0; i < this._projections.length; i++) {
+         this._projections[i]._didChangeNestedProperties(path, keys);
+       }
+     }
   }
 
   _notifyProperties(keys) {
@@ -315,37 +344,37 @@ export default class MegamorphicModel extends Ember.Object {
       return;
     }
 
-    Ember.beginPropertyChanges();
-    let key;
-    for (let i = 0, length = keys.length; i < length; i++) {
-      key = keys[i];
-      if (!this._schema.isAttributeIncluded(this._modelName, key)) {
-        // keys, which are not white-listed are ignored for projections
-        continue;
-      }
-      let oldValue = this._cache[key];
-      let newValue = this._internalModel._data[key];
+    batchNotifications(() => {
+      let key;
+      for (let i = 0, length = keys.length; i < length; i++) {
+        key = keys[i];
+        if (!this._schema.isAttributeIncluded(this._modelName, key)) {
+          // keys, which are not white-listed are ignored for projections
+          continue;
+        }
+        let oldValue = this._cache[key];
+        let newValue = this._internalModel._data[key];
 
-      let oldIsRecordArray = oldValue && oldValue.constructor === M3RecordArray;
-      let oldWasModel = oldValue && oldValue.constructor === MegamorphicModel;
-      let newIsObject = typeof newValue === 'object';
+        let oldIsRecordArray = oldValue && oldValue.constructor === M3RecordArray;
+        let oldWasModel = oldValue && oldValue.constructor === MegamorphicModel;
+        let newIsObject = typeof newValue === 'object';
 
-      if (oldWasModel && newIsObject) {
-        oldValue._didReceiveNestedProperties(this._internalModel._data[key]);
-      } else if (oldIsRecordArray) {
-        let internalModels = resolveRecordArrayInternalModels(
-          key, newValue, this._modelName, this._store, this._schema
-        );
-        oldValue._setInternalModels(internalModels);
-      } else {
-        // anything -> undefined | primitive
-        delete this._cache[key];
-        this.notifyPropertyChange(key);
+        if (oldWasModel && newIsObject) {
+          oldValue._didReceiveNestedProperties(this._internalModel._data[key]);
+        } else if (oldIsRecordArray) {
+          let internalModels = resolveRecordArrayInternalModels(
+            key, newValue, this._modelName, this._store, this._schema
+          );
+          oldValue._setInternalModels(internalModels);
+        } else {
+          // anything -> undefined | primitive
+          delete this._cache[key];
+          this.notifyPropertyChange(key);
+        }
       }
-    }
-    // Inside the same property change transaction
-    this._notifyProjections(keys);
-    Ember.endPropertyChanges();
+      // Inside the same property change transaction
+      this._notifyProjections(keys);
+    });
   }
 
   _didReceiveNestedProperties(data) {
@@ -354,6 +383,35 @@ export default class MegamorphicModel extends Ember.Object {
     if (changedKeys.length > 0) {
       this._notifyProperties(changedKeys);
     }
+  }
+
+  /**
+   * Traverses a given path of embedded records to find the one, whose properties
+   * must be dirtied.
+   *
+   * The traversal will stop if one of the intermediate steps is not an actual
+   * embedded record (it may have not been loaded yet).
+   *
+   * This function is different than `didReceiveNestedProperties`, which is initiated from
+   * Ember Data, which only understands changes to the high level data and there needs
+   * to be a function to compare the embedded data and data the fine-grained changes there.
+   */
+  _didChangeNestedProperties(path, keys) {
+    if (path.length === 0) {
+      // reached the destination, notify
+      this._notifyProperties(keys);
+      return;
+    }
+    let next = path[0];
+    if (!(next in this._cache)) {
+      // not in the cache, nothing to do
+      return;
+    }
+    let nestedModel = this._cache[next];
+    if (!nestedModel || typeof nestedModel !== 'object' || typeof nestedModel._didChangeNestedProperties === undefined) {
+      return;
+    }
+    nestedModel._didChangeNestedProperties(path.slice(1), keys);
   }
 
   _changedKeys(data) {
@@ -485,21 +543,28 @@ export default class MegamorphicModel extends Ember.Object {
       throw new Error(`You tried to set '${key}' to '${value}', but '${key}' is an alias in '${this._modelName}' and aliases are read-only`);
     }
 
-    propertyWillChange(this, key);
+    batchNotifications(() => {
+      propertyWillChange(this, key);
 
-    // TODO: need to be able to update relationships
-    // TODO: also on set(x) ask schema if this should be a ref (eg if it has an
-    // entityUrn)
-    // TODO: similarly this.get('arr').pushObject doesn't update the underlying
-    // _data
-    if (this._schema.isAttributeArrayReference(key, value, this._modelName)) {
-      this._setRecordArray(key, value);
-    } else {
-      this._internalModel._data[key] = value;
-      delete this._cache[key];
-    }
+      // TODO: need to be able to update relationships
+      // TODO: also on set(x) ask schema if this should be a ref (eg if it has an
+      // entityUrn)
+      // TODO: similarly this.get('arr').pushObject doesn't update the underlying
+      // _data
+      if (this._schema.isAttributeArrayReference(key, value, this._modelName)) {
+        this._setRecordArray(key, value);
+      } else {
+        this._internalModel._data[key] = value;
+        delete this._cache[key];
+      }
 
-    propertyDidChange(this, key);
+      propertyDidChange(this, key);
+      if (this._parentModel) {
+        this._parentModel._notifyProjectionsNestedProperties([this._key], [key]);
+      } else {
+        this._notifyProjections([key]);
+      }
+    });
   }
 
   _setRecordArray(key, models) {
@@ -531,6 +596,7 @@ MegamorphicModel.prototype.store = null;
 MegamorphicModel.prototype._internalModel = null;
 MegamorphicModel.prototype._parentModel = null;
 MegamorphicModel.prototype._topModel = null;
+MegamorphicModel.prototype._key = null;
 MegamorphicModel.prototype.id = null;
 MegamorphicModel.prototype.currentState = null;
 MegamorphicModel.prototype.isError = null;
