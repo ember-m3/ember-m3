@@ -6,8 +6,6 @@ import SchemaManager from './schema-manager';
 import M3RecordArray from './record-array';
 import { setDiff, OWNER_KEY } from './util';
 
-let $CACHE_TAG = 1;
-
 const {
   get, set, isEqual, propertyWillChange, propertyDidChange, computed, A
 } = Ember;
@@ -209,12 +207,13 @@ const retrieveFromCurrentState = computed('currentState', function(key) {
 //      CP or setknownProperty can rely on any initialization
 let initProperites = Object.create(null);
 
-export default class MegamorphicModel extends Ember.ObjectProxy {
+export default class MegamorphicModel extends Ember.Object {
   init(properties) {
     this._super(...arguments);
     this._store = properties.store;
     this.id = this._internalModel.id;
     this._internalModel = properties._internalModel;
+    this._projections = null;
 
     if (this._internalModel.__data && this._internalModel.__data.__projects) {
       this.setProxiedModel(this._internalModel.__data.__projects);
@@ -238,7 +237,10 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
 
   setProxiedModel(baseModelName) {
     let baseModel = this._store.peekRecord(baseModelName, this.id);
-    set(this, 'content', baseModel);
+    this._baseModel = baseModel;
+    // TODO We can probably do it with an observer although it introduces an async behavior
+    // TODO Don't forget to remove it when this M3 model has been destroyed
+    baseModel._registerProjection(this);
   }
 
   _flushInitProperties() {
@@ -279,7 +281,7 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
   }
 
   get _isProjection() {
-    return this.content != null;
+    return this._baseModel != null;
   }
 
   __defineNonEnumerable(property) {
@@ -291,22 +293,36 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
     this._internalModel._data = attributes;
   }
 
+  _registerProjection(projection) {
+    if (!this._projections) {
+      this._projections = [];
+    }
+    this._projections.push(projection);
+  }
+
+  _notifyProjections(keys) {
+    if (!this._projections) {
+      return;
+    }
+    for (let i = 0; i < this._projections.length; i++) {
+      this._projections._notifyProperties(keys);
+    }
+  }
+
   _notifyProperties(keys) {
     if (keys[0] === '__projects' && get(this, 'content') == null) {
       this.setProxiedModel(this._internalModel.__data.__projects);
       return;
     }
-    if (get(this, 'content') != null) {
-      // we are a proxy, nothing to do really as all notifications should come from the base model
-      return;
-    }
 
-    let tag = ++$CACHE_TAG;
     Ember.beginPropertyChanges();
     let key;
     for (let i = 0, length = keys.length; i < length; i++) {
       key = keys[i];
-      this._tags[key] = tag;
+      if (!this._schema.isAttributeIncluded(this._modelName, key)) {
+        // keys, which are not white-listed are ignored for projections
+        continue;
+      }
       let oldValue = this._cache[key];
       let newValue = this._internalModel._data[key];
 
@@ -327,6 +343,8 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
         this.notifyPropertyChange(key);
       }
     }
+    // Inside the same property change transaction
+    this._notifyProjections(keys);
     Ember.endPropertyChanges();
   }
 
@@ -417,15 +435,12 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
 
   unknownProperty(key) {
     if (key in this._cache) {
-      // validate the cache before using
-      if (this.validateCacheValue(key)) {
-        return this._cache[key];
-      }
+      return this._cache[key];
     }
 
     if (! this._schema.isAttributeIncluded(this._modelName, key)) { return; }
 
-    let internalModel = this.content != null ? this.content._internalModel : this._internalModel;
+    let internalModel = this._baseModel != null ? this._baseModel._internalModel : this._internalModel;
 
     let rawValue = internalModel._data[key];
     if (rawValue === undefined) {
@@ -438,35 +453,12 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
       }
 
       let defaultValue = this._schema.getDefaultValue(this._modelName, key);
-      return this.cacheValue(key, defaultValue);
+      return (this._cache[key] = defaultValue);
     }
 
     let value = this._schema.transformValue(this._modelName, key, rawValue);
 
-    return this.cacheValue(key, resolveValue(key, value, this._modelName, this._store, this._schema, this));
-  }
-
-  validateCacheValue(key) {
-    if (!this._isProjection) {
-      return true;
-    }
-    // compare the projection tags with the base tags for this key
-    return this._cacheTags[key] === this.content._tags[key];
-  }
-
-  cacheValue(key, value) {
-    this._cache[key] = value;
-    if (this._isProjection) {
-      this._cacheTags[key] = this.content._tags[key];
-    }
-    // capture the base model tag
-    return value;
-  }
-
-  invalidateCacheValue(key) {
-    let tag = ++$CACHE_TAG;
-    delete this._cache[key];
-    this._tags[key] = tag;
+    return (this._cache[key] = resolveValue(key, value, this._modelName, this._store, this._schema, this));
   }
 
   // TODO: drop change events for unretrieved properties
@@ -481,11 +473,11 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
       return;
     }
 
-    if (this.content) {
+    if (this._baseModel) {
       if (!this._schema.isAttributeIncluded(this._modelName, key)) {
         throw new Error(`Cannot set non-whitelisted property ${key} on type ${this._modelName}`);
       }
-      set(this.content, key, value);
+      set(this._baseModel, key, value);
       return;
     }
 
@@ -504,7 +496,7 @@ export default class MegamorphicModel extends Ember.ObjectProxy {
       this._setRecordArray(key, value);
     } else {
       this._internalModel._data[key] = value;
-      this.invalidateCacheValue(key);
+      delete this._cache[key];
     }
 
     propertyDidChange(this, key);
