@@ -86,8 +86,10 @@ export function extendStore(Store) {
             __projects: JSONAPIResource.type
           }
         };
+        // TODO investigate why _load vs internalModelFor sorta deal
         internalModels[i] = this._load(projectionData);
       }
+      // TODO FIX
       // invalidate the load state of the main internal model - figure out how the proj M3 will peek the record
       // _pushInternalModel is invoked always for single resource, but with projectionTypes we can encode multiple records
       // projection of the same data, we don't know which one is the top one - for now we will assume it is the first entry

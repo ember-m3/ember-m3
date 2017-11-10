@@ -23,8 +23,12 @@ const BOOK_EXCERPT_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.Boo
 const NORM_BOOK_EXCERPT_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.book-excerpt';
 const BOOK_PREVIEW_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.BookPreview';
 const NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.book-preview';
-const PROJECTED_AUTHOR_CLASS = 'com.example.bookstore.projectedType.projectedAuthor';
+// never used since this is embedded
+// const PROJECTED_AUTHOR_CLASS = 'com.example.bookstore.projectedType.projectedAuthor';
 const NORM_PROJECTED_AUTHOR_CLASS = 'com.example.bookstore.projected-type.projected-author';
+const PUBLISHER_CLASS = 'com.example.bookstore.publisher';
+const PROJECTED_PUBLISHER_CLASS = 'com.example.bookstore.projectedType.projectedPublisher';
+const NORM_PROJECTED_PUBLISHER_CLASS = 'com.example.bookstore.projected-type.projected-publisher';
 
 module('unit/projection', function(hooks) {
   setupTest(hooks);
@@ -106,20 +110,26 @@ module('unit/projection', function(hooks) {
           }
         },
         [NORM_BOOK_EXCERPT_PROJECTION_CLASS_PATH]: {
-          projects: NORM_BOOK_CLASS_PATH,
-          attributes: ['title', 'author', 'chapter-1', 'year', 'publisher'],
+          projectedType: NORM_BOOK_CLASS_PATH,
+          attributes: ['title', 'author', 'year', 'publisher'],
         },
         [NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH]: {
-          projects: NORM_BOOK_CLASS_PATH,
-  //        resolvedTypes: {
-    //        author: 'projected-author'
-      //    },
+          projectedType: NORM_BOOK_CLASS_PATH,
+          resolvedTypes: {
+            publisher: 'insert type class here',
+            author: NORM_PROJECTED_AUTHOR_CLASS
+          },
           // if you want to project an embedded model then it must have a type
           //  computedEmbeddedType
-          attributes: ['title', 'author', 'foreword', 'chapter-1', 'year', 'publisher'],
+          attributes: ['title', 'author', 'chapter-1', 'year', 'publisher'],
         },
+        [PUBLISHER_CLASS]: {},
         // this schema must come with the parent schema
         [NORM_PROJECTED_AUTHOR_CLASS]: {
+          attributes: ['location', 'name']
+        },
+        [NORM_PROJECTED_PUBLISHER_CLASS]: {
+          projectedType: PUBLISHER_CLASS,
           attributes: ['location', 'name']
         }
       }
@@ -381,6 +391,7 @@ module('unit/projection', function(hooks) {
     const AUTHOR_NAME = 'Lewis Carroll';
     const AUTHOR_LOCATION = 'Earth';
     const AUTHOR_AGE = 'old';
+    const PUBLISHER_ID = 'publisher-abc123';
     const PUBLISHER_NAME = 'MACMILLAN';
     const PUBLISHER_LOCATION = 'Isle of Arran, Scotland';
     const PUBLISHER_OWNER = 'Daniel and Alexander Macmillan';
@@ -391,8 +402,8 @@ module('unit/projection', function(hooks) {
     const NEW_DESCRIPTION = 'Crazy Town';
     const NEW_AUTHOR_LOCATION = 'Sky';
     const NEW_AUTHOR_AGE = 'wise';
-    // const NEW_PUBLISHER_LOCATION = 'London, England';
-    // const NEW_PUBLISHER_OWNER = 'Holtzbrinck Publishing Group';
+    const NEW_PUBLISHER_LOCATION = 'London, England';
+    const NEW_PUBLISHER_OWNER = 'Holtzbrinck Publishing Group';
 
     hooks.beforeEach(function(assert) {
       const store = this.store();
@@ -414,14 +425,21 @@ module('unit/projection', function(hooks) {
                 location: AUTHOR_LOCATION,
                 age: AUTHOR_AGE,
               },
-              publisher: {
+              publisher: `urn:${PUBLISHER_CLASS}:${PUBLISHER_ID}`,
+              description: BOOK_DESCRIPTION // description is not whitelisted
+            }
+          },
+          included: [
+            {
+              id: PUBLISHER_ID,
+              type: PUBLISHER_CLASS,
+              attributes: {
                 name: PUBLISHER_NAME,
                 location: PUBLISHER_LOCATION,
                 owner: PUBLISHER_OWNER,
-              },
-              description: BOOK_DESCRIPTION // description is not whitelisted
+              }
             }
-          }
+          ]
         });
 
         projectedExcerpt = store.push({
@@ -431,12 +449,8 @@ module('unit/projection', function(hooks) {
             meta: {
               projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
             },
-            attributes: {
-              author: {
-                projectedType: PROJECTED_AUTHOR_CLASS,
-              },
-            },
-          }
+            attributes: {},
+          },
         });
 
         projectedPreview = store.push({
@@ -446,12 +460,8 @@ module('unit/projection', function(hooks) {
             meta: {
               projectionTypes: [BOOK_PREVIEW_PROJECTION_CLASS_PATH],
             },
-            attributes: {
-              author: {
-                projectedType: PROJECTED_AUTHOR_CLASS,
-              },
-            },
-          }
+            attributes: {},
+          },
         });
       });
 
@@ -461,7 +471,11 @@ module('unit/projection', function(hooks) {
         projectedPreview,
       };
 
-      const watchedProperties = ['title', 'description', 'chapter-1', 'year', 'author', 'author.name', 'author.age', 'author.location'];
+      const watchedProperties = [
+        'title', 'description', 'chapter-1', 'year', // props
+        'author', 'author.name', 'author.age', 'author.location', // embedded type
+        'publisher', 'publisher.name', 'publisher.location', 'publisher.owner' // resolved type
+      ];
       let baseRecordWatcher = watchProperties(baseRecord, watchedProperties);
       let excerptWatcher = watchProperties(projectedExcerpt, watchedProperties);
       let previewWatcher = watchProperties(projectedPreview, watchedProperties);
@@ -491,6 +505,24 @@ module('unit/projection', function(hooks) {
       assert.equal(get(baseRecord, 'year'), BOOK_YEAR, 'base-record has the correct year');
       assert.equal(get(projectedExcerpt, 'year'), BOOK_YEAR, 'excerpt has the correct year');
       assert.equal(get(projectedPreview, 'year'), BOOK_YEAR, 'preview has the correct year');
+
+      // an embedded whitelisted property
+      assert.equal(get(baseRecord, 'author.location'), AUTHOR_LOCATION, 'base-record has the correct author.location');
+      assert.equal(get(projectedExcerpt, 'author.location'), AUTHOR_LOCATION, 'excerpt has the correct author.location');
+      assert.equal(get(projectedPreview, 'author.location'), AUTHOR_LOCATION, 'preview has the correct author.location');
+
+      // an embedded non-whitelisted property
+      assert.equal(get(baseRecord, 'author.age'), AUTHOR_AGE, 'base-record has the correct author.age');
+      assert.equal(get(projectedExcerpt, 'author.age'), undefined, 'excerpt has the correct author.age');
+      assert.equal(get(projectedPreview, 'author.age'), AUTHOR_AGE, 'preview has the correct author.age');
+
+      // an embedded whitelisted property that won't be updated
+      assert.equal(get(baseRecord, 'author.name'), AUTHOR_NAME, 'base-record has the correct author.name');
+      assert.equal(get(projectedExcerpt, 'author.name'), AUTHOR_NAME, 'excerpt has the correct author.name');
+      assert.equal(get(projectedPreview, 'author.name'), AUTHOR_NAME, 'preview has the correct author.name');
+
+      // TODO assert publisher values
+      // TODO assert publisher counts
 
       assert.watchedPropertyCounts(
         baseRecordWatcher,
@@ -528,13 +560,16 @@ module('unit/projection', function(hooks) {
 
       assert.watchedPropertyCounts(
         excerptWatcher,
-        { title: 1, description: 0, 'chapter-1': 1, year: 0, author: 0, 'author.name': 0, 'author.location': 1, 'author.age': 0 },
+        { title: 1, description: 0, 'chapter-1': 0, year: 0, author: 0, 'author.name': 0, 'author.location': 1, 'author.age': 1 },
         'Final excerpt state');
 
       assert.watchedPropertyCounts(
         previewWatcher,
         { title: 1, description: 0, 'chapter-1': 1, year: 0, author: 0, 'author.name': 0, 'author.location': 1, 'author.age': 0 },
         'Final preview state');
+
+      // TODO assert publisher values
+      // TODO assert publisher counts
 
       baseRecordWatcher.unwatch();
       excerptWatcher.unwatch();
@@ -547,7 +582,7 @@ module('unit/projection', function(hooks) {
 
       // set to a previously absent property
       assert.equal(get(baseRecord, 'chapter-1'), NEW_CHAPTER_TEXT, 'base-record has the correct chapter-1');
-      assert.equal(get(projectedExcerpt, 'chapter-1'), NEW_CHAPTER_TEXT, 'excerpt has the correct chapter-1');
+      assert.equal(get(projectedExcerpt, 'chapter-1'), undefined, 'excerpt has the correct chapter-1');
       assert.equal(get(projectedPreview, 'chapter-1'), NEW_CHAPTER_TEXT, 'preview has the correct chapter-1');
 
       // a whitelisted non-updated property
@@ -558,6 +593,21 @@ module('unit/projection', function(hooks) {
       // a non-whitelisted property
       assert.equal(get(projectedExcerpt, 'description'), undefined, 'excerpt has no description since it is not whitelisted');
       assert.equal(get(projectedPreview, 'description'), undefined, 'preview has no description since it is not whitelisted');
+
+      // an embedded whitelisted property
+      assert.equal(get(baseRecord, 'author.location'), NEW_AUTHOR_LOCATION, 'base-record has the correct author.location');
+      assert.equal(get(projectedExcerpt, 'author.location'), NEW_AUTHOR_LOCATION, 'excerpt has the correct author.location');
+      assert.equal(get(projectedPreview, 'author.location'), NEW_AUTHOR_LOCATION, 'preview has the correct author.location');
+
+      // an embedded non-whitelisted property
+      assert.equal(get(baseRecord, 'author.age'), NEW_AUTHOR_AGE, 'base-record has the correct author.age');
+      assert.equal(get(projectedExcerpt, 'author.age'), undefined, 'excerpt has the correct author.age');
+      assert.equal(get(projectedPreview, 'author.age'), NEW_AUTHOR_AGE, 'preview has the correct author.age');
+
+      // an embedded whitelisted property that won't be updated
+      assert.equal(get(baseRecord, 'author.name'), AUTHOR_NAME, 'base-record has the correct author.name');
+      assert.equal(get(projectedExcerpt, 'author.name'), AUTHOR_NAME, 'excerpt has the correct author.name');
+      assert.equal(get(projectedPreview, 'author.name'), AUTHOR_NAME, 'preview has the correct author.name');
 
       this.watchers = null;
       this.records = null;
@@ -572,7 +622,11 @@ module('unit/projection', function(hooks) {
         set(record, 'description', NEW_DESCRIPTION);
         set(record, 'author.location', NEW_AUTHOR_LOCATION);
         set(record, 'author.age', NEW_AUTHOR_AGE);
+        set(record, 'publisher.location', NEW_PUBLISHER_LOCATION);
+        set(record, 'publisher.owner', NEW_PUBLISHER_OWNER);
       });
+
+      // TODO assert author.age and publisher.owner counts for base-record and excerpt
 
       assert.watchedPropertyCount(this.watchers.baseRecordWatcher.counters.description, 1, 'Afterwards we have dirtied baseRecord.description');
       assert.equal(get(record, 'description'), NEW_DESCRIPTION, 'base-record has the correct description');
@@ -596,14 +650,27 @@ module('unit/projection', function(hooks) {
                 age: NEW_AUTHOR_AGE,
               }
             }
-          }
+          },
+          included: [
+            {
+              id: PUBLISHER_ID,
+              type: PUBLISHER_CLASS,
+              attributes: {
+                location: NEW_PUBLISHER_LOCATION,
+                owner: NEW_PUBLISHER_OWNER
+              }
+            }
+          ]
         });
       });
+
+      // TODO assert author.age and publisher.owner counts for base-record and excerpt
 
       assert.watchedPropertyCount(this.watchers.baseRecordWatcher.counters.description, 1, 'Afterwards we have dirtied baseRecord.description');
       assert.equal(get(record, 'description'), NEW_DESCRIPTION, 'base-record has the correct description');
     });
 
+    // TODO duplicate this test for the other projection which has child projections
     test('Setting a projection updates the base-record and other projections', function(assert) {
       let excerpt = this.records.projectedExcerpt;
       let baseRecord = this.records.baseRecord;
@@ -612,7 +679,9 @@ module('unit/projection', function(hooks) {
         set(excerpt, 'chapter-1', NEW_CHAPTER_TEXT);
         set(excerpt, 'title', NEW_TITLE);
         set(excerpt, 'author.location', NEW_AUTHOR_LOCATION);
-        set(excerpt, 'author.age', NEW_AUTHOR_AGE);
+        // TODO assert throws: set(excerpt, 'author.age', NEW_AUTHOR_AGE);
+        set(excerpt, 'publisher.location', NEW_PUBLISHER_LOCATION);
+        // TODO assert throws: set(excerpt, 'publisher.owner', NEW_PUBLISHER_OWNER);
       });
 
       assert.throws(() => {
@@ -651,7 +720,25 @@ module('unit/projection', function(hooks) {
                 age: NEW_AUTHOR_AGE
               }
             }
-          }
+          },
+          included: [
+            {
+              id: PUBLISHER_ID,
+              type: PUBLISHER_CLASS,
+              meta: {
+                projectionTypes: [PROJECTED_PUBLISHER_CLASS]
+              },
+              attributes: {
+                location: NEW_PUBLISHER_LOCATION,
+                /*
+                  The below update is invalid because in the real world the schema was are given is also used
+                  to create the payload the API gives us, so we could not have properties from the API that don't
+                  exist in the whitelist.
+                 */
+                // owner: NEW_PUBLISHER_OWNER
+              }
+            }
+          ]
         });
       });
 
@@ -660,26 +747,17 @@ module('unit/projection', function(hooks) {
     });
   });
 
-  todo(`Projections can access whitelisted attributes on embedded objects`, function() {});
-  todo(`Projections can access whitelisted attributes on resolved objects`, function() {});
-  todo(`Projections receive change notifications for whitelisted attributes on embedded objects`, function() {});
-  todo(`Projections receive change notifications for whitelisted attributes on resolved objects`, function() {});
-  todo(`Projections cannot access non-whitelisted attributes on embedded objects`, function() {});
-  todo(`Projections cannot access non-whitelisted attributes on resolved objects`, function() {});
-  todo(`Projections receive change notifications for non-whitelisted attributes on embedded objects`, function() {});
-  todo(`Projections receive change notifications for non-whitelisted attributes on resolved objects`, function() {});
-
   todo(`Updates to a projection's non-whitelisted attributes do not cause a projection to be dirtied`, function() {});
 
   todo(`Unloading a projection does not unload the base-record`, function() {});
-
   todo(`Unloading the base-record does not unload the projection`, function() {});
-
   todo(`Destroying the base-record does not unload/destroy the projection`, function() {});
-
   todo(`Destroying the projection does not unload/destroy the base-record`, function() {});
 
-  todo(`Creating a projection with an unloaded schema`, function() {});
+  // TL;DR we can only proxy something that has an ID
+  todo(`Saving a newly created projection doesn't mess up the state of the base record`, function() {});
 
+  todo(`Creating a projection with an unloaded schema`, function() {});
   todo(`Finding a projection with an unloaded schema`, function() {});
+  todo(`fetched schemas must be complete (projected types must also be included)`, function() {});
 });
