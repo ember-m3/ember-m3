@@ -346,6 +346,7 @@ export default class MegamorphicModel extends Ember.Object {
 
     batchNotifications(() => {
       let key;
+      let internalModel = this._baseModel ? this._baseModel._internalModel : this._internalModel;
       for (let i = 0, length = keys.length; i < length; i++) {
         key = keys[i];
         if (!this._schema.isAttributeIncluded(this._modelName, key)) {
@@ -353,14 +354,14 @@ export default class MegamorphicModel extends Ember.Object {
           continue;
         }
         let oldValue = this._cache[key];
-        let newValue = this._internalModel._data[key];
+        let newValue = internalModel._data[key];
 
         let oldIsRecordArray = oldValue && oldValue.constructor === M3RecordArray;
         let oldWasModel = oldValue && oldValue.constructor === MegamorphicModel;
         let newIsObject = typeof newValue === 'object';
 
         if (oldWasModel && newIsObject) {
-          oldValue._didReceiveNestedProperties(this._internalModel._data[key]);
+          oldValue._didReceiveNestedProperties(internalModel._data[key]);
         } else if (oldIsRecordArray) {
           let internalModels = resolveRecordArrayInternalModels(
             key, newValue, this._modelName, this._store, this._schema
