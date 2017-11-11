@@ -164,10 +164,13 @@ module('unit/projection', function(hooks) {
       });
       store.push({
         data: {
-          type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+          type: BOOK_CLASS_PATH,
           id: FETCHED_PROJECTION_ID,
           attributes: {
             title: `Mr. Popper's Penguins`
+          },
+          meta: {
+            projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH]
           }
         }
       });
@@ -245,10 +248,13 @@ module('unit/projection', function(hooks) {
       });
       store.push({
         data: {
-          type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+          type: BOOK_CLASS_PATH,
           id: FETCHED_PROJECTION_ID,
           attributes: {
             title: `Mr. Popper's Penguins`
+          },
+          meta: {
+            projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH]
           }
         }
       });
