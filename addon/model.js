@@ -331,7 +331,16 @@ export default class MegamorphicModel extends Ember.Object {
   _notifyProjectionsNestedProperties(path, keys) {
      if (this._parentModel) {
        this._parentModel._notifyProjectionsNestedProperties([this._key].concat(path), keys);
-     } else if (this._projections) {
+       return;
+     }
+     if (this._baseModel) {
+       this._baseModel._notifyProjectionsNestedProperties(path, keys);
+       return;
+     }
+     // TODO Do we need to notify the base record? It may not be used apart from keeping track
+     // of projections and this will be totally unnecessary work
+     this._didChangeNestedProperties(path, keys);
+     if (this._projections) {
        for (let i = 0; i < this._projections.length; i++) {
          this._projections[i]._didChangeNestedProperties(path, keys);
        }

@@ -691,22 +691,24 @@ module('unit/projection', function(hooks) {
 
     // TODO duplicate this test for the other projection which has child projections
     test('Setting a projection updates the base-record and other projections', function(assert) {
-      let excerpt = this.records.projectedExcerpt;
+      let preview = this.records.projectedPreview;
       let baseRecord = this.records.baseRecord;
 
       run(() => {
-        set(excerpt, 'chapter-1', NEW_CHAPTER_TEXT);
-        set(excerpt, 'title', NEW_TITLE);
-        set(excerpt, 'author.location', NEW_AUTHOR_LOCATION);
-        // TODO assert throws: set(excerpt, 'author.age', NEW_AUTHOR_AGE);
-        set(excerpt, 'publisher.location', NEW_PUBLISHER_LOCATION);
-        // TODO assert throws: set(excerpt, 'publisher.owner', NEW_PUBLISHER_OWNER);
+        set(preview, 'chapter-1', NEW_CHAPTER_TEXT);
+        set(preview, 'title', NEW_TITLE);
+        set(preview, 'author.location', NEW_AUTHOR_LOCATION);
+        // TODO assert throws: set(preview, 'author.age', NEW_AUTHOR_AGE);
+        set(preview, 'publisher.location', NEW_PUBLISHER_LOCATION);
+        // TODO assert throws: set(preview, 'publisher.owner', NEW_PUBLISHER_OWNER);
+        // TODO Do we need to this to satisfy the general expectation
+        set(this.records.projectedExcerpt, 'author.age', NEW_AUTHOR_AGE);
       });
 
       assert.throws(() => {
         // TODO Runloop in test has options, which causes the error to be handled separately in the adapter
         // run(() => { set(excerpt, 'description', NEW_DESCRIPTION); });
-        set(excerpt, 'description', NEW_DESCRIPTION);
+        set(preview, 'description', NEW_DESCRIPTION);
       }, /whitelist/gi, 'Setting a non-whitelisted property throws an error');
       assert.watchedPropertyCount(this.watchers.baseRecordWatcher.counters.description, 0, 'Afterwards we have not dirtied baseRecord.description');
       assert.equal(get(baseRecord, 'description'), BOOK_DESCRIPTION, 'base-record has the correct description');
