@@ -194,7 +194,7 @@ module('unit/projection', function(hooks) {
     record = store.peekRecord(BOOK_CLASS_PATH, FETCHED_PROJECTION_ID);
     // TODO This poses a challenge as we rely on peekRecord to find the base model when creating M3 model, but we don't
     // want the application to have access to the record, supressing the check for now to get better reading of passing tests
-    // assert.equal(record, undefined, 'The unfetched base-record with a fetched projection is unfound by peekRecord()');
+    assert.equal(record, undefined, 'The unfetched base-record with a fetched projection is unfound by peekRecord()');
   });
 
   test(`store.findRecord() will only fetch a projection or base-model if it has not been fetched previously`, function(assert) {
@@ -664,7 +664,7 @@ module('unit/projection', function(hooks) {
               description: NEW_DESCRIPTION,
               author: {
                 // TODO The name attribute should be not here, because merges should be recursive
-                name: AUTHOR_NAME,
+                // name: AUTHOR_NAME,
                 location: NEW_AUTHOR_LOCATION,
                 age: NEW_AUTHOR_AGE,
               }
@@ -737,6 +737,8 @@ module('unit/projection', function(hooks) {
                */
               // description: NEW_DESCRIPTION,
               author: {
+                // TODO The merge strategies at the moment doesn't allow us to omit properties from nested objects, fix
+                // name: AUTHOR_NAME,
                 location: NEW_AUTHOR_LOCATION,
                 age: NEW_AUTHOR_AGE
               }
