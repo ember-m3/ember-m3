@@ -45,7 +45,7 @@
     "ember-lodash": "^4.17.5",
     "ember-resolver": "^4.0.0",
     "ember-sinon": "^0.7.0",
-    "ember-source": "~2.15.0",
+    "ember-source": "^2.16.2",
     "ember-welcome-page": "^3.0.0",
     "loader.js": "^4.2.3",
     "pretender": "^1.4.2"

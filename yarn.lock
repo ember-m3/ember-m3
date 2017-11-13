@@ -2,16 +2,6 @@
 # yarn lockfile v1
 
 
-"@glimmer/compiler@^0.25.3":
-  version "0.25.6"
-  resolved "https://registry.yarnpkg.com/@glimmer/compiler/-/compiler-0.25.6.tgz#dcc2b8bfa6f36b70c34e41e85626f888315d3ad7"
-  dependencies:
-    "@glimmer/interfaces" "^0.25.6"
-    "@glimmer/syntax" "^0.25.6"
-    "@glimmer/util" "^0.25.6"
-    "@glimmer/wire-format" "^0.25.6"
-    simple-html-tokenizer "^0.3.0"
-
 "@glimmer/compiler@^0.29.0":
   version "0.29.10"
   resolved "https://registry.npmjs.org/@glimmer/compiler/-/compiler-0.29.10.tgz#b0a3d53069605d78fdf1bf1bc3be28ae81402342"
@@ -26,70 +16,17 @@
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/@glimmer/di/-/di-0.2.0.tgz#73bfd4a6ee4148a80bf092e8a5d29bcac9d4ce7e"
 
-"@glimmer/interfaces@^0.25.6":
-  version "0.25.6"
-  resolved "https://registry.yarnpkg.com/@glimmer/interfaces/-/interfaces-0.25.6.tgz#88a6cdb4f414c3a82662cc5fc5cb5bfd91d4ef10"
-  dependencies:
-    "@glimmer/wire-format" "^0.25.6"
-
 "@glimmer/interfaces@^0.29.10":
   version "0.29.10"
   resolved "https://registry.npmjs.org/@glimmer/interfaces/-/interfaces-0.29.10.tgz#7744451ca329a42c62b08fa460808bccbddeb2ab"
   dependencies:
     "@glimmer/wire-format" "^0.29.10"
 
-"@glimmer/node@^0.25.3":
-  version "0.25.6"
-  resolved "https://registry.yarnpkg.com/@glimmer/node/-/node-0.25.6.tgz#3887a79d8fd2cf9376511245babe87647e4349df"
-  dependencies:
-    "@glimmer/runtime" "^0.25.6"
-    simple-dom "^0.3.0"
-
-"@glimmer/object-reference@^0.25.6":
-  version "0.25.6"
-  resolved "https://registry.yarnpkg.com/@glimmer/object-reference/-/object-reference-0.25.6.tgz#ab45f51c9416bdaff402a0ea3cedd3b1807b1158"
-  dependencies:
-    "@glimmer/reference" "^0.25.6"
-    "@glimmer/util" "^0.25.6"
-
-"@glimmer/object@^0.25.6":
-  version "0.25.6"
-  resolved "https://registry.yarnpkg.com/@glimmer/object/-/object-0.25.6.tgz#a07860e551980488c2839c6393f7a2c071d68a6e"
-  dependencies:
-    "@glimmer/object-reference" "^0.25.6"
-    "@glimmer/util" "^0.25.6"
-
-"@glimmer/reference@^0.25.3", "@glimmer/reference@^0.25.6":
-  version "0.25.6"
-  resolved "https://registry.yarnpkg.com/@glimmer/reference/-/reference-0.25.6.tgz#bc57ccc351fc4bcc5750bdb7760cec4b9ef628f4"
-  dependencies:
-    "@glimmer/util" "^0.25.6"
-
 "@glimmer/resolver@^0.4.1":
   version "0.4.1"
   resolved "https://registry.yarnpkg.com/@glimmer/resolver/-/resolver-0.4.1.tgz#cd9644572c556e7e799de1cf8eff2b999cf5b878"
   dependencies:
     "@glimmer/di" "^0.2.0"
-
-"@glimmer/runtime@^0.25.3", "@glimmer/runtime@^0.25.6":
-  version "0.25.6"
-  resolved "https://registry.yarnpkg.com/@glimmer/runtime/-/runtime-0.25.6.tgz#2a776dcdd3b8f844e1f6b4e7ca4478b6dc560133"
-  dependencies:
-    "@glimmer/interfaces" "^0.25.6"
-    "@glimmer/object" "^0.25.6"
-    "@glimmer/object-reference" "^0.25.6"
-    "@glimmer/reference" "^0.25.6"
-    "@glimmer/util" "^0.25.6"
-    "@glimmer/wire-format" "^0.25.6"
-
-"@glimmer/syntax@^0.25.6":
-  version "0.25.6"
-  resolved "https://registry.yarnpkg.com/@glimmer/syntax/-/syntax-0.25.6.tgz#aeed43004ece8715d09189b61037c793225b4e88"
-  dependencies:
-    "@glimmer/interfaces" "^0.25.6"
-    "@glimmer/util" "^0.25.6"
-    handlebars "^4.0.6"
-    simple-html-tokenizer "^0.3.0"
 
 "@glimmer/syntax@^0.29.0", "@glimmer/syntax@^0.29.10":
   version "0.29.10"
@@ -100,19 +37,9 @@
     handlebars "^4.0.6"
     simple-html-tokenizer "^0.4.1"
 
-"@glimmer/util@^0.25.3", "@glimmer/util@^0.25.6":
-  version "0.25.6"
-  resolved "https://registry.yarnpkg.com/@glimmer/util/-/util-0.25.6.tgz#de8dde7f5d30f9c0e3e2f083e3f6d3426a92b302"
-
 "@glimmer/util@^0.29.10":
   version "0.29.10"
   resolved "https://registry.npmjs.org/@glimmer/util/-/util-0.29.10.tgz#8662daf273ffef9254b8d943d39aa396ed7225a5"
-
-"@glimmer/wire-format@^0.25.6":
-  version "0.25.6"
-  resolved "https://registry.yarnpkg.com/@glimmer/wire-format/-/wire-format-0.25.6.tgz#f0543801d234e133bf72d2bdec68dd2c36c06eca"
-  dependencies:
-    "@glimmer/util" "^0.25.6"
 
 "@glimmer/wire-format@^0.29.10":
   version "0.29.10"
@@ -2565,15 +2492,10 @@ ember-sinon@^0.7.0:
     ember-cli-babel "^5.1.7"
     sinon "^2.1.0"
 
-ember-source@~2.15.0:
-  version "2.15.3"
-  resolved "https://registry.yarnpkg.com/ember-source/-/ember-source-2.15.3.tgz#064d358af42774269d45091cc5316df7e36edf9c"
+ember-source@^2.16.2:
+  version "2.16.2"
+  resolved "https://registry.npmjs.org/ember-source/-/ember-source-2.16.2.tgz#ebc29ce36dec3ecc80f6b1b02218d63ca5041088"
   dependencies:
-    "@glimmer/compiler" "^0.25.3"
-    "@glimmer/node" "^0.25.3"
-    "@glimmer/reference" "^0.25.3"
-    "@glimmer/runtime" "^0.25.3"
-    "@glimmer/util" "^0.25.3"
     broccoli-funnel "^1.2.0"
     broccoli-merge-trees "^2.0.0"
     ember-cli-get-component-path-option "^1.0.0"
@@ -2585,12 +2507,10 @@ ember-source@~2.15.0:
     ember-cli-valid-component-name "^1.0.0"
     ember-cli-version-checker "^1.3.1"
     ember-router-generator "^1.2.3"
-    handlebars "^4.0.6"
+    fs-extra "^4.0.1"
+    inflection "^1.12.0"
     jquery "^3.2.1"
     resolve "^1.3.3"
-    rsvp "^3.6.1"
-    simple-dom "^0.3.0"
-    simple-html-tokenizer "^0.4.1"
 
 ember-template-lint@^0.8.1:
   version "0.8.12"
@@ -3227,6 +3147,14 @@ fs-extra@^3.0.0:
     jsonfile "^3.0.0"
     universalify "^0.1.0"
 
+fs-extra@^4.0.1:
+  version "4.0.2"
+  resolved "https://registry.npmjs.org/fs-extra/-/fs-extra-4.0.2.tgz#f91704c53d1b461f893452b0c307d9997647ab6b"
+  dependencies:
+    graceful-fs "^4.1.2"
+    jsonfile "^4.0.0"
+    universalify "^0.1.0"
+
 fs-readdir-recursive@^0.1.0:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/fs-readdir-recursive/-/fs-readdir-recursive-0.1.2.tgz#315b4fb8c1ca5b8c47defef319d073dad3568059"
@@ -3320,7 +3248,7 @@ glob-parent@^2.0.0:
   dependencies:
     is-glob "^2.0.0"
 
-glob@7.1.1, glob@^7.0.4, glob@^7.0.5:
+glob@7.1.1, glob@^7.0.0, glob@^7.0.4, glob@^7.0.5:
   version "7.1.1"
   resolved "https://registry.yarnpkg.com/glob/-/glob-7.1.1.tgz#805211df04faaf1c63a3600306cdf5ade50b2ec8"
   dependencies:
@@ -3341,7 +3269,7 @@ glob@^5.0.10, glob@^5.0.15:
     once "^1.3.0"
     path-is-absolute "^1.0.0"
 
-glob@^7.0.0, glob@^7.0.3, glob@^7.1.2:
+glob@^7.0.3, glob@^7.1.2:
   version "7.1.2"
   resolved "https://registry.yarnpkg.com/glob/-/glob-7.1.2.tgz#c19c9df9a028702d678612384a6552404c636d15"
   dependencies:
@@ -3576,7 +3504,7 @@ indexof@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/indexof/-/indexof-0.0.1.tgz#82dc336d232b9062179d05ab3293a66059fd435d"
 
-inflection@^1.7.0, inflection@^1.7.1, inflection@^1.8.0:
+inflection@^1.12.0, inflection@^1.7.0, inflection@^1.7.1, inflection@^1.8.0:
   version "1.12.0"
   resolved "https://registry.yarnpkg.com/inflection/-/inflection-1.12.0.tgz#a200935656d6f5f6bc4dc7502e1aecb703228416"
 
@@ -3909,6 +3837,12 @@ jsonfile@^2.1.0:
 jsonfile@^3.0.0:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/jsonfile/-/jsonfile-3.0.1.tgz#a5ecc6f65f53f662c4415c7675a0331d0992ec66"
+  optionalDependencies:
+    graceful-fs "^4.1.6"
+
+jsonfile@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.npmjs.org/jsonfile/-/jsonfile-4.0.0.tgz#8771aae0799b64076b76640fca058f9c10e33ecb"
   optionalDependencies:
     graceful-fs "^4.1.6"
 
@@ -5249,7 +5183,7 @@ route-recognizer@^0.3.3:
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/route-recognizer/-/route-recognizer-0.3.3.tgz#1d365e27fa6995e091675f7dc940a8c00353bd29"
 
-rsvp@^3.0.14, rsvp@^3.0.16, rsvp@^3.0.17, rsvp@^3.0.18, rsvp@^3.0.21, rsvp@^3.0.6, rsvp@^3.1.0, rsvp@^3.2.1, rsvp@^3.3.3, rsvp@^3.5.0, rsvp@^3.6.1:
+rsvp@^3.0.14, rsvp@^3.0.16, rsvp@^3.0.17, rsvp@^3.0.18, rsvp@^3.0.21, rsvp@^3.0.6, rsvp@^3.1.0, rsvp@^3.2.1, rsvp@^3.3.3, rsvp@^3.5.0:
   version "3.6.2"
   resolved "https://registry.yarnpkg.com/rsvp/-/rsvp-3.6.2.tgz#2e96491599a96cde1b515d5674a8f7a91452926a"
 
@@ -5380,17 +5314,9 @@ silent-error@^1.0.0, silent-error@^1.0.1, silent-error@^1.1.0:
   dependencies:
     debug "^2.2.0"
 
-simple-dom@^0.3.0:
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/simple-dom/-/simple-dom-0.3.2.tgz#0663d10f1556f1500551d518f56e3aba0871371d"
-
 simple-fmt@~0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/simple-fmt/-/simple-fmt-0.1.0.tgz#191bf566a59e6530482cb25ab53b4a8dc85c3a6b"
-
-simple-html-tokenizer@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/simple-html-tokenizer/-/simple-html-tokenizer-0.3.0.tgz#9b8b5559d80e331a544dd13dd59382e5d0d94411"
 
 simple-html-tokenizer@^0.4.1:
   version "0.4.3"
