@@ -666,7 +666,7 @@ module('unit/projection', function(hooks) {
       // a whitelisted non-updated nested model value
       assert.equal(get(baseRecord, 'publisher.name'), PUBLISHER_NAME, 'base-record has the correct publisher.name');
       assert.equal(get(projectedExcerpt, 'publisher.name'), PUBLISHER_NAME, 'excerpt has the correct publisher.name');
-      assert.equal(get(projectedPreview, 'publisher.name'), undefined, 'preview has the correct publisher.name');
+      assert.equal(get(projectedPreview, 'publisher.name'), PUBLISHER_NAME, 'preview has the correct publisher.name');
 
       // a whitelisted updated nested model value
       assert.equal(get(baseRecord, 'publisher.location'), NEW_PUBLISHER_LOCATION, 'base-record has the correct publisher.location');

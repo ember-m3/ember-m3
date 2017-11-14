@@ -287,8 +287,7 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   get _modelName() {
-    let modelName = this._internalModel.modelName;
-    return modelName && modelName.charAt(0) === '@' ? modelName.substring(1) : modelName;
+    return this._internalModel.modelName;
   }
 
   get _isProjection() {
