@@ -46,7 +46,7 @@ module('unit/projection', function(hooks) {
       },
 
       includesModel(modelName) {
-        return /^com\.example\.bookstore\./i.test(modelName);
+        return /^com\.example\.bookstore\./i.test(modelName) || modelName.startsWith('@');
       },
 
       computeAttributeReference(key, value, modelName) {
@@ -143,7 +143,7 @@ module('unit/projection', function(hooks) {
   });
 
   test(`store.peekRecord() will only return a projection or base-record if it has been fetched`, function(assert) {
-    assert.expect(3);
+    assert.expect(4);
 
     const UNFETCHED_PROJECTION_ID = 'isbn:9780439708180';
     const FETCHED_PROJECTION_ID = 'isbn:9780439708181';
@@ -165,6 +165,9 @@ module('unit/projection', function(hooks) {
           id: UNFETCHED_PROJECTION_ID,
           attributes: {
             title: 'Carry On! Mr. Bowditch'
+          },
+          meta: {
+            projectionTypes: [BOOK_CLASS_PATH]
           }
         }
       });
@@ -249,6 +252,9 @@ module('unit/projection', function(hooks) {
           id: UNFETCHED_PROJECTION_ID,
           attributes: {
             title: 'Carry On! Mr. Bowditch'
+          },
+          meta: {
+            projectionTypes: [BOOK_CLASS_PATH]
           }
         }
       });
@@ -342,6 +348,9 @@ module('unit/projection', function(hooks) {
           attributes: {
             author: BOOK_AUTHOR,
             description: BOOK_DESCRIPTION // description is not whitelisted
+          },
+          meta: {
+            projectionTypes: [BOOK_CLASS_PATH]
           }
         }
       });
@@ -439,6 +448,9 @@ module('unit/projection', function(hooks) {
               },
               publisher: `urn:${PUBLISHER_CLASS}:${PUBLISHER_ID}`,
               description: BOOK_DESCRIPTION // description is not whitelisted
+            },
+            meta: {
+              projectionTypes: [BOOK_CLASS_PATH]
             }
           },
           included: [
@@ -451,7 +463,7 @@ module('unit/projection', function(hooks) {
                 owner: PUBLISHER_OWNER,
               },
               meta: {
-                projectionTypes: [NORM_PROJECTED_PUBLISHER_CLASS]
+                projectionTypes: [PUBLISHER_CLASS, NORM_PROJECTED_PUBLISHER_CLASS]
               }
             }
           ]
@@ -723,6 +735,9 @@ module('unit/projection', function(hooks) {
                 location: NEW_AUTHOR_LOCATION,
                 age: NEW_AUTHOR_AGE,
               }
+            },
+            meta: {
+              projectionTypes: [BOOK_CLASS_PATH]
             }
           },
           included: [
@@ -732,6 +747,9 @@ module('unit/projection', function(hooks) {
               attributes: {
                 location: NEW_PUBLISHER_LOCATION,
                 owner: NEW_PUBLISHER_OWNER
+              },
+              meta: {
+                projectionTypes: [PUBLISHER_CLASS]
               }
             }
           ]

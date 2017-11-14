@@ -12,6 +12,17 @@ const { assign, isEqual } = Ember;
 // TODO: this is a stopgap.  We want to replace this with a public
 // DS.Model/Schema API
 
+function fixupBaseTypeIfNecessary(data) {
+  if (typeof data.meta !== 'object') {
+    return;
+  }
+  if (!data.meta.projectionTypes) {
+    // not fetching a projection
+    return;
+  }
+  data.type = `@${data.type}`;
+}
+
 export function extendStore(Store) {
   Store.reopen({
     init() {
@@ -58,6 +69,8 @@ export function extendStore(Store) {
     },
 
     _pushInternalModel(JSONAPIResource) {
+      fixupBaseTypeIfNecessary(JSONAPIResource);
+
       let internalModel = this._super(JSONAPIResource);
       let projectionTypes;
 
