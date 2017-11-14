@@ -593,7 +593,7 @@ module('unit/projection', function(hooks) {
         baseRecordWatcher,
         { title: 1, 'chapter-1': 1, year: 0,
           author: 0, 'author.name': 0, 'author.location': 1, 'author.age': 1,
-          publisher: 0, 'publisher.name': 0, 'publisher.owner': 1, 'publisher.location': 1,
+          publisher: 0, 'publisher.name': 0, 'publisher.location': 1,
         },
         'Final baseRecord state');
 
@@ -601,7 +601,7 @@ module('unit/projection', function(hooks) {
         excerptWatcher,
         { title: 1, description: 0, 'chapter-1': 0, year: 0,
           author: 0, 'author.name': 0, 'author.location': 1, 'author.age': 1,
-          publisher: 0, 'publisher.name': 0, 'publisher.owner': 1, 'publisher.location': 1,
+          publisher: 0, 'publisher.name': 0, 'publisher.location': 1,
         },
         'Final excerpt state');
 
@@ -662,8 +662,6 @@ module('unit/projection', function(hooks) {
       assert.equal(get(projectedPreview, 'publisher.location'), NEW_PUBLISHER_LOCATION, 'preview has the correct publisher.location');
 
       // a non-whitelisted updated nested model value
-      assert.equal(get(baseRecord, 'publisher.owner'), NEW_PUBLISHER_OWNER, 'base-record has the correct publisher.owner');
-      assert.equal(get(projectedExcerpt, 'publisher.owner'), NEW_PUBLISHER_OWNER, 'excerpt has the correct publisher.owner');
       assert.equal(get(projectedPreview, 'publisher.owner'), undefined, 'preview has the correct publisher.owner');
 
       this.watchers = null;
@@ -671,32 +669,51 @@ module('unit/projection', function(hooks) {
     });
 
     test('Setting on the base-record updates projections', function(assert) {
-      let record = this.records.baseRecord;
+      let {
+        baseRecord,
+        projectedExcerpt,
+      } = this.records;
 
       run(() => {
-        set(record, 'chapter-1', NEW_CHAPTER_TEXT);
-        set(record, 'title', NEW_TITLE);
-        set(record, 'description', NEW_DESCRIPTION);
-        set(record, 'author.location', NEW_AUTHOR_LOCATION);
-        set(record, 'author.age', NEW_AUTHOR_AGE);
-        set(record, 'publisher.location', NEW_PUBLISHER_LOCATION);
-        set(record, 'publisher.owner', NEW_PUBLISHER_OWNER);
+        set(baseRecord, 'chapter-1', NEW_CHAPTER_TEXT);
+        set(baseRecord, 'title', NEW_TITLE);
+        set(baseRecord, 'description', NEW_DESCRIPTION);
+        set(baseRecord, 'author.location', NEW_AUTHOR_LOCATION);
+        set(baseRecord, 'author.age', NEW_AUTHOR_AGE);
+        set(baseRecord, 'publisher.location', NEW_PUBLISHER_LOCATION);
+        set(baseRecord, 'publisher.owner', NEW_PUBLISHER_OWNER);
       });
 
-      // TODO assert author.age and publisher.owner counts for base-record and excerpt
+      let {
+        baseRecordWatcher,
+        excerptWatcher
+      } = this.watchers;
 
-      assert.watchedPropertyCount(this.watchers.baseRecordWatcher.counters.description, 1, 'Afterwards we have dirtied baseRecord.description');
-      assert.equal(get(record, 'description'), NEW_DESCRIPTION, 'base-record has the correct description');
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
+
+      assert.watchedPropertyCount(baseCounters.description, 1, 'Afterwards we have dirtied baseRecord.description');
+      assert.watchedPropertyCount(baseCounters['author.age'], 1, 'Afterwards we have dirtied baseRecord.description');
+      assert.watchedPropertyCount(baseCounters['publisher.owner'], 1, 'Afterwards we have dirtied baseRecord.description');
+      assert.watchedPropertyCount(excerptCounters['author.age'], 1, 'Afterwards we have dirtied baseRecord.description');
+      assert.watchedPropertyCount(excerptCounters['publisher.owner'], 1, 'Afterwards we have dirtied baseRecord.description');
+
+      assert.equal(get(baseRecord, 'description'), NEW_DESCRIPTION, 'base-record has the correct description');
+      assert.equal(get(baseRecord, 'publisher.owner'), NEW_PUBLISHER_OWNER, 'base-record has the correct publisher.owner');
+      assert.equal(get(projectedExcerpt, 'publisher.owner'), NEW_PUBLISHER_OWNER, 'excerpt has the correct publisher.owner');
     });
 
     test('Updating the base-record updates projections', function(assert) {
-      let record = this.records.baseRecord;
       let store = this.store();
+      let {
+        baseRecord,
+        projectedExcerpt,
+      } = this.records;
 
       run(() => {
         store.push({
           data: {
-            id: get(record, 'id'),
+            id: get(baseRecord, 'id'),
             type: BOOK_CLASS_PATH,
             attributes: {
               title: NEW_TITLE,
@@ -721,10 +738,24 @@ module('unit/projection', function(hooks) {
         });
       });
 
-      // TODO assert author.age and publisher.owner counts for base-record and excerpt
+      let {
+        baseRecordWatcher,
+        excerptWatcher
+      } = this.watchers;
 
-      assert.watchedPropertyCount(this.watchers.baseRecordWatcher.counters.description, 1, 'Afterwards we have dirtied baseRecord.description');
-      assert.equal(get(record, 'description'), NEW_DESCRIPTION, 'base-record has the correct description');
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
+
+      assert.watchedPropertyCount(baseCounters.description, 1, 'Afterwards we have dirtied baseRecord.description');
+      assert.watchedPropertyCount(baseCounters['author.age'], 1, 'Afterwards we have dirtied baseRecord.description');
+      assert.watchedPropertyCount(baseCounters['publisher.owner'], 1, 'Afterwards we have dirtied baseRecord.description');
+      assert.watchedPropertyCount(excerptCounters['author.age'], 1, 'Afterwards we have dirtied baseRecord.description');
+      assert.watchedPropertyCount(excerptCounters['publisher.owner'], 1, 'Afterwards we have dirtied baseRecord.description');
+
+      assert.equal(get(baseRecord, 'description'), NEW_DESCRIPTION, 'base-record has the correct description');
+      assert.equal(get(baseRecord, 'publisher.owner'), NEW_PUBLISHER_OWNER, 'base-record has the correct publisher.owner');
+      assert.equal(get(projectedExcerpt, 'publisher.owner'), NEW_PUBLISHER_OWNER, 'excerpt has the correct publisher.owner');
+      assert.equal(get(baseRecord, 'description'), NEW_DESCRIPTION, 'base-record has the correct description');
     });
 
     test('Setting a projection updates the base-record and other projections', function(assert) {
