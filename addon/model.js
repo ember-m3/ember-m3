@@ -541,10 +541,11 @@ export default class MegamorphicModel extends Ember.Object {
       return;
     }
 
+    if (!this._schema.isAttributeIncluded(this._modelName, key)) {
+      throw new Error(`Cannot set non-whitelisted property ${key} on type ${this._modelName}`);
+    }
+
     if (this._baseModel) {
-      if (!this._schema.isAttributeIncluded(this._modelName, key)) {
-        throw new Error(`Cannot set non-whitelisted property ${key} on type ${this._modelName}`);
-      }
       set(this._baseModel, key, value);
       return;
     }
