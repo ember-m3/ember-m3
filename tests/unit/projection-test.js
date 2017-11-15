@@ -381,7 +381,7 @@ module('unit/projection', function(hooks) {
     assert.equal(get(projectedRecord, 'description'), undefined, 'projected-record has no description as it is not whitelisted');
   });
 
-  module('property notifications', function(hooks) {
+  module('property notifications on top-level attributes', function(hooks) {
     /*
       All of the tests in this module MUST implement the following:
 
@@ -392,16 +392,6 @@ module('unit/projection', function(hooks) {
 
       Tests may optionally update DESCRIPTION but must assert the state
       of baseRecord on their own in this case.
-
-      # EMBEDDED OBJECT 'author'
-
-      - DOES NOT update NAME
-      - DOES update LOCATION and AGE
-
-      # RESOLVED RECORD 'publisher'
-
-      - DOES NOT update NAME
-      - DOES update LOCATION and OWNER
      */
 
     // properties for use for initial state
@@ -409,22 +399,11 @@ module('unit/projection', function(hooks) {
     const BOOK_TITLE = 'Adventures in Wonderland';
     const BOOK_YEAR = '1865';
     const BOOK_DESCRIPTION = `Don't get rabbit holed!`;
-    const AUTHOR_NAME = 'Lewis Carroll';
-    const AUTHOR_LOCATION = 'Earth';
-    const AUTHOR_AGE = 'old';
-    const PUBLISHER_ID = 'publisher-abc123';
-    const PUBLISHER_NAME = 'MACMILLAN';
-    const PUBLISHER_LOCATION = 'Isle of Arran, Scotland';
-    const PUBLISHER_OWNER = 'Daniel and Alexander Macmillan';
 
     // properties for use post-patch
     const NEW_CHAPTER_TEXT = 'So we began again.';
     const NEW_TITLE = 'Through the Looking Glass';
     const NEW_DESCRIPTION = 'Crazy Town';
-    const NEW_AUTHOR_LOCATION = 'Sky';
-    const NEW_AUTHOR_AGE = 'wise';
-    const NEW_PUBLISHER_LOCATION = 'London, England';
-    const NEW_PUBLISHER_OWNER = 'Holtzbrinck Publishing Group';
 
     hooks.beforeEach(function(assert) {
       const store = this.store();
@@ -441,13 +420,667 @@ module('unit/projection', function(hooks) {
             attributes: {
               title: BOOK_TITLE,
               year: BOOK_YEAR,
+              description: BOOK_DESCRIPTION // description is not whitelisted
+            },
+            meta: {
+              projectionTypes: [BOOK_CLASS_PATH]
+            }
+          },
+        });
+
+        projectedExcerpt = store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            meta: {
+              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
+            },
+            attributes: {},
+          },
+        });
+
+        projectedPreview = store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            meta: {
+              projectionTypes: [BOOK_PREVIEW_PROJECTION_CLASS_PATH],
+            },
+            attributes: {},
+          },
+        });
+      });
+
+      this.records = {
+        baseRecord,
+        projectedExcerpt,
+        projectedPreview,
+      };
+
+      const watchedProperties = [
+        'title', 'description', 'chapter-1', 'year', // props
+      ];
+      let baseRecordWatcher = watchProperties(baseRecord, watchedProperties);
+      let excerptWatcher = watchProperties(projectedExcerpt, watchedProperties);
+      let previewWatcher = watchProperties(projectedPreview, watchedProperties);
+
+      this.watchers = {
+        baseRecordWatcher,
+        excerptWatcher,
+        previewWatcher
+      };
+
+      // a whitelisted property
+      assert.equal(get(baseRecord, 'title'), BOOK_TITLE, 'base-record has the correct title');
+      assert.equal(get(projectedExcerpt, 'title'), BOOK_TITLE, 'excerpt has the correct title');
+      assert.equal(get(projectedPreview, 'title'), BOOK_TITLE, 'preview has the correct title');
+
+      // a non-whitelisted property
+      assert.equal(get(baseRecord, 'description'), BOOK_DESCRIPTION, 'base-record has the correct description');
+      assert.equal(get(projectedExcerpt, 'description'), undefined, 'excerpt has no description since it is not whitelisted');
+      assert.equal(get(projectedPreview, 'description'), undefined, 'preview has no description since it is not whitelisted');
+
+      // an absent property
+      assert.equal(get(baseRecord, 'chapter-1'), undefined, 'base-record has no chapter-1');
+      assert.equal(get(projectedExcerpt, 'chapter-1'), undefined, 'excerpt has no chapter-1');
+      assert.equal(get(projectedPreview, 'chapter-1'), undefined, 'preview has no chapter-1');
+
+      // a whitelisted property that won't be updated
+      assert.equal(get(baseRecord, 'year'), BOOK_YEAR, 'base-record has the correct year');
+      assert.equal(get(projectedExcerpt, 'year'), BOOK_YEAR, 'excerpt has the correct year');
+      assert.equal(get(projectedPreview, 'year'), BOOK_YEAR, 'preview has the correct year');
+
+      assert.watchedPropertyCounts(
+        baseRecordWatcher,
+        { title: 0, description: 0, 'chapter-1': 0, year: 0, },
+        'Initial baseRecord state');
+
+      assert.watchedPropertyCounts(
+        excerptWatcher,
+        { title: 0, description: 0, 'chapter-1': 0, year: 0, },
+        'Initial excerpt state');
+
+      assert.watchedPropertyCounts(
+        previewWatcher,
+        { title: 0, description: 0, 'chapter-1': 0, year: 0, },
+        'Initial preview state');
+    });
+
+    hooks.afterEach(function(assert) {
+      let {
+        baseRecordWatcher,
+        excerptWatcher,
+        previewWatcher
+      } = this.watchers;
+
+      let {
+        baseRecord,
+        projectedExcerpt,
+        projectedPreview,
+      } = this.records;
+
+      assert.watchedPropertyCounts(
+        baseRecordWatcher,
+        { title: 1, 'chapter-1': 1, year: 0, },
+        'Final baseRecord state');
+
+      assert.watchedPropertyCounts(
+        excerptWatcher,
+        { title: 1, description: 0, 'chapter-1': 0, year: 0, },
+        'Final excerpt state');
+
+      assert.watchedPropertyCounts(
+        previewWatcher,
+        { title: 1, description: 0, 'chapter-1': 1, year: 0, },
+        'Final preview state');
+
+      baseRecordWatcher.unwatch();
+      excerptWatcher.unwatch();
+      previewWatcher.unwatch();
+
+      // set to an existing property
+      assert.equal(get(baseRecord, 'title'), NEW_TITLE, 'base-record has the correct title');
+      assert.equal(get(projectedExcerpt, 'title'), NEW_TITLE, 'excerpt has the correct title');
+      assert.equal(get(projectedPreview, 'title'), NEW_TITLE, 'preview has the correct title');
+
+      // set to a previously absent property
+      assert.equal(get(baseRecord, 'chapter-1'), NEW_CHAPTER_TEXT, 'base-record has the correct chapter-1');
+      assert.equal(get(projectedExcerpt, 'chapter-1'), undefined, 'excerpt has the correct chapter-1');
+      assert.equal(get(projectedPreview, 'chapter-1'), NEW_CHAPTER_TEXT, 'preview has the correct chapter-1');
+
+      // a whitelisted non-updated property
+      assert.equal(get(baseRecord, 'year'), BOOK_YEAR, 'base-record has the correct year');
+      assert.equal(get(projectedExcerpt, 'year'), BOOK_YEAR, 'excerpt has the correct year');
+      assert.equal(get(projectedPreview, 'year'), BOOK_YEAR, 'preview has the correct year');
+
+      // a non-whitelisted property
+      assert.equal(get(projectedExcerpt, 'description'), undefined, 'excerpt has no description since it is not whitelisted');
+      assert.equal(get(projectedPreview, 'description'), undefined, 'preview has no description since it is not whitelisted');
+
+      this.watchers = null;
+      this.records = null;
+    });
+
+    test('Setting on the base-record updates projections', function(assert) {
+      let {
+        baseRecord,
+      } = this.records;
+
+      run(() => {
+        set(baseRecord, 'chapter-1', NEW_CHAPTER_TEXT);
+        set(baseRecord, 'title', NEW_TITLE);
+        set(baseRecord, 'description', NEW_DESCRIPTION);
+      });
+
+      let {
+        baseRecordWatcher,
+      } = this.watchers;
+
+      let baseCounters = baseRecordWatcher.counters;
+
+      assert.watchedPropertyCount(baseCounters.description, 1, 'Afterwards we have dirtied baseRecord.description');
+      assert.equal(get(baseRecord, 'description'), NEW_DESCRIPTION, 'base-record has the correct description');
+    });
+
+    test('Updating the base-record updates projections', function(assert) {
+      let store = this.store();
+      let {
+        baseRecord,
+      } = this.records;
+
+      run(() => {
+        store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              title: NEW_TITLE,
+              'chapter-1': NEW_CHAPTER_TEXT,
+              description: NEW_DESCRIPTION,
+            },
+            meta: {
+              projectionTypes: [BOOK_CLASS_PATH]
+            }
+          },
+        });
+      });
+
+      let {
+        baseRecordWatcher,
+      } = this.watchers;
+
+      let baseCounters = baseRecordWatcher.counters;
+
+      assert.watchedPropertyCount(baseCounters.description, 1, 'Afterwards we have dirtied baseRecord.description');
+      assert.equal(get(baseRecord, 'description'), NEW_DESCRIPTION, 'base-record has the correct description');
+    });
+
+    test('Setting a projection updates the base-record and other projections', function(assert) {
+      let excerpt = this.records.projectedExcerpt;
+      let baseRecord = this.records.baseRecord;
+
+      run(() => {
+        set(excerpt, 'chapter-1', NEW_CHAPTER_TEXT);
+        set(excerpt, 'title', NEW_TITLE);
+      });
+
+      assert.throws(() => {
+        run(() => { set(excerpt, 'description', NEW_DESCRIPTION); });
+      }, /whitelist/gi, 'Setting a non-whitelisted property throws an error');
+      assert.watchedPropertyCount(this.watchers.baseRecordWatcher.counters.description, 0, 'Afterwards we have not dirtied baseRecord.description');
+      assert.equal(get(baseRecord, 'description'), BOOK_DESCRIPTION, 'base-record has the correct description');
+    });
+
+    test('Updating a projection updates the base-record and other projections', function(assert) {
+      let baseRecord = this.records.baseRecord;
+      let store = this.store();
+
+      run(() => {
+        store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            meta: {
+              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
+            },
+            attributes: {
+              title: NEW_TITLE,
+              'chapter-1': NEW_CHAPTER_TEXT,
+              /*
+                The below update is invalid because in the real world the schema was are given is also used
+                to create the payload the API gives us, so we could not have properties from the API that don't
+                exist in the whitelist.
+               */
+              // description: NEW_DESCRIPTION,
+            }
+          },
+        });
+      });
+
+      assert.watchedPropertyCount(this.watchers.baseRecordWatcher.counters.description, 0, 'Afterwards we have not dirtied baseRecord.description');
+      assert.equal(get(baseRecord, 'description'), BOOK_DESCRIPTION, 'base-record has the correct description');
+    });
+  });
+
+  module('property notifications on embedded objects', function(hooks) {
+    /*
+      All of the tests in this module MUST implement the following:
+
+      # EMBEDDED OBJECT 'author'
+
+      - DOES NOT update NAME
+      - DOES update LOCATION
+
+      AUTHOR is embedded on EXCERPT
+      LOCATION and NAME are projected on PREVIEW but AGE is not.
+
+      Tests may optionally update AGE but must assert the state
+        of watchers and values for baseRecord and excerpt on their
+        own in this case.
+     */
+
+    // properties for use for initial state
+    const BOOK_ID = 'isbn:9780439708181';
+    const AUTHOR_NAME = 'Lewis Carroll';
+    const AUTHOR_LOCATION = 'Earth';
+    const AUTHOR_AGE = 'old';
+
+    // properties for use post-patch
+    const NEW_AUTHOR_LOCATION = 'Sky';
+    const NEW_AUTHOR_AGE = 'wise';
+
+    hooks.beforeEach(function(assert) {
+      const store = this.store();
+
+      let baseRecord;
+      let projectedExcerpt;
+      let projectedPreview;
+
+      run(() => {
+        baseRecord = store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
               author: {
                 name: AUTHOR_NAME,
                 location: AUTHOR_LOCATION,
                 age: AUTHOR_AGE,
               },
+            },
+            meta: {
+              projectionTypes: [BOOK_CLASS_PATH]
+            }
+          },
+        });
+
+        projectedExcerpt = store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            meta: {
+              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
+            },
+            attributes: {},
+          },
+        });
+
+        projectedPreview = store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            meta: {
+              projectionTypes: [BOOK_PREVIEW_PROJECTION_CLASS_PATH],
+            },
+            attributes: {},
+          },
+        });
+      });
+
+      this.records = {
+        baseRecord,
+        projectedExcerpt,
+        projectedPreview,
+      };
+
+      const watchedProperties = [
+        'author', 'author.name', 'author.age', 'author.location', // embedded type
+      ];
+      let baseRecordWatcher = watchProperties(baseRecord, watchedProperties);
+      let excerptWatcher = watchProperties(projectedExcerpt, watchedProperties);
+      let previewWatcher = watchProperties(projectedPreview, watchedProperties);
+
+      this.watchers = {
+        baseRecordWatcher,
+        excerptWatcher,
+        previewWatcher
+      };
+
+      // an embedded whitelisted property
+      assert.equal(get(baseRecord, 'author.location'), AUTHOR_LOCATION, 'base-record has the correct author.location');
+      assert.equal(get(projectedExcerpt, 'author.location'), AUTHOR_LOCATION, 'excerpt has the correct author.location');
+      assert.equal(get(projectedPreview, 'author.location'), AUTHOR_LOCATION, 'preview has the correct author.location');
+
+      // an embedded non-whitelisted property
+      assert.equal(get(baseRecord, 'author.age'), AUTHOR_AGE, 'base-record has the correct author.age');
+      assert.equal(get(projectedExcerpt, 'author.age'), AUTHOR_AGE, 'excerpt has the correct author.age');
+      assert.equal(get(projectedPreview, 'author.age'), undefined, 'preview has the correct author.age');
+
+      // an embedded whitelisted property that won't be updated
+      assert.equal(get(baseRecord, 'author.name'), AUTHOR_NAME, 'base-record has the correct author.name');
+      assert.equal(get(projectedExcerpt, 'author.name'), AUTHOR_NAME, 'excerpt has the correct author.name');
+      assert.equal(get(projectedPreview, 'author.name'), AUTHOR_NAME, 'preview has the correct author.name');
+
+      assert.watchedPropertyCounts(
+        baseRecordWatcher,
+        { author: 0, 'author.name': 0, 'author.location': 0, 'author.age': 0, },
+        'Initial baseRecord state');
+
+      assert.watchedPropertyCounts(
+        excerptWatcher,
+        { author: 0, 'author.name': 0, 'author.location': 0, 'author.age': 0, },
+        'Initial excerpt state');
+
+      assert.watchedPropertyCounts(
+        previewWatcher,
+        { author: 0, 'author.name': 0, 'author.location': 0, 'author.age': 0, },
+        'Initial preview state');
+    });
+
+    hooks.afterEach(function(assert) {
+      let {
+        baseRecordWatcher,
+        excerptWatcher,
+        previewWatcher
+      } = this.watchers;
+
+      let {
+        baseRecord,
+        projectedExcerpt,
+        projectedPreview,
+      } = this.records;
+
+      assert.watchedPropertyCounts(
+        baseRecordWatcher,
+        { author: 0, 'author.name': 0, 'author.location': 1, },
+        'Final baseRecord state');
+
+      assert.watchedPropertyCounts(
+        excerptWatcher,
+        { author: 0, 'author.name': 0, 'author.location': 1, },
+        'Final excerpt state');
+
+      assert.watchedPropertyCounts(
+        previewWatcher,
+        { author: 0, 'author.name': 0, 'author.location': 1, 'author.age': 0, },
+        'Final preview state');
+
+      baseRecordWatcher.unwatch();
+      excerptWatcher.unwatch();
+      previewWatcher.unwatch();
+
+      // an embedded whitelisted property
+      assert.equal(get(baseRecord, 'author.location'), NEW_AUTHOR_LOCATION, 'base-record has the correct author.location');
+      assert.equal(get(projectedExcerpt, 'author.location'), NEW_AUTHOR_LOCATION, 'excerpt has the correct author.location');
+      assert.equal(get(projectedPreview, 'author.location'), NEW_AUTHOR_LOCATION, 'preview has the correct author.location');
+
+      // an embedded non-whitelisted property
+      assert.equal(get(projectedPreview, 'author.age'), undefined, 'preview has the correct author.age');
+
+      // an embedded whitelisted property that won't be updated
+      assert.equal(get(baseRecord, 'author.name'), AUTHOR_NAME, 'base-record has the correct author.name');
+      assert.equal(get(projectedExcerpt, 'author.name'), AUTHOR_NAME, 'excerpt has the correct author.name');
+      assert.equal(get(projectedPreview, 'author.name'), AUTHOR_NAME, 'preview has the correct author.name');
+
+      this.watchers = null;
+      this.records = null;
+    });
+
+    test('Setting an embedded object property on the base-record updates the value for projections', function(assert) {
+      let {
+        baseRecord,
+        projectedExcerpt,
+      } = this.records;
+
+      run(() => {
+        set(baseRecord, 'author.location', NEW_AUTHOR_LOCATION);
+        set(baseRecord, 'author.age', NEW_AUTHOR_AGE);
+      });
+
+      let {
+        baseRecordWatcher,
+        excerptWatcher
+      } = this.watchers;
+
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
+
+      assert.watchedPropertyCount(baseCounters['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
+      assert.watchedPropertyCount(excerptCounters['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
+      assert.equal(get(baseRecord, 'author.age'), NEW_AUTHOR_AGE, 'base-record has the correct author.age');
+      assert.equal(get(projectedExcerpt, 'author.age'), NEW_AUTHOR_AGE, 'excerpt has the correct author.age');
+
+    });
+
+    test('Updating an embedded object property on the base-record updates the value for projections', function(assert) {
+      let store = this.store();
+      let {
+        baseRecord,
+        projectedExcerpt,
+      } = this.records;
+
+      run(() => {
+        store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              author: {
+                location: NEW_AUTHOR_LOCATION,
+                age: NEW_AUTHOR_AGE,
+              }
+            },
+            meta: {
+              projectionTypes: [BOOK_CLASS_PATH]
+            }
+          },
+        });
+      });
+
+      let {
+        baseRecordWatcher,
+        excerptWatcher
+      } = this.watchers;
+
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
+
+      assert.watchedPropertyCount(baseCounters['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
+      assert.watchedPropertyCount(excerptCounters['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
+      assert.equal(get(baseRecord, 'author.age'), NEW_AUTHOR_AGE, 'base-record has the correct author.age');
+      assert.equal(get(projectedExcerpt, 'author.age'), NEW_AUTHOR_AGE, 'excerpt has the correct author.age');
+    });
+
+    test('Setting an embedded object property on a projection updates the base-record and other projections', function(assert) {
+      let {
+        baseRecord,
+        projectedExcerpt,
+      } = this.records;
+      let {
+        baseRecordWatcher,
+        excerptWatcher
+      } = this.watchers;
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
+
+      run(() => {
+        set(projectedExcerpt, 'author.location', NEW_AUTHOR_LOCATION);
+        set(projectedExcerpt, 'author.age', NEW_AUTHOR_AGE);
+      });
+
+      assert.watchedPropertyCount(baseCounters['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
+      assert.watchedPropertyCount(excerptCounters['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
+      assert.equal(get(baseRecord, 'author.age'), NEW_AUTHOR_AGE, 'base-record has the correct author.age');
+      assert.equal(get(projectedExcerpt, 'author.age'), NEW_AUTHOR_AGE, 'excerpt has the correct author.age');
+    });
+
+    test('Setting an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
+      let {
+        baseRecord,
+        projectedExcerpt,
+        projectedPreview,
+      } = this.records;
+
+      run(() => {
+        set(projectedPreview, 'author.location', NEW_AUTHOR_LOCATION);
+      });
+
+      assert.throws(() => {
+        run(() => { set(projectedPreview, 'author.age', NEW_AUTHOR_AGE); });
+      }, /whitelist/gi, 'Setting a non-whitelisted property on a projection over an embedded object throws an error');
+
+      let {
+        baseRecordWatcher,
+        excerptWatcher
+      } = this.watchers;
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
+
+      assert.watchedPropertyCount(baseCounters['author.age'], 0, 'Afterwards we have not dirtied excerpt.author.age');
+      assert.watchedPropertyCount(excerptCounters['author.age'], 0, 'Afterwards we have not dirtied excerpt.author.age');
+      assert.equal(get(baseRecord, 'author.age'), AUTHOR_AGE, 'base-record has the correct author.age');
+      assert.equal(get(projectedExcerpt, 'author.age'), AUTHOR_AGE, 'excerpt has the correct author.age');
+    });
+
+    test('Updating an embedded object property on a projection updates the base-record and other projections', function(assert) {
+      let store = this.store();
+      let {
+        baseRecord,
+        projectedExcerpt,
+      } = this.records;
+
+      run(() => {
+        store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            meta: {
+              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
+            },
+            attributes: {
+              author: {
+                location: NEW_AUTHOR_LOCATION,
+                age: NEW_AUTHOR_AGE
+              }
+            }
+          },
+        });
+      });
+
+      let {
+        baseRecordWatcher,
+        excerptWatcher
+      } = this.watchers;
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
+
+      run(() => {
+        set(projectedExcerpt, 'author.location', NEW_AUTHOR_LOCATION);
+        set(projectedExcerpt, 'author.age', NEW_AUTHOR_AGE);
+      });
+
+      assert.watchedPropertyCount(baseCounters['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
+      assert.watchedPropertyCount(excerptCounters['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
+      assert.equal(get(baseRecord, 'author.age'), NEW_AUTHOR_AGE, 'base-record has the correct author.age');
+      assert.equal(get(projectedExcerpt, 'author.age'), NEW_AUTHOR_AGE, 'excerpt has the correct author.age');
+    });
+
+    test('Updating an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
+      let store = this.store();
+      let {
+        baseRecord,
+        projectedExcerpt,
+      } = this.records;
+
+      run(() => {
+        store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            meta: {
+              projectionTypes: [BOOK_PREVIEW_PROJECTION_CLASS_PATH],
+            },
+            attributes: {
+              author: {
+                location: NEW_AUTHOR_LOCATION,
+                /*
+                  The below update is invalid because in the real world the schema was are given is also used
+                  to create the payload the API gives us, so we could not have properties from the API that don't
+                  exist in the whitelist.
+
+                  However, it's lack of presence allows us to test that AUTHOR_AGE is correctly kept post-merge
+                 */
+                // age: NEW_AUTHOR_AGE
+              }
+            }
+          },
+        });
+      });
+
+      let {
+        baseRecordWatcher,
+        excerptWatcher
+      } = this.watchers;
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
+
+      assert.watchedPropertyCount(baseCounters['author.age'], 0, 'Afterwards we have not dirtied excerpt.author.age');
+      assert.watchedPropertyCount(excerptCounters['author.age'], 0, 'Afterwards we have not dirtied excerpt.author.age');
+      assert.equal(get(baseRecord, 'author.age'), AUTHOR_AGE, 'base-record has the correct author.age');
+      assert.equal(get(projectedExcerpt, 'author.age'), AUTHOR_AGE, 'excerpt has the correct author.age');
+    });
+  });
+
+  module('property notifications on resolved objects', function(hooks) {
+    /*
+      All of the tests in this module MUST implement the following:
+
+      # RESOLVED RECORD 'publisher'
+
+      - DOES NOT update NAME
+      - DOES update LOCATION
+
+      Tests may optionally update OWNER but must assert the state
+        of watchers and values for baseRecord and excerpt on their
+        own in this case.
+     */
+
+    // properties for use for initial state
+    const BOOK_ID = 'isbn:9780439708181';
+    // TODO is this valid? we won't have a real ID yeah?
+    const PUBLISHER_ID = 'publisher-abc123';
+    const PUBLISHER_NAME = 'MACMILLAN';
+    const PUBLISHER_LOCATION = 'Isle of Arran, Scotland';
+    const PUBLISHER_OWNER = 'Daniel and Alexander Macmillan';
+
+    // properties for use post-patch
+    const NEW_PUBLISHER_LOCATION = 'London, England';
+    const NEW_PUBLISHER_OWNER = 'Holtzbrinck Publishing Group';
+
+    hooks.beforeEach(function(assert) {
+      const store = this.store();
+
+      let baseRecord;
+      let projectedExcerpt;
+      let projectedPreview;
+
+      run(() => {
+        baseRecord = store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
               publisher: `urn:${PUBLISHER_CLASS}:${PUBLISHER_ID}`,
-              description: BOOK_DESCRIPTION // description is not whitelisted
             },
             meta: {
               projectionTypes: [BOOK_CLASS_PATH]
@@ -499,8 +1132,6 @@ module('unit/projection', function(hooks) {
       };
 
       const watchedProperties = [
-        'title', 'description', 'chapter-1', 'year', // props
-        'author', 'author.name', 'author.age', 'author.location', // embedded type
         'publisher', 'publisher.name', 'publisher.location', 'publisher.owner' // resolved type
       ];
       let baseRecordWatcher = watchProperties(baseRecord, watchedProperties);
@@ -512,41 +1143,6 @@ module('unit/projection', function(hooks) {
         excerptWatcher,
         previewWatcher
       };
-
-      // a whitelisted property
-      assert.equal(get(baseRecord, 'title'), BOOK_TITLE, 'base-record has the correct title');
-      assert.equal(get(projectedExcerpt, 'title'), BOOK_TITLE, 'excerpt has the correct title');
-      assert.equal(get(projectedPreview, 'title'), BOOK_TITLE, 'preview has the correct title');
-
-      // a non-whitelisted property
-      assert.equal(get(baseRecord, 'description'), BOOK_DESCRIPTION, 'base-record has the correct description');
-      assert.equal(get(projectedExcerpt, 'description'), undefined, 'excerpt has no description since it is not whitelisted');
-      assert.equal(get(projectedPreview, 'description'), undefined, 'preview has no description since it is not whitelisted');
-
-      // an absent property
-      assert.equal(get(baseRecord, 'chapter-1'), undefined, 'base-record has no chapter-1');
-      assert.equal(get(projectedExcerpt, 'chapter-1'), undefined, 'excerpt has no chapter-1');
-      assert.equal(get(projectedPreview, 'chapter-1'), undefined, 'preview has no chapter-1');
-
-      // a whitelisted property that won't be updated
-      assert.equal(get(baseRecord, 'year'), BOOK_YEAR, 'base-record has the correct year');
-      assert.equal(get(projectedExcerpt, 'year'), BOOK_YEAR, 'excerpt has the correct year');
-      assert.equal(get(projectedPreview, 'year'), BOOK_YEAR, 'preview has the correct year');
-
-      // an embedded whitelisted property
-      assert.equal(get(baseRecord, 'author.location'), AUTHOR_LOCATION, 'base-record has the correct author.location');
-      assert.equal(get(projectedExcerpt, 'author.location'), AUTHOR_LOCATION, 'excerpt has the correct author.location');
-      assert.equal(get(projectedPreview, 'author.location'), AUTHOR_LOCATION, 'preview has the correct author.location');
-
-      // an embedded non-whitelisted property
-      assert.equal(get(baseRecord, 'author.age'), AUTHOR_AGE, 'base-record has the correct author.age');
-      assert.equal(get(projectedExcerpt, 'author.age'), AUTHOR_AGE, 'excerpt has the correct author.age');
-      assert.equal(get(projectedPreview, 'author.age'), undefined, 'preview has the correct author.age');
-
-      // an embedded whitelisted property that won't be updated
-      assert.equal(get(baseRecord, 'author.name'), AUTHOR_NAME, 'base-record has the correct author.name');
-      assert.equal(get(projectedExcerpt, 'author.name'), AUTHOR_NAME, 'excerpt has the correct author.name');
-      assert.equal(get(projectedPreview, 'author.name'), AUTHOR_NAME, 'preview has the correct author.name');
 
       // a whitelisted non-updated nested model value
       assert.equal(get(baseRecord, 'publisher.name'), PUBLISHER_NAME, 'base-record has the correct publisher.name');
@@ -565,26 +1161,17 @@ module('unit/projection', function(hooks) {
 
       assert.watchedPropertyCounts(
         baseRecordWatcher,
-        { title: 0, description: 0, 'chapter-1': 0, year: 0,
-          author: 0, 'author.name': 0, 'author.location': 0, 'author.age': 0,
-          publisher: 0, 'publisher.name': 0, 'publisher.owner': 0, 'publisher.location': 0,
-        },
+        { publisher: 0, 'publisher.name': 0, 'publisher.owner': 0, 'publisher.location': 0, },
         'Initial baseRecord state');
 
       assert.watchedPropertyCounts(
         excerptWatcher,
-        { title: 0, description: 0, 'chapter-1': 0, year: 0,
-          author: 0, 'author.name': 0, 'author.location': 0, 'author.age': 0,
-          publisher: 0, 'publisher.name': 0, 'publisher.owner': 0, 'publisher.location': 0,
-        },
+        { publisher: 0, 'publisher.name': 0, 'publisher.owner': 0, 'publisher.location': 0, },
         'Initial excerpt state');
 
       assert.watchedPropertyCounts(
         previewWatcher,
-        { title: 0, description: 0, 'chapter-1': 0, year: 0,
-          author: 0, 'author.name': 0, 'author.location': 0, 'author.age': 0,
-          publisher: 0, 'publisher.name': 0, 'publisher.owner': 0, 'publisher.location': 0,
-        },
+        { publisher: 0, 'publisher.name': 0, 'publisher.owner': 0, 'publisher.location': 0, },
         'Initial preview state');
     });
 
@@ -603,65 +1190,22 @@ module('unit/projection', function(hooks) {
 
       assert.watchedPropertyCounts(
         baseRecordWatcher,
-        { title: 1, 'chapter-1': 1, year: 0,
-          author: 0, 'author.name': 0, 'author.location': 1, 'author.age': 1,
-          publisher: 0, 'publisher.name': 0, 'publisher.location': 1,
-        },
+        { publisher: 0, 'publisher.name': 0, 'publisher.location': 1, },
         'Final baseRecord state');
 
       assert.watchedPropertyCounts(
         excerptWatcher,
-        { title: 1, description: 0, 'chapter-1': 0, year: 0,
-          author: 0, 'author.name': 0, 'author.location': 1, 'author.age': 1,
-          publisher: 0, 'publisher.name': 0, 'publisher.location': 1,
-        },
+        { publisher: 0, 'publisher.name': 0, 'publisher.location': 1, },
         'Final excerpt state');
 
       assert.watchedPropertyCounts(
         previewWatcher,
-        { title: 1, description: 0, 'chapter-1': 1, year: 0,
-          author: 0, 'author.name': 0, 'author.location': 1, 'author.age': 0,
-          publisher: 0, 'publisher.name': 0, 'publisher.owner': 0, 'publisher.location': 1,
-        },
+        { publisher: 0, 'publisher.name': 0, 'publisher.owner': 0, 'publisher.location': 1,},
         'Final preview state');
 
       baseRecordWatcher.unwatch();
       excerptWatcher.unwatch();
       previewWatcher.unwatch();
-
-      // set to an existing property
-      assert.equal(get(baseRecord, 'title'), NEW_TITLE, 'base-record has the correct title');
-      assert.equal(get(projectedExcerpt, 'title'), NEW_TITLE, 'excerpt has the correct title');
-      assert.equal(get(projectedPreview, 'title'), NEW_TITLE, 'preview has the correct title');
-
-      // set to a previously absent property
-      assert.equal(get(baseRecord, 'chapter-1'), NEW_CHAPTER_TEXT, 'base-record has the correct chapter-1');
-      assert.equal(get(projectedExcerpt, 'chapter-1'), undefined, 'excerpt has the correct chapter-1');
-      assert.equal(get(projectedPreview, 'chapter-1'), NEW_CHAPTER_TEXT, 'preview has the correct chapter-1');
-
-      // a whitelisted non-updated property
-      assert.equal(get(baseRecord, 'year'), BOOK_YEAR, 'base-record has the correct year');
-      assert.equal(get(projectedExcerpt, 'year'), BOOK_YEAR, 'excerpt has the correct year');
-      assert.equal(get(projectedPreview, 'year'), BOOK_YEAR, 'preview has the correct year');
-
-      // a non-whitelisted property
-      assert.equal(get(projectedExcerpt, 'description'), undefined, 'excerpt has no description since it is not whitelisted');
-      assert.equal(get(projectedPreview, 'description'), undefined, 'preview has no description since it is not whitelisted');
-
-      // an embedded whitelisted property
-      assert.equal(get(baseRecord, 'author.location'), NEW_AUTHOR_LOCATION, 'base-record has the correct author.location');
-      assert.equal(get(projectedExcerpt, 'author.location'), NEW_AUTHOR_LOCATION, 'excerpt has the correct author.location');
-      assert.equal(get(projectedPreview, 'author.location'), NEW_AUTHOR_LOCATION, 'preview has the correct author.location');
-
-      // an embedded non-whitelisted property
-      assert.equal(get(baseRecord, 'author.age'), NEW_AUTHOR_AGE, 'base-record has the correct author.age');
-      assert.equal(get(projectedExcerpt, 'author.age'), NEW_AUTHOR_AGE, 'excerpt has the correct author.age');
-      assert.equal(get(projectedPreview, 'author.age'), undefined, 'preview has the correct author.age');
-
-      // an embedded whitelisted property that won't be updated
-      assert.equal(get(baseRecord, 'author.name'), AUTHOR_NAME, 'base-record has the correct author.name');
-      assert.equal(get(projectedExcerpt, 'author.name'), AUTHOR_NAME, 'excerpt has the correct author.name');
-      assert.equal(get(projectedPreview, 'author.name'), AUTHOR_NAME, 'preview has the correct author.name');
 
       // a whitelisted non-updated nested model value
       assert.equal(get(baseRecord, 'publisher.name'), PUBLISHER_NAME, 'base-record has the correct publisher.name');
@@ -680,18 +1224,13 @@ module('unit/projection', function(hooks) {
       this.records = null;
     });
 
-    test('Setting on the base-record updates projections', function(assert) {
+    test('Setting a resolution property via the base-record updates projections and nested projections', function(assert) {
       let {
         baseRecord,
         projectedExcerpt,
       } = this.records;
 
       run(() => {
-        set(baseRecord, 'chapter-1', NEW_CHAPTER_TEXT);
-        set(baseRecord, 'title', NEW_TITLE);
-        set(baseRecord, 'description', NEW_DESCRIPTION);
-        set(baseRecord, 'author.location', NEW_AUTHOR_LOCATION);
-        set(baseRecord, 'author.age', NEW_AUTHOR_AGE);
         set(baseRecord, 'publisher.location', NEW_PUBLISHER_LOCATION);
         set(baseRecord, 'publisher.owner', NEW_PUBLISHER_OWNER);
       });
@@ -704,18 +1243,13 @@ module('unit/projection', function(hooks) {
       let baseCounters = baseRecordWatcher.counters;
       let excerptCounters = excerptWatcher.counters;
 
-      assert.watchedPropertyCount(baseCounters.description, 1, 'Afterwards we have dirtied baseRecord.description');
-      assert.watchedPropertyCount(baseCounters['author.age'], 1, 'Afterwards we have dirtied baseRecord.description');
       assert.watchedPropertyCount(baseCounters['publisher.owner'], 1, 'Afterwards we have dirtied baseRecord.description');
-      assert.watchedPropertyCount(excerptCounters['author.age'], 1, 'Afterwards we have dirtied baseRecord.description');
       assert.watchedPropertyCount(excerptCounters['publisher.owner'], 1, 'Afterwards we have dirtied baseRecord.description');
-
-      assert.equal(get(baseRecord, 'description'), NEW_DESCRIPTION, 'base-record has the correct description');
       assert.equal(get(baseRecord, 'publisher.owner'), NEW_PUBLISHER_OWNER, 'base-record has the correct publisher.owner');
       assert.equal(get(projectedExcerpt, 'publisher.owner'), NEW_PUBLISHER_OWNER, 'excerpt has the correct publisher.owner');
     });
 
-    test('Updating the base-record updates projections', function(assert) {
+    test('Updating a resolution property via the base-record updates projections and nested projections', function(assert) {
       let store = this.store();
       let {
         baseRecord,
@@ -725,17 +1259,9 @@ module('unit/projection', function(hooks) {
       run(() => {
         store.push({
           data: {
-            id: get(baseRecord, 'id'),
+            id: BOOK_ID,
             type: BOOK_CLASS_PATH,
-            attributes: {
-              title: NEW_TITLE,
-              'chapter-1': NEW_CHAPTER_TEXT,
-              description: NEW_DESCRIPTION,
-              author: {
-                location: NEW_AUTHOR_LOCATION,
-                age: NEW_AUTHOR_AGE,
-              }
-            },
+            attributes: {},
             meta: {
               projectionTypes: [BOOK_CLASS_PATH]
             }
@@ -764,90 +1290,129 @@ module('unit/projection', function(hooks) {
       let baseCounters = baseRecordWatcher.counters;
       let excerptCounters = excerptWatcher.counters;
 
-      assert.watchedPropertyCount(baseCounters.description, 1, 'Afterwards we have dirtied baseRecord.description');
-      assert.watchedPropertyCount(baseCounters['author.age'], 1, 'Afterwards we have dirtied baseRecord.description');
       assert.watchedPropertyCount(baseCounters['publisher.owner'], 1, 'Afterwards we have dirtied baseRecord.description');
-      assert.watchedPropertyCount(excerptCounters['author.age'], 1, 'Afterwards we have dirtied baseRecord.description');
       assert.watchedPropertyCount(excerptCounters['publisher.owner'], 1, 'Afterwards we have dirtied baseRecord.description');
-
-      assert.equal(get(baseRecord, 'description'), NEW_DESCRIPTION, 'base-record has the correct description');
       assert.equal(get(baseRecord, 'publisher.owner'), NEW_PUBLISHER_OWNER, 'base-record has the correct publisher.owner');
       assert.equal(get(projectedExcerpt, 'publisher.owner'), NEW_PUBLISHER_OWNER, 'excerpt has the correct publisher.owner');
-      assert.equal(get(baseRecord, 'description'), NEW_DESCRIPTION, 'base-record has the correct description');
     });
 
-    test('Setting a projection updates the base-record and other projections', function(assert) {
-      let excerpt = this.records.projectedExcerpt;
-      let baseRecord = this.records.baseRecord;
+    test('Setting a resolution property via a projection updates the base-record, other projections and nested projections', function(assert) {
+      let {
+        baseRecord,
+        projectedExcerpt,
+      } = this.records;
 
       run(() => {
-        set(excerpt, 'chapter-1', NEW_CHAPTER_TEXT);
-        set(excerpt, 'title', NEW_TITLE);
-        set(excerpt, 'author.location', NEW_AUTHOR_LOCATION);
-        set(excerpt, 'author.age', NEW_AUTHOR_AGE);
-        set(excerpt, 'publisher.location', NEW_PUBLISHER_LOCATION);
+        set(projectedExcerpt, 'publisher.location', NEW_PUBLISHER_LOCATION);
+      });
+
+      let {
+        baseRecordWatcher,
+        excerptWatcher
+      } = this.watchers;
+
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
+
+      assert.watchedPropertyCount(baseCounters['publisher.owner'], 1, 'Afterwards we have dirtied baseRecord.publisher.owner');
+      assert.watchedPropertyCount(excerptCounters['publisher.owner'], 1, 'Afterwards we have dirtied baseRecord.publisher.owner');
+      assert.equal(get(baseRecord, 'publisher.owner'), NEW_PUBLISHER_OWNER, 'base-record has the correct publisher.owner');
+      assert.equal(get(projectedExcerpt, 'publisher.owner'), NEW_PUBLISHER_OWNER, 'excerpt has the correct publisher.owner');
+    });
+
+    test('Setting a resolution property via a nested projection updates the base-record and other projections', function(assert) {
+      let {
+        baseRecord,
+        projectedExcerpt,
+        projectedPreview,
+      } = this.records;
+
+      run(() => {
+        set(projectedPreview, 'publisher.location', NEW_PUBLISHER_LOCATION);
       });
 
       assert.throws(() => {
-        run(() => { set(excerpt, 'description', NEW_DESCRIPTION); });
-      }, /whitelist/gi, 'Setting a non-whitelisted property throws an error');
-      assert.watchedPropertyCount(this.watchers.baseRecordWatcher.counters.description, 0, 'Afterwards we have not dirtied baseRecord.description');
-      assert.equal(get(baseRecord, 'description'), BOOK_DESCRIPTION, 'base-record has the correct description');
-    });
-
-    test('Setting a nested projection updates the base-record and other projections', function(assert) {
-      let preview = this.records.projectedPreview;
-      let baseRecord = this.records.baseRecord;
-
-      run(() => {
-        set(preview, 'chapter-1', NEW_CHAPTER_TEXT);
-        set(preview, 'title', NEW_TITLE);
-        set(preview, 'author.location', NEW_AUTHOR_LOCATION);
-        set(preview, 'publisher.location', NEW_PUBLISHER_LOCATION);
-      });
-
-      assert.throws(() => {
-        run(() => { set(preview, 'author.age', NEW_AUTHOR_AGE); });
-      }, /whitelist/gi, 'Setting a non-whitelisted property on a projection over an embedded object throws an error');
-
-      assert.throws(() => {
-        run(() => { set(preview, 'publisher.owner', NEW_PUBLISHER_OWNER); });
+        run(() => { set(projectedPreview, 'publisher.owner', NEW_PUBLISHER_OWNER); });
       }, /whitelist/gi, 'Setting a non-whitelisted property on a projection over a resolved record throws an error');
 
-      assert.throws(() => {
-        run(() => { set(preview, 'description', NEW_DESCRIPTION); });
-      }, /whitelist/gi, 'Setting a non-whitelisted property throws an error');
-      assert.watchedPropertyCount(this.watchers.baseRecordWatcher.counters.description, 0, 'Afterwards we have not dirtied baseRecord.description');
-      assert.equal(get(baseRecord, 'description'), BOOK_DESCRIPTION, 'base-record has the correct description');
+      let {
+        baseRecordWatcher,
+        excerptWatcher
+      } = this.watchers;
+
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
+
+      assert.watchedPropertyCount(baseCounters['publisher.owner'], 0, 'Afterwards we have not dirtied baseRecord.publisher.owner');
+      assert.watchedPropertyCount(excerptCounters['publisher.owner'], 0, 'Afterwards we have not  dirtied baseRecord.publisher.owner');
+      assert.equal(get(baseRecord, 'publisher.owner'), PUBLISHER_OWNER, 'base-record has the correct publisher.owner');
+      assert.equal(get(projectedExcerpt, 'publisher.owner'), PUBLISHER_OWNER, 'excerpt has the correct publisher.owner');
     });
 
-    test('Updating a projection updates the base-record and other projections', function(assert) {
-      let excerpt = this.records.projectedExcerpt;
-      let baseRecord = this.records.baseRecord;
+    test('Updating a resolution property via a projection updates the base-record, other projections and nested projections', function(assert) {
       let store = this.store();
+
+      let {
+        baseRecord,
+        projectedExcerpt,
+      } = this.records;
 
       run(() => {
         store.push({
           data: {
-            id: get(excerpt, 'id'),
+            id: BOOK_ID,
             type: BOOK_CLASS_PATH,
             meta: {
               projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
             },
-            attributes: {
-              title: NEW_TITLE,
-              'chapter-1': NEW_CHAPTER_TEXT,
-              /*
-                The below update is invalid because in the real world the schema was are given is also used
-                to create the payload the API gives us, so we could not have properties from the API that don't
-                exist in the whitelist.
-               */
-              // description: NEW_DESCRIPTION,
-              author: {
-                location: NEW_AUTHOR_LOCATION,
-                age: NEW_AUTHOR_AGE
+            attributes: {}
+          },
+          included: [
+            {
+              id: PUBLISHER_ID,
+              type: PUBLISHER_CLASS,
+              meta: {
+                projectionTypes: [PROJECTED_PUBLISHER_CLASS]
+              },
+              attributes: {
+                location: NEW_PUBLISHER_LOCATION,
+                owner: NEW_PUBLISHER_OWNER
               }
             }
+          ]
+        });
+      });
+
+      let {
+        baseRecordWatcher,
+        excerptWatcher
+      } = this.watchers;
+
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
+
+      assert.watchedPropertyCount(baseCounters['publisher.owner'], 1, 'Afterwards we have dirtied baseRecord.description');
+      assert.watchedPropertyCount(excerptCounters['publisher.owner'], 1, 'Afterwards we have dirtied baseRecord.description');
+      assert.equal(get(baseRecord, 'publisher.owner'), NEW_PUBLISHER_OWNER, 'base-record has the correct publisher.owner');
+      assert.equal(get(projectedExcerpt, 'publisher.owner'), NEW_PUBLISHER_OWNER, 'excerpt has the correct publisher.owner');
+    });
+
+    test('Updating a resolution property via a nested projection updates the base-record, other projections', function(assert) {
+      let store = this.store();
+      let {
+        baseRecord,
+        projectedExcerpt,
+      } = this.records;
+
+      run(() => {
+        store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            meta: {
+              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
+            },
+            attributes: {}
           },
           included: [
             {
@@ -862,6 +1427,8 @@ module('unit/projection', function(hooks) {
                   The below update is invalid because in the real world the schema was are given is also used
                   to create the payload the API gives us, so we could not have properties from the API that don't
                   exist in the whitelist.
+
+                  However, it's lack of presence allows us to test that PUBLISHER_OWNER is correctly kept post-merge
                  */
                 // owner: NEW_PUBLISHER_OWNER
               }
@@ -870,8 +1437,18 @@ module('unit/projection', function(hooks) {
         });
       });
 
-      assert.watchedPropertyCount(this.watchers.baseRecordWatcher.counters.description, 0, 'Afterwards we have not dirtied baseRecord.description');
-      assert.equal(get(baseRecord, 'description'), BOOK_DESCRIPTION, 'base-record has the correct description');
+      let {
+        baseRecordWatcher,
+        excerptWatcher
+      } = this.watchers;
+
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
+
+      assert.watchedPropertyCount(baseCounters['publisher.owner'], 0, 'Afterwards we have not dirtied baseRecord.publisher.owner');
+      assert.watchedPropertyCount(excerptCounters['publisher.owner'], 0, 'Afterwards we have not  dirtied baseRecord.publisher.owner');
+      assert.equal(get(baseRecord, 'publisher.owner'), PUBLISHER_OWNER, 'base-record has the correct publisher.owner');
+      assert.equal(get(projectedExcerpt, 'publisher.owner'), PUBLISHER_OWNER, 'excerpt has the correct publisher.owner');
     });
   });
 
