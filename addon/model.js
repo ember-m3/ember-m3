@@ -7,7 +7,7 @@ import M3RecordArray from './record-array';
 import { setDiff, OWNER_KEY } from './util';
 
 const {
-  get, set, isEqual, propertyWillChange, propertyDidChange, computed, A
+  changeProperties, get, set, isEqual, propertyWillChange, propertyDidChange, computed, A
 } = Ember;
 
 const {
@@ -201,15 +201,6 @@ const retrieveFromCurrentState = computed('currentState', function(key) {
   return this._topModel._internalModel.currentState[key];
 }).readOnly();
 
-function batchNotifications(fn) {
-  Ember.beginPropertyChanges();
-  try {
-    fn();
-  } finally {
-    Ember.endPropertyChanges();
-  }
-}
-
 // global buffer for initial properties to work around
 //  a)  can't write to `this` before `super`
 //  b)  core_object writes properties before calling `init`; this means that no
@@ -353,7 +344,7 @@ export default class MegamorphicModel extends Ember.Object {
       return;
     }
 
-    batchNotifications(() => {
+    changeProperties(() => {
       let key;
       let internalModel = this._baseModel ? this._baseModel._internalModel : this._internalModel;
       for (let i = 0, length = keys.length; i < length; i++) {
@@ -554,7 +545,7 @@ export default class MegamorphicModel extends Ember.Object {
       throw new Error(`You tried to set '${key}' to '${value}', but '${key}' is an alias in '${this._modelName}' and aliases are read-only`);
     }
 
-    batchNotifications(() => {
+    changeProperties(() => {
       propertyWillChange(this, key);
 
       // TODO: need to be able to update relationships
