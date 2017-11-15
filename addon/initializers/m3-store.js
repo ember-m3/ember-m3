@@ -136,11 +136,6 @@ export function extendDataAdapter(DataAdapter) {
 
 export function extendInternalModel() {
   // Apply https://github.com/emberjs/data/pull/5133
-  let disable = true;
-  if (disable) {
-    // intentionally disable the custom merging logic in M3 as it counter to what we want
-    return;
-  }
 
   InternalModel.prototype.setupData = function monkeyPatchedSetupData(data) {
     this.store._internalModelDidReceiveRelationshipData(this.modelName, this.id, data.relationships);

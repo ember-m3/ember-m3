@@ -1,6 +1,6 @@
 import Ember from 'ember';
 
-const { setOwner } = Ember;
+const { setOwner, isEqual } = Ember;
 
 export function setDiff(a, b) {
   let result = [];
@@ -24,3 +24,45 @@ export const OWNER_KEY = (function() {
     return ownerSymbol;
   }
 })();
+
+function isObject(value) {
+  return typeof value === 'object' && value.constructor !== Date;
+}
+
+export function merge(data, updates) {
+  let changedKeys = [];
+  let updatedKeys = Object.keys(updates);
+  for (let i = 0; i < updatedKeys.length; i++) {
+    let key = updatedKeys[i];
+    let newValue = updates[key];
+    if (isEqual(data[key], newValue)) {
+      // values are equal, nothing to do
+      // note, updates to objects should always result in new object or there will be nothing to update
+      continue;
+    }
+    if (data[key] == null || newValue == null) {
+      // reseting a value to null or assigning a value for first time can be handled for all cases
+      data[key] = newValue;
+      changedKeys.push(key);
+      continue;
+    }
+    if (Array.isArray(newValue)) {
+      data[key] = newValue;
+      changedKeys.push(key);
+      continue;
+    }
+    if (isObject(newValue)) {
+      // it's an object, check for recursion
+      // TODO Optimize the checks here
+      let nestedChanges = merge(data[key], newValue);
+      if (nestedChanges.length) {
+        changedKeys.push([key].concat(nestedChanges));
+      }
+      continue;
+    }
+    // the most straight forward case
+    changedKeys.push(key);
+    data[key] = newValue;
+  }
+  return changedKeys;
+}

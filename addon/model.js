@@ -4,7 +4,7 @@ import { dasherize } from '@ember/string';
 
 import SchemaManager from './schema-manager';
 import M3RecordArray from './record-array';
-import { setDiff, OWNER_KEY } from './util';
+import { setDiff, OWNER_KEY, merge } from './util';
 
 const {
   changeProperties, get, set, isEqual, propertyWillChange, propertyDidChange, computed, A
@@ -197,6 +197,30 @@ const YesManAttributes = {
   },
 };
 
+const MERGE_STRATEGY = {
+  assignAttributes(model, updates) {
+    // do not do anything as changed keys will apply the changes
+    // to discover the changed ones
+  },
+
+  changedKeys(model, updates) {
+    return merge(model._internalModel._data, updates);
+  }
+};
+
+const OVERWRITE_STRATEGY = {
+  assignAttributes(model, attributes) {
+    // Don't merge; overwrite
+    model._internalModel._data = attributes;
+  },
+
+  changedKeys(model, data) {
+    if (!data) { return []; }
+
+    return calculateChangedKeys(model._internalModel._data, data);
+  }
+};
+
 const retrieveFromCurrentState = computed('currentState', function(key) {
   return this._topModel._internalModel.currentState[key];
 }).readOnly();
@@ -285,13 +309,17 @@ export default class MegamorphicModel extends Ember.Object {
     return this._baseModel != null;
   }
 
+  get _updateStrategy() {
+    // TODO There is no good way to determine which strategy to use, so using some heuristics for now
+    return this._projections ? MERGE_STRATEGY : OVERWRITE_STRATEGY;
+  }
+
   __defineNonEnumerable(property) {
     this[property.name] = property.descriptor.value;
   }
 
   _assignAttributes(attributes) {
-    // Don't merge; overwrite
-    this._internalModel._data = attributes;
+    this._updateStrategy.assignAttributes(this, attributes);
   }
 
   _registerProjection(projection) {
@@ -349,6 +377,11 @@ export default class MegamorphicModel extends Ember.Object {
       let internalModel = this._baseModel ? this._baseModel._internalModel : this._internalModel;
       for (let i = 0, length = keys.length; i < length; i++) {
         key = keys[i];
+        let nestedKeys;
+        if (Array.isArray(key)) {
+          nestedKeys = key.slice(1);
+          key = key[0];
+        }
         if (!this._schema.isAttributeIncluded(this._modelName, key)) {
           // keys, which are not white-listed are ignored for projections
           continue;
@@ -361,7 +394,7 @@ export default class MegamorphicModel extends Ember.Object {
         let newIsObject = typeof newValue === 'object';
 
         if (oldWasModel && newIsObject) {
-          oldValue._didReceiveNestedProperties(internalModel._data[key]);
+          oldValue._didReceiveNestedProperties(internalModel._data[key], nestedKeys);
         } else if (oldIsRecordArray) {
           let internalModels = resolveRecordArrayInternalModels(
             key, newValue, this._modelName, this._store, this._schema
@@ -378,8 +411,11 @@ export default class MegamorphicModel extends Ember.Object {
     });
   }
 
-  _didReceiveNestedProperties(data) {
-    let changedKeys = calculateChangedKeys(this._internalModel._data, data);
+  _didReceiveNestedProperties(data, changedKeys) {
+    if (!changedKeys) {
+      // we don't have the actual keys, calculate them, this may happen when using the OVERWRITE_STRATEGY
+      changedKeys = calculateChangedKeys(this._internalModel._data, data);
+    }
     this._internalModel._data = data;
     if (changedKeys.length > 0) {
       this._notifyProperties(changedKeys);
@@ -416,9 +452,7 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   _changedKeys(data) {
-    if (!data) { return []; }
-
-    return calculateChangedKeys(this._internalModel._data, data);
+    return this._updateStrategy.changedKeys(this, data);
   }
 
   changedAttributes() {
