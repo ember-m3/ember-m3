@@ -166,22 +166,26 @@ module('unit/projection', function(hooks) {
           attributes: {
             title: 'Carry On! Mr. Bowditch'
           },
-          meta: {
-            projectionTypes: [BOOK_CLASS_PATH]
-          }
         }
       });
       store.push({
         data: {
-          type: BOOK_CLASS_PATH,
+          type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
           id: FETCHED_PROJECTION_ID,
-          attributes: {
-            title: `Mr. Popper's Penguins`
+          attributes: {},
+        },
+        included: [
+          {
+            type: BOOK_CLASS_PATH,
+            id: FETCHED_PROJECTION_ID,
+            attributes: {
+              title: `Mr. Popper's Penguins`
+            },
+            meta: {
+              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH]
+            }
           },
-          meta: {
-            projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH]
-          }
-        }
+        ]
       });
     });
 
@@ -253,22 +257,26 @@ module('unit/projection', function(hooks) {
           attributes: {
             title: 'Carry On! Mr. Bowditch'
           },
-          meta: {
-            projectionTypes: [BOOK_CLASS_PATH]
-          }
         }
       });
       store.push({
         data: {
-          type: BOOK_CLASS_PATH,
+          type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
           id: FETCHED_PROJECTION_ID,
-          attributes: {
-            title: `Mr. Popper's Penguins`
+          attributes: {},
+        },
+        included: [
+          {
+            type: BOOK_CLASS_PATH,
+            id: FETCHED_PROJECTION_ID,
+            attributes: {
+              title: `Mr. Popper's Penguins`
+            },
+            meta: {
+              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH]
+            }
           },
-          meta: {
-            projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH]
-          }
-        }
+        ]
       });
     });
 
@@ -349,9 +357,6 @@ module('unit/projection', function(hooks) {
             author: BOOK_AUTHOR,
             description: BOOK_DESCRIPTION // description is not whitelisted
           },
-          meta: {
-            projectionTypes: [BOOK_CLASS_PATH]
-          }
         }
       });
 
@@ -359,14 +364,21 @@ module('unit/projection', function(hooks) {
       projectedRecord = store.push({
         data: {
           id: BOOK_ID,
-          type: BOOK_CLASS_PATH,
-          meta: {
-            projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
+          type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+          attributes: {},
+        },
+        included: [
+          {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            meta: {
+              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
+            },
+            attributes: {
+              title: BOOK_TITLE
+            }
           },
-          attributes: {
-            title: BOOK_TITLE
-          }
-        }
+        ]
       });
     });
 
@@ -422,19 +434,13 @@ module('unit/projection', function(hooks) {
               year: BOOK_YEAR,
               description: BOOK_DESCRIPTION // description is not whitelisted
             },
-            meta: {
-              projectionTypes: [BOOK_CLASS_PATH]
-            }
           },
         });
 
         projectedExcerpt = store.push({
           data: {
             id: BOOK_ID,
-            type: BOOK_CLASS_PATH,
-            meta: {
-              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
-            },
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
             attributes: {},
           },
         });
@@ -442,10 +448,7 @@ module('unit/projection', function(hooks) {
         projectedPreview = store.push({
           data: {
             id: BOOK_ID,
-            type: BOOK_CLASS_PATH,
-            meta: {
-              projectionTypes: [BOOK_PREVIEW_PROJECTION_CLASS_PATH],
-            },
+            type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
             attributes: {},
           },
         });
