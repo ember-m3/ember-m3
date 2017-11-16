@@ -641,7 +641,7 @@ module('unit/projection', function(hooks) {
 
     // Skipped because we cannot really simulate an update to a projection, it is always an update to the base record
     // only fetches are something we can distinguish
-    skip('Updating a projection updates sthe base-record and other projections', function(assert) {
+    skip('Updating a projection updates the base-record and other projections', function(assert) {
       let baseRecord = this.records.baseRecord;
       let store = this.store();
 
@@ -649,9 +649,14 @@ module('unit/projection', function(hooks) {
         store.push({
           data: {
             id: BOOK_ID,
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {}
+          },
+          included: [{
+            id: BOOK_ID,
             type: BOOK_CLASS_PATH,
             meta: {
-              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
+              partial: true
             },
             attributes: {
               title: NEW_TITLE,
@@ -663,7 +668,7 @@ module('unit/projection', function(hooks) {
                */
               // description: NEW_DESCRIPTION,
             }
-          },
+          }]
         });
       });
 
@@ -880,9 +885,6 @@ module('unit/projection', function(hooks) {
                 location: NEW_AUTHOR_LOCATION,
                 age: NEW_AUTHOR_AGE,
               }
-            },
-            meta: {
-              projectionTypes: [BOOK_CLASS_PATH]
             }
           },
         });
@@ -966,9 +968,14 @@ module('unit/projection', function(hooks) {
         store.push({
           data: {
             id: BOOK_ID,
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {}
+          },
+          included: [{
+            id: BOOK_ID,
             type: BOOK_CLASS_PATH,
             meta: {
-              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
+              partial: true,
             },
             attributes: {
               author: {
@@ -976,7 +983,7 @@ module('unit/projection', function(hooks) {
                 age: NEW_AUTHOR_AGE
               }
             }
-          },
+          }],
         });
       });
 
@@ -1009,9 +1016,14 @@ module('unit/projection', function(hooks) {
         store.push({
           data: {
             id: BOOK_ID,
+            type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+            attributes: {},
+          },
+          included: [{
+            id: BOOK_ID,
             type: BOOK_CLASS_PATH,
             meta: {
-              projectionTypes: [BOOK_PREVIEW_PROJECTION_CLASS_PATH],
+              partial: true
             },
             attributes: {
               author: {
@@ -1026,7 +1038,7 @@ module('unit/projection', function(hooks) {
                 // age: NEW_AUTHOR_AGE
               }
             }
-          },
+          }],
         });
       });
 
@@ -1254,13 +1266,18 @@ module('unit/projection', function(hooks) {
       run(() => {
         store.push({
           data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {},
+          },
+          included: [{
             id: PUBLISHER_ID,
             type: PUBLISHER_CLASS,
             attributes: {
               location: NEW_PUBLISHER_LOCATION,
               owner: NEW_PUBLISHER_OWNER
             },
-          }
+          }]
         });
       });
 
@@ -1344,12 +1361,20 @@ module('unit/projection', function(hooks) {
         store.push({
           data: {
             id: PUBLISHER_ID,
+            type: PROJECTED_PUBLISHER_CLASS,
+            attributes: {}
+          },
+          included: [{
+            id: PUBLISHER_ID,
             type: PUBLISHER_CLASS,
             attributes: {
               location: NEW_PUBLISHER_LOCATION,
               owner: NEW_PUBLISHER_OWNER
+            },
+            meta: {
+              partial: true
             }
-          }
+          }]
         });
       });
 
@@ -1380,16 +1405,22 @@ module('unit/projection', function(hooks) {
             id: BOOK_ID,
             type: BOOK_CLASS_PATH,
             meta: {
-              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
+              // TODO Do we want this partial or not?
+              partial: true,
             },
             attributes: {}
           },
           included: [
             {
               id: PUBLISHER_ID,
+              type: PROJECTED_PUBLISHER_CLASS,
+              attributes: {},
+            },
+            {
+              id: PUBLISHER_ID,
               type: PUBLISHER_CLASS,
               meta: {
-                projectionTypes: [PROJECTED_PUBLISHER_CLASS]
+                partial: true
               },
               attributes: {
                 location: NEW_PUBLISHER_LOCATION,
