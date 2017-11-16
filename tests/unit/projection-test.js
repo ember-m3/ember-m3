@@ -1,4 +1,4 @@
-import { module, test, todo, skip } from 'qunit';
+import { module, test, todo } from 'qunit';
 import { setupTest }  from 'ember-qunit';
 import Ember from 'ember';
 import MegamorphicModel from 'ember-m3/model';
@@ -639,9 +639,7 @@ module('unit/projection', function(hooks) {
       assert.equal(get(baseRecord, 'description'), BOOK_DESCRIPTION, 'base-record has the correct description');
     });
 
-    // Skipped because we cannot really simulate an update to a projection, it is always an update to the base record
-    // only fetches are something we can distinguish
-    skip('Updating a projection updates the base-record and other projections', function(assert) {
+    test('Updating a projection updates the base-record and other projections', function(assert) {
       let baseRecord = this.records.baseRecord;
       let store = this.store();
 
@@ -955,9 +953,7 @@ module('unit/projection', function(hooks) {
       assert.equal(get(projectedExcerpt, 'author.age'), AUTHOR_AGE, 'excerpt has the correct author.age');
     });
 
-    // Skipped because we cannot really simulate an update to a projection, it is always an update to the base record
-    // only fetches are something we can distinguish
-    skip('Updating an embedded object property on a projection updates the base-record and other projections', function(assert) {
+    test('Updating an embedded object property on a projection updates the base-record and other projections', function(assert) {
       let store = this.store();
       let {
         baseRecord,
@@ -994,10 +990,10 @@ module('unit/projection', function(hooks) {
       let baseCounters = baseRecordWatcher.counters;
       let excerptCounters = excerptWatcher.counters;
 
-      run(() => {
-        set(projectedExcerpt, 'author.location', NEW_AUTHOR_LOCATION);
-        set(projectedExcerpt, 'author.age', NEW_AUTHOR_AGE);
-      });
+      // run(() => {
+      //   set(projectedExcerpt, 'author.location', NEW_AUTHOR_LOCATION);
+      //   set(projectedExcerpt, 'author.age', NEW_AUTHOR_AGE);
+      // });
 
       assert.watchedPropertyCount(baseCounters['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
       assert.watchedPropertyCount(excerptCounters['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
@@ -1005,7 +1001,7 @@ module('unit/projection', function(hooks) {
       assert.equal(get(projectedExcerpt, 'author.age'), NEW_AUTHOR_AGE, 'excerpt has the correct author.age');
     });
 
-    skip('Updating an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
+    test('Updating an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
       let store = this.store();
       let {
         baseRecord,
@@ -1349,7 +1345,7 @@ module('unit/projection', function(hooks) {
       assert.equal(get(projectedExcerpt, 'publisher.owner'), PUBLISHER_OWNER, 'excerpt has the correct publisher.owner');
     });
 
-    skip('Updating a resolution property via a projection updates the base-record, other projections and nested projections', function(assert) {
+    test('Updating a resolution property via a projection updates the base-record, other projections and nested projections', function(assert) {
       let store = this.store();
 
       let {
@@ -1392,7 +1388,7 @@ module('unit/projection', function(hooks) {
       assert.equal(get(projectedExcerpt, 'publisher.owner'), NEW_PUBLISHER_OWNER, 'excerpt has the correct publisher.owner');
     });
 
-    skip('Updating a resolution property via a nested projection updates the base-record, other projections', function(assert) {
+    test('Updating a resolution property via a nested projection updates the base-record, other projections', function(assert) {
       let store = this.store();
       let {
         baseRecord,
