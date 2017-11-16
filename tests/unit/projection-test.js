@@ -187,7 +187,7 @@ module('unit/projection', function(hooks) {
               title: `Mr. Popper's Penguins`
             },
             meta: {
-              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH]
+              partial: true,
             }
           },
         ]
@@ -278,7 +278,7 @@ module('unit/projection', function(hooks) {
               title: `Mr. Popper's Penguins`
             },
             meta: {
-              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH]
+              partial: true,
             }
           },
         ]
@@ -377,7 +377,7 @@ module('unit/projection', function(hooks) {
             id: BOOK_ID,
             type: BOOK_CLASS_PATH,
             meta: {
-              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
+              partial: true,
             },
             attributes: {
               title: BOOK_TITLE
@@ -606,9 +606,6 @@ module('unit/projection', function(hooks) {
               'chapter-1': NEW_CHAPTER_TEXT,
               description: NEW_DESCRIPTION,
             },
-            meta: {
-              projectionTypes: [BOOK_CLASS_PATH]
-            }
           },
         });
       });
@@ -666,7 +663,7 @@ module('unit/projection', function(hooks) {
                */
               // description: NEW_DESCRIPTION,
             }
-          }]
+          }],
         });
       });
 
@@ -882,8 +879,8 @@ module('unit/projection', function(hooks) {
               author: {
                 location: NEW_AUTHOR_LOCATION,
                 age: NEW_AUTHOR_AGE,
-              }
-            }
+              },
+            },
           },
         });
       });
@@ -989,11 +986,6 @@ module('unit/projection', function(hooks) {
       } = this.watchers;
       let baseCounters = baseRecordWatcher.counters;
       let excerptCounters = excerptWatcher.counters;
-
-      // run(() => {
-      //   set(projectedExcerpt, 'author.location', NEW_AUTHOR_LOCATION);
-      //   set(projectedExcerpt, 'author.age', NEW_AUTHOR_AGE);
-      // });
 
       assert.watchedPropertyCount(baseCounters['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
       assert.watchedPropertyCount(excerptCounters['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
@@ -1399,14 +1391,20 @@ module('unit/projection', function(hooks) {
         store.push({
           data: {
             id: BOOK_ID,
-            type: BOOK_CLASS_PATH,
-            meta: {
-              // TODO Do we want this partial or not?
-              partial: true,
-            },
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
             attributes: {}
           },
           included: [
+            {
+              id: BOOK_ID,
+              type: BOOK_CLASS_PATH,
+              meta: {
+                partial: true,
+              },
+              attributes: {
+                publisher: PUBLISHER_ID
+              }
+            },
             {
               id: PUBLISHER_ID,
               type: PROJECTED_PUBLISHER_CLASS,
@@ -1416,7 +1414,7 @@ module('unit/projection', function(hooks) {
               id: PUBLISHER_ID,
               type: PUBLISHER_CLASS,
               meta: {
-                partial: true
+                partial: true,
               },
               attributes: {
                 location: NEW_PUBLISHER_LOCATION,
@@ -1429,7 +1427,7 @@ module('unit/projection', function(hooks) {
                  */
                 // owner: NEW_PUBLISHER_OWNER
               }
-            }
+            },
           ]
         });
       });
