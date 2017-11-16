@@ -11,6 +11,10 @@ export class SchemaManager {
     return this.schema.modelIsProjection(modelName);
   }
 
+  computeBaseModelName(projectionModelName) {
+    return this.schema.computeBaseModelName(projectionModelName);
+  }
+
   computeAttributeReference(key, value, modelname) {
     return this.schema.computeAttributeReference(key, value, modelname);
   }

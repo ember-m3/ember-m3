@@ -198,7 +198,7 @@ const YesManAttributes = {
 };
 
 const MERGE_STRATEGY = {
-  assignAttributes(model, updates) {
+  assignAttributes() {
     // do not do anything as changed keys will apply the changes
     // to discover the changed ones
   },
@@ -208,18 +208,18 @@ const MERGE_STRATEGY = {
   }
 };
 
-const OVERWRITE_STRATEGY = {
-  assignAttributes(model, attributes) {
-    // Don't merge; overwrite
-    model._internalModel._data = attributes;
-  },
+// const OVERWRITE_STRATEGY = {
+//   assignAttributes(model, attributes) {
+//     // Don't merge; overwrite
+//     model._internalModel._data = attributes;
+//   },
 
-  changedKeys(model, data) {
-    if (!data) { return []; }
+//   changedKeys(model, data) {
+//     if (!data) { return []; }
 
-    return calculateChangedKeys(model._internalModel._data, data);
-  }
-};
+//     return calculateChangedKeys(model._internalModel._data, data);
+//   }
+// };
 
 const retrieveFromCurrentState = computed('currentState', function(key) {
   return this._topModel._internalModel.currentState[key];
@@ -239,18 +239,16 @@ export default class MegamorphicModel extends Ember.Object {
     this._internalModel = properties._internalModel;
     this._projections = null;
 
-    if (this._internalModel.__data && this._internalModel.__data.__projects) {
-      this.setProxiedModel(this._internalModel.__data.__projects);
-    }
+    this._schema = SchemaManager;
+
+    let baseModelName = this._schema.computeBaseModelName(this._modelName);
+    this._baseModel = baseModelName ? this.initBaseModel(baseModelName) : null;
 
     this._cache = Object.create(null);
     // TODO We need this to save us the trouble of registering all projections with the parent
     // otherwise we can stop using the proxy itself and let parent notify all projections
     this._tags = this._isProjection ? null : Object.create(null);
     this._cacheTags = this._isProjection ? Object.create(null) : null;
-
-    this._schema = SchemaManager;
-
 
     this._topModel = this._topModel || this;
     this._parentModel = this._parentModel || null;
@@ -260,12 +258,12 @@ export default class MegamorphicModel extends Ember.Object {
     this._flushInitProperties();
   }
 
-  setProxiedModel(baseModelName) {
-    let baseModel = this._store.peekRecord(baseModelName, this.id);
-    this._baseModel = baseModel;
+  initBaseModel(baseModelName) {
+    let baseModel = this._store.recordForId(baseModelName, this.id);
     // TODO We can probably do it with an observer although it introduces an async behavior
     // TODO Don't forget to remove it when this M3 model has been destroyed
     baseModel._registerProjection(this);
+    return baseModel;
   }
 
   _flushInitProperties() {
@@ -311,7 +309,7 @@ export default class MegamorphicModel extends Ember.Object {
 
   get _updateStrategy() {
     // TODO There is no good way to determine which strategy to use, so using some heuristics for now
-    return this._projections ? MERGE_STRATEGY : OVERWRITE_STRATEGY;
+    return MERGE_STRATEGY;
   }
 
   __defineNonEnumerable(property) {
@@ -367,11 +365,11 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   _notifyProperties(keys) {
-    if (keys[0] === '__projects' && get(this, 'content') == null) {
-      this.setProxiedModel(this._internalModel.__data.__projects);
+    if (!keys.length) {
+      // the `for` loop below will handle it for us, but we don't want to read the _baseModel
+      // unnecessary
       return;
     }
-
     changeProperties(() => {
       let key;
       let internalModel = this._baseModel ? this._baseModel._internalModel : this._internalModel;

@@ -12,17 +12,6 @@ const { assign, isEqual } = Ember;
 // TODO: this is a stopgap.  We want to replace this with a public
 // DS.Model/Schema API
 
-function fixupBaseTypeIfNecessary(data) {
-  if (typeof data.meta !== 'object') {
-    return;
-  }
-  if (!data.meta.projectionTypes) {
-    // not fetching a projection
-    return;
-  }
-  data.type = `@${data.type}`;
-}
-
 export function extendStore(Store) {
   Store.reopen({
     init() {
@@ -69,10 +58,7 @@ export function extendStore(Store) {
     },
 
     _pushInternalModel(JSONAPIResource) {
-      fixupBaseTypeIfNecessary(JSONAPIResource);
-
       let internalModel = this._super(JSONAPIResource);
-      let projectionTypes;
 
       // TODO Fix the handling of the m3 global cache to correctly handle projected types
       // the cache must work only for
@@ -80,33 +66,7 @@ export function extendStore(Store) {
         this._globalM3Cache[internalModel.id] = internalModel;
       }
 
-      if (typeof JSONAPIResource.meta === 'object' && JSONAPIResource.meta !== null) {
-        projectionTypes = JSONAPIResource.meta.projectionTypes;
-      }
-
-      if (!Array.isArray(projectionTypes)) {
-        return internalModel;
-      }
-
-      // model has been loaded with projections
-      // push dummy internal models for the projections
-      let internalModels = new Array(projectionTypes.length);
-      for (let i = 0; i < projectionTypes.length; i++) {
-        let projectionData = {
-          id: JSONAPIResource.id,
-          type: projectionTypes[i],
-          attributes: {
-            __projects: JSONAPIResource.type
-          }
-        };
-        // TODO investigate why _load vs internalModelFor sorta deal
-        internalModels[i] = this._load(projectionData);
-      }
-      // TODO FIX
-      // invalidate the load state of the main internal model - figure out how the proj M3 will peek the record
-      // _pushInternalModel is invoked always for single resource, but with projectionTypes we can encode multiple records
-      // projection of the same data, we don't know which one is the top one - for now we will assume it is the first entry
-      return internalModels[0];
+      return internalModel;
     },
 
     _internalModelDestroyed(internalModel) {
@@ -220,6 +180,7 @@ export function extendInternalModel() {
 
     this._record._notifyProperties(changedKeys);
   };
+
   InternalModel.prototype._assignAttributes = function monkeyPatched_assignAttributes(attributes) {
     if (this.hasRecord && typeof this._record._assignAttributes === 'function') {
       return this._record._assignAttributes(attributes);
