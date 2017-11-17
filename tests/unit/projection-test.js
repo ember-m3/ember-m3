@@ -46,7 +46,12 @@ module('unit/projection', function(hooks) {
       },
 
       includesModel(modelName) {
-        return /^com\.example\.bookstore\./i.test(modelName) || modelName.startsWith('@');
+        return /^com\.example\.bookstore\./i.test(modelName);
+      },
+
+      computeBaseModelName(projectionModelName) {
+        let modelSchema = this.models[projectionModelName];
+        return modelSchema && modelSchema.projectedType;
       },
 
       computeAttributeReference(key, value, modelName) {
@@ -142,7 +147,7 @@ module('unit/projection', function(hooks) {
     });
   });
 
-  test(`store.peekRecord() will only return a projection or base-record if it has been fetched`, function(assert) {
+  todo(`store.peekRecord() will only return a projection or base-record if it has been fetched`, function(assert) {
     assert.expect(4);
 
     const UNFETCHED_PROJECTION_ID = 'isbn:9780439708180';
@@ -182,7 +187,7 @@ module('unit/projection', function(hooks) {
               title: `Mr. Popper's Penguins`
             },
             meta: {
-              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH]
+              partial: true,
             }
           },
         ]
@@ -202,7 +207,7 @@ module('unit/projection', function(hooks) {
     assert.equal(record, undefined, 'The unfetched base-record with a fetched projection is unfound by peekRecord()');
   });
 
-  test(`store.findRecord() will only fetch a projection or base-model if it has not been fetched previously`, function(assert) {
+  todo(`store.findRecord() will only fetch a projection or base-model if it has not been fetched previously`, function(assert) {
     assert.expect(12);
 
     const UNFETCHED_PROJECTION_ID = 'isbn:9780439708180';
@@ -273,7 +278,7 @@ module('unit/projection', function(hooks) {
               title: `Mr. Popper's Penguins`
             },
             meta: {
-              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH]
+              partial: true,
             }
           },
         ]
@@ -372,7 +377,7 @@ module('unit/projection', function(hooks) {
             id: BOOK_ID,
             type: BOOK_CLASS_PATH,
             meta: {
-              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
+              partial: true,
             },
             attributes: {
               title: BOOK_TITLE
@@ -601,9 +606,6 @@ module('unit/projection', function(hooks) {
               'chapter-1': NEW_CHAPTER_TEXT,
               description: NEW_DESCRIPTION,
             },
-            meta: {
-              projectionTypes: [BOOK_CLASS_PATH]
-            }
           },
         });
       });
@@ -619,16 +621,16 @@ module('unit/projection', function(hooks) {
     });
 
     test('Setting a projection updates the base-record and other projections', function(assert) {
-      let excerpt = this.records.projectedExcerpt;
+      let preview = this.records.projectedPreview;
       let baseRecord = this.records.baseRecord;
 
       run(() => {
-        set(excerpt, 'chapter-1', NEW_CHAPTER_TEXT);
-        set(excerpt, 'title', NEW_TITLE);
+        set(preview, 'chapter-1', NEW_CHAPTER_TEXT);
+        set(preview, 'title', NEW_TITLE);
       });
 
       assert.throws(() => {
-        run(() => { set(excerpt, 'description', NEW_DESCRIPTION); });
+        run(() => { set(preview, 'description', NEW_DESCRIPTION); });
       }, /whitelist/gi, 'Setting a non-whitelisted property throws an error');
       assert.watchedPropertyCount(this.watchers.baseRecordWatcher.counters.description, 0, 'Afterwards we have not dirtied baseRecord.description');
       assert.equal(get(baseRecord, 'description'), BOOK_DESCRIPTION, 'base-record has the correct description');
@@ -642,9 +644,14 @@ module('unit/projection', function(hooks) {
         store.push({
           data: {
             id: BOOK_ID,
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {}
+          },
+          included: [{
+            id: BOOK_ID,
             type: BOOK_CLASS_PATH,
             meta: {
-              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
+              partial: true
             },
             attributes: {
               title: NEW_TITLE,
@@ -656,7 +663,7 @@ module('unit/projection', function(hooks) {
                */
               // description: NEW_DESCRIPTION,
             }
-          },
+          }],
         });
       });
 
@@ -711,19 +718,13 @@ module('unit/projection', function(hooks) {
                 age: AUTHOR_AGE,
               },
             },
-            meta: {
-              projectionTypes: [BOOK_CLASS_PATH]
-            }
           },
         });
 
         projectedExcerpt = store.push({
           data: {
             id: BOOK_ID,
-            type: BOOK_CLASS_PATH,
-            meta: {
-              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
-            },
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
             attributes: {},
           },
         });
@@ -731,10 +732,7 @@ module('unit/projection', function(hooks) {
         projectedPreview = store.push({
           data: {
             id: BOOK_ID,
-            type: BOOK_CLASS_PATH,
-            meta: {
-              projectionTypes: [BOOK_PREVIEW_PROJECTION_CLASS_PATH],
-            },
+            type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
             attributes: {},
           },
         });
@@ -881,11 +879,8 @@ module('unit/projection', function(hooks) {
               author: {
                 location: NEW_AUTHOR_LOCATION,
                 age: NEW_AUTHOR_AGE,
-              }
+              },
             },
-            meta: {
-              projectionTypes: [BOOK_CLASS_PATH]
-            }
           },
         });
       });
@@ -966,9 +961,14 @@ module('unit/projection', function(hooks) {
         store.push({
           data: {
             id: BOOK_ID,
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {}
+          },
+          included: [{
+            id: BOOK_ID,
             type: BOOK_CLASS_PATH,
             meta: {
-              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
+              partial: true,
             },
             attributes: {
               author: {
@@ -976,7 +976,7 @@ module('unit/projection', function(hooks) {
                 age: NEW_AUTHOR_AGE
               }
             }
-          },
+          }],
         });
       });
 
@@ -986,11 +986,6 @@ module('unit/projection', function(hooks) {
       } = this.watchers;
       let baseCounters = baseRecordWatcher.counters;
       let excerptCounters = excerptWatcher.counters;
-
-      run(() => {
-        set(projectedExcerpt, 'author.location', NEW_AUTHOR_LOCATION);
-        set(projectedExcerpt, 'author.age', NEW_AUTHOR_AGE);
-      });
 
       assert.watchedPropertyCount(baseCounters['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
       assert.watchedPropertyCount(excerptCounters['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
@@ -1009,9 +1004,14 @@ module('unit/projection', function(hooks) {
         store.push({
           data: {
             id: BOOK_ID,
+            type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+            attributes: {},
+          },
+          included: [{
+            id: BOOK_ID,
             type: BOOK_CLASS_PATH,
             meta: {
-              projectionTypes: [BOOK_PREVIEW_PROJECTION_CLASS_PATH],
+              partial: true
             },
             attributes: {
               author: {
@@ -1026,7 +1026,7 @@ module('unit/projection', function(hooks) {
                 // age: NEW_AUTHOR_AGE
               }
             }
-          },
+          }],
         });
       });
 
@@ -1062,6 +1062,7 @@ module('unit/projection', function(hooks) {
     const BOOK_ID = 'isbn:9780439708181';
     // TODO is this valid? we won't have a real ID yeah?
     const PUBLISHER_ID = 'publisher-abc123';
+    const PUBLISHER_URN = `urn:${PUBLISHER_CLASS}:${PUBLISHER_ID}`;
     const PUBLISHER_NAME = 'MACMILLAN';
     const PUBLISHER_LOCATION = 'Isle of Arran, Scotland';
     const PUBLISHER_OWNER = 'Daniel and Alexander Macmillan';
@@ -1083,10 +1084,7 @@ module('unit/projection', function(hooks) {
             id: BOOK_ID,
             type: BOOK_CLASS_PATH,
             attributes: {
-              publisher: `urn:${PUBLISHER_CLASS}:${PUBLISHER_ID}`,
-            },
-            meta: {
-              projectionTypes: [BOOK_CLASS_PATH]
+              publisher: PUBLISHER_URN,
             }
           },
           included: [
@@ -1097,10 +1095,11 @@ module('unit/projection', function(hooks) {
                 name: PUBLISHER_NAME,
                 location: PUBLISHER_LOCATION,
                 owner: PUBLISHER_OWNER,
-              },
-              meta: {
-                projectionTypes: [PUBLISHER_CLASS, NORM_PROJECTED_PUBLISHER_CLASS]
               }
+            }, {
+              id: PUBLISHER_ID,
+              type: NORM_PROJECTED_PUBLISHER_CLASS,
+              attributes: {}
             }
           ]
         });
@@ -1108,21 +1107,15 @@ module('unit/projection', function(hooks) {
         projectedExcerpt = store.push({
           data: {
             id: BOOK_ID,
-            type: BOOK_CLASS_PATH,
-            meta: {
-              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
-            },
-            attributes: {},
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {}
           },
         });
 
         projectedPreview = store.push({
           data: {
             id: BOOK_ID,
-            type: BOOK_CLASS_PATH,
-            meta: {
-              projectionTypes: [BOOK_PREVIEW_PROJECTION_CLASS_PATH],
-            },
+            type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
             attributes: {},
           },
         });
@@ -1265,23 +1258,15 @@ module('unit/projection', function(hooks) {
             id: BOOK_ID,
             type: BOOK_CLASS_PATH,
             attributes: {},
-            meta: {
-              projectionTypes: [BOOK_CLASS_PATH]
-            }
           },
-          included: [
-            {
-              id: PUBLISHER_ID,
-              type: PUBLISHER_CLASS,
-              attributes: {
-                location: NEW_PUBLISHER_LOCATION,
-                owner: NEW_PUBLISHER_OWNER
-              },
-              meta: {
-                projectionTypes: [PUBLISHER_CLASS]
-              }
-            }
-          ]
+          included: [{
+            id: PUBLISHER_ID,
+            type: PUBLISHER_CLASS,
+            attributes: {
+              location: NEW_PUBLISHER_LOCATION,
+              owner: NEW_PUBLISHER_OWNER
+            },
+          }]
         });
       });
 
@@ -1307,6 +1292,7 @@ module('unit/projection', function(hooks) {
 
       run(() => {
         set(projectedExcerpt, 'publisher.location', NEW_PUBLISHER_LOCATION);
+        set(projectedExcerpt, 'publisher.owner', NEW_PUBLISHER_OWNER);
       });
 
       let {
@@ -1363,26 +1349,21 @@ module('unit/projection', function(hooks) {
       run(() => {
         store.push({
           data: {
-            id: BOOK_ID,
-            type: BOOK_CLASS_PATH,
-            meta: {
-              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
-            },
+            id: PUBLISHER_ID,
+            type: PROJECTED_PUBLISHER_CLASS,
             attributes: {}
           },
-          included: [
-            {
-              id: PUBLISHER_ID,
-              type: PUBLISHER_CLASS,
-              meta: {
-                projectionTypes: [PROJECTED_PUBLISHER_CLASS]
-              },
-              attributes: {
-                location: NEW_PUBLISHER_LOCATION,
-                owner: NEW_PUBLISHER_OWNER
-              }
+          included: [{
+            id: PUBLISHER_ID,
+            type: PUBLISHER_CLASS,
+            attributes: {
+              location: NEW_PUBLISHER_LOCATION,
+              owner: NEW_PUBLISHER_OWNER
+            },
+            meta: {
+              partial: true
             }
-          ]
+          }]
         });
       });
 
@@ -1411,18 +1392,30 @@ module('unit/projection', function(hooks) {
         store.push({
           data: {
             id: BOOK_ID,
-            type: BOOK_CLASS_PATH,
-            meta: {
-              projectionTypes: [BOOK_EXCERPT_PROJECTION_CLASS_PATH],
-            },
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
             attributes: {}
           },
           included: [
             {
+              id: BOOK_ID,
+              type: BOOK_CLASS_PATH,
+              meta: {
+                partial: true,
+              },
+              attributes: {
+                publisher: PUBLISHER_URN
+              }
+            },
+            {
+              id: PUBLISHER_ID,
+              type: PROJECTED_PUBLISHER_CLASS,
+              attributes: {},
+            },
+            {
               id: PUBLISHER_ID,
               type: PUBLISHER_CLASS,
               meta: {
-                projectionTypes: [PROJECTED_PUBLISHER_CLASS]
+                partial: true,
               },
               attributes: {
                 location: NEW_PUBLISHER_LOCATION,
@@ -1435,7 +1428,7 @@ module('unit/projection', function(hooks) {
                  */
                 // owner: NEW_PUBLISHER_OWNER
               }
-            }
+            },
           ]
         });
       });
