@@ -94,4 +94,10 @@ module('unit/util', function() {
     }, updates));
     assert.deepEqual(changedKeys, expectedChangedKeys);
   });
+
+  test('returns no changes for undefined updates', function(assert) {
+    let changedKeys = merge({}, undefined);
+
+    assert.deepEqual(changedKeys, []);
+  });
 });

@@ -31,6 +31,10 @@ function isObject(value) {
 
 export function merge(data, updates) {
   let changedKeys = [];
+  if (!updates) {
+    // no changes
+    return changedKeys;
+  }
   let updatedKeys = Object.keys(updates);
   for (let i = 0; i < updatedKeys.length; i++) {
     let key = updatedKeys[i];
