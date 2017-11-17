@@ -100,4 +100,35 @@ module('unit/util', function() {
 
     assert.deepEqual(changedKeys, []);
   });
+
+  test('handles type changes in the properties', function(assert) {
+    let data = {
+      objectProp: {
+        stringProp: 'stringValue'
+      },
+      stringProp: 'stringValue',
+      numberProp: 1,
+    };
+
+    let updates = {
+      objectProp: 'stringValue',
+      stringProp: {
+        stringProp: 'stringValue'
+      },
+      // checks whether Date is treated as object
+      numberProp: new Date()
+    };
+
+    let expectedChangedKeys = [
+      'objectProp',
+      'stringProp',
+      'numberProp'
+    ];
+
+    let changedKeys = merge(data, updates);
+
+    // we don't have omitted keys, so data must look like updates
+    assert.deepEqual(data, updates);
+    assert.deepEqual(changedKeys, expectedChangedKeys);
+  });
 });

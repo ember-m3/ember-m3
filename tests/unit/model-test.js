@@ -1391,6 +1391,7 @@ test('nested model updates model -> null (model reified)', function(assert) {
         type: 'com.example.bookstore.Book',
         attributes: {
           name: `Harry Potter and the Sorcerer's Stone`,
+          nextChapter: null,
         },
       },
     });
@@ -1475,6 +1476,7 @@ test('nested model updates model -> null (model inert)', function(assert) {
         type: 'com.example.bookstore.Book',
         attributes: {
           name: `Harry Potter and the Sorcerer's Stone`,
+          nextChapter: null,
         },
       },
     });
@@ -1660,6 +1662,7 @@ test('.save saves via the store', function(assert) {
       assert.deepEqual(model._internalModel._data, {
         name: 'The Winds of Winter',
         estimatedRating: '11/10',
+        estimatedPubDate: '2231?',
       }, 'data post save resolve');
     })
   );
