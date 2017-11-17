@@ -1062,6 +1062,7 @@ module('unit/projection', function(hooks) {
     const BOOK_ID = 'isbn:9780439708181';
     // TODO is this valid? we won't have a real ID yeah?
     const PUBLISHER_ID = 'publisher-abc123';
+    const PUBLISHER_URN = `urn:${PUBLISHER_CLASS}:${PUBLISHER_ID}`;
     const PUBLISHER_NAME = 'MACMILLAN';
     const PUBLISHER_LOCATION = 'Isle of Arran, Scotland';
     const PUBLISHER_OWNER = 'Daniel and Alexander Macmillan';
@@ -1083,7 +1084,7 @@ module('unit/projection', function(hooks) {
             id: BOOK_ID,
             type: BOOK_CLASS_PATH,
             attributes: {
-              publisher: `urn:${PUBLISHER_CLASS}:${PUBLISHER_ID}`,
+              publisher: PUBLISHER_URN,
             }
           },
           included: [
@@ -1402,7 +1403,7 @@ module('unit/projection', function(hooks) {
                 partial: true,
               },
               attributes: {
-                publisher: PUBLISHER_ID
+                publisher: PUBLISHER_URN
               }
             },
             {
