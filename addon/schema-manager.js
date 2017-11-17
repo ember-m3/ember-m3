@@ -12,9 +12,10 @@ export class SchemaManager {
   }
 
   computeBaseModelName(projectionModelName) {
-    if (typeof this.schema.computeBaseModelName !== 'function') {
-      return null;
+    if (!this.schema || typeof this.schema.computeBaseModelName !== 'function') {
+      return;
     }
+
     return this.schema.computeBaseModelName(projectionModelName);
   }
 
@@ -58,6 +59,10 @@ export class SchemaManager {
     let transform = transforms && transforms[attrName];
 
     return transform ? transform(value) : value;
+  }
+
+  registerAsyncSchemas(schemas) {
+    this.schema.registerAsyncSchemas(schemas);
   }
 
   registerSchema(schema) {

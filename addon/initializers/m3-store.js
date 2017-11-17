@@ -8,6 +8,8 @@ import SchemaManager from '../schema-manager';
 import QueryCache from '../query-cache';
 
 const { assign, isEqual } = Ember;
+const { dasherize } = Ember.String;
+const EmptyState = new InternalModel().currentState;
 
 // TODO: this is a stopgap.  We want to replace this with a public
 // DS.Model/Schema API
@@ -55,6 +57,23 @@ export function extendStore(Store) {
 
     containsURL(cacheKey) {
       return this._queryCache.contains(cacheKey);
+    },
+
+    _load(data) {
+      let modelName = dasherize(data.type);
+      let internalModel = this._internalModelForId(modelName, data.id);
+      let isUpdate = internalModel.currentState.isEmpty === false;
+      let returnValue = this._super(data);
+
+      if (!isUpdate) {
+        let isPartial = data.meta && data.meta.partial === true;
+
+        if (isPartial === true) {
+          internalModel.currentState = EmptyState;
+        }
+      }
+
+      return returnValue;
     },
 
     _pushInternalModel(JSONAPIResource) {

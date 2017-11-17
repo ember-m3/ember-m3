@@ -207,6 +207,7 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   initBaseModel(baseModelName) {
+    // TODO document that we are dependent on store.push pushing in included first which has the base record data in it
     let baseModel = this._store.recordForId(baseModelName, this.id);
     // TODO We can probably do it with an observer although it introduces an async behavior
     // TODO Don't forget to remove it when this M3 model has been destroyed
