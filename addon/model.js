@@ -4,10 +4,10 @@ import { dasherize } from '@ember/string';
 
 import SchemaManager from './schema-manager';
 import M3RecordArray from './record-array';
-import { setDiff, OWNER_KEY, merge } from './util';
+import { OWNER_KEY, merge } from './util';
 
 const {
-  changeProperties, get, set, isEqual, propertyWillChange, propertyDidChange, computed, A
+  changeProperties, get, set, propertyWillChange, propertyDidChange, computed, A
 } = Ember;
 
 const {
@@ -157,34 +157,6 @@ function disallowAliasSet(object, key, value) {
   throw new Error(`You tried to set '${key}' to '${value}', but '${key}' is an alias in '${object._modelName}' and aliases are read-only`);
 }
 
-/**
-  Calculate the changed keys from prior and new `data`s.  This follows similar
-  semantics to `InternalModel._changedKeys`.
-
-  The key difference is that omitted attributes and new attributes are treated
-  as changes, instead of ignored.
-
-  There is another difference, which is that there's no notion of
-  `_inflightAttributes` or `_attributes`, but this will likely need to change
-  when m3 composes a write story.
-*/
-function calculateChangedKeys(oldValue, newValue) {
-  let oldKeys = Object.keys(oldValue).sort();
-  let newKeys = Object.keys(newValue).sort();
-
-  // omitted keys are treated as changes
-  let result = setDiff(oldKeys, newKeys);
-
-  for (let i=0; i<newKeys.length; ++i) {
-    let key = newKeys[i];
-    if (!isEqual(oldValue[key], newValue[key])) {
-      result.push(key);
-    }
-  }
-
-  return result;
-}
-
 const YesManAttributes = {
   has() {
     return true;
@@ -196,30 +168,6 @@ const YesManAttributes = {
     return;
   },
 };
-
-const MERGE_STRATEGY = {
-  assignAttributes() {
-    // do not do anything as changed keys will apply the changes
-    // to discover the changed ones
-  },
-
-  changedKeys(model, updates) {
-    return merge(model._internalModel._data, updates);
-  }
-};
-
-// const OVERWRITE_STRATEGY = {
-//   assignAttributes(model, attributes) {
-//     // Don't merge; overwrite
-//     model._internalModel._data = attributes;
-//   },
-
-//   changedKeys(model, data) {
-//     if (!data) { return []; }
-
-//     return calculateChangedKeys(model._internalModel._data, data);
-//   }
-// };
 
 const retrieveFromCurrentState = computed('currentState', function(key) {
   return this._topModel._internalModel.currentState[key];
@@ -307,17 +255,13 @@ export default class MegamorphicModel extends Ember.Object {
     return this._baseModel != null;
   }
 
-  get _updateStrategy() {
-    // TODO There is no good way to determine which strategy to use, so using some heuristics for now
-    return MERGE_STRATEGY;
-  }
-
   __defineNonEnumerable(property) {
     this[property.name] = property.descriptor.value;
   }
 
-  _assignAttributes(attributes) {
-    this._updateStrategy.assignAttributes(this, attributes);
+  _assignAttributes() {
+    // do not do anything as changed keys will apply the changes
+    // to discover the changed ones
   }
 
   _registerProjection(projection) {
@@ -410,10 +354,6 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   _didReceiveNestedProperties(data, changedKeys) {
-    if (!changedKeys) {
-      // we don't have the actual keys, calculate them, this may happen when using the OVERWRITE_STRATEGY
-      changedKeys = calculateChangedKeys(this._internalModel._data, data);
-    }
     this._internalModel._data = data;
     if (changedKeys.length > 0) {
       this._notifyProperties(changedKeys);
@@ -450,7 +390,7 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   _changedKeys(data) {
-    return this._updateStrategy.changedKeys(this, data);
+    return merge(this._internalModel._data, data);
   }
 
   changedAttributes() {
