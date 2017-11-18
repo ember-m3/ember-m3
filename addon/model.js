@@ -92,7 +92,7 @@ function resolveValue(key, value, modelName, store, schema, model) {
       _internalModel: internalModel,
       _parentModel: model,
       _topModel: model._topModel,
-      _key: key
+      _path: (model._path || []).concat(key)
     });
     internalModel.record = nestedModel;
 
@@ -204,7 +204,7 @@ export default class MegamorphicModel extends Ember.Object {
 
     this._topModel = this._topModel || this;
     this._parentModel = this._parentModel || null;
-    this._key = this._key || null;
+    this._path = this._path || null;
     this._init = true;
 
     this._flushInitProperties();
@@ -261,7 +261,11 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   get _isProjection() {
-    return this._baseModel != null;
+    return this._baseModel !== null;
+  }
+
+  get _isNestedModel() {
+    return this._parentModel !== null;
   }
 
   __defineNonEnumerable(property) {
@@ -299,22 +303,17 @@ export default class MegamorphicModel extends Ember.Object {
    * path of embedded records to find the correct model to invalidate.
    */
   _notifyProjectionsNestedProperties(path, keys) {
-     if (this._parentModel) {
-       this._parentModel._notifyProjectionsNestedProperties([this._key].concat(path), keys);
-       return;
-     }
-     if (this._baseModel) {
-       this._baseModel._notifyProjectionsNestedProperties(path, keys);
-       return;
-     }
-     // TODO Do we need to notify the base record? It may not be used apart from keeping track
-     // of projections and this will be totally unnecessary work
-     this._didChangeNestedProperties(path, keys);
-     if (this._projections) {
-       for (let i = 0; i < this._projections.length; i++) {
-         this._projections[i]._didChangeNestedProperties(path, keys);
-       }
-     }
+    if (this._baseModel) {
+      this._baseModel._notifyProjectionsNestedProperties(path, keys);
+      return;
+    }
+    // let the base record handle the nested properties changes
+    this._didChangeNestedProperties(path, keys);
+    if (this._projections) {
+      for (let i = 0; i < this._projections.length; i++) {
+        this._projections[i]._didChangeNestedProperties(path, keys);
+      }
+    }
   }
 
   _notifyProperties(keys) {
@@ -393,6 +392,7 @@ export default class MegamorphicModel extends Ember.Object {
     }
     let nestedModel = this._cache[next];
     if (!nestedModel || typeof nestedModel !== 'object' || typeof nestedModel._didChangeNestedProperties === undefined) {
+      // not a nested model, nothing to do
       return;
     }
     nestedModel._didChangeNestedProperties(path.slice(1), keys);
@@ -542,9 +542,10 @@ export default class MegamorphicModel extends Ember.Object {
       }
 
       propertyDidChange(this, key);
-      if (this._parentModel) {
-        this._parentModel._notifyProjectionsNestedProperties([this._key], [key]);
+      if (this._isNestedModel) {
+        this._topModel._notifyProjectionsNestedProperties(this._path, [key]);
       } else {
+        // the base model just needs notify its projections
         this._notifyProjections([key]);
       }
     });
@@ -579,12 +580,11 @@ MegamorphicModel.prototype.store = null;
 MegamorphicModel.prototype._internalModel = null;
 MegamorphicModel.prototype._parentModel = null;
 MegamorphicModel.prototype._topModel = null;
-MegamorphicModel.prototype._key = null;
+MegamorphicModel.prototype._path = null;
 MegamorphicModel.prototype.id = null;
 MegamorphicModel.prototype.currentState = null;
 MegamorphicModel.prototype.isError = null;
 MegamorphicModel.prototype.adapterError = null;
-MegamorphicModel.prototype._projectionName = null;
 
 MegamorphicModel.relationshipsByName = new Ember.Map();
 
