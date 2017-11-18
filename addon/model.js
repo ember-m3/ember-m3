@@ -7,7 +7,7 @@ import M3RecordArray from './record-array';
 import { OWNER_KEY, isObject, merge } from './util';
 
 const {
-  changeProperties, get, set, propertyWillChange, propertyDidChange, computed, A
+  changeProperties, get, set, propertyDidChange, computed, A
 } = Ember;
 
 const {
@@ -92,7 +92,7 @@ function resolveValue(key, value, modelName, store, schema, model) {
       _internalModel: internalModel,
       _parentModel: model,
       _topModel: model._topModel,
-      _path: (model._path || []).concat(key)
+      _path: model._path.concat(key)
     });
     internalModel.record = nestedModel;
 
@@ -159,6 +159,21 @@ function disallowAliasSet(object, key, value) {
   throw new Error(`You tried to set '${key}' to '${value}', but '${key}' is an alias in '${object._modelName}' and aliases are read-only`);
 }
 
+/**
+ * Given an array, representing the path to a nested model, construct a changed keys
+ * structure, which express the changes to the overall structure and can be handled
+ * by _notifyProperties correctly.
+ *
+ * In case path is an empty array (the top model), then the `changedKeys` are returned.
+ */
+function constructChangedKeys(path, changedKeys) {
+  let result = changedKeys;
+  for (let i = path.length - 1; i >= 0; i--) {
+    result = [[].concat(path[i], result)];
+  }
+  return result;
+}
+
 class YesManAttributesSingletonClass {
   has() {
     return true;
@@ -197,14 +212,10 @@ export default class MegamorphicModel extends Ember.Object {
     this._baseModel = baseModelName ? this.initBaseModel(baseModelName) : null;
 
     this._cache = Object.create(null);
-    // TODO We need this to save us the trouble of registering all projections with the parent
-    // otherwise we can stop using the proxy itself and let parent notify all projections
-    this._tags = this._isProjection ? null : Object.create(null);
-    this._cacheTags = this._isProjection ? Object.create(null) : null;
 
     this._topModel = this._topModel || this;
     this._parentModel = this._parentModel || null;
-    this._path = this._path || null;
+    this._path = this._path || [];
     this._init = true;
 
     this._flushInitProperties();
@@ -260,14 +271,6 @@ export default class MegamorphicModel extends Ember.Object {
     return this._internalModel.modelName;
   }
 
-  get _isProjection() {
-    return this._baseModel !== null;
-  }
-
-  get _isNestedModel() {
-    return this._parentModel !== null;
-  }
-
   __defineNonEnumerable(property) {
     this[property.name] = property.descriptor.value;
   }
@@ -288,30 +291,6 @@ export default class MegamorphicModel extends Ember.Object {
     if (this._projections) {
       for (let i = 0; i < this._projections.length; i++) {
         this._projections[i]._notifyProperties(keys);
-      }
-    }
-  }
-
-  /**
-   * Dirtying embedded records is little weird, because there is no link between
-   * the embedded models of the projection - only link is at the top model. This
-   * means changes in one of the embedded model must surface up to the top model,
-   * where the projections are available and propagated down.
-   *
-   * The actual propagation is done in `didChagneNestedProperties`, which receives
-   * the path to the changes and it is responsible for correctly traversing the
-   * path of embedded records to find the correct model to invalidate.
-   */
-  _notifyProjectionsNestedProperties(path, keys) {
-    if (this._baseModel) {
-      this._baseModel._notifyProjectionsNestedProperties(path, keys);
-      return;
-    }
-    // let the base record handle the nested properties changes
-    this._didChangeNestedProperties(path, keys);
-    if (this._projections) {
-      for (let i = 0; i < this._projections.length; i++) {
-        this._projections[i]._didChangeNestedProperties(path, keys);
       }
     }
   }
@@ -366,36 +345,6 @@ export default class MegamorphicModel extends Ember.Object {
     if (changedKeys.length > 0) {
       this._notifyProperties(changedKeys);
     }
-  }
-
-  /**
-   * Traverses a given path of embedded records to find the one, whose properties
-   * must be dirtied.
-   *
-   * The traversal will stop if one of the intermediate steps is not an actual
-   * embedded record (it may have not been loaded yet).
-   *
-   * This function is different than `didReceiveNestedProperties`, which is initiated from
-   * Ember Data, which only understands changes to the high level data and there needs
-   * to be a function to compare the embedded data and data the fine-grained changes there.
-   */
-  _didChangeNestedProperties(path, keys) {
-    if (path.length === 0) {
-      // reached the destination, notify
-      this._notifyProperties(keys);
-      return;
-    }
-    let next = path[0];
-    if (!(next in this._cache)) {
-      // not in the cache, nothing to do
-      return;
-    }
-    let nestedModel = this._cache[next];
-    if (!nestedModel || typeof nestedModel !== 'object' || typeof nestedModel._didChangeNestedProperties === undefined) {
-      // not a nested model, nothing to do
-      return;
-    }
-    nestedModel._didChangeNestedProperties(path.slice(1), keys);
   }
 
   _changedKeys(data) {
@@ -527,8 +476,6 @@ export default class MegamorphicModel extends Ember.Object {
     }
 
     changeProperties(() => {
-      propertyWillChange(this, key);
-
       // TODO: need to be able to update relationships
       // TODO: also on set(x) ask schema if this should be a ref (eg if it has an
       // entityUrn)
@@ -541,13 +488,15 @@ export default class MegamorphicModel extends Ember.Object {
         delete this._cache[key];
       }
 
-      propertyDidChange(this, key);
-      if (this._isNestedModel) {
-        this._topModel._notifyProjectionsNestedProperties(this._path, [key]);
-      } else {
-        // the base model just needs notify its projections
-        this._notifyProjections([key]);
+      let topBaseModel = this._topModel._baseModel || this._topModel;
+      if (!topBaseModel._projections) {
+        // no projections, just notify for property change
+        this.notifyPropertyChange(key);
+        return;
       }
+
+      let changedKeys = constructChangedKeys(this._path, [key]);
+      topBaseModel._notifyProperties(changedKeys);
     });
   }
 
