@@ -1044,12 +1044,12 @@ test('nulled attributes in nested models are detected as changed', function(asse
           nextChapter: {
             id: 'ch1',
             name: null,
+            number: 1,
             nextChapter: {
               id: 'ch2',
               name: null,
               number: 2,
             },
-            number: 1,
           }
         },
       },
@@ -1058,9 +1058,9 @@ test('nulled attributes in nested models are detected as changed', function(asse
 
   assert.deepEqual(zip(propChange.thisValues.map(x => x+''), propChange.args), [
     [nested+'', ['name']],
+    [nested+'', ['number']],
     [doubleNested+'', ['name']],
     [doubleNested+'', ['number']],
-    [nested+'', ['number']],
   ], 'nulled attributes in nested models are detected as changed');
 
   assert.equal(get(nested, 'number'), 1);
