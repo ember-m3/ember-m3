@@ -1,4 +1,4 @@
-import { module, test, todo } from 'qunit';
+import { module, test, skip } from 'qunit';
 import { setupTest }  from 'ember-qunit';
 import Ember from 'ember';
 import MegamorphicModel from 'ember-m3/model';
@@ -147,7 +147,7 @@ module('unit/projection', function(hooks) {
     });
   });
 
-  todo(`store.peekRecord() will only return a projection or base-record if it has been fetched`, function(assert) {
+  skip(`store.peekRecord() will only return a projection or base-record if it has been fetched`, function(assert) {
     assert.expect(4);
 
     const UNFETCHED_PROJECTION_ID = 'isbn:9780439708180';
@@ -207,7 +207,7 @@ module('unit/projection', function(hooks) {
     assert.equal(record, undefined, 'The unfetched base-record with a fetched projection is unfound by peekRecord()');
   });
 
-  todo(`store.findRecord() will only fetch a projection or base-model if it has not been fetched previously`, function(assert) {
+  skip(`store.findRecord() will only fetch a projection or base-model if it has not been fetched previously`, function(assert) {
     assert.expect(12);
 
     const UNFETCHED_PROJECTION_ID = 'isbn:9780439708180';
@@ -1448,17 +1448,17 @@ module('unit/projection', function(hooks) {
     });
   });
 
-  todo(`Updates to a projection's non-whitelisted attributes do not cause a projection to be dirtied`, function() {});
+  skip(`Updates to a projection's non-whitelisted attributes do not cause a projection to be dirtied`, function() {});
 
-  todo(`Unloading a projection does not unload the base-record`, function() {});
-  todo(`Unloading the base-record does not unload the projection`, function() {});
-  todo(`Destroying the base-record does not unload/destroy the projection`, function() {});
-  todo(`Destroying the projection does not unload/destroy the base-record`, function() {});
+  skip(`Unloading a projection does not unload the base-record`, function() {});
+  skip(`Unloading the base-record does not unload the projection`, function() {});
+  skip(`Destroying the base-record does not unload/destroy the projection`, function() {});
+  skip(`Destroying the projection does not unload/destroy the base-record`, function() {});
 
   // TL;DR we can only proxy something that has an ID
-  todo(`Saving a newly created projection doesn't mess up the state of the base record`, function() {});
+  skip(`Saving a newly created projection doesn't mess up the state of the base record`, function() {});
 
-  todo(`Creating a projection with an unloaded schema`, function() {});
-  todo(`Finding a projection with an unloaded schema`, function() {});
-  todo(`fetched schemas must be complete (projected types must also be included)`, function() {});
+  skip(`Creating a projection with an unloaded schema`, function() {});
+  skip(`Finding a projection with an unloaded schema`, function() {});
+  skip(`fetched schemas must be complete (projected types must also be included)`, function() {});
 });

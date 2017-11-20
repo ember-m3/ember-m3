@@ -683,7 +683,7 @@ test('update uses the original http method and query params', function(assert) {
   };
 
   this.adapterAjax.returns(resolve(payload));
-  this.queryCache.queryURL('/ohai', { method: 'POST', params: { q: 'v' }}).
+  return this.queryCache.queryURL('/ohai', { method: 'POST', params: { q: 'v' }}).
     then(models => models.update()).
     then(() => {
       assert.deepEqual(

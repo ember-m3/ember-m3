@@ -25,12 +25,16 @@ export const OWNER_KEY = (function() {
   }
 })();
 
-function isObject(value) {
-  return typeof value === 'object' && value.constructor !== Date;
+export function isObject(value) {
+  return value !== null && typeof value === 'object' && value.constructor !== Date;
 }
 
 export function merge(data, updates) {
   let changedKeys = [];
+  if (!updates) {
+    // no changes
+    return changedKeys;
+  }
   let updatedKeys = Object.keys(updates);
   for (let i = 0; i < updatedKeys.length; i++) {
     let key = updatedKeys[i];
@@ -51,7 +55,8 @@ export function merge(data, updates) {
       changedKeys.push(key);
       continue;
     }
-    if (isObject(newValue)) {
+    // only recursively merge if both new and old values are objects
+    if (isObject(newValue) && isObject(data[key])) {
       // it's an object, check for recursion
       // TODO Optimize the checks here
       let nestedChanges = merge(data[key], newValue);
