@@ -26,7 +26,7 @@ export const OWNER_KEY = (function() {
 })();
 
 export function isObject(value) {
-  return typeof value === 'object' && value.constructor !== Date;
+  return value !== null && typeof value === 'object' && value.constructor !== Date;
 }
 
 export function merge(data, updates) {

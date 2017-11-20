@@ -333,7 +333,7 @@ export default class MegamorphicModel extends Ember.Object {
 
         let oldIsRecordArray = oldValue && oldValue.constructor === M3RecordArray;
         let oldWasModel = oldValue && oldValue.constructor === MegamorphicModel;
-        let newIsObject = newValue !== null && isObject(newValue);
+        let newIsObject = isObject(newValue);
 
         if (oldWasModel && newIsObject) {
           oldValue._didReceiveNestedProperties(internalModel._data[key], nestedKeys);
