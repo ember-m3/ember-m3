@@ -75,12 +75,12 @@ test('it adds `store.unloadURL`', function(assert) {
 });
 
 test('it adds `store.containsURL`', function(assert) {
-  assert.expect(1);
+  assert.expect(2);
 
   const cacheKey = 'uwot';
 
   assert.equal(typeof this.store.containsURL, 'function', 'containsURL added');
-  this.sinon.stub(this.store._queryCache, 'containsURL').callsFake((...args) => {
+  this.sinon.stub(this.store._queryCache, 'contains').callsFake((...args) => {
     assert.deepEqual(
       [...args],
       [cacheKey],

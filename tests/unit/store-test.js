@@ -1,7 +1,7 @@
 import Ember from 'ember';
 import DS from 'ember-data'
 import { test } from 'qunit';
-import { default as moduleFor }  from 'ember-qunit/module-for';
+import moduleFor  from 'ember-qunit/legacy-2-x/module-for';
 import sinon from 'sinon';
 
 import SchemaManager from 'ember-m3/schema-manager';

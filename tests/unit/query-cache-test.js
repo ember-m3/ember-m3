@@ -1,5 +1,5 @@
 import { test } from 'qunit';
-import { default as moduleFor }  from 'ember-qunit/module-for';
+import moduleFor  from 'ember-qunit/legacy-2-x/module-for';
 import sinon from 'sinon';
 import { zip } from 'lodash';
 
@@ -683,7 +683,7 @@ test('update uses the original http method and query params', function(assert) {
   };
 
   this.adapterAjax.returns(resolve(payload));
-  this.queryCache.queryURL('/ohai', { method: 'POST', params: { q: 'v' }}).
+  return this.queryCache.queryURL('/ohai', { method: 'POST', params: { q: 'v' }}).
     then(models => models.update()).
     then(() => {
       assert.deepEqual(
@@ -716,7 +716,7 @@ test('queryURL goes through a serializer to normalize responses', function(asser
   }));
 
   this.adapterAjax.returns(resolve(payload));
-  this.queryCache.queryURL('/hello').then(model => {
+  return this.queryCache.queryURL('/hello').then(model => {
     assert.equal(model.get('name'), 'name name?');
     assert.equal(model.get('wat'), 'definitely');
   });
