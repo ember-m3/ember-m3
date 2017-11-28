@@ -26,7 +26,7 @@ export const OWNER_KEY = (function() {
 })();
 
 export function isObject(value) {
-  return value !== null && typeof value === 'object' && value.constructor !== Date;
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
 /**
@@ -72,17 +72,6 @@ export function merge(data, updates) {
     if (isEqual(data[key], newValue)) {
       // values are equal, nothing to do
       // note, updates to objects should always result in new object or there will be nothing to update
-      continue;
-    }
-    if (data[key] == null || newValue == null) {
-      // reseting a value to null or assigning a value for first time can be handled for all cases
-      data[key] = newValue;
-      changedKeys[key] = true;
-      continue;
-    }
-    if (Array.isArray(newValue)) {
-      data[key] = newValue;
-      changedKeys[key] = true;
       continue;
     }
     // only recursively merge if both new and old values are objects
