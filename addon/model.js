@@ -19,6 +19,8 @@ const {
   }
 } = RootState;
 
+const FakeAttributeMeta = { isAttribute: true };
+
 class EmbeddedSnapshot {
   constructor(record) {
     this.record = record;
@@ -227,6 +229,10 @@ export default class MegamorphicModel extends Ember.Object {
         this.setUnknownProperty(key, value);
       }
     }
+  }
+
+  static metaForProperty() {
+    return FakeAttributeMeta;
   }
 
   static get isModel() {

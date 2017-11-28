@@ -9,7 +9,6 @@ import QueryCache from '../query-cache';
 
 const { assign, isEqual } = Ember;
 const { dasherize } = Ember.String;
-const EmptyState = new InternalModel().currentState;
 
 // TODO: this is a stopgap.  We want to replace this with a public
 // DS.Model/Schema API
@@ -24,6 +23,49 @@ export function extendStore(Store) {
 
     _hasModelFor(modelName) {
       return SchemaManager.includesModel(modelName) || this._super(modelName);
+    },
+
+    /*
+      This is a temporary method that mimics
+      what will eventually become the `store.preloadData()` API
+      in intent (e.g. it pushes data into the store without marking
+      it as loaded).
+
+      This is here only until we are able to directly work off of the model-data branches
+      of ember-data and ember-m3.
+     */
+    preloadData(document) {
+      let { data, included } = document;
+
+      if (Array.isArray(included)) {
+        for (let i = 0; i < included.length; i++) {
+          this._preloadSingleResource(included[i]);
+        }
+      }
+
+      if (Array.isArray(data)) {
+        for (let i = 0; i < data.length; i++) {
+          this._preloadSingleResource(data[i]);
+        }
+      } else if (typeof data === 'object' && data !== null) {
+        this._preloadSingleResource(data);
+      }
+    },
+
+    _preloadSingleResource(data) {
+      let modelName = dasherize(data.type);
+      let internalModel = this._internalModelForId(modelName, data.id);
+      let preloadData = {};
+
+      // currently internal model expects a flattened preload structure instead of json-api
+      if (typeof data.attributes === 'object' && data.attributes !== null) {
+        Object.assign(preloadData, data.attributes);
+      }
+      if (typeof data.relationships === 'object' && data.relationships !== null) {
+        Object.assign(preloadData, data.relationships);
+      }
+
+      internalModel.preloadData(preloadData);
     },
 
     modelFactoryFor(modelName) {
@@ -57,23 +99,6 @@ export function extendStore(Store) {
 
     containsURL(cacheKey) {
       return this._queryCache.contains(cacheKey);
-    },
-
-    _load(data) {
-      let modelName = dasherize(data.type);
-      let internalModel = this._internalModelForId(modelName, data.id);
-      let isUpdate = internalModel.currentState.isEmpty === false;
-      let returnValue = this._super(data);
-
-      if (!isUpdate) {
-        let isPartial = data.meta && data.meta.partial === true;
-
-        if (isPartial === true) {
-          internalModel.currentState = EmptyState;
-        }
-      }
-
-      return returnValue;
     },
 
     _pushInternalModel(JSONAPIResource) {

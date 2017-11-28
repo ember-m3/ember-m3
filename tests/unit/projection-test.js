@@ -183,24 +183,21 @@ module('unit/projection', function(hooks) {
             },
           }
         });
+        store.preloadData({
+          data: {
+            type: BOOK_CLASS_PATH,
+            id: FETCHED_PROJECTION_ID,
+            attributes: {
+              title: `Mr. Popper's Penguins`,
+            },
+          },
+        });
         store.push({
           data: {
             type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
             id: FETCHED_PROJECTION_ID,
             attributes: {},
           },
-          included: [
-            {
-              type: BOOK_CLASS_PATH,
-              id: FETCHED_PROJECTION_ID,
-              attributes: {
-                title: `Mr. Popper's Penguins`
-              },
-              meta: {
-                partial: true,
-              }
-            },
-          ]
         });
       });
 
@@ -274,24 +271,21 @@ module('unit/projection', function(hooks) {
             },
           }
         });
+        store.preloadData({
+          data: {
+            type: BOOK_CLASS_PATH,
+            id: FETCHED_PROJECTION_ID,
+            attributes: {
+              title: `Mr. Popper's Penguins`,
+            },
+          },
+        });
         store.push({
           data: {
             type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
             id: FETCHED_PROJECTION_ID,
             attributes: {},
           },
-          included: [
-            {
-              type: BOOK_CLASS_PATH,
-              id: FETCHED_PROJECTION_ID,
-              attributes: {
-                title: `Mr. Popper's Penguins`
-              },
-              meta: {
-                partial: true,
-              }
-            },
-          ]
         });
       });
 
@@ -356,21 +350,8 @@ module('unit/projection', function(hooks) {
       let store = this.store();
 
       run(() => {
-        // push as a partial to ensure first-in state does not win
-        store.push({
-          data: {
-            id: '1',
-            type: BOOK_CLASS_PATH,
-            attributes: {
-              title: 'Hello World',
-            },
-            meta: {
-              partial: true,
-            }
-          },
-        });
-
-        store.push({
+        // push as a partial to ensure first-in "unloaded" state does not win
+        store.preloadData({
           data: {
             id: '1',
             type: BOOK_CLASS_PATH,
@@ -380,7 +361,7 @@ module('unit/projection', function(hooks) {
           },
         });
 
-        // re-push as a partial to ensure last-in state does not win
+        // re-push the actual record to put it in the loaded state
         store.push({
           data: {
             id: '1',
@@ -388,23 +369,37 @@ module('unit/projection', function(hooks) {
             attributes: {
               title: 'Hello World',
             },
-            meta: {
-              partial: true,
-            }
           },
         });
 
-        // push an actual partial
-        store.push({
+        // re-push partial data to ensure state does not revert to unloaded
+        store.preloadData({
+          data: {
+            id: '1',
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              title: 'Hello World',
+            },
+          },
+        });
+
+        // push a different unloaded partial to test against
+        store.preloadData({
           data: {
             id: '2',
             type: BOOK_CLASS_PATH,
             attributes: {
               title: 'Goodnight Moon',
             },
-            meta: {
-              partial: true,
-            },
+          },
+        });
+
+        // push the projection for that partial
+        store.push({
+          data: {
+            id: '2',
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {},
           },
         });
       });
@@ -439,24 +434,21 @@ module('unit/projection', function(hooks) {
         });
 
         // intentionally missing 'author'
+        store.preloadData({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              title: BOOK_TITLE
+            },
+          },
+        });
         projectedRecord = store.push({
           data: {
             id: BOOK_ID,
             type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
             attributes: {},
           },
-          included: [
-            {
-              id: BOOK_ID,
-              type: BOOK_CLASS_PATH,
-              meta: {
-                partial: true,
-              },
-              attributes: {
-                title: BOOK_TITLE
-              }
-            },
-          ]
         });
       });
 
@@ -504,7 +496,7 @@ module('unit/projection', function(hooks) {
       let projectedPreview;
 
       run(() => {
-        baseRecord = store.push({
+        store.preloadData({
           data: {
             id: BOOK_ID,
             type: BOOK_CLASS_PATH,
@@ -513,6 +505,14 @@ module('unit/projection', function(hooks) {
               year: BOOK_YEAR,
               description: BOOK_DESCRIPTION // description is not whitelisted
             },
+          },
+        });
+
+        baseRecord = store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {},
           },
         });
 
