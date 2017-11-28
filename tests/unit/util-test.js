@@ -1,17 +1,15 @@
 import Ember from 'ember';
 import { module, test } from 'qunit';
-import { merge } from 'ember-m3/util';
+import { merge, isObject } from 'ember-m3/util';
 
 const { assign } = Ember;
 
 module('unit/util', function() {
   test('merge should handle flat objects', function(assert) {
-    let now = new Date();
     let data = {
       sameProp: 'sameValue',
       stringProp: 'stringValue',
       numberProp: 1,
-      dateProp: now,
       arrayProp: [1, 2, 3],
       nullProp: null,
       nonNullProp: 'stringValue',
@@ -22,7 +20,6 @@ module('unit/util', function() {
       sameProp: 'sameValue',
       stringProp: 'newStringValue',
       numberProp: 2,
-      dateProp: new Date(now + 1000),
       arrayProp: [4, 5, 6],
       nullProp: 'nonNullValue',
       nonNullProp: null
@@ -31,7 +28,6 @@ module('unit/util', function() {
     let expectedChangedKeys = {
       stringProp: true,
       numberProp: true,
-      dateProp: true,
       arrayProp: true,
       nullProp: true,
       nonNullProp: true,
@@ -133,5 +129,15 @@ module('unit/util', function() {
     // we don't have omitted keys, so data must look like updates
     assert.deepEqual(data, updates);
     assert.deepEqual(changedKeys, expectedChangedKeys);
+  });
+
+  test('isObject should correctly return true/false', function(assert) {
+    assert.equal(isObject(undefined), false);
+    assert.equal(isObject(null), false);
+    assert.equal(isObject([]), false);
+    assert.equal(isObject(1), false);
+    assert.equal(isObject(''), false);
+    assert.equal(isObject({}), true);
+    assert.equal(isObject(new Date()), true);
   });
 });

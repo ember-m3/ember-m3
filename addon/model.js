@@ -226,18 +226,18 @@ export default class MegamorphicModel extends Ember.Object {
     this._store = properties.store;
     this.id = this._internalModel.id;
     this._internalModel = properties._internalModel;
-    this._projections = null;
 
     this._schema = SchemaManager;
 
     let baseModelName = this._schema.computeBaseModelName(this._modelName);
     this._baseModel = baseModelName ? this.initBaseModel(baseModelName) : null;
+    this._projections = null;
+    this._path = this._path || [];
 
     this._cache = Object.create(null);
 
     this._topModel = this._topModel || this;
     this._parentModel = this._parentModel || null;
-    this._path = this._path || [];
     this._init = true;
 
     this._flushInitProperties();
@@ -290,7 +290,15 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   get _modelName() {
-    return this._internalModel.modelName;
+    return this.__internalModel.modelName;
+  }
+
+  get _internalModel() {
+    return this.baseModel ? this.baseModel._internalModel : this.__internalModel;
+  }
+
+  set _internalModel(internalModel) {
+    this.__internalModel = internalModel;
   }
 
   __defineNonEnumerable(property) {
@@ -565,7 +573,6 @@ export default class MegamorphicModel extends Ember.Object {
 }
 
 MegamorphicModel.prototype.store = null;
-MegamorphicModel.prototype._internalModel = null;
 MegamorphicModel.prototype._parentModel = null;
 MegamorphicModel.prototype._topModel = null;
 MegamorphicModel.prototype._path = null;
