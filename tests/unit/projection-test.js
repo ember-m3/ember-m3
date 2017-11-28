@@ -1526,8 +1526,94 @@ module('unit/projection', function(hooks) {
 
   skip(`Unloading a projection does not unload the base-record`, function() {});
   skip(`Unloading the base-record does not unload the projection`, function() {});
-  skip(`Destroying the base-record does not unload/destroy the projection`, function() {});
-  skip(`Destroying the projection does not unload/destroy the base-record`, function() {});
+
+  module('deleting records', function(hooks) {
+    const BOOK_ID = 'isbn:123';
+
+    hooks.beforeEach(function() {
+      let store = this.store();
+
+      this.owner.register('adapter:-ember-m3', Ember.Object.extend({
+        deleteRecord() {
+          return Promise.resolve();
+        }
+      }));
+
+      let baseRecord = run(() => {
+        return store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {},
+          }
+        });
+      });
+
+      let projectedPreview = run(() => {
+        return store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+            attributes: {},
+          }
+        });
+      });
+
+      let projectedExcerpt = run(() => {
+        return store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {},
+          }
+        });
+      });
+
+
+      this.records = {
+        baseRecord,
+        projectedPreview,
+        projectedExcerpt
+      };
+    });
+
+    skip(`Deleting the base-record also deletes the projections`, function(assert) {
+      let { baseRecord, projectedPreview } = this.records;
+
+      baseRecord.deleteRecord();
+
+      assert.equal(get(projectedPreview, 'isDeleted'), true, 'Expected projection record to be deleted as well');
+      assert.equal(get(projectedPreview, 'isDirty'), true, 'Expected projection record to be marked as dirty as well');
+
+      run(() => {
+        baseRecord.save().then(() => {
+          assert.equal(get(projectedPreview, 'isDeleted'), true, 'Expected the projection record to stay deleted');
+          assert.equal(get(projectedPreview, 'isDirty'), false, 'Expected the projection record to have been committed');
+        });
+      });
+    });
+
+    skip(`Deleting the projection also deletes the base-record`, function(assert) {
+      let { baseRecord, projectedPreview, projectedExcerpt } = this.records;
+
+      projectedPreview.deleteRecord();
+
+      assert.equal(get(baseRecord, 'isDeleted'), true, 'Expected the base record to be deleted as well');
+      assert.equal(get(baseRecord, 'isDirty'), true, 'Expected the base record to be marked as dirty as well');
+      assert.equal(get(projectedExcerpt, 'isDeleted'), true, 'Expected the other projection record to be deleted as well');
+      assert.equal(get(projectedExcerpt, 'isDirty'), true, 'Expected the other projection record to be marked as dirty as well');
+
+
+      run(() => {
+        projectedPreview.save().then(() => {
+          assert.equal(get(baseRecord, 'isDeleted'), true, 'Expected the base record to stay deleted');
+          assert.equal(get(baseRecord, 'isDirty'), false, 'Expected the base record to have been committed');
+          assert.equal(get(projectedExcerpt, 'isDeleted'), true, 'Expected the other projection record to stay deleted');
+          assert.equal(get(projectedExcerpt, 'isDirty'), false, 'Expected the other projection record to have been committed');
+        });
+      });
+    });
+  });
 
   // TL;DR we can only proxy something that has an ID
   skip(`Saving a newly created projection doesn't mess up the state of the base record`, function() {});
