@@ -1546,10 +1546,10 @@ module('unit/model', function(hooks) {
       });
     });
 
-    assert.equal(model.get('isDirty'), false, 'initially model clean');
+    assert.equal(model.get('dirtyType'), null, 'initially model clean');
     assert.equal(model.get('isSaving'), false, 'initially model not saving');
     model.set('estimatedPubDate', '2231?');
-    assert.equal(model.get('isDirty'), false, 'no dirty tracking support');
+    assert.equal(model.get('dirtyType'), null, 'no dirty tracking support');
 
     return run(() =>
       model.save().then(() => {
