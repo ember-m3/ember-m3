@@ -160,11 +160,29 @@ function disallowAliasSet(object, key, value) {
 }
 
 /**
- * Given an array, representing the path to a nested model, construct a changed keys
- * structure, which express the changes to the overall structure and can be handled
- * by _notifyProperties correctly.
+ * Construct a list of changed keys, which `_notifyProperties` can use
+ * to invalidate the properties correctly, given an array, representing
+ * the path to the model and the list of changed keys.
  *
- * In case path is an empty array (the top model), then the `changedKeys` are returned.
+ * For example, given the following path and changed keys:
+ *  * ```
+ * // if the following paths are invalidated
+ * // foo.bar.baz.prop1
+ * // foo.bar.baz.prop2
+ * // the input should be:
+ * let path = ['foo', 'bar', 'baz'];
+ * let changedKeys = ['prop1', 'prop2'];
+ *
+ * // the resulting list should be:
+ * let result = constructChangedKeys(path, changedKeys);
+ * // result is:
+ * // ['foo', ['bar', ['baz', 'prop1', 'prop2']]]
+ * ```
+ *
+ * In case of empty path (when the changed properties belong to the top model),
+ * the result is just the list of changed keys.
+ *
+ * See `merge` function for detailed explanation of the list structure.
  */
 function constructChangedKeys(path, changedKeys) {
   let result = changedKeys;
@@ -295,6 +313,13 @@ export default class MegamorphicModel extends Ember.Object {
     }
   }
 
+  /**
+   * Iterates over the given list of changed properties and correctly invalidates their value on
+   * model object.
+   *
+   * The input list can indicate changes to nested hashes using nested lists as documented in the
+   * `merge` function.
+   */
   _notifyProperties(keys) {
     if (!keys.length) {
       // the `for` loop below will handle it for us, but we don't want to read the _baseModel
