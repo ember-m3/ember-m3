@@ -116,24 +116,4 @@ module('unit/schema-manager', function() {
   test('.transformValue does not error when no schema is registered', function(assert) {
     assert.equal(SchemaManager.transformValue('com.example.moves.Movie', 'name', 'jeff'), 'jeff');
   });
-
-  test('can specify what projections the schema handles', function(assert) {
-    SchemaManager.registerSchema({
-      modelIsProjection(modelName) {
-        return /^com\.example\.bookstore\.projection\./i.test(modelName);
-      },
-      includesModel(modelName) {
-        return /^com\.example\.bookstore\./i.test(modelName);
-      },
-      models: {
-        'com.example.bookstore.Book': {},
-        'com.example.bookstore.projection.BookExcerpt': {},
-      }
-    });
-
-    assert.equal(SchemaManager.includesModel('com.example.bookstore.Book'), true, 'Book is a schema');
-    assert.equal(SchemaManager.includesModel('com.example.petstore.Details'), false, 'Details is not a schema');
-    assert.equal(SchemaManager.modelIsProjection('com.example.bookstore.projection.BookExcerpt'), true, 'BookExcerpt is a projection');
-    assert.equal(SchemaManager.modelIsProjection('com.example.petstore.projection.DetailsOverview'), false, 'DetailsOverview is not a projection');
-  });
 });

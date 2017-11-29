@@ -14,8 +14,9 @@ const {
 } = Ember;
 
 /*
-  Non-normalized ClassPaths are used for the data returned by the adapter and pushed to the store
-  but for everything post-entry we use the normalized version.
+  Ember Data currently dasherizes modelNames for use within the store, in these tests
+  payloads given to the store use non-normalized modelNames while schemas and
+  anything which accesses a model's modelName uses the normalized (dasherized) version.
  */
 const BOOK_CLASS_PATH = 'com.example.bookstore.Book';
 const NORM_BOOK_CLASS_PATH = 'com.example.bookstore.book';
@@ -23,8 +24,6 @@ const BOOK_EXCERPT_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.Boo
 const NORM_BOOK_EXCERPT_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.book-excerpt';
 const BOOK_PREVIEW_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.BookPreview';
 const NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.book-preview';
-// never used since this is embedded
-// const PROJECTED_AUTHOR_CLASS = 'com.example.bookstore.projectedType.projectedAuthor';
 const NORM_PROJECTED_AUTHOR_CLASS = 'com.example.bookstore.projected-type.projected-author';
 const PUBLISHER_CLASS = 'com.example.bookstore.publisher';
 const PROJECTED_PUBLISHER_CLASS = 'com.example.bookstore.projectedType.projectedPublisher';
@@ -36,66 +35,9 @@ module('unit/projection', function(hooks) {
   hooks.beforeEach(function() {
     initializeStore(this);
 
-    this.store = function() {
-      return this.owner.lookup('service:store');
-    };
-
-    let SCHEMAS = {
-      [NORM_BOOK_CLASS_PATH]: {
-        aliases: {
-          name: 'title',
-          cost: 'price',
-          pub: 'publisher',
-          releaseDate: 'pubDate',
-          pb: 'paperback',
-          hb: 'hardback',
-        },
-        defaults: {
-          publisher: 'Penguin Classics',
-          hardback: true,
-          paperback: true,
-          publishedIn: 'US',
-        },
-        transforms: {
-          // This interferes with the URN resolution
-          // publisher(value) {
-          //   return `${value}, of course`;
-          // },
-          pubDate(value) {
-            return new Date(Date.parse(value));
-          }
-        }
-      },
-      [NORM_BOOK_EXCERPT_PROJECTION_CLASS_PATH]: {
-        projectedType: NORM_BOOK_CLASS_PATH,
-        attributes: ['title', 'author', 'year', 'publisher'],
-      },
-      [NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH]: {
-        projectedType: NORM_BOOK_CLASS_PATH,
-        resolvedTypes: {
-          publisher: NORM_PROJECTED_PUBLISHER_CLASS,
-          author: NORM_PROJECTED_AUTHOR_CLASS
-        },
-        // if you want to project an embedded model then it must have a type
-        //  computedEmbeddedType
-        attributes: ['title', 'author', 'chapter-1', 'year', 'publisher'],
-      },
-      [PUBLISHER_CLASS]: {},
-      // this schema must come with the parent schema
-      [NORM_PROJECTED_AUTHOR_CLASS]: {
-        attributes: ['location', 'name']
-      },
-      [NORM_PROJECTED_PUBLISHER_CLASS]: {
-        projectedType: PUBLISHER_CLASS,
-        attributes: ['location', 'name']
-      }
-    };
+    this.store = this.owner.lookup('service:store');
 
     SchemaManager.registerSchema({
-      modelIsProjection(modelName) {
-        return /^com\.example\.bookstore\.projection\./i.test(modelName);
-      },
-
       includesModel(modelName) {
         return /^com\.example\.bookstore\./i.test(modelName);
       },
@@ -109,7 +51,8 @@ module('unit/projection', function(hooks) {
         } else if (/^urn:([^:]+):(.*)/.test(value)) {
           let parts = /^urn:([^:]+):(.*)/.exec(value);
           let type = parts[1];
-          let modelSchema = SCHEMAS[modelName];
+          let modelSchema = this.models[modelName];
+
           if (modelSchema && modelSchema.resolvedTypes && modelSchema.resolvedTypes[key]) {
             type = modelSchema.resolvedTypes[key];
           }
@@ -129,7 +72,7 @@ module('unit/projection', function(hooks) {
           return null;
         }
         let valueType = value.type;
-        let modelSchema = SCHEMAS[modelName];
+        let modelSchema = this.models[modelName];
         if (modelSchema && modelSchema.resolvedTypes && modelSchema.resolvedTypes[key]) {
           valueType = modelSchema.resolvedTypes[key];
         }
@@ -140,19 +83,60 @@ module('unit/projection', function(hooks) {
         }
       },
 
-      registerAsyncSchemas(schemas) {
-        Object.assign(SCHEMAS, schemas);
-      },
-
       computeBaseModelName(modelName) {
-        let schema = SCHEMAS[modelName];
+        let schema = this.models[modelName];
 
         if (schema !== undefined) {
           return schema.projectedType;
         }
       },
 
-      models: SCHEMAS
+      models: {
+        [NORM_BOOK_CLASS_PATH]: {
+          aliases: {
+            name: 'title',
+            cost: 'price',
+            pub: 'publisher',
+            releaseDate: 'pubDate',
+            pb: 'paperback',
+            hb: 'hardback',
+          },
+          defaults: {
+            publisher: 'Penguin Classics',
+            hardback: true,
+            paperback: true,
+            publishedIn: 'US',
+          },
+          transforms: {
+            pubDate(value) {
+              return new Date(Date.parse(value));
+            },
+          },
+        },
+        [NORM_BOOK_EXCERPT_PROJECTION_CLASS_PATH]: {
+          projectedType: NORM_BOOK_CLASS_PATH,
+          attributes: ['title', 'author', 'year', 'publisher'],
+        },
+        [NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH]: {
+          projectedType: NORM_BOOK_CLASS_PATH,
+          resolvedTypes: {
+            publisher: NORM_PROJECTED_PUBLISHER_CLASS,
+            author: NORM_PROJECTED_AUTHOR_CLASS,
+          },
+          // if you want to project an embedded model then it must have a type
+          //  computedEmbeddedType
+          attributes: ['title', 'author', 'chapter-1', 'year', 'publisher'],
+        },
+        [PUBLISHER_CLASS]: {},
+        // this schema must come with the parent schema
+        [NORM_PROJECTED_AUTHOR_CLASS]: {
+          attributes: ['location', 'name'],
+        },
+        [NORM_PROJECTED_PUBLISHER_CLASS]: {
+          projectedType: PUBLISHER_CLASS,
+          attributes: ['location', 'name'],
+        },
+      },
     });
   });
 
@@ -162,7 +146,7 @@ module('unit/projection', function(hooks) {
 
       const UNFETCHED_PROJECTION_ID = 'isbn:9780439708180';
       const FETCHED_PROJECTION_ID = 'isbn:9780439708181';
-      const store = this.store();
+      let { store } = this;
 
       /*
         populate the store with a starting state of
@@ -219,7 +203,7 @@ module('unit/projection', function(hooks) {
 
       const UNFETCHED_PROJECTION_ID = 'isbn:9780439708180';
       const FETCHED_PROJECTION_ID = 'isbn:9780439708181';
-      const store = this.store();
+      let { store } = this;
 
       let expectedFindRecordModelName;
       let trueFindRecordModelName;
@@ -347,7 +331,7 @@ module('unit/projection', function(hooks) {
     });
 
     test(`store.peekAll() will not return partial records`, function(assert) {
-      let store = this.store();
+      let { store } = this;
 
       run(() => {
         // push as a partial to ensure first-in "unloaded" state does not win
@@ -411,7 +395,7 @@ module('unit/projection', function(hooks) {
     });
 
     test('Projections proxy whitelisted attributes to a base-record', function(assert) {
-      const store = this.store();
+      let { store } = this;
       const BOOK_ID = 'isbn:9780439708181';
       const BOOK_TITLE = 'Adventures in Wonderland';
       const BOOK_AUTHOR = 'Lewis Carroll';
@@ -489,7 +473,7 @@ module('unit/projection', function(hooks) {
     const NEW_DESCRIPTION = 'Crazy Town';
 
     hooks.beforeEach(function(assert) {
-      const store = this.store();
+      let { store } = this;
 
       let baseRecord;
       let projectedExcerpt;
@@ -665,7 +649,7 @@ module('unit/projection', function(hooks) {
     });
 
     test('Updating the base-record updates projections', function(assert) {
-      let store = this.store();
+      let { store } = this;
       let {
         baseRecord,
       } = this.records;
@@ -712,32 +696,25 @@ module('unit/projection', function(hooks) {
 
     test('Updating a projection updates the base-record and other projections', function(assert) {
       let baseRecord = this.records.baseRecord;
-      let store = this.store();
+      let { store } = this;
 
       run(() => {
+        store.preloadData({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              title: NEW_TITLE,
+              'chapter-1': NEW_CHAPTER_TEXT,
+            }
+          }
+        });
         store.push({
           data: {
             id: BOOK_ID,
             type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
             attributes: {}
           },
-          included: [{
-            id: BOOK_ID,
-            type: BOOK_CLASS_PATH,
-            meta: {
-              partial: true,
-            },
-            attributes: {
-              title: NEW_TITLE,
-              'chapter-1': NEW_CHAPTER_TEXT,
-              /*
-                The below update is invalid because in the real world the schema was are given is also used
-                to create the payload the API gives us, so we could not have properties from the API that don't
-                exist in the whitelist.
-               */
-              // description: NEW_DESCRIPTION,
-            }
-          }],
         });
       });
 
@@ -774,7 +751,7 @@ module('unit/projection', function(hooks) {
     const NEW_AUTHOR_AGE = 'wise';
 
     hooks.beforeEach(function(assert) {
-      const store = this.store();
+      let { store } = this;
 
       let baseRecord;
       let projectedExcerpt;
@@ -938,7 +915,7 @@ module('unit/projection', function(hooks) {
     });
 
     test('Updating an embedded object property on the base-record updates the value for projections', function(assert) {
-      let store = this.store();
+      let { store } = this;
       let {
         baseRecord,
         projectedExcerpt,
@@ -1025,32 +1002,31 @@ module('unit/projection', function(hooks) {
     });
 
     test('Updating an embedded object property on a projection updates the base-record and other projections', function(assert) {
-      let store = this.store();
+      let { store } = this;
       let {
         baseRecord,
         projectedExcerpt,
       } = this.records;
 
       run(() => {
+        store.preloadData({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              author: {
+                location: NEW_AUTHOR_LOCATION,
+                age: NEW_AUTHOR_AGE
+              },
+            },
+          },
+        });
         store.push({
           data: {
             id: BOOK_ID,
             type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
             attributes: {}
           },
-          included: [{
-            id: BOOK_ID,
-            type: BOOK_CLASS_PATH,
-            meta: {
-              partial: true,
-            },
-            attributes: {
-              author: {
-                location: NEW_AUTHOR_LOCATION,
-                age: NEW_AUTHOR_AGE
-              }
-            }
-          }],
         });
       });
 
@@ -1068,39 +1044,30 @@ module('unit/projection', function(hooks) {
     });
 
     test('Updating an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
-      let store = this.store();
+      let { store } = this;
       let {
         baseRecord,
         projectedExcerpt,
       } = this.records;
 
       run(() => {
+        store.preloadData({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              author: {
+                location: NEW_AUTHOR_LOCATION,
+              },
+            },
+          },
+        });
         store.push({
           data: {
             id: BOOK_ID,
             type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
             attributes: {},
           },
-          included: [{
-            id: BOOK_ID,
-            type: BOOK_CLASS_PATH,
-            meta: {
-              partial: true,
-            },
-            attributes: {
-              author: {
-                location: NEW_AUTHOR_LOCATION,
-                /*
-                  The below update is invalid because in the real world the schema was are given is also used
-                  to create the payload the API gives us, so we could not have properties from the API that don't
-                  exist in the whitelist.
-
-                  However, it's lack of presence allows us to test that AUTHOR_AGE is correctly kept post-merge
-                 */
-                // age: NEW_AUTHOR_AGE
-              }
-            }
-          }],
         });
       });
 
@@ -1146,7 +1113,7 @@ module('unit/projection', function(hooks) {
     const NEW_PUBLISHER_OWNER = 'Holtzbrinck Publishing Group';
 
     hooks.beforeEach(function(assert) {
-      const store = this.store();
+      let { store } = this;
 
       let baseRecord;
       let projectedExcerpt;
@@ -1320,7 +1287,7 @@ module('unit/projection', function(hooks) {
     });
 
     test('Updating a resolution property via the base-record updates projections and nested projections', function(assert) {
-      let store = this.store();
+      let { store } = this;
       let {
         baseRecord,
         projectedExcerpt,
@@ -1413,7 +1380,7 @@ module('unit/projection', function(hooks) {
     });
 
     test('Updating a resolution property via a projection updates the base-record, other projections and nested projections', function(assert) {
-      let store = this.store();
+      let { store } = this;
 
       let {
         baseRecord,
@@ -1421,23 +1388,22 @@ module('unit/projection', function(hooks) {
       } = this.records;
 
       run(() => {
-        store.push({
+        store.preloadData({
           data: {
-            id: PUBLISHER_ID,
-            type: PROJECTED_PUBLISHER_CLASS,
-            attributes: {}
-          },
-          included: [{
             id: PUBLISHER_ID,
             type: PUBLISHER_CLASS,
             attributes: {
               location: NEW_PUBLISHER_LOCATION,
               owner: NEW_PUBLISHER_OWNER
             },
-            meta: {
-              partial: true
-            }
-          }]
+          }
+        });
+        store.push({
+          data: {
+            id: PUBLISHER_ID,
+            type: PROJECTED_PUBLISHER_CLASS,
+            attributes: {}
+          },
         });
       });
 
@@ -1456,13 +1422,29 @@ module('unit/projection', function(hooks) {
     });
 
     test('Updating a resolution property via a nested projection updates the base-record, other projections', function(assert) {
-      let store = this.store();
+      let { store } = this;
       let {
         baseRecord,
         projectedExcerpt,
       } = this.records;
 
       run(() => {
+        store.preloadData({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              publisher: PUBLISHER_URN
+            }
+          },
+          included: [{
+            id: PUBLISHER_ID,
+            type: PUBLISHER_CLASS,
+            attributes: {
+              location: NEW_PUBLISHER_LOCATION,
+            }
+          }]
+        });
         store.push({
           data: {
             id: BOOK_ID,
@@ -1471,37 +1453,9 @@ module('unit/projection', function(hooks) {
           },
           included: [
             {
-              id: BOOK_ID,
-              type: BOOK_CLASS_PATH,
-              meta: {
-                partial: true,
-              },
-              attributes: {
-                publisher: PUBLISHER_URN
-              }
-            },
-            {
               id: PUBLISHER_ID,
               type: PROJECTED_PUBLISHER_CLASS,
               attributes: {},
-            },
-            {
-              id: PUBLISHER_ID,
-              type: PUBLISHER_CLASS,
-              meta: {
-                partial: true,
-              },
-              attributes: {
-                location: NEW_PUBLISHER_LOCATION,
-                /*
-                  The below update is invalid because in the real world the schema was are given is also used
-                  to create the payload the API gives us, so we could not have properties from the API that don't
-                  exist in the whitelist.
-
-                  However, it's lack of presence allows us to test that PUBLISHER_OWNER is correctly kept post-merge
-                 */
-                // owner: NEW_PUBLISHER_OWNER
-              }
             },
           ]
         });
@@ -1531,7 +1485,7 @@ module('unit/projection', function(hooks) {
     const BOOK_ID = 'isbn:123';
 
     hooks.beforeEach(function() {
-      let store = this.store();
+      let { store } = this;
 
       this.owner.register('adapter:-ember-m3', Ember.Object.extend({
         deleteRecord() {
