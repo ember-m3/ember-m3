@@ -523,6 +523,7 @@ module('unit/model', function(hooks) {
     let chamberOfSecrets = this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439064873');
     let gobletOfFire = this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439139601');
     model.set('otherBooksInSeries', [chamberOfSecrets, gobletOfFire]);
+
     assert.deepEqual(
       get(model, 'otherBooksInSeries').mapBy('id'),
       ['isbn:9780439064873', 'isbn:9780439139601'],

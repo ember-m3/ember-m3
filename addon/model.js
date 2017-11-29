@@ -340,8 +340,8 @@ export default class MegamorphicModel extends Ember.Object {
         let oldValue = this._cache[key];
         let newValue = internalModel._data[key];
 
-        let oldIsRecordArray = oldValue && oldValue.constructor instanceof M3RecordArray;
-        let oldWasModel = oldValue && oldValue.constructor instanceof MegamorphicModel;
+        let oldIsRecordArray = oldValue && oldValue instanceof M3RecordArray;
+        let oldWasModel = oldValue && oldValue instanceof EmbeddedMegamorphicModel;
         let newIsObject = isObject(newValue);
 
         if (oldWasModel && newIsObject) {
