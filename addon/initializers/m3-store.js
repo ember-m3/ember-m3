@@ -9,6 +9,7 @@ import QueryCache from '../query-cache';
 
 const { assign, isEqual } = Ember;
 const { dasherize } = Ember.String;
+const EmptyState = new InternalModel().currentState;
 
 // TODO: this is a stopgap.  We want to replace this with a public
 // DS.Model/Schema API
@@ -55,17 +56,15 @@ export function extendStore(Store) {
     _preloadSingleResource(data) {
       let modelName = dasherize(data.type);
       let internalModel = this._internalModelForId(modelName, data.id);
-      let preloadData = {};
+      let isUpdate = internalModel.currentState.isEmpty === false;
 
-      // currently internal model expects a flattened preload structure instead of json-api
-      if (typeof data.attributes === 'object' && data.attributes !== null) {
-        Object.assign(preloadData, data.attributes);
-      }
-      if (typeof data.relationships === 'object' && data.relationships !== null) {
-        Object.assign(preloadData, data.relationships);
-      }
+      internalModel.setupData(data);
 
-      internalModel.preloadData(preloadData);
+      if (isUpdate === true) {
+        this.recordArrayManager.recordDidChange(internalModel);
+      } else {
+        internalModel.currentState = EmptyState;
+      }
     },
 
     modelFactoryFor(modelName) {

@@ -3,14 +3,6 @@ export class SchemaManager {
     this.schema = null;
   }
 
-  modelIsProjection(modelName) {
-    if (!this.schema || typeof this.schema.modelIsProjection !== 'function') {
-      return false;
-    }
-
-    return this.schema.modelIsProjection(modelName);
-  }
-
   computeBaseModelName(projectionModelName) {
     if (!this.schema || typeof this.schema.computeBaseModelName !== 'function') {
       return;
@@ -59,10 +51,6 @@ export class SchemaManager {
     let transform = transforms && transforms[attrName];
 
     return transform ? transform(value) : value;
-  }
-
-  registerAsyncSchemas(schemas) {
-    this.schema.registerAsyncSchemas(schemas);
   }
 
   registerSchema(schema) {
