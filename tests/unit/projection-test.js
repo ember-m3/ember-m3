@@ -92,27 +92,7 @@ module('unit/projection', function(hooks) {
       },
 
       models: {
-        [NORM_BOOK_CLASS_PATH]: {
-          aliases: {
-            name: 'title',
-            cost: 'price',
-            pub: 'publisher',
-            releaseDate: 'pubDate',
-            pb: 'paperback',
-            hb: 'hardback',
-          },
-          defaults: {
-            publisher: 'Penguin Classics',
-            hardback: true,
-            paperback: true,
-            publishedIn: 'US',
-          },
-          transforms: {
-            pubDate(value) {
-              return new Date(Date.parse(value));
-            },
-          },
-        },
+        [NORM_BOOK_CLASS_PATH]: {},
         [NORM_BOOK_EXCERPT_PROJECTION_CLASS_PATH]: {
           projectedType: NORM_BOOK_CLASS_PATH,
           attributes: ['title', 'author', 'year', 'publisher'],
