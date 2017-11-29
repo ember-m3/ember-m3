@@ -184,17 +184,18 @@ function calculateChangedKeys(oldValue, newValue) {
   return result;
 }
 
-const YesManAttributes = {
+class YesManAttributesSingletonClass {
   has() {
     return true;
-  },
+  }
 
   // This stub exists for the inspector
   forEach(/* cb */) {
     // cb(meta, name)
     return;
-  },
-};
+  }
+}
+const YesManAttributes = new YesManAttributesSingletonClass();
 
 const retrieveFromCurrentState = computed('currentState', function(key) {
   return this._topModel._internalModel.currentState[key];
