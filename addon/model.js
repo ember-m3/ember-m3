@@ -85,7 +85,7 @@ function resolveValue(key, value, modelName, store, schema, model) {
       modelName: nested.type ? dasherize(nested.type) : null,
       _data: nested.attributes,
     });
-    let nestedModel = new MegamorphicModel({
+    let nestedModel = new EmbeddedMegamorphicModel({
       store,
       _internalModel: internalModel,
       _parentModel: model,
@@ -278,8 +278,8 @@ export default class MegamorphicModel extends Ember.Object {
       let oldValue = this._cache[key];
       let newValue = this._internalModel._data[key];
 
-      let oldIsRecordArray = oldValue && oldValue.constructor === M3RecordArray;
-      let oldWasModel = oldValue && oldValue.constructor === MegamorphicModel;
+      let oldIsRecordArray = oldValue && oldValue instanceof M3RecordArray;
+      let oldWasModel = oldValue && oldValue instanceof MegamorphicModel;
       let newIsObject = typeof newValue === 'object';
 
       if (oldWasModel && newIsObject) {
@@ -487,3 +487,9 @@ MegamorphicModel.prototype.isDeleted = retrieveFromCurrentState;
 MegamorphicModel.prototype.isNew = retrieveFromCurrentState;
 MegamorphicModel.prototype.isValid = retrieveFromCurrentState;
 MegamorphicModel.prototype.dirtyType = retrieveFromCurrentState;
+
+class EmbeddedMegamorphicModel extends MegamorphicModel {
+  unloadRecord() {
+    Ember.warn(`Nested models cannot be directly unloaded.  Perhaps you meant to unload the top level model, '${this._topModel._modelName}:${this._topModel.id}'`, false, { id: 'ember-m3.nested-model-unloadRecord' });
+  }
+}

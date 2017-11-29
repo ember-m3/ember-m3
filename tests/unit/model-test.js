@@ -1657,6 +1657,61 @@ module('unit/model', function(hooks) {
     );
   });
 
+  test('.unloadRecord works', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+          }
+        }
+      });
+    });
+
+    assert.equal(this.store.hasRecordForId('com.example.bookstore.book', '1'), true, 'record in identity map');
+    run(() => model.unloadRecord());
+    assert.equal(this.store.hasRecordForId('com.example.bookstore.book', '1'), false, 'gone from identity map');
+  });
+
+  test('.unloadRecord on a nested model warns and does not error', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: '1',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `The Winds of Winter`,
+            relatedToAuthor: {
+              id: 'urn:author:2',
+              type: 'com.example.bookstore.RelatedLink',
+              relation: 'Presumptive author',
+            },
+          },
+        },
+      });
+    });
+
+    let nestedModel = model.get('relatedToAuthor');
+
+    assert.equal(this.store.hasRecordForId('com.example.bookstore.book', '1'), true, 'record in identity map');
+    assert.equal(this.store.hasRecordForId('com.example.bookstore.RelatedLink', 'urn:author:2'), false, 'nested record do not appear in identity map');
+    let warnSpy = this.sinon.spy(Ember, 'warn');
+    nestedModel.unloadRecord();
+    assert.deepEqual(zip(warnSpy.thisValues.map(x => x + ''), warnSpy.args), [
+      [
+        'Ember',
+        [
+          "Nested models cannot be directly unloaded.  Perhaps you meant to unload the top level model, 'com.example.bookstore.book:1'",
+          false,
+          { id: 'ember-m3.nested-model-unloadRecord' },
+        ],
+      ],
+    ]);
+    assert.equal(this.store.hasRecordForId('com.example.bookstore.book', '1'), true, '"unloading" nested model has no effect on either it or parent model');
+  })
+
   test('.rollbackAttributes resets state from dirty', function(assert) {
     let model = run(() => {
       return this.store.push({
