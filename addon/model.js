@@ -209,7 +209,8 @@ let initProperites = Object.create(null);
 
 export default class MegamorphicModel extends Ember.Object {
   init(properties) {
-    this._super(...arguments);
+    // Drop Ember.Object subclassing instead
+    super.init(...arguments);
     this._store = properties.store;
     this._internalModel = properties._internalModel;
     this.id = this._internalModel.id;
