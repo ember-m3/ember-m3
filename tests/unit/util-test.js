@@ -28,14 +28,14 @@ module('unit/util', function() {
       nonNullProp: null
     };
 
-    let expectedChangedKeys = [
-      'stringProp',
-      'numberProp',
-      'dateProp',
-      'arrayProp',
-      'nullProp',
-      'nonNullProp'
-    ];
+    let expectedChangedKeys = {
+      stringProp: true,
+      numberProp: true,
+      dateProp: true,
+      arrayProp: true,
+      nullProp: true,
+      nonNullProp: true,
+    };
 
     let changedKeys = merge(data, updates);
 
@@ -79,13 +79,16 @@ module('unit/util', function() {
       nonNullObject: null
     };
 
-    let expectedChangedKeys = [
-      ['objectProp', 'stringProp',
-        ['nestedObjectProp', 'stringProp']
-      ],
-      'nullObject',
-      'nonNullObject'
-    ];
+    let expectedChangedKeys = {
+      objectProp: {
+        stringProp: true,
+        nestedObjectProp: {
+          stringProp: true,
+        },
+      },
+      nullObject: true,
+      nonNullObject: true,
+    };
 
     let changedKeys = merge(data, updates);
 
@@ -98,7 +101,7 @@ module('unit/util', function() {
   test('returns no changes for undefined updates', function(assert) {
     let changedKeys = merge({}, undefined);
 
-    assert.deepEqual(changedKeys, []);
+    assert.deepEqual(changedKeys, {});
   });
 
   test('handles type changes in the properties', function(assert) {
@@ -119,11 +122,11 @@ module('unit/util', function() {
       numberProp: new Date()
     };
 
-    let expectedChangedKeys = [
-      'objectProp',
-      'stringProp',
-      'numberProp'
-    ];
+    let expectedChangedKeys = {
+      objectProp: true,
+      stringProp: true,
+      numberProp: true,
+    };
 
     let changedKeys = merge(data, updates);
 

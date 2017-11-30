@@ -7,7 +7,7 @@ import M3RecordArray from './record-array';
 import { OWNER_KEY, isObject, merge } from './util';
 
 const {
-  changeProperties, get, set, propertyDidChange, computed, A
+  assert, changeProperties, get, set, propertyDidChange, computed, A
 } = Ember;
 
 const {
@@ -160,34 +160,38 @@ function disallowAliasSet(object, key, value) {
 }
 
 /**
- * Construct a list of changed keys, which `_notifyProperties` can use
- * to invalidate the properties correctly, given an array, representing
- * the path to the model and the list of changed keys.
+ * Construct changelist for `_notifyProperties` to invalidate the
+ * given property on a given nested model.
  *
  * For example, given the following path and changed keys:
  *  * ```
  * // if the following paths are invalidated
  * // foo.bar.baz.prop1
- * // foo.bar.baz.prop2
  * // the input should be:
  * let path = ['foo', 'bar', 'baz'];
- * let changedKeys = ['prop1', 'prop2'];
+ * let changedKey = 'prop1';
  *
- * // the resulting list should be:
+ * // the resulting changelist should be:
  * let result = constructChangedKeys(path, changedKeys);
  * // result is:
- * // ['foo', ['bar', ['baz', 'prop1', 'prop2']]]
+ * // {
+ * //   foo: {
+ * //     bar: {
+ * //       baz: {
+ * //         prop1: true,
+ * //       },
+ * //     },
+ * //   },
+ * // }
  * ```
- *
- * In case of empty path (when the changed properties belong to the top model),
- * the result is just the list of changed keys.
- *
- * See `merge` function for detailed explanation of the list structure.
  */
-function constructChangedKeys(path, changedKeys) {
-  let result = changedKeys;
+function constructChangedKey(path, changedKey) {
+  let result = Object.create(null);
+  result[changedKey] = true;
   for (let i = path.length - 1; i >= 0; i--) {
-    result = [[].concat(path[i], result)];
+    let nestedKeys = result;
+    result = Object.create(null);
+    result[path[i]] = nestedKeys;
   }
   return result;
 }
@@ -317,10 +321,23 @@ export default class MegamorphicModel extends Ember.Object {
    * Iterates over the given list of changed properties and correctly invalidates their value on
    * model object.
    *
-   * The input list can indicate changes to nested hashes using nested lists as documented in the
-   * `merge` function.
+   * Note: the `changedKeys` is a hash, where each key represent a changed property while the value
+   * contains either `true` or another hash, describing changed to embedded objects. For example:
+   *
+   * ```
+   * {
+   *    foo: true,
+   *    bar: {
+   *      baz: true,
+   *    }
+   * }
+   * ```
+   * represents changes to the following paths:
+   * - `foo`
+   * - `bar.baz`
    */
-  _notifyProperties(keys) {
+  _notifyProperties(changedKeys) {
+    let keys = Object.keys(changedKeys);
     if (!keys.length) {
       // the `for` loop below will handle it for us, but we don't want to read the _baseModel
       // unnecessary
@@ -331,11 +348,6 @@ export default class MegamorphicModel extends Ember.Object {
       let internalModel = this._baseModel ? this._baseModel._internalModel : this._internalModel;
       for (let i = 0, length = keys.length; i < length; i++) {
         key = keys[i];
-        let nestedKeys;
-        if (Array.isArray(key)) {
-          nestedKeys = key.slice(1);
-          key = key[0];
-        }
         if (!this._schema.isAttributeIncluded(this._modelName, key)) {
           // keys, which are not white-listed are ignored for projections
           continue;
@@ -348,6 +360,8 @@ export default class MegamorphicModel extends Ember.Object {
         let newIsObject = isObject(newValue);
 
         if (oldWasModel && newIsObject) {
+          let nestedKeys = changedKeys[key];
+          assert('Changes to existing nested models must always be accommpanied by nested changed keys', nestedKeys !== true);
           oldValue._didReceiveNestedProperties(internalModel._data[key], nestedKeys);
         } else if (oldIsRecordArray) {
           let internalModels = resolveRecordArrayInternalModels(
@@ -361,13 +375,13 @@ export default class MegamorphicModel extends Ember.Object {
         }
       }
       // Inside the same property change transaction
-      this._notifyProjections(keys);
+      this._notifyProjections(changedKeys);
     });
   }
 
   _didReceiveNestedProperties(data, changedKeys) {
     this._internalModel._data = data;
-    if (changedKeys.length > 0) {
+    if (Object.keys(changedKeys).length > 0) {
       this._notifyProperties(changedKeys);
     }
   }
@@ -520,7 +534,7 @@ export default class MegamorphicModel extends Ember.Object {
         return;
       }
 
-      let changedKeys = constructChangedKeys(this._path, [key]);
+      let changedKeys = constructChangedKey(this._path, key);
       topBaseModel._notifyProperties(changedKeys);
     });
   }
