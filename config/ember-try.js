@@ -1,6 +1,6 @@
 /* eslint-env node */
 module.exports = {
-	useYarn: true,
+  useYarn: true,
   scenarios: [
     {
       name: 'ember-lts-2.16',
@@ -36,9 +36,17 @@ module.exports = {
     },
     {
       name: 'ember-canary',
+      bower: {
+        dependencies: {
+          'ember': 'components/ember#canary'
+        },
+        resolutions: {
+          'ember': 'canary'
+        }
+      },
       npm: {
         devDependencies: {
-          'ember-source': 'git:emberjs/ember.js'
+          'ember-source': null
         }
       }
     },
