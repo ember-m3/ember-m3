@@ -42,43 +42,25 @@ export function isObject(value) {
  * If a property is available only `data` and not in the `updates`, then the
  * value in data is left intact.
  *
- * After the updates are merged, the function returns the list of changed
- * properties in the existing data hash.
- *
- * The changed properties in a nested hash are represented as
- * an array, whose first element is the name of the property, holding the
- * the nested hash value and the rest of the elements are the changed
- * properties in the nested hash.
- *
- * For example:
- * ```javascript
- * let data = {
- *   foo: 1,
- *   bar: {
- *     baz: 1,
- *   },
- * };
- * let updates = {
- *   foo: 2,
- *   bar: {
- *     baz: 2,
- *   },
- * };
+ * After the updates are merged, the function returns a hash of the changed
+ * properties in the existing data hash. Each key in the resulting hash
+ * indicates a property changed on the data. The corresponding value can be
+ * either `true` or another hash, which describes changes to a nested
+ * model, e.g.:
  * ```
- * The list of changed properties will be:
- *
- *    `['foo', ['bar', 'baz']]`
- *
- * This structure is recursive, e.g. if `baz` is a hash with changed properties,
- * it will be represented as an array as well:
- *
- *   `['foo', ['bar', ['baz', 'bazChangedProperty']]]`
- *
- * If a hash is replaced with a non-hash value, then the whole property is
- * considered changed and no changes for the nested properties are sent.
+ * {
+ *    foo: true,
+ *    bar: {
+ *      baz: true,
+ *    },
+ * }
+ * ```
+ * Indicates changes to the following paths:
+ * - `foo`
+ * - `bar.baz`
  */
 export function merge(data, updates) {
-  let changedKeys = [];
+  let changedKeys = Object.create(null);
   if (!updates) {
     // no changes
     return changedKeys;
@@ -95,12 +77,12 @@ export function merge(data, updates) {
     if (data[key] == null || newValue == null) {
       // reseting a value to null or assigning a value for first time can be handled for all cases
       data[key] = newValue;
-      changedKeys.push(key);
+      changedKeys[key] = true;
       continue;
     }
     if (Array.isArray(newValue)) {
       data[key] = newValue;
-      changedKeys.push(key);
+      changedKeys[key] = true;
       continue;
     }
     // only recursively merge if both new and old values are objects
@@ -108,13 +90,13 @@ export function merge(data, updates) {
       // it's an object, check for recursion
       // TODO Optimize the checks here
       let nestedChanges = merge(data[key], newValue);
-      if (nestedChanges.length) {
-        changedKeys.push([key].concat(nestedChanges));
+      if (Object.keys(nestedChanges).length > 0) {
+        changedKeys[key] = nestedChanges;
       }
       continue;
     }
     // the most straight forward case
-    changedKeys.push(key);
+    changedKeys[key] = true;
     data[key] = newValue;
   }
   return changedKeys;
