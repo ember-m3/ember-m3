@@ -290,15 +290,17 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   get _modelName() {
-    return this.__internalModel.modelName;
+    return this._internalModel.modelName;
   }
 
-  get _internalModel() {
-    return this.baseModel ? this.baseModel._internalModel : this.__internalModel;
+  get _data() {
+    let internalModel = this._baseModel ? this._baseModel._internalModel : this._internalModel;
+    return internalModel._data;
   }
 
-  set _internalModel(internalModel) {
-    this.__internalModel = internalModel;
+  set _data(data) {
+    let internalModel = this._baseModel ? this._baseModel._internalModel : this._internalModel;
+    internalModel._data = data;
   }
 
   __defineNonEnumerable(property) {
@@ -353,7 +355,7 @@ export default class MegamorphicModel extends Ember.Object {
     }
     changeProperties(() => {
       let key;
-      let internalModel = this._baseModel ? this._baseModel._internalModel : this._internalModel;
+      let data = this._data;
       for (let i = 0, length = keys.length; i < length; i++) {
         key = keys[i];
         if (!this._schema.isAttributeIncluded(this._modelName, key)) {
@@ -361,7 +363,7 @@ export default class MegamorphicModel extends Ember.Object {
           continue;
         }
         let oldValue = this._cache[key];
-        let newValue = internalModel._data[key];
+        let newValue = data[key];
 
         let oldIsRecordArray = oldValue && oldValue instanceof M3RecordArray;
         let oldWasModel = oldValue && oldValue instanceof EmbeddedMegamorphicModel;
@@ -370,7 +372,7 @@ export default class MegamorphicModel extends Ember.Object {
         if (oldWasModel && newIsObject) {
           let nestedKeys = changedKeys[key];
           assert('Changes to existing nested models must always be accommpanied by nested changed keys', nestedKeys !== true);
-          oldValue._didReceiveNestedProperties(internalModel._data[key], nestedKeys);
+          oldValue._didReceiveNestedProperties(data[key], nestedKeys);
         } else if (oldIsRecordArray) {
           let internalModels = resolveRecordArrayInternalModels(
             key, newValue, this._modelName, this._store, this._schema
@@ -388,14 +390,14 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   _didReceiveNestedProperties(data, changedKeys) {
-    this._internalModel._data = data;
+    this._data = data;
     if (Object.keys(changedKeys).length > 0) {
       this._notifyProperties(changedKeys);
     }
   }
 
   _changedKeys(data) {
-    return merge(this._internalModel._data, data);
+    return merge(this._data, data);
   }
 
   changedAttributes() {
@@ -412,18 +414,18 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   debugJSON() {
-    return this._internalModel._data;
+    return this._data;
   }
 
   eachAttribute(callback, binding) {
-    if (!this._internalModel._data) {
+    if (!this._data) {
       // see #14
       return;
     }
 
     // Properties in `data` are treated as attributes for serialization purposes
     // if the schema does not consider them references
-    Object.keys(this._internalModel._data).forEach(callback, binding);
+    Object.keys(this._data).forEach(callback, binding);
   }
 
   unloadRecord() {
@@ -531,7 +533,7 @@ export default class MegamorphicModel extends Ember.Object {
       if (this._schema.isAttributeArrayReference(key, value, this._modelName)) {
         this._setRecordArray(key, value);
       } else {
-        this._internalModel._data[key] = value;
+        this._data[key] = value;
         delete this._cache[key];
       }
 
@@ -555,7 +557,7 @@ export default class MegamorphicModel extends Ember.Object {
       // TODO: should have a schema hook for this
       ids[i] = get(models.objectAt(i), 'id');
     }
-    this._internalModel._data[key] = ids;
+    this._data[key] = ids;
 
     if (key in this._cache) {
       let recordArray = this._cache[key];
@@ -573,6 +575,7 @@ export default class MegamorphicModel extends Ember.Object {
 }
 
 MegamorphicModel.prototype.store = null;
+MegamorphicModel.prototype._internalModel = null;
 MegamorphicModel.prototype._parentModel = null;
 MegamorphicModel.prototype._topModel = null;
 MegamorphicModel.prototype._path = null;
