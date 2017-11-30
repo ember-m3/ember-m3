@@ -3,6 +3,14 @@ export class SchemaManager {
     this.schema = null;
   }
 
+  computeBaseModelName(projectionModelName) {
+    if (!this.schema || typeof this.schema.computeBaseModelName !== 'function') {
+      return;
+    }
+
+    return this.schema.computeBaseModelName(projectionModelName);
+  }
+
   computeAttributeReference(key, value, modelname) {
     return this.schema.computeAttributeReference(key, value, modelname);
   }

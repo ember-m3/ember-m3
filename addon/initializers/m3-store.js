@@ -8,6 +8,8 @@ import SchemaManager from '../schema-manager';
 import QueryCache from '../query-cache';
 
 const { assign, isEqual } = Ember;
+const { dasherize } = Ember.String;
+const EmptyState = new InternalModel().currentState;
 
 // TODO: this is a stopgap.  We want to replace this with a public
 // DS.Model/Schema API
@@ -22,6 +24,47 @@ export function extendStore(Store) {
 
     _hasModelFor(modelName) {
       return SchemaManager.includesModel(modelName) || this._super(modelName);
+    },
+
+    /*
+      This is a temporary method that mimics
+      what will eventually become the `store.preloadData()` API
+      in intent (e.g. it pushes data into the store without marking
+      it as loaded).
+
+      This is here only until we are able to directly work off of the model-data branches
+      of ember-data and ember-m3.
+     */
+    preloadData(document) {
+      let { data, included } = document;
+
+      if (Array.isArray(included)) {
+        for (let i = 0; i < included.length; i++) {
+          this._preloadSingleResource(included[i]);
+        }
+      }
+
+      if (Array.isArray(data)) {
+        for (let i = 0; i < data.length; i++) {
+          this._preloadSingleResource(data[i]);
+        }
+      } else if (typeof data === 'object' && data !== null) {
+        this._preloadSingleResource(data);
+      }
+    },
+
+    _preloadSingleResource(data) {
+      let modelName = dasherize(data.type);
+      let internalModel = this._internalModelForId(modelName, data.id);
+      let isUpdate = internalModel.currentState.isEmpty === false;
+
+      internalModel.setupData(data);
+
+      if (isUpdate === true) {
+        this.recordArrayManager.recordDidChange(internalModel);
+      } else {
+        internalModel.currentState = EmptyState;
+      }
     },
 
     modelFactoryFor(modelName) {
@@ -57,11 +100,15 @@ export function extendStore(Store) {
       return this._queryCache.contains(cacheKey);
     },
 
-    _pushInternalModel(jsonAPIResource) {
-      let internalModel = this._super(jsonAPIResource);
-      if (SchemaManager.includesModel(jsonAPIResource.type)) {
+    _pushInternalModel(JSONAPIResource) {
+      let internalModel = this._super(JSONAPIResource);
+
+      // TODO Fix the handling of the m3 global cache to correctly handle projected types
+      // the cache must work only for
+      if (SchemaManager.includesModel(JSONAPIResource.type)) {
         this._globalM3Cache[internalModel.id] = internalModel;
       }
+
       return internalModel;
     },
 
@@ -69,7 +116,7 @@ export function extendStore(Store) {
       delete this._globalM3Cache[internalModel.id];
       return this._super(internalModel);
     },
-  })
+  });
 }
 
 export function extendDataAdapter(DataAdapter) {
@@ -109,7 +156,7 @@ export function extendInternalModel() {
     if (this.hasRecord) {
       this._record._notifyProperties(changedKeys);
     }
-  }
+  };
 
   InternalModel.prototype._changedKeys = function monkeyPatchedChangedKeys(updates) {
     if (this.hasRecord && typeof this._record._changedKeys === 'function') {
@@ -150,7 +197,7 @@ export function extendInternalModel() {
     }
 
     return changedKeys;
-  }
+  };
 
   InternalModel.prototype.adapterDidCommit = function monkeyPatchedAdapterDidCommit(data) {
     if (data) {
@@ -175,7 +222,8 @@ export function extendInternalModel() {
     if (!data) { return; }
 
     this._record._notifyProperties(changedKeys);
-  }
+  };
+
   InternalModel.prototype._assignAttributes = function monkeyPatched_assignAttributes(attributes) {
     if (this.hasRecord && typeof this._record._assignAttributes === 'function') {
       return this._record._assignAttributes(attributes);
