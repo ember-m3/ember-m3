@@ -14,21 +14,22 @@ class PageObject {
 
 class CommentOnPage extends PageObject {
   body() {
-    return this.$('.comment-body').
-      text().
-      replace(/\s+/g, ' ').
-      replace(/^\s*/, '').
-      replace(/\s*$/, '');
+    return this.$('.comment-body')
+      .text()
+      .replace(/\s+/g, ' ')
+      .replace(/^\s*/, '')
+      .replace(/\s*$/, '');
   }
 
   parts() {
-    return this.$('.comment-parts li').
-      map((x,y) => self.jQuery(y).text()).
-      toArray().
-      map(x =>
-        x.replace(/\s+/g, ' ').
-        replace(/^\s*/, '').
-        replace(/\s*$/, '')
+    return this.$('.comment-parts li')
+      .map((x, y) => self.jQuery(y).text())
+      .toArray()
+      .map(x =>
+        x
+          .replace(/\s+/g, ' ')
+          .replace(/^\s*/, '')
+          .replace(/\s*$/, '')
       );
   }
 }
@@ -51,9 +52,9 @@ class BookOnPage extends PageObject {
   }
 
   comments() {
-    return this.$('ul.comments > li').
-      toArray().
-      map(x => new CommentOnPage({ scope: x }));
+    return this.$('ul.comments > li')
+      .toArray()
+      .map(x => new CommentOnPage({ scope: x }));
   }
 }
 
@@ -68,10 +69,9 @@ export default class IndexPage extends PageObject {
     visit('/');
   }
 
-
   books() {
-    return this.$('ul.books > li').
-      toArray().
-      map(x => new BookOnPage({ scope: x }));
+    return this.$('ul.books > li')
+      .toArray()
+      .map(x => new BookOnPage({ scope: x }));
   }
 }

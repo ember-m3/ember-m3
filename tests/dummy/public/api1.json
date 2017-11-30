@@ -7,11 +7,13 @@
       "topReviewer": "urn:reviewer:3"
     }
   },
-  "included": [{
-    "id": "urn:reviewer:3",
-    "type": "com.example.bookstore.Reviewer",
-    "attributes": {
-      "name": "Booky McBookreviewer"
+  "included": [
+    {
+      "id": "urn:reviewer:3",
+      "type": "com.example.bookstore.Reviewer",
+      "attributes": {
+        "name": "Booky McBookreviewer"
+      }
     }
-  }]
+  ]
 }

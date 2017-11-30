@@ -69,7 +69,7 @@ export function extendStore(Store) {
       delete this._globalM3Cache[internalModel.id];
       return this._super(internalModel);
     },
-  })
+  });
 }
 
 export function extendDataAdapter(DataAdapter) {
@@ -77,7 +77,7 @@ export function extendDataAdapter(DataAdapter) {
     getModelTypes() {
       return this._super(...arguments).concat({
         klass: MegamorphicModel,
-        name: '-ember-m3'
+        name: '-ember-m3',
       });
     },
 
@@ -86,7 +86,7 @@ export function extendDataAdapter(DataAdapter) {
         return MegamorphicModel;
       }
       return this._super(...arguments);
-    }
+    },
   });
 }
 
@@ -94,7 +94,11 @@ export function extendInternalModel() {
   // Apply https://github.com/emberjs/data/pull/5133
 
   InternalModel.prototype.setupData = function monkeyPatchedSetupData(data) {
-    this.store._internalModelDidReceiveRelationshipData(this.modelName, this.id, data.relationships);
+    this.store._internalModelDidReceiveRelationshipData(
+      this.modelName,
+      this.id,
+      data.relationships
+    );
 
     let changedKeys;
 
@@ -109,9 +113,11 @@ export function extendInternalModel() {
     if (this.hasRecord) {
       this._record._notifyProperties(changedKeys);
     }
-  }
+  };
 
-  InternalModel.prototype._changedKeys = function monkeyPatchedChangedKeys(updates) {
+  InternalModel.prototype._changedKeys = function monkeyPatchedChangedKeys(
+    updates
+  ) {
     if (this.hasRecord && typeof this._record._changedKeys === 'function') {
       return this._record._changedKeys(updates);
     }
@@ -125,7 +131,7 @@ export function extendInternalModel() {
       let hasAttrs = this.hasChangedAttributes();
       let attrs;
       if (hasAttrs) {
-        attrs= this._attributes;
+        attrs = this._attributes;
       }
 
       original = assign(Object.create(null), this._data);
@@ -150,11 +156,17 @@ export function extendInternalModel() {
     }
 
     return changedKeys;
-  }
+  };
 
-  InternalModel.prototype.adapterDidCommit = function monkeyPatchedAdapterDidCommit(data) {
+  InternalModel.prototype.adapterDidCommit = function monkeyPatchedAdapterDidCommit(
+    data
+  ) {
     if (data) {
-      this.store._internalModelDidReceiveRelationshipData(this.modelName, this.id, data.relationships);
+      this.store._internalModelDidReceiveRelationshipData(
+        this.modelName,
+        this.id,
+        data.relationships
+      );
 
       data = data.attributes;
     }
@@ -172,16 +184,23 @@ export function extendInternalModel() {
     this.send('didCommit');
     this.updateRecordArrays();
 
-    if (!data) { return; }
+    if (!data) {
+      return;
+    }
 
     this._record._notifyProperties(changedKeys);
-  }
-  InternalModel.prototype._assignAttributes = function monkeyPatched_assignAttributes(attributes) {
-    if (this.hasRecord && typeof this._record._assignAttributes === 'function') {
+  };
+  InternalModel.prototype._assignAttributes = function monkeyPatched_assignAttributes(
+    attributes
+  ) {
+    if (
+      this.hasRecord &&
+      typeof this._record._assignAttributes === 'function'
+    ) {
       return this._record._assignAttributes(attributes);
     }
     assign(this._data, attributes);
-  }
+  };
 }
 
 export function initialize() {

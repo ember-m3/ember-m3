@@ -5,11 +5,10 @@ const { get, RSVP: { resolve } } = Ember;
 import MegamorphicModel from './model';
 import M3RecordArray from './record-array';
 
-
 function stripSlash(str, stripLeading, stripTrailing) {
   let startSlash = stripLeading && str.charAt(0) === '/';
   let endSlash = stripTrailing && str.charAt(str.length - 1) === '/';
-  return str.slice(startSlash ? 1 : 0, endSlash ? - 1 : str.length);
+  return str.slice(startSlash ? 1 : 0, endSlash ? -1 : str.length);
 }
 
 export default class QueryCache {
@@ -21,7 +20,17 @@ export default class QueryCache {
     this.__adapter = null;
   }
 
-  queryURL(url, { params=null, method='GET', cacheKey=null, reload=false, backgroundReload=false }={}, array) {
+  queryURL(
+    url,
+    {
+      params = null,
+      method = 'GET',
+      cacheKey = null,
+      reload = false,
+      backgroundReload = false,
+    } = {},
+    array
+  ) {
     let options = {};
     if (params) {
       options.data = params;
@@ -32,20 +41,28 @@ export default class QueryCache {
     let loadPromise;
 
     if (backgroundReload || reload || cachedValue === undefined) {
-      loadPromise = this._adapter.ajax(
-        adapterUrl,
-        method,
-        options
-      ).then(rawPayload => {
-        let serializer = this._store.serializerFor('-ember-m3');
-        let payload = serializer.normalizeResponse(this._store, MegamorphicModel, rawPayload, cacheKey, 'query-url');
-        let result = this._createResult(payload, { url, params, method, cacheKey }, array);
+      loadPromise = this._adapter
+        .ajax(adapterUrl, method, options)
+        .then(rawPayload => {
+          let serializer = this._store.serializerFor('-ember-m3');
+          let payload = serializer.normalizeResponse(
+            this._store,
+            MegamorphicModel,
+            rawPayload,
+            cacheKey,
+            'query-url'
+          );
+          let result = this._createResult(
+            payload,
+            { url, params, method, cacheKey },
+            array
+          );
 
-        if (cacheKey) {
-          this._addResultToCache(result, cacheKey);
-        }
-        return result;
-      });
+          if (cacheKey) {
+            this._addResultToCache(result, cacheKey);
+          }
+          return result;
+        });
     }
 
     if (reload || cachedValue === undefined) {
@@ -58,9 +75,11 @@ export default class QueryCache {
   unloadRecord(record) {
     let { id } = record;
     let matchingQueryCacheKeys = this._reverseQueryCache[id];
-    if (!matchingQueryCacheKeys) { return; }
+    if (!matchingQueryCacheKeys) {
+      return;
+    }
 
-    for (let i=0; i<matchingQueryCacheKeys.length; ++i) {
+    for (let i = 0; i < matchingQueryCacheKeys.length; ++i) {
       let invalidatedCacheKey = matchingQueryCacheKeys[i];
       delete this._queryCache[invalidatedCacheKey];
     }
@@ -105,7 +124,11 @@ export default class QueryCache {
       // if we have a host we'll get '/' from joining, otherwise if we're
       // producing only a path respect whatever the namespace is configured as
       let stripLeadingSlash = parts.length > 0;
-      namespace = stripSlash(get(this._adapter, 'namespace') || '', stripLeadingSlash, true);
+      namespace = stripSlash(
+        get(this._adapter, 'namespace') || '',
+        stripLeadingSlash,
+        true
+      );
       if (namespace.length > 0) {
         parts.push(namespace);
       }
@@ -130,7 +153,11 @@ export default class QueryCache {
         // request to make.  We could just make a relative request but then it
         // will resolved relative to either the base href (if a BASE tag is
         // present) or the current `location.pathname`
-        throw new Error(`store.queryURL('${url}') is invalid.  Absolute paths are required.  Either add a 'host' or 'namespace' property to your -ember-m3 adapter or call 'queryURL' with an absolute path.`);
+        throw new Error(
+          `store.queryURL('${
+            url
+          }') is invalid.  Absolute paths are required.  Either add a 'host' or 'namespace' property to your -ember-m3 adapter or call 'queryURL' with an absolute path.`
+        );
       }
     }
     return url;
@@ -153,7 +180,7 @@ export default class QueryCache {
     this._queryCache[cacheKey] = result;
 
     if (result.constructor === M3RecordArray) {
-      for (let i=0; i<result.content.length; ++i) {
+      for (let i = 0; i < result.content.length; ++i) {
         this._addRecordToReverseCache(result.content[i], cacheKey);
       }
     } else {
@@ -162,7 +189,8 @@ export default class QueryCache {
   }
 
   _addRecordToReverseCache({ id }, cacheKey) {
-    let cacheKeys = this._reverseQueryCache[id] = this._reverseQueryCache[id] || [];
+    let cacheKeys = (this._reverseQueryCache[id] =
+      this._reverseQueryCache[id] || []);
     // no need to check for presence as we're only here b/c of a cache miss
     cacheKeys.push(cacheKey);
   }
@@ -186,7 +214,9 @@ export default class QueryCache {
   }
 
   get _adapter() {
-    return this.__adapter || (this.__adapter = this._store.adapterFor('-ember-m3'));
+    return (
+      this.__adapter || (this.__adapter = this._store.adapterFor('-ember-m3'))
+    );
   }
 
   toString() {

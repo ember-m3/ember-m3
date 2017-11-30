@@ -26,14 +26,18 @@ export class SchemaManager {
 
   getDefaultValue(modelName, keyName) {
     let defaults = this._modelSchemaProperty(modelName, 'defaults');
-    if (!defaults) { return; }
+    if (!defaults) {
+      return;
+    }
 
     return defaults[keyName];
   }
 
   getAttributeAlias(modelName, attrName) {
     let aliases = this._modelSchemaProperty(modelName, 'aliases');
-    if (!aliases) { return; }
+    if (!aliases) {
+      return;
+    }
 
     return aliases[attrName];
   }
