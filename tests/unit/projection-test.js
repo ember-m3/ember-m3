@@ -1458,11 +1458,9 @@ module('unit/projection', function(hooks) {
 
   skip(`Updates to a projection's non-whitelisted attributes do not cause a projection to be dirtied`, function() {});
 
-  skip(`Unloading a projection does not unload the base-record`, function() {});
-  skip(`Unloading the base-record does not unload the projection`, function() {});
-
-  module('deleting records', function(hooks) {
+  module('unloading/deleting records', function(hooks) {
     const BOOK_ID = 'isbn:123';
+    const BOOK_TITLE = 'Alice in Wonderland';
 
     hooks.beforeEach(function() {
       let { store } = this;
@@ -1478,7 +1476,9 @@ module('unit/projection', function(hooks) {
           data: {
             id: BOOK_ID,
             type: BOOK_CLASS_PATH,
-            attributes: {},
+            attributes: {
+              title: BOOK_TITLE
+            },
           }
         });
       });
@@ -1546,6 +1546,53 @@ module('unit/projection', function(hooks) {
           assert.equal(get(projectedExcerpt, 'isDirty'), false, 'Expected the other projection record to have been committed');
         });
       });
+    });
+
+
+    skip(`Unloading a projection does not unload the base-record and other projections`, function(assert) {
+      let { baseRecord, projectedPreview, projectedExcerpt } = this.records;
+
+      run(() => {
+        projectedPreview.unloadRecord();
+      });
+
+      // projectedPreview has been unloaded
+      assert.equal(this.store.hasRecordForId(projectedPreview, BOOK_ID), false);
+      assert.equal(get(projectedPreview, 'isDestroyed'), true);
+
+      // baseRecord is still around
+      assert.equal(this.store.hasRecordForId(baseRecord, BOOK_ID), true);
+      assert.equal(get(baseRecord, 'isDestroyed'), false);
+      // TODO How can we check whether the underlying structure were not destroyed in the case of unload
+      // Functionality can continue to work even in case of a bug
+      assert.equal(get(baseRecord, '_internalModel.isDestroyed'), false);
+      assert.equal(get(baseRecord, 'title'), BOOK_TITLE);
+
+      // projectedExcerpt is still arond
+      assert.equal(this.store.hasRecordForId(projectedExcerpt, BOOK_ID), true);
+      assert.equal(get(projectedExcerpt, 'isDestroyed'), false);
+      assert.equal(get(projectedExcerpt, '_internalModel.isDestroyed'), false);
+      assert.equal(get(projectedExcerpt, 'title'), BOOK_TITLE);
+    });
+
+    skip(`Unloading the base-record does not unload the projection`, function(assert) {
+      let { baseRecord, projectedPreview } = this.records;
+
+      run(() => {
+        baseRecord.unloadRecord();
+      });
+
+      // baseRecord has been unloaded
+      assert.equal(this.store.hasRecordForId(baseRecord, BOOK_ID), false);
+      assert.equal(get(baseRecord, 'isDestroyed'), true);
+
+      // projectedPreview is still around
+      assert.equal(this.store.hasRecordForId(projectedPreview, BOOK_ID), true);
+      assert.equal(get(projectedPreview, 'isDestroyed'), false);
+      // TODO How can we check whether the underlying structure were not destroyed in the case of unload
+      // Functionality can continue to work even in case of a bug
+      assert.equal(get(projectedPreview, '_internalModel.isDestroyed'), false);
+      assert.equal(get(projectedPreview, 'title'), BOOK_TITLE);
     });
   });
 
