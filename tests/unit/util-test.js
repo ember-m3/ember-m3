@@ -1,6 +1,6 @@
 import Ember from 'ember';
 import { module, test } from 'qunit';
-import { merge, isObject } from 'ember-m3/util';
+import { merge, isEmbeddedObject } from 'ember-m3/util';
 
 const { assign } = Ember;
 
@@ -131,13 +131,13 @@ module('unit/util', function() {
     assert.deepEqual(changedKeys, expectedChangedKeys);
   });
 
-  test('isObject should correctly return true/false', function(assert) {
-    assert.equal(isObject(undefined), false);
-    assert.equal(isObject(null), false);
-    assert.equal(isObject([]), false);
-    assert.equal(isObject(1), false);
-    assert.equal(isObject(''), false);
-    assert.equal(isObject({}), true);
-    assert.equal(isObject(new Date()), true);
+  test('isEmbeddedObject should correctly return true/false', function(assert) {
+    assert.equal(isEmbeddedObject(undefined), false);
+    assert.equal(isEmbeddedObject(null), false);
+    assert.equal(isEmbeddedObject([]), false);
+    assert.equal(isEmbeddedObject(1), false);
+    assert.equal(isEmbeddedObject(''), false);
+    assert.equal(isEmbeddedObject({}), true);
+    assert.equal(isEmbeddedObject(new Date()), true);
   });
 });

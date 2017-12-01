@@ -25,7 +25,7 @@ export const OWNER_KEY = (function() {
   }
 })();
 
-export function isObject(value) {
+export function isEmbeddedObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
@@ -75,7 +75,7 @@ export function merge(data, updates) {
       continue;
     }
     // only recursively merge if both new and old values are objects
-    if (isObject(newValue) && isObject(data[key])) {
+    if (isEmbeddedObject(newValue) && isEmbeddedObject(data[key])) {
       // it's an object, check for recursion
       // TODO Optimize the checks here
       let nestedChanges = merge(data[key], newValue);
