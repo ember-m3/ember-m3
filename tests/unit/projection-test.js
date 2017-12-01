@@ -1594,6 +1594,8 @@ module('unit/projection', function(hooks) {
       assert.equal(get(projectedPreview, '_internalModel.isDestroyed'), false);
       assert.equal(get(projectedPreview, 'title'), BOOK_TITLE);
     });
+
+    skip('Projection list is cleaned up after all projections have been unloaded', function() {});
   });
 
   // TL;DR we can only proxy something that has an ID
