@@ -5,7 +5,7 @@ import {
 } from 'ember-qunit';
 import { start } from 'ember-cli-qunit';
 
-Ember.Test.adapter.exception = (reason) => { throw reason; };
+Ember.Test.Adapter.exception = (reason) => { throw reason; };
 
 setResolver(resolver);
 start();
