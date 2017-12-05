@@ -214,7 +214,6 @@ export default class MegamorphicModel extends Ember.Object {
     super.init(...arguments);
     this._store = properties.store;
     this._internalModel = properties._internalModel;
-    this.id = this._internalModel.id;
     this._cache = Object.create(null);
     this._schema = SchemaManager;
 
@@ -410,6 +409,19 @@ export default class MegamorphicModel extends Ember.Object {
     return (this._cache[key] = resolveValue(key, value, this._modelName, this._store, this._schema, this));
   }
 
+  get id() {
+    return this._internalModel.id;
+  }
+
+  set id(value) {
+    if (!this._init) {
+      this._internalModel.id = value;
+      return;
+    }
+
+    throw new Error(`You tried to set 'id' to '${value}' for '${this._modelName}' but records can only set their ID by providing it to store.createRecord()`);
+  }
+
   // TODO: drop change events for unretrieved properties
   setUnknownProperty(key, value) {
     if (key === OWNER_KEY) {
@@ -472,7 +484,6 @@ MegamorphicModel.prototype.store = null;
 MegamorphicModel.prototype._internalModel = null;
 MegamorphicModel.prototype._parentModel = null;
 MegamorphicModel.prototype._topModel = null;
-MegamorphicModel.prototype.id = null;
 MegamorphicModel.prototype.currentState = null;
 MegamorphicModel.prototype.isError = null;
 MegamorphicModel.prototype.adapterError = null;
