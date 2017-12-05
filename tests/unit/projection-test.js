@@ -1598,9 +1598,206 @@ module('unit/projection', function(hooks) {
     skip('Projection list is cleaned up after all projections have been unloaded', function() {});
   });
 
-  // TL;DR we can only proxy something that has an ID
-  skip(`Saving a newly created projection doesn't mess up the state of the base record`, function() {});
+  module('creating/updating projections', function() {
+    const BOOK_ID = 'isbn:123';
+    const BOOK_TITLE_1 = 'Alice in Wonderland';
+    const BOOK_TITLE_2 = 'Alice Through the Looking Glass';
+    const BOOK_CHAPTER_1 = 'Down the Rabbit-Hole';
+    const BOOK_CHAPTER_2 = 'Looking-Glass House';
 
+    skip('created projections of the same base type are independent', function(assert) {
+      let projectedPreview = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
+        title: BOOK_TITLE_1
+      });
+      let projectedExcerpt = this.store.createRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, {
+        title: BOOK_TITLE_2
+      });
+
+      assert.equal(get(projectedPreview, 'title'), BOOK_TITLE_1, 'Expected title of preview projection to be correct');
+      assert.equal(get(projectedExcerpt, 'title'), BOOK_TITLE_2, 'Expected title of excerpt projection to be correct');
+    });
+
+    skip('created projections of the same base type and ID are linked', function(assert) {
+      let projectedPreview = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
+        id: BOOK_ID,
+        title: BOOK_TITLE_1
+      });
+      let projectedExcerpt = this.store.createRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, {
+        id: BOOK_ID,
+        title: BOOK_TITLE_2,
+      });
+
+      assert.equal(get(projectedPreview, 'title'), BOOK_TITLE_2, 'Expected title of preview projection to be correct');
+      assert.equal(get(projectedExcerpt, 'title'), BOOK_TITLE_2, 'Expected title of excerpt projection to be correct');
+
+      set(projectedExcerpt, 'title', BOOK_TITLE_1);
+
+      assert.equal(get(projectedPreview, 'title'), BOOK_TITLE_1, 'Expected title of preview projection to be updated');
+      assert.equal(get(projectedExcerpt, 'title'), BOOK_TITLE_1, 'Expected title of excerpt projection to be updated');
+    });
+
+    skip('create same projection type and ID is disallowed', function(assert) {
+      this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
+        id: BOOK_ID
+      });
+      assert.throws(() => {
+        this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
+          id: BOOK_ID
+        });
+      }, /exist/, 'Expected create record for same projection and ID to throw an error');
+    });
+
+    skip('create and save projection', function(assert) {
+      let createRecordCalls = 0;
+
+      this.owner.register('adapter:-ember-m3', Ember.Object.extend({
+        createRecord(store, type, snapshot) {
+          createRecordCalls++;
+          // adapters should preload the base data before returning the result
+          store.preloadData({
+            data: {
+              id: BOOK_ID,
+              type: BOOK_CLASS_PATH,
+              attributes: {
+                // ideally, attributes can be empty and the existing ones will be reused?
+              }
+            }
+          });
+
+          // some assertions
+          assert.equal(
+            get(snapshot, 'modelName'),
+            BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+            'Expected createRecord to be called for the projection type'
+          );
+
+          return Promise.resolve({
+            data: {
+              id: BOOK_ID,
+              type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+            }
+          });
+        }
+      }));
+
+      let projectedPreview = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
+        title: BOOK_TITLE_1,
+      });
+
+      return projectedPreview.save().then(() => {
+        assert.equal(get(projectedPreview, 'isNew'), false, 'Expected the projection to be marked as saved');
+        assert.equal(get(projectedPreview, 'id'), BOOK_ID, 'Expected the new record to have picked up the returned ID');
+        assert.equal(createRecordCalls, 1, 'Expected `createRecord` to have been called exactly once.');
+      });
+    });
+
+    skip('projection is linked after save and subsequent update', function(assert) {
+      this.owner.register('adapter:-ember-m3', Ember.Object.extend({
+        createRecord() {
+          this.store.preloadData({
+            data: {
+              id: BOOK_ID,
+              type: BOOK_CLASS_PATH,
+              attributes: {}
+            }
+          });
+          return Promise.resolve({
+            data: {
+              id: BOOK_ID,
+              type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+            }
+          });
+        }
+      }));
+
+      let projectedPreview = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
+        title: BOOK_TITLE_1,
+      });
+
+      run(() => {
+        projectedPreview.save();
+      });
+
+      // instead of involving adapter, just push the data and check things were correctly updated
+      run(() => {
+        this.store.preloadData({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              title: BOOK_TITLE_2
+            },
+          },
+        });
+        this.store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {}
+          }
+        });
+      });
+
+      assert.equal(get(projectedPreview, 'title'), BOOK_TITLE_2, 'Expected preview projection to have received updated title');
+    });
+
+    skip('update and save of a projection does not touch non-whitelisted properties', function(assert) {
+      let updateRecordCalls = 0;
+      this.owner.register('adapter:-ember-m3', Ember.Object.extend({
+        updateRecord(store, type, snapshot) {
+          updateRecordCalls++;
+
+          assert.equal(
+            get(snapshot, 'modelName'),
+            BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            'Expected update request to be made for the projection'
+          );
+
+          return Promise.resolve();
+        }
+      }));
+
+      let baseModel = run(() => {
+        return this.store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              title: BOOK_TITLE_1,
+              chapter: BOOK_CHAPTER_1,
+            },
+          }
+        });
+      });
+      let projectedExcerpt = run(() => {
+        return this.store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {}
+          }
+        });
+      });
+
+      run(() => {
+        set(baseModel, 'title', BOOK_TITLE_2);
+        set(baseModel, 'chapter-1', BOOK_CHAPTER_2);
+      });
+
+      assert.equal(get(projectedExcerpt, '_internalModel.currentState.isDirty'), true, 'Expected projection to be made dirty');
+      assert.equal(get(baseModel, '_internalModel.currentState.isDirty'), true, 'Expected base model to be made dirty');
+
+      run(() => {
+        projectedExcerpt.save();
+      });
+
+      assert.equal(updateRecordCalls, 1, 'Expected one updateRecord call to be made');
+      assert.equal(get(projectedExcerpt, '_internalModel.currentState.isDirty'), false, 'The projection should have been saved');
+      assert.equal(get(baseModel, '_internalModel.currentState.isDirty'), true, 'The base model should still be dirty');
+    });
+  });
+
+  skip(`eachAttribute returns only white-listed properties`, function() {});
   skip(`Creating a projection with an unloaded schema`, function() {});
   skip(`Finding a projection with an unloaded schema`, function() {});
   skip(`fetched schemas must be complete (projected types must also be included)`, function() {});
