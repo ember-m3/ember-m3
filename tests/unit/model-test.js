@@ -698,7 +698,7 @@ module('unit/model', function(hooks) {
     );
 
     assert.throws(() => {
-      run(() => { set(model, 'id', 'my-crazy-id') });
+      set(model, 'id', 'my-crazy-id');
     }, /You tried to set 'id' to 'my-crazy-id' for 'com.example.bookstore.book' but records can only set their ID by providing it to store.createRecord\(\)/, 'error to set ID late');
   });
 
