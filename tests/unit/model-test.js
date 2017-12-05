@@ -1,4 +1,4 @@
-import { module, test } from 'qunit';
+import { module, test, skip } from 'qunit';
 import { setupTest }  from 'ember-qunit';
 import sinon from 'sinon';
 
@@ -678,6 +678,26 @@ module('unit/model', function(hooks) {
     );
 
     assert.equal(get(model, 'publisher'), 'Harper Collins, of course', 'specified value transformed');
+  });
+
+  test('early set of an ID to a newly created records is allowed', function(assert) {
+    let model = run(() =>
+      this.store.createRecord('com.example.bookstore.Book', {
+        id: 'my-crazy-id',
+      })
+    );
+
+    assert.equal(get(model, 'id'), 'my-crazy-id', 'init id property set');
+  });
+
+  skip('late set of an ID to a newly created records is not allowed', function(assert) {
+    let model = run(() =>
+      this.store.createRecord('com.example.bookstore.Book', {
+        name: 'Marlborough: His Life and Times',
+      })
+    );
+
+    assert.throws(() => { run(() => { set(model, 'id', 'my-crazy-id') }) }, /You tried to set 'id' to 'my-crazy-id' for 'com.example.bookstore.book' but newly created records can only set their ID by providing it to `createRecord\(\)`/, 'error to set ID late');
   });
 
   // This is unspecified behaviour; unclear if we can do anything sane here
