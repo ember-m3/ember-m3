@@ -1808,12 +1808,6 @@ module('unit/projection', function(hooks) {
       assert.equal(get(baseModel, '_internalModel.currentState.isDirty'), true, 'The base model should still be dirty');
     });
   });
-<<<<<<< 093cbbb25bdfb2a57ae06a44839ab907660e14b0
-=======
-
-  // TL;DR we can only proxy something that has an ID
-  skip(`Saving a newly created projection doesn't mess up the state of the base record`, function() {});
->>>>>>> create and update tests
 
   skip(`eachAttribute returns only white-listed properties`, function() {});
   skip(`Creating a projection with an unloaded schema`, function() {});
