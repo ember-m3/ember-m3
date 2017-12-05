@@ -1598,14 +1598,14 @@ module('unit/projection', function(hooks) {
     skip('Projection list is cleaned up after all projections have been unloaded', function() {});
   });
 
-  module('creating/updating projections', function(hooks) {
+  module('creating/updating projections', function(/*hooks*/) {
     const BOOK_ID = 'isbn:123';
     const BOOK_TITLE_1 = 'Alice in Wonderland';
     const BOOK_TITLE_2 = 'Alice Through the Looking Glass';
     const BOOK_CHAPTER_1 = 'Down the Rabbit-Hole';
     const BOOK_CHAPTER_2 = 'Looking-Glass House';
 
-    skip('created projections of the same base type are independent', function(assert) {
+    skip('independently created projections of the same base-type but no ID do not share their data', function(assert) {
       let projectedPreview = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
         title: BOOK_TITLE_1
       });
@@ -1617,7 +1617,19 @@ module('unit/projection', function(hooks) {
       assert.equal(get(projectedExcerpt, 'title'), BOOK_TITLE_2, 'Expected title of excerpt projection to be correct');
     });
 
-    skip('created projections of the same base type and ID are linked', function(assert) {
+    skip('independently created projections of the same projection-type but no ID do not share their data', function(assert) {
+      let projectedPreview1 = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
+        title: BOOK_TITLE_1
+      });
+      let projectedPreview2 = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
+        title: BOOK_TITLE_2
+      });
+
+      assert.equal(get(projectedPreview1, 'title'), BOOK_TITLE_1, 'Expected title of preview projection to be correct');
+      assert.equal(get(projectedPreview2, 'title'), BOOK_TITLE_2, 'Expected title of the second preview projection to be correct');
+    });
+
+    skip('independently created projections of the same base-type and ID share their data', function(assert) {
       let projectedPreview = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
         id: BOOK_ID,
         title: BOOK_TITLE_1
@@ -1636,7 +1648,7 @@ module('unit/projection', function(hooks) {
       assert.equal(get(projectedExcerpt, 'title'), BOOK_TITLE_1, 'Expected title of excerpt projection to be updated');
     });
 
-    skip('create same projection type and ID is disallowed', function(assert) {
+    skip('independently creating projections of the same projection-type and ID is not allowed', function(assert) {
       this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
         id: BOOK_ID
       });
