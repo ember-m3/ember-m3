@@ -1659,7 +1659,7 @@ module('unit/projection', function(hooks) {
       }, /exist/, 'Expected create record for same projection and ID to throw an error');
     });
 
-    skip('create and save projection', function(assert) {
+    skip('we can create and save a projection', function(assert) {
       let createRecordCalls = 0;
 
       this.owner.register('adapter:-ember-m3', Ember.Object.extend({
@@ -1679,7 +1679,7 @@ module('unit/projection', function(hooks) {
           // some assertions
           assert.equal(
             get(snapshot, 'modelName'),
-            BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+            NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH,
             'Expected createRecord to be called for the projection type'
           );
 
@@ -1703,16 +1703,53 @@ module('unit/projection', function(hooks) {
       });
     });
 
-    skip('projection is linked after save and subsequent update', function(assert) {
+    skip('new projections are correctly cached after save', function(assert) {
       this.owner.register('adapter:-ember-m3', Ember.Object.extend({
-        createRecord() {
-          this.store.preloadData({
+        createRecord(store) {
+          store.preloadData({
             data: {
               id: BOOK_ID,
               type: BOOK_CLASS_PATH,
               attributes: {}
             }
           });
+
+          return Promise.resolve({
+            data: {
+              id: BOOK_ID,
+              type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+            }
+          });
+        }
+      }));
+
+      let projectedPreview = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
+        title: BOOK_TITLE_1,
+      });
+
+      run(() => {
+        projectedPreview.save();
+      });
+
+      let peekedPreview = run(() => {
+        return this.store.peekRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, BOOK_ID);
+      });
+
+      assert.equal(get(peekedPreview, 'title'), BOOK_TITLE_1, 'Empty attributes in the save response preserved our in-flight attributes');
+      assert.ok(projectedPreview === peekedPreview, 'Expected the new preview projection to be in the cache after save');
+    });
+
+    skip('newly created and saved projections can receive updates', function(assert) {
+      this.owner.register('adapter:-ember-m3', Ember.Object.extend({
+        createRecord(store) {
+          store.preloadData({
+            data: {
+              id: BOOK_ID,
+              type: BOOK_CLASS_PATH,
+              attributes: {}
+            }
+          });
+
           return Promise.resolve({
             data: {
               id: BOOK_ID,
@@ -1751,6 +1788,36 @@ module('unit/projection', function(hooks) {
       });
 
       assert.equal(get(projectedPreview, 'title'), BOOK_TITLE_2, 'Expected preview projection to have received updated title');
+    });
+
+    skip('we cannot create a new projection when existing model-data exists', function(assert) {
+      // pre-populate the store with a different projection and base-data for the ID we will attempt to create.
+      run(() => {
+        this.store.preloadData({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              title: BOOK_TITLE_2
+            },
+          },
+        });
+        this.store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {}
+          }
+        });
+      });
+
+      // we want to test this but we may tweak the error thrown once we actually implement.
+      assert.throws(() => {
+        this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
+          id: BOOK_ID,
+          title: BOOK_TITLE_1,
+        });
+      }, /You cannot create a new projection for a pre-existing record/, '[TODO UPDATE THIS ASSERT] We throw the right assertion.');
     });
 
     skip('update and save of a projection does not touch non-whitelisted properties', function(assert) {
