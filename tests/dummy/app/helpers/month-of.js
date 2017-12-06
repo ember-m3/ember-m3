@@ -1,7 +1,7 @@
 import Ember from 'ember';
 
-export function monthOf(params/*, hash*/) {
-  let [ date ] = params;
+export function monthOf(params /*, hash*/) {
+  let [date] = params;
   return date && date.getMonth() + 1;
 }
 

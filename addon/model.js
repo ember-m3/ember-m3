@@ -7,16 +7,18 @@ import M3RecordArray from './record-array';
 import { setDiff, OWNER_KEY } from './util';
 
 const {
-  get, set, isEqual, propertyWillChange, propertyDidChange, computed, A
+  get,
+  set,
+  isEqual,
+  propertyWillChange,
+  propertyDidChange,
+  computed,
+  A,
 } = Ember;
 
 const {
-  deleted: {
-    uncommitted: deletedUncommitted
-  },
-  loaded: {
-    saved: loadedSaved
-  }
+  deleted: { uncommitted: deletedUncommitted },
+  loaded: { saved: loadedSaved },
 } = RootState;
 
 class EmbeddedSnapshot {
@@ -24,11 +26,13 @@ class EmbeddedSnapshot {
     this.record = record;
     this.modelName = this.record._internalModel.modelName;
     this.attrs = Object.create(null);
-    this.eachAttribute(key => this.attrs[key] = this.record.get(key));
+    this.eachAttribute(key => (this.attrs[key] = this.record.get(key)));
   }
 
   serialize(options) {
-    return this.record._store.serializerFor('-ember-m3').serialize(this, options);
+    return this.record._store
+      .serializerFor('-ember-m3')
+      .serialize(this, options);
   }
 
   eachAttribute(callback, binding) {
@@ -41,7 +45,7 @@ class EmbeddedSnapshot {
 }
 
 class EmbeddedInternalModel {
-  constructor({ id, modelName, _data}) {
+  constructor({ id, modelName, _data }) {
     this.id = id;
     this.modelName = modelName;
     this._data = _data;
@@ -65,7 +69,7 @@ function resolveValue(key, value, modelName, store, schema, model) {
 
   let reference = schema.computeAttributeReference(key, value, modelName);
   if (reference) {
-    if(reference.type === null) {
+    if (reference.type === null) {
       // for schemas with a global id-space but multiple types, schemas may
       // report a type of null
       let internalModel = store._globalM3Cache[reference.id];
@@ -106,7 +110,7 @@ function resolvePlainArray(key, value, modelName, store, schema, model) {
 
   let result = new Array(value.length);
 
-  for (let i=0; i<value.length; ++i) {
+  for (let i = 0; i < value.length; ++i) {
     result[i] = resolveValue(key, value[i], modelName, store, schema, model);
   }
 
@@ -127,22 +131,37 @@ function resolveRecordArray(key, value, modelName, store, schema) {
     return array;
   }
 
-  let internalModels = resolveRecordArrayInternalModels(key, value, modelName, store, schema);
+  let internalModels = resolveRecordArrayInternalModels(
+    key,
+    value,
+    modelName,
+    store,
+    schema
+  );
 
   array._setInternalModels(internalModels);
 
   return array;
 }
 
-function resolveRecordArrayInternalModels(key, value, modelName, store, schema) {
+function resolveRecordArrayInternalModels(
+  key,
+  value,
+  modelName,
+  store,
+  schema
+) {
   let internalModels = new Array(value.length);
-  for (let i=0; i<internalModels.length; ++i) {
+  for (let i = 0; i < internalModels.length; ++i) {
     let reference = schema.computeAttributeReference(key, value[i], modelName);
     if (reference) {
       if (reference.type) {
         // for schemas with a global id-space but multiple types, schemas may
         // report a type of null
-        internalModels[i] = store._internalModelForId(reference.type, reference.id);
+        internalModels[i] = store._internalModelForId(
+          reference.type,
+          reference.id
+        );
       } else {
         internalModels[i] = store._globalM3Cache[reference.id];
       }
@@ -153,7 +172,11 @@ function resolveRecordArrayInternalModels(key, value, modelName, store, schema) 
 }
 
 function disallowAliasSet(object, key, value) {
-  throw new Error(`You tried to set '${key}' to '${value}', but '${key}' is an alias in '${object._modelName}' and aliases are read-only`);
+  throw new Error(
+    `You tried to set '${key}' to '${value}', but '${key}' is an alias in '${
+      object._modelName
+    }' and aliases are read-only`
+  );
 }
 
 /**
@@ -174,7 +197,7 @@ function calculateChangedKeys(oldValue, newValue) {
   // omitted keys are treated as changes
   let result = setDiff(oldKeys, newKeys);
 
-  for (let i=0; i<newKeys.length; ++i) {
+  for (let i = 0; i < newKeys.length; ++i) {
     let key = newKeys[i];
     if (!isEqual(oldValue[key], newValue[key])) {
       result.push(key);
@@ -200,7 +223,6 @@ const YesManAttributes = new YesManAttributesSingletonClass();
 const retrieveFromCurrentState = computed('currentState', function(key) {
   return this._topModel._internalModel.currentState[key];
 }).readOnly();
-
 
 // global buffer for initial properties to work around
 //  a)  can't write to `this` before `super`
@@ -230,7 +252,7 @@ export default class MegamorphicModel extends Ember.Object {
 
     let keys = Object.keys(propertiesToFlush);
     if (keys.length > 0) {
-      for (let i=0; i<keys.length; ++i) {
+      for (let i = 0; i < keys.length; ++i) {
         let key = keys[i];
         let value = propertiesToFlush[key];
         this.setUnknownProperty(key, value);
@@ -246,12 +268,11 @@ export default class MegamorphicModel extends Ember.Object {
     return MegamorphicModel;
   }
 
-  static get attributes () {
+  static get attributes() {
     return YesManAttributes;
   }
 
-  static eachRelationship(/* callback */) {
-  }
+  static eachRelationship(/* callback */) {}
 
   static create(properties) {
     return new this(properties);
@@ -286,7 +307,11 @@ export default class MegamorphicModel extends Ember.Object {
         oldValue._didReceiveNestedProperties(this._internalModel._data[key]);
       } else if (oldIsRecordArray) {
         let internalModels = resolveRecordArrayInternalModels(
-          key, newValue, this._modelName, this._store, this._schema
+          key,
+          newValue,
+          this._modelName,
+          this._store,
+          this._schema
         );
         oldValue._setInternalModels(internalModels);
       } else {
@@ -307,7 +332,9 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   _changedKeys(data) {
-    if (!data) { return []; }
+    if (!data) {
+      return [];
+    }
 
     return calculateChangedKeys(this._internalModel._data, data);
   }
@@ -388,7 +415,9 @@ export default class MegamorphicModel extends Ember.Object {
       return this._cache[key];
     }
 
-    if (! this._schema.isAttributeIncluded(this._modelName, key)) { return; }
+    if (!this._schema.isAttributeIncluded(this._modelName, key)) {
+      return;
+    }
 
     let rawValue = this._internalModel._data[key];
     if (rawValue === undefined) {
@@ -406,7 +435,14 @@ export default class MegamorphicModel extends Ember.Object {
 
     let value = this._schema.transformValue(this._modelName, key, rawValue);
 
-    return (this._cache[key] = resolveValue(key, value, this._modelName, this._store, this._schema, this));
+    return (this._cache[key] = resolveValue(
+      key,
+      value,
+      this._modelName,
+      this._store,
+      this._schema,
+      this
+    ));
   }
 
   get id() {
@@ -434,8 +470,12 @@ export default class MegamorphicModel extends Ember.Object {
       return;
     }
 
-    if(this._schema.getAttributeAlias(this._modelName, key)) {
-      throw new Error(`You tried to set '${key}' to '${value}', but '${key}' is an alias in '${this._modelName}' and aliases are read-only`);
+    if (this._schema.getAttributeAlias(this._modelName, key)) {
+      throw new Error(
+        `You tried to set '${key}' to '${value}', but '${
+          key
+        }' is an alias in '${this._modelName}' and aliases are read-only`
+      );
     }
 
     propertyWillChange(this, key);
@@ -459,7 +499,7 @@ export default class MegamorphicModel extends Ember.Object {
     // TODO Should we add support for array proxy as well
     let ids = new Array(models.length);
     models = A(models);
-    for (let i=0; i<ids.length; ++i) {
+    for (let i = 0; i < ids.length; ++i) {
       // TODO: should have a schema hook for this
       ids[i] = get(models.objectAt(i), 'id');
     }
@@ -502,6 +542,12 @@ MegamorphicModel.prototype.dirtyType = retrieveFromCurrentState;
 
 class EmbeddedMegamorphicModel extends MegamorphicModel {
   unloadRecord() {
-    Ember.warn(`Nested models cannot be directly unloaded.  Perhaps you meant to unload the top level model, '${this._topModel._modelName}:${this._topModel.id}'`, false, { id: 'ember-m3.nested-model-unloadRecord' });
+    Ember.warn(
+      `Nested models cannot be directly unloaded.  Perhaps you meant to unload the top level model, '${
+        this._topModel._modelName
+      }:${this._topModel.id}'`,
+      false,
+      { id: 'ember-m3.nested-model-unloadRecord' }
+    );
   }
 }

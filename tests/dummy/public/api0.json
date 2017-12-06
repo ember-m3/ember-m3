@@ -11,99 +11,106 @@
       ]
     }
   },
-  "included": [{
-    "id": "isbn:9780760768570",
-    "type": "com.example.bookstore.Book",
-    "attributes": {
-      "author": "urn:author:1",
-      "name": "The Birth of Britain",
-      "pubDate": "April 2005",
-      "readerComments": [
-        "urn:comment:1",
-        "urn:comment:2"
-      ]
+  "included": [
+    {
+      "id": "isbn:9780760768570",
+      "type": "com.example.bookstore.Book",
+      "attributes": {
+        "author": "urn:author:1",
+        "name": "The Birth of Britain",
+        "pubDate": "April 2005",
+        "readerComments": ["urn:comment:1", "urn:comment:2"]
+      }
+    },
+    {
+      "id": "isbn:9780760768587",
+      "type": "com.example.bookstore.Book",
+      "attributes": {
+        "author": "urn:author:1",
+        "name": "The New World",
+        "pubDate": "April 2005",
+        "readerComments": []
+      }
+    },
+    {
+      "id": "isbn:9780760768594",
+      "type": "com.example.bookstore.Book",
+      "attributes": {
+        "author": "urn:author:1",
+        "name": "The Age of Revolution",
+        "pubDate": "April 2005",
+        "readerComments": ["urn:comment:3", "urn:comment:4"]
+      }
+    },
+    {
+      "id": "isbn:9780297609568",
+      "type": "com.example.bookstore.Book",
+      "attributes": {
+        "author": "urn:author:1",
+        "name": "The Great Democracies",
+        "pubDate": "April 2005",
+        "readerComments": []
+      }
+    },
+    {
+      "id": "urn:author:1",
+      "type": "com.example.bookstore.Author",
+      "attributes": {
+        "name": "Winston Churchill"
+      }
+    },
+    {
+      "id": "urn:comment:1",
+      "type": "com.example.bookstore.ReaderComment",
+      "attributes": {
+        "commenter": {
+          "$type": "com.example.bookstore.Commenter",
+          "name": "Some User",
+          "favouriteBook": "isbn:9780760768587"
+        },
+        "body": "This book is great"
+      }
+    },
+    {
+      "id": "urn:comment:2",
+      "type": "com.example.bookstore.ReaderComment",
+      "attributes": {
+        "commenter": {
+          "$type": "com.example.bookstore.Commenter",
+          "name": "Some Other User"
+        },
+        "body": "I agree"
+      }
+    },
+    {
+      "id": "urn:comment:3",
+      "type": "com.example.bookstore.ReaderComment",
+      "attributes": {
+        "commenter": {
+          "$type": "com.example.bookstore.Commenter",
+          "name": "Definitely a Different User",
+          "favouriteBook": "isbn:9780760768570"
+        },
+        "parts": [
+          {
+            "value": "Really enjoyed this book"
+          },
+          {
+            "value": "A lot"
+          }
+        ]
+      }
+    },
+    {
+      "id": "urn:comment:4",
+      "type": "com.example.bookstore.ReaderComment",
+      "attributes": {
+        "commenter": {
+          "$type": "com.example.bookstore.Commenter",
+          "name": "Definitely a Different User"
+        },
+        "body": "Yup"
+      }
     }
-  }, {
-    "id": "isbn:9780760768587",
-    "type": "com.example.bookstore.Book",
-    "attributes": {
-      "author": "urn:author:1",
-      "name": "The New World",
-      "pubDate": "April 2005",
-      "readerComments": []
-    }
-  }, {
-    "id": "isbn:9780760768594",
-    "type": "com.example.bookstore.Book",
-    "attributes": {
-      "author": "urn:author:1",
-      "name": "The Age of Revolution",
-      "pubDate": "April 2005",
-      "readerComments": [
-        "urn:comment:3",
-        "urn:comment:4"
-      ]
-    }
-  }, {
-    "id": "isbn:9780297609568",
-    "type": "com.example.bookstore.Book",
-    "attributes": {
-      "author": "urn:author:1",
-      "name": "The Great Democracies",
-      "pubDate": "April 2005",
-      "readerComments": []
-    }
-  }, {
-    "id": "urn:author:1",
-    "type": "com.example.bookstore.Author",
-    "attributes": {
-      "name": "Winston Churchill"
-    }
-  }, {
-    "id": "urn:comment:1",
-    "type": "com.example.bookstore.ReaderComment",
-    "attributes": {
-      "commenter": {
-        "$type": "com.example.bookstore.Commenter",
-        "name": "Some User",
-        "favouriteBook": "isbn:9780760768587"
-      },
-      "body": "This book is great"
-    }
-  }, {
-    "id": "urn:comment:2",
-    "type": "com.example.bookstore.ReaderComment",
-    "attributes": {
-      "commenter": {
-        "$type": "com.example.bookstore.Commenter",
-        "name": "Some Other User"
-      },
-      "body": "I agree"
-    }
-  }, {
-    "id": "urn:comment:3",
-    "type": "com.example.bookstore.ReaderComment",
-    "attributes": {
-      "commenter": {
-        "$type": "com.example.bookstore.Commenter",
-        "name": "Definitely a Different User",
-        "favouriteBook": "isbn:9780760768570"
-      },
-      "parts": [{
-        "value": "Really enjoyed this book"
-      }, {
-        "value": "A lot"
-      }]
-    }
-  }, {
-    "id": "urn:comment:4",
-    "type": "com.example.bookstore.ReaderComment",
-    "attributes": {
-      "commenter": {
-        "$type": "com.example.bookstore.Commenter",
-        "name": "Definitely a Different User"
-      },
-      "body": "Yup"
-    }
-  }]
+  ]
 }

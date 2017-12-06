@@ -7,5 +7,5 @@ export default DS.JSONAPISerializer.extend({
 
   pushPayload(store, payload) {
     return this.store.push(payload);
-  }
+  },
 });

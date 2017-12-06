@@ -13,7 +13,7 @@ export default RecordArray.extend({
     this.arrayContentWillChange(idx, removeAmt, addAmt);
 
     let newInternalModels = new Array(addAmt);
-    for (let i=0; i<newInternalModels.length; ++i) {
+    for (let i = 0; i < newInternalModels.length; ++i) {
       newInternalModels[i] = newModels.objectAt(i)._internalModel;
     }
     this.content.splice(idx, removeAmt, ...newInternalModels);
