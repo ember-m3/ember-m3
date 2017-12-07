@@ -1930,7 +1930,7 @@ module('unit/model', function(hooks) {
       model.save().then(() => {
         assert.equal(model.get('isSaving'), false, 'model done saving');
         assert.deepEqual(
-          model._internalModel._data,
+          model._internalModel._modelData._data,
           {
             name: 'The Winds of Winter',
             estimatedRating: '11/10',
@@ -2164,7 +2164,7 @@ module('unit/model', function(hooks) {
       'after rolling back model.state loaded.saved'
     );
     assert.deepEqual(
-      model._internalModel._data,
+      model._internalModel._modelData._data,
       {
         // We do not error, but we also do not actually support rolling back
         // attributes
