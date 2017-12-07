@@ -62,9 +62,7 @@ module('unit/schema-manager', function() {
       );
     });
 
-    test('can specify what fields refer to other models in the store', function(
-      assert
-    ) {
+    test('can specify what fields refer to other models in the store', function(assert) {
       SchemaManager.registerSchema({
         computeAttributeReference(key, value) {
           if (/^ref-/i.test(key)) {
@@ -206,18 +204,14 @@ module('unit/schema-manager', function() {
     });
   });
 
-  test('.isAttributeIncluded does not error when no schema is registered', function(
-    assert
-  ) {
+  test('.isAttributeIncluded does not error when no schema is registered', function(assert) {
     assert.equal(
       SchemaManager.isAttributeIncluded('com.example.movies.Movie', 'name'),
       true
     );
   });
 
-  test('.transformValue does not error when no schema is registered', function(
-    assert
-  ) {
+  test('.transformValue does not error when no schema is registered', function(assert) {
     assert.equal(
       SchemaManager.transformValue('com.example.moves.Movie', 'name', 'jeff'),
       'jeff'

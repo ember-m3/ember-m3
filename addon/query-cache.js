@@ -154,9 +154,7 @@ export default class QueryCache {
         // will resolved relative to either the base href (if a BASE tag is
         // present) or the current `location.pathname`
         throw new Error(
-          `store.queryURL('${
-            url
-          }') is invalid.  Absolute paths are required.  Either add a 'host' or 'namespace' property to your -ember-m3 adapter or call 'queryURL' with an absolute path.`
+          `store.queryURL('${url}') is invalid.  Absolute paths are required.  Either add a 'host' or 'namespace' property to your -ember-m3 adapter or call 'queryURL' with an absolute path.`
         );
       }
     }

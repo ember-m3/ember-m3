@@ -456,9 +456,9 @@ export default class MegamorphicModel extends Ember.Object {
 
     if (this._schema.getAttributeAlias(this._modelName, key)) {
       throw new Error(
-        `You tried to set '${key}' to '${value}', but '${
-          key
-        }' is an alias in '${this._modelName}' and aliases are read-only`
+        `You tried to set '${key}' to '${value}', but '${key}' is an alias in '${
+          this._modelName
+        }' and aliases are read-only`
       );
     }
 

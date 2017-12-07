@@ -35,9 +35,7 @@ module('unit/store', function(hooks) {
     this.sinon.restore();
   });
 
-  test('records are added to, and unloaded from, the global m3 cache', function(
-    assert
-  ) {
+  test('records are added to, and unloaded from, the global m3 cache', function(assert) {
     run(() =>
       this.store.push({
         data: [

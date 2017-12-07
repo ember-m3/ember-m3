@@ -19,8 +19,11 @@ const ORIGNAL_THROWS = QUnit.assert.throws;
 export default function installThrowsOverride() {
   QUnit.assert.throws = function assertThrowsOverride(cb, matcher, label) {
     const OPTIONS = Ember.run.backburner.options;
-    const HAS_ERROR_METHOD_NAME = typeof OPTIONS.onErrorMethod === 'string' && OPTIONS.onErrorMethod.length > 0;
-    const HAS_ERROR_METHOD = HAS_ERROR_METHOD_NAME &&
+    const HAS_ERROR_METHOD_NAME =
+      typeof OPTIONS.onErrorMethod === 'string' &&
+      OPTIONS.onErrorMethod.length > 0;
+    const HAS_ERROR_METHOD =
+      HAS_ERROR_METHOD_NAME &&
       OPTIONS.onErrorTarget &&
       typeof OPTIONS.onErrorTarget[OPTIONS.onErrorMethod] === 'function';
     const ORIGINAL_ERROR_METHOD_NAME = OPTIONS.onErrorMethod;

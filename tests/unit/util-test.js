@@ -13,7 +13,7 @@ module('unit/util', function() {
       arrayProp: [1, 2, 3],
       nullProp: null,
       nonNullProp: 'stringValue',
-      untouchedProp: 'unchangedValue'
+      untouchedProp: 'unchangedValue',
     };
 
     let updates = {
@@ -22,7 +22,7 @@ module('unit/util', function() {
       numberProp: 2,
       arrayProp: [4, 5, 6],
       nullProp: 'nonNullValue',
-      nonNullProp: null
+      nonNullProp: null,
     };
 
     let expectedChangedKeys = {
@@ -44,7 +44,7 @@ module('unit/util', function() {
       objectProp: {
         stringProp: 'stringValue',
         nestedObjectProp: {
-          stringProp: 'stringValue'
+          stringProp: 'stringValue',
         },
       },
       sameObject: {
@@ -55,24 +55,24 @@ module('unit/util', function() {
         stringProp: 'stringProp',
       },
       untouchedObject: {
-        stringProp: 'stringProp'
-      }
+        stringProp: 'stringProp',
+      },
     };
 
     let updates = {
       objectProp: {
         stringProp: 'newStringValue',
         nestedObjectProp: {
-          stringProp: 'newStringValue'
+          stringProp: 'newStringValue',
         },
       },
       sameObject: {
         sameProp: 'stringValue',
       },
       nullObject: {
-        stringProp: 'newStringValue'
+        stringProp: 'newStringValue',
       },
-      nonNullObject: null
+      nonNullObject: null,
     };
 
     let expectedChangedKeys = {
@@ -88,9 +88,15 @@ module('unit/util', function() {
 
     let changedKeys = merge(data, updates);
 
-    assert.deepEqual(data, assign({
-      untouchedObject: data.untouchedObject,
-    }, updates));
+    assert.deepEqual(
+      data,
+      assign(
+        {
+          untouchedObject: data.untouchedObject,
+        },
+        updates
+      )
+    );
     assert.deepEqual(changedKeys, expectedChangedKeys);
   });
 
@@ -103,7 +109,7 @@ module('unit/util', function() {
   test('handles type changes in the properties', function(assert) {
     let data = {
       objectProp: {
-        stringProp: 'stringValue'
+        stringProp: 'stringValue',
       },
       stringProp: 'stringValue',
       numberProp: 1,
@@ -112,10 +118,10 @@ module('unit/util', function() {
     let updates = {
       objectProp: 'stringValue',
       stringProp: {
-        stringProp: 'stringValue'
+        stringProp: 'stringValue',
       },
       // checks whether Date is treated as object
-      numberProp: new Date()
+      numberProp: new Date(),
     };
 
     let expectedChangedKeys = {

@@ -91,9 +91,7 @@ test('it adds `store.containsURL`', function(assert) {
   this.store.containsURL(cacheKey);
 });
 
-test('uses the -ember-m3 adapter for schema-recognized types', function(
-  assert
-) {
+test('uses the -ember-m3 adapter for schema-recognized types', function(assert) {
   this.store.adapterFor('non-matching-type');
 
   assert.deepEqual(
@@ -120,9 +118,7 @@ test('uses the -ember-m3 adapter for schema-recognized types', function(
   );
 });
 
-test('uses the -ember-m3 serializer for schema-recognized types', function(
-  assert
-) {
+test('uses the -ember-m3 serializer for schema-recognized types', function(assert) {
   this.store.serializerFor('non-matching-type');
 
   assert.deepEqual(
@@ -149,9 +145,7 @@ test('uses the -ember-m3 serializer for schema-recognized types', function(
   );
 });
 
-test('uses the -ember-m3 model factory for schema-recognized types', function(
-  assert
-) {
+test('uses the -ember-m3 model factory for schema-recognized types', function(assert) {
   this.store.modelFactoryFor('non-matching-type');
 
   assert.deepEqual(

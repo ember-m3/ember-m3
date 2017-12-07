@@ -4,7 +4,10 @@ export class SchemaManager {
   }
 
   computeBaseModelName(projectionModelName) {
-    if (!this.schema || typeof this.schema.computeBaseModelName !== 'function') {
+    if (
+      !this.schema ||
+      typeof this.schema.computeBaseModelName !== 'function'
+    ) {
       return;
     }
 

@@ -79,9 +79,7 @@ module('unit/query-cache', function(hooks) {
     });
   });
 
-  test('._buildUrl uses the adapter host if no host in the URL', function(
-    assert
-  ) {
+  test('._buildUrl uses the adapter host if no host in the URL', function(assert) {
     this.adapter.host = 'http://library.gg';
 
     assert.equal(
@@ -138,9 +136,7 @@ module('unit/query-cache', function(hooks) {
     );
   });
 
-  test('._buildUrl ignores adapter host if host is specified', function(
-    assert
-  ) {
+  test('._buildUrl ignores adapter host if host is specified', function(assert) {
     this.adapter.host = 'http://foodcourt.gg';
 
     assert.equal(
@@ -149,9 +145,7 @@ module('unit/query-cache', function(hooks) {
     );
   });
 
-  test('._buildUrl passes absolute paths through if adapter has no host', function(
-    assert
-  ) {
+  test('._buildUrl passes absolute paths through if adapter has no host', function(assert) {
     this.adapter.host = undefined;
 
     assert.equal(this.queryCache._buildUrl('/books/123'), '/books/123');
@@ -162,9 +156,7 @@ module('unit/query-cache', function(hooks) {
     assert.equal(this.queryCache._buildUrl('/books/123'), '/books/123');
   });
 
-  test('._buildUrl uses the adapter namespace if the URL is relative', function(
-    assert
-  ) {
+  test('._buildUrl uses the adapter namespace if the URL is relative', function(assert) {
     this.adapter.namespace = 'api/v1';
 
     // ember-data implicitly converts namespaces to absolute paths, so preserve
@@ -176,17 +168,13 @@ module('unit/query-cache', function(hooks) {
     assert.equal(this.queryCache._buildUrl('books/123'), '/api/v1/books/123');
   });
 
-  test('._buildUrl does not include adapter namespace if the path is absolute', function(
-    assert
-  ) {
+  test('._buildUrl does not include adapter namespace if the path is absolute', function(assert) {
     this.adapter.namespace = '/api/v1';
 
     assert.equal(this.queryCache._buildUrl('/books/123'), '/books/123');
   });
 
-  test('._buildUrl uses the adapter host and namespace for relative paths', function(
-    assert
-  ) {
+  test('._buildUrl uses the adapter host and namespace for relative paths', function(assert) {
     this.adapter.host = 'http://library.gg';
     this.adapter.namespace = '/api/v1';
 
@@ -200,9 +188,7 @@ module('unit/query-cache', function(hooks) {
     );
   });
 
-  test('_buildUrl throws for relative paths if no host or namespace is provided', function(
-    assert
-  ) {
+  test('_buildUrl throws for relative paths if no host or namespace is provided', function(assert) {
     this.adapter.host = undefined;
     this.adapter.namespace = undefined;
 
@@ -374,9 +360,7 @@ module('unit/query-cache', function(hooks) {
       });
   });
 
-  test('.queryURL does not cache results when not given a cacheKey', function(
-    assert
-  ) {
+  test('.queryURL does not cache results when not given a cacheKey', function(assert) {
     let firstPayload = {
       data: {
         id: 1,
@@ -466,9 +450,7 @@ module('unit/query-cache', function(hooks) {
       });
   });
 
-  test('queryURL returns the cached result but still updates when backgroundReload: true', function(
-    assert
-  ) {
+  test('queryURL returns the cached result but still updates when backgroundReload: true', function(assert) {
     let firstPayload = {
       data: {
         id: 1,
@@ -531,9 +513,7 @@ module('unit/query-cache', function(hooks) {
       });
   });
 
-  test('the cache entry for a single model is invalidated when that model is unloaded', function(
-    assert
-  ) {
+  test('the cache entry for a single model is invalidated when that model is unloaded', function(assert) {
     let firstPayload = {
       data: {
         id: 1,
@@ -588,9 +568,7 @@ module('unit/query-cache', function(hooks) {
       });
   });
 
-  test('the cache entry for an array of models is invalidated when any model is unloaded', function(
-    assert
-  ) {
+  test('the cache entry for an array of models is invalidated when any model is unloaded', function(assert) {
     let firstPayload = {
       data: [
         {
@@ -662,9 +640,7 @@ module('unit/query-cache', function(hooks) {
       });
   });
 
-  test('multiple cache entries are invalidated if they both involve the same unloaded model', function(
-    assert
-  ) {
+  test('multiple cache entries are invalidated if they both involve the same unloaded model', function(assert) {
     let firstPayload = {
       data: {
         id: 1,
@@ -714,9 +690,7 @@ module('unit/query-cache', function(hooks) {
       });
   });
 
-  test('the cache entry for a query is invalidated by cacheKey', function(
-    assert
-  ) {
+  test('the cache entry for a query is invalidated by cacheKey', function(assert) {
     let firstPayload = {
       data: {
         id: 1,
@@ -737,9 +711,7 @@ module('unit/query-cache', function(hooks) {
     });
   });
 
-  test('contains by cacheKey correctly returns true when a query is cached', function(
-    assert
-  ) {
+  test('contains by cacheKey correctly returns true when a query is cached', function(assert) {
     let firstPayload = {
       data: {
         id: 1,
@@ -758,9 +730,7 @@ module('unit/query-cache', function(hooks) {
     });
   });
 
-  test('models are removed from results when they are unloaded', function(
-    assert
-  ) {
+  test('models are removed from results when they are unloaded', function(assert) {
     let firstPayload = {
       data: [
         {
@@ -903,9 +873,7 @@ module('unit/query-cache', function(hooks) {
     });
   });
 
-  test('update uses the original http method and query params', function(
-    assert
-  ) {
+  test('update uses the original http method and query params', function(assert) {
     let payload = {
       data: [
         {
@@ -937,9 +905,7 @@ module('unit/query-cache', function(hooks) {
       });
   });
 
-  test('queryURL goes through a serializer to normalize responses', function(
-    assert
-  ) {
+  test('queryURL goes through a serializer to normalize responses', function(assert) {
     let payload = {
       name: 'name name?',
       wat: 'definitely',
