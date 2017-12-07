@@ -2,19 +2,12 @@ import Ember from 'ember';
 import { RootState } from 'ember-data/-private';
 import { dasherize } from '@ember/string';
 
+import M3ModelData from './model-data';
 import SchemaManager from './schema-manager';
 import M3RecordArray from './record-array';
-import { setDiff, OWNER_KEY } from './util';
+import { OWNER_KEY } from './util';
 
-const {
-  get,
-  set,
-  isEqual,
-  propertyWillChange,
-  propertyDidChange,
-  computed,
-  A,
-} = Ember;
+const { get, set, propertyWillChange, propertyDidChange, computed, A } = Ember;
 
 const {
   deleted: { uncommitted: deletedUncommitted },
@@ -45,10 +38,26 @@ class EmbeddedSnapshot {
 }
 
 class EmbeddedInternalModel {
-  constructor({ id, modelName, _data }) {
+  constructor({ id, modelName, _data, store, parentInternalModel }) {
     this.id = id;
     this.modelName = modelName;
-    this._data = _data;
+
+    // TODO FIX IGOR DAVID
+
+    // TODO IGOR DAVID CLEANUP
+    this._modelData = new M3ModelData(
+      modelName,
+      id,
+      null,
+      parentInternalModel._modelData.storeWrapper,
+      store,
+      this
+    );
+    this._modelData.setupData({
+      attributes: _data,
+    });
+    this.store = store;
+    this.parentInternalModel = parentInternalModel;
 
     this.record = null;
   }
@@ -88,6 +97,8 @@ function resolveValue(key, value, modelName, store, schema, model) {
       // internally within ember-data
       modelName: nested.type ? dasherize(nested.type) : null,
       _data: nested.attributes,
+      store,
+      parentInternalModel: model._internalModel,
     });
     let nestedModel = new EmbeddedMegamorphicModel({
       store,
@@ -179,34 +190,6 @@ function disallowAliasSet(object, key, value) {
   );
 }
 
-/**
-  Calculate the changed keys from prior and new `data`s.  This follows similar
-  semantics to `InternalModel._changedKeys`.
-
-  The key difference is that omitted attributes and new attributes are treated
-  as changes, instead of ignored.
-
-  There is another difference, which is that there's no notion of
-  `_inflightAttributes` or `_attributes`, but this will likely need to change
-  when m3 composes a write story.
-*/
-function calculateChangedKeys(oldValue, newValue) {
-  let oldKeys = Object.keys(oldValue).sort();
-  let newKeys = Object.keys(newValue).sort();
-
-  // omitted keys are treated as changes
-  let result = setDiff(oldKeys, newKeys);
-
-  for (let i = 0; i < newKeys.length; ++i) {
-    let key = newKeys[i];
-    if (!isEqual(oldValue[key], newValue[key])) {
-      result.push(key);
-    }
-  }
-
-  return result;
-}
-
 class YesManAttributesSingletonClass {
   has() {
     return true;
@@ -218,6 +201,7 @@ class YesManAttributesSingletonClass {
     return;
   }
 }
+
 const YesManAttributes = new YesManAttributesSingletonClass();
 
 const retrieveFromCurrentState = computed('currentState', function(key) {
@@ -286,25 +270,22 @@ export default class MegamorphicModel extends Ember.Object {
     this[property.name] = property.descriptor.value;
   }
 
-  _assignAttributes(attributes) {
-    // Don't merge; overwrite
-    this._internalModel._data = attributes;
-  }
-
   _notifyProperties(keys) {
     Ember.beginPropertyChanges();
     let key;
     for (let i = 0, length = keys.length; i < length; i++) {
       key = keys[i];
       let oldValue = this._cache[key];
-      let newValue = this._internalModel._data[key];
+      let newValue = this._internalModel._modelData.getAttr(key);
 
       let oldIsRecordArray = oldValue && oldValue instanceof M3RecordArray;
       let oldWasModel = oldValue && oldValue instanceof MegamorphicModel;
       let newIsObject = typeof newValue === 'object';
 
       if (oldWasModel && newIsObject) {
-        oldValue._didReceiveNestedProperties(this._internalModel._data[key]);
+        oldValue._didReceiveNestedProperties(
+          this._internalModel._modelData._data[key]
+        );
       } else if (oldIsRecordArray) {
         let internalModels = resolveRecordArrayInternalModels(
           key,
@@ -324,19 +305,13 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   _didReceiveNestedProperties(data) {
-    let changedKeys = calculateChangedKeys(this._internalModel._data, data);
-    this._internalModel._data = data;
+    let changedKeys = this._internalModel._modelData.setupData(
+      { attributes: data },
+      true
+    );
     if (changedKeys.length > 0) {
       this._notifyProperties(changedKeys);
     }
-  }
-
-  _changedKeys(data) {
-    if (!data) {
-      return [];
-    }
-
-    return calculateChangedKeys(this._internalModel._data, data);
   }
 
   changedAttributes() {
@@ -353,18 +328,21 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   debugJSON() {
-    return this._internalModel._data;
+    return this._internalModel._modelData._data;
   }
 
   eachAttribute(callback, binding) {
-    if (!this._internalModel._data) {
+    if (!this._internalModel._modelData._data) {
       // see #14
       return;
     }
 
     // Properties in `data` are treated as attributes for serialization purposes
     // if the schema does not consider them references
-    Object.keys(this._internalModel._data).forEach(callback, binding);
+    Object.keys(this._internalModel._modelData._data).forEach(
+      callback,
+      binding
+    );
   }
 
   unloadRecord() {
@@ -419,7 +397,9 @@ export default class MegamorphicModel extends Ember.Object {
       return;
     }
 
-    let rawValue = this._internalModel._data[key];
+    let rawValue = this._internalModel._modelData.getAttr(key);
+    // TODO IGOR DAVID
+    // figure out if any of the below should be moved into model data
     if (rawValue === undefined) {
       let alias = this._schema.getAttributeAlias(this._modelName, key);
       if (alias) {
@@ -455,7 +435,11 @@ export default class MegamorphicModel extends Ember.Object {
       return;
     }
 
-    throw new Error(`You tried to set 'id' to '${value}' for '${this._modelName}' but records can only set their ID by providing it to store.createRecord()`);
+    throw new Error(
+      `You tried to set 'id' to '${value}' for '${
+        this._modelName
+      }' but records can only set their ID by providing it to store.createRecord()`
+    );
   }
 
   // TODO: drop change events for unretrieved properties
@@ -488,7 +472,7 @@ export default class MegamorphicModel extends Ember.Object {
     if (this._schema.isAttributeArrayReference(key, value, this._modelName)) {
       this._setRecordArray(key, value);
     } else {
-      this._internalModel._data[key] = value;
+      this._internalModel._modelData._data[key] = value;
       delete this._cache[key];
     }
 
@@ -503,7 +487,7 @@ export default class MegamorphicModel extends Ember.Object {
       // TODO: should have a schema hook for this
       ids[i] = get(models.objectAt(i), 'id');
     }
-    this._internalModel._data[key] = ids;
+    this._internalModel._modelData._data[key] = ids;
 
     if (key in this._cache) {
       let recordArray = this._cache[key];
