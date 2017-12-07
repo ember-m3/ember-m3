@@ -1,4 +1,4 @@
-import { module, test, skip } from 'qunit';
+import { module, skip } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import Ember from 'ember';
 import MegamorphicModel from 'ember-m3/model';
@@ -131,7 +131,7 @@ module('unit/projection', function(hooks) {
   });
 
   module('cache consistency', function() {
-    test(`store.peekRecord() will only return a projection or base-record if it has been fetched`, function(assert) {
+    skip(`store.peekRecord() will only return a projection or base-record if it has been fetched`, function(assert) {
       assert.expect(4);
 
       const UNFETCHED_PROJECTION_ID = 'isbn:9780439708180';
@@ -208,7 +208,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    test(`store.findRecord() will only fetch a projection or base-model if it has not been fetched previously`, function(assert) {
+    skip(`store.findRecord() will only fetch a projection or base-model if it has not been fetched previously`, function(assert) {
       assert.expect(12);
 
       const UNFETCHED_PROJECTION_ID = 'isbn:9780439708180';
@@ -372,7 +372,7 @@ module('unit/projection', function(hooks) {
       });
     });
 
-    test(`store.peekAll() will not return partial records`, function(assert) {
+    skip(`store.peekAll() will not return partial records`, function(assert) {
       let { store } = this;
 
       run(() => {
@@ -440,7 +440,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    test('Projections proxy whitelisted attributes to a base-record', function(assert) {
+    skip('Projections proxy whitelisted attributes to a base-record', function(assert) {
       let { store } = this;
       const BOOK_ID = 'isbn:9780439708181';
       const BOOK_TITLE = 'Adventures in Wonderland';
@@ -798,7 +798,7 @@ module('unit/projection', function(hooks) {
       this.records = null;
     });
 
-    test('Setting on the base-record updates projections', function(assert) {
+    skip('Setting on the base-record updates projections', function(assert) {
       let { baseRecord } = this.records;
 
       run(() => {
@@ -823,7 +823,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    test('Updating the base-record updates projections', function(assert) {
+    skip('Updating the base-record updates projections', function(assert) {
       let { store } = this;
       let { baseRecord } = this.records;
 
@@ -857,7 +857,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    test('Setting a projection updates the base-record and other projections', function(assert) {
+    skip('Setting a projection updates the base-record and other projections', function(assert) {
       let preview = this.records.projectedPreview;
       let baseRecord = this.records.baseRecord;
 
@@ -887,7 +887,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    test('Updating a projection updates the base-record and other projections', function(assert) {
+    skip('Updating a projection updates the base-record and other projections', function(assert) {
       let baseRecord = this.records.baseRecord;
       let { store } = this;
 
@@ -1154,7 +1154,7 @@ module('unit/projection', function(hooks) {
       this.records = null;
     });
 
-    test('Setting an embedded object property on the base-record updates the value for projections', function(assert) {
+    skip('Setting an embedded object property on the base-record updates the value for projections', function(assert) {
       let { baseRecord, projectedExcerpt } = this.records;
 
       run(() => {
@@ -1189,7 +1189,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    test('Updating an embedded object property on the base-record updates the value for projections', function(assert) {
+    skip('Updating an embedded object property on the base-record updates the value for projections', function(assert) {
       let { store } = this;
       let { baseRecord, projectedExcerpt } = this.records;
 
@@ -1235,7 +1235,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    test('Setting an embedded object property on a projection updates the base-record and other projections', function(assert) {
+    skip('Setting an embedded object property on a projection updates the base-record and other projections', function(assert) {
       let { baseRecord, projectedExcerpt } = this.records;
       let { baseRecordWatcher, excerptWatcher } = this.watchers;
       let baseCounters = baseRecordWatcher.counters;
@@ -1268,7 +1268,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    test('Setting an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
+    skip('Setting an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
       let { baseRecord, projectedExcerpt, projectedPreview } = this.records;
 
       run(() => {
@@ -1311,7 +1311,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    test('Updating an embedded object property on a projection updates the base-record and other projections', function(assert) {
+    skip('Updating an embedded object property on a projection updates the base-record and other projections', function(assert) {
       let { store } = this;
       let { baseRecord, projectedExcerpt } = this.records;
 
@@ -1363,7 +1363,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    test('Updating an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
+    skip('Updating an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
       let { store } = this;
       let { baseRecord, projectedExcerpt } = this.records;
 
@@ -1677,7 +1677,7 @@ module('unit/projection', function(hooks) {
       this.records = null;
     });
 
-    test('Setting a resolution property via the base-record updates projections and nested projections', function(assert) {
+    skip('Setting a resolution property via the base-record updates projections and nested projections', function(assert) {
       let { baseRecord, projectedExcerpt } = this.records;
 
       run(() => {
@@ -1712,7 +1712,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    test('Updating a resolution property via the base-record updates projections and nested projections', function(assert) {
+    skip('Updating a resolution property via the base-record updates projections and nested projections', function(assert) {
       let { store } = this;
       let { baseRecord, projectedExcerpt } = this.records;
 
@@ -1763,7 +1763,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    test('Setting a resolution property via a projection updates the base-record, other projections and nested projections', function(assert) {
+    skip('Setting a resolution property via a projection updates the base-record, other projections and nested projections', function(assert) {
       let { baseRecord, projectedExcerpt } = this.records;
 
       run(() => {
@@ -1798,7 +1798,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    test('Setting a resolution property via a nested projection updates the base-record and other projections', function(assert) {
+    skip('Setting a resolution property via a nested projection updates the base-record and other projections', function(assert) {
       let { baseRecord, projectedExcerpt, projectedPreview } = this.records;
 
       run(() => {
@@ -1842,7 +1842,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    test('Updating a resolution property via a projection updates the base-record, other projections and nested projections', function(assert) {
+    skip('Updating a resolution property via a projection updates the base-record, other projections and nested projections', function(assert) {
       let { store } = this;
 
       let { baseRecord, projectedExcerpt } = this.records;
@@ -1894,7 +1894,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    test('Updating a resolution property via a nested projection updates the base-record, other projections', function(assert) {
+    skip('Updating a resolution property via a nested projection updates the base-record, other projections', function(assert) {
       let { store } = this;
       let { baseRecord, projectedExcerpt } = this.records;
 
