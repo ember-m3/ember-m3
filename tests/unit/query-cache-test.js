@@ -376,9 +376,7 @@ module('unit/query-cache', function(hooks) {
       });
   });
 
-  test('queryURL returns the cached result but still updates when backgroundReload: true', function(
-    assert
-  ) {
+  test('queryURL returns the cached result but still updates when backgroundReload: true', function(assert) {
     let firstPayload = {
       data: {
         id: 1,
@@ -429,9 +427,7 @@ module('unit/query-cache', function(hooks) {
       });
   });
 
-  test('the cache entry for a single model is invalidated when that model is unloaded', function(
-    assert
-  ) {
+  test('the cache entry for a single model is invalidated when that model is unloaded', function(assert) {
     let firstPayload = {
       data: {
         id: 1,
@@ -474,9 +470,7 @@ module('unit/query-cache', function(hooks) {
       });
   });
 
-  test('the cache entry for an array of models is invalidated when any model is unloaded', function(
-    assert
-  ) {
+  test('the cache entry for an array of models is invalidated when any model is unloaded', function(assert) {
     let firstPayload = {
       data: [
         {
@@ -536,9 +530,7 @@ module('unit/query-cache', function(hooks) {
       });
   });
 
-  test('multiple cache entries are invalidated if they both involve the same unloaded model', function(
-    assert
-  ) {
+  test('multiple cache entries are invalidated if they both involve the same unloaded model', function(assert) {
     let firstPayload = {
       data: {
         id: 1,
