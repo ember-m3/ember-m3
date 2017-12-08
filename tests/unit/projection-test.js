@@ -97,10 +97,11 @@ module('unit/projection', function(hooks) {
           resolvedTypes: {
             publisher: NORM_PROJECTED_PUBLISHER_CLASS,
             author: NORM_PROJECTED_AUTHOR_CLASS,
+            otherBooksInSeries: NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH,
           },
           // if you want to project an embedded model then it must have a type
           //  computedEmbeddedType
-          attributes: ['title', 'author', 'chapter-1', 'year', 'publisher'],
+          attributes: ['title', 'author', 'chapter-1', 'year', 'publisher', 'otherBooksInSeries'],
         },
         [PUBLISHER_CLASS]: {},
         // this schema must come with the parent schema
@@ -1863,6 +1864,8 @@ module('unit/projection', function(hooks) {
 
   module('unloading/deleting records', function(hooks) {
     const BOOK_ID = 'isbn:123';
+    const OTHER_BOOK_ID = 'isbn:456';
+    const OTHER_BOOK_URN = `urn:${NORM_BOOK_CLASS_PATH}:${OTHER_BOOK_ID}`;
     const BOOK_TITLE = 'Alice in Wonderland';
 
     hooks.beforeEach(function() {
@@ -1884,6 +1887,7 @@ module('unit/projection', function(hooks) {
             type: BOOK_CLASS_PATH,
             attributes: {
               title: BOOK_TITLE,
+              otherBooksInSeries: [OTHER_BOOK_URN],
             },
           },
         });
@@ -2046,6 +2050,75 @@ module('unit/projection', function(hooks) {
       // Functionality can continue to work even in case of a bug
       assert.equal(get(projectedPreview, '_internalModel.isDestroyed'), false);
       assert.equal(get(projectedPreview, 'title'), BOOK_TITLE);
+    });
+
+    skip('Unloading a record removes it from record arrays, which have reference to it', function(
+      assert
+    ) {
+      // we need additional records to be able to resolve the references
+      run(() => {
+        this.store.push({
+          data: {
+            id: OTHER_BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {},
+          },
+        });
+      });
+
+      run(() => {
+        this.store.push({
+          data: {
+            id: OTHER_BOOK_ID,
+            type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+          },
+        });
+      });
+
+      let { baseModel, projectedPreview } = this.records;
+
+      // load the record arrays
+      let booksInSeriesBase = get(baseModel, 'otherBooksInSeries');
+      let booksInSeriesProjectedPreview = get(projectedPreview, 'otherBooksInSeries');
+      let otherProjectedPreview = get(booksInSeriesProjectedPreview, 'firstObject');
+
+      // precondition
+      assert.equal(
+        get(booksInSeriesBase, 'length'),
+        1,
+        'Expected otherBooksInSeries length to be one for base'
+      );
+      assert.equal(
+        get(booksInSeriesProjectedPreview, 'length'),
+        1,
+        'Expected otherBooksInSeries length to be one for projected preview'
+      );
+
+      // unload a projection referenced in a record array
+      run(() => {
+        otherProjectedPreview.unloadRecord();
+      });
+
+      assert.equal(
+        get(booksInSeriesBase, 'length'),
+        1,
+        'Expected otherBooksInSeries length to be unchanged for base'
+      );
+      assert.equal(
+        get(booksInSeriesProjectedPreview, 'length'),
+        1,
+        'Expected otherBooksInSeries length to be unchanged for projected preview'
+      );
+      assert.equal(
+        booksInSeriesProjectedPreview.getObjectAt(0),
+        null,
+        'Expected the projected preview to have been replaced with null in the record array'
+      );
+      assert.notEqual(
+        get(booksInSeriesBase, 'firstObject.isDestroyed'),
+        true,
+        'Expected record in otherBooksInSeries for base to not have been destroyed'
+      );
     });
 
     skip('Projection list is cleaned up after all projections have been unloaded', function() {});
