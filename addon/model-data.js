@@ -13,11 +13,6 @@ function setupDataAndNotify(modelData, updates) {
   modelData._notifyRecordProperties(changedKeys);
 }
 
-function commitInFlightData(modelData, updates) {
-  modelData._inFlightAttributes = updates;
-  modelData.adapterDidCommit(null);
-}
-
 function commitDataAndNotify(modelData, updates) {
   let changedKeys = modelData.adapterDidCommit({ attributes: updates });
 
@@ -40,8 +35,8 @@ export default class M3ModelData {
 
   // PUBLIC API
 
-  setupData(data) {
-    return this._mergeUpdates(data.attributes, setupDataAndNotify);
+  setupData(data, calculateChanges) {
+    return this._mergeUpdates(data.attributes, calculateChanges, setupDataAndNotify);
   }
 
   adapterWillCommit() {
@@ -111,15 +106,12 @@ export default class M3ModelData {
   }
 
   adapterDidCommit(data) {
-    this._mergeUpdates(this._inFlightAttributes, commitInFlightData);
-    this._inFlightAttributes = null;
-
     if (data) {
       return this._mergeUpdates(data.attributes, commitDataAndNotify);
     }
 
     // TODO can we avoid this useless allocation?
-    return {};
+    return [];
   }
 
   getHasMany() {}
@@ -219,11 +211,12 @@ export default class M3ModelData {
   /**
    *
    * @param updates
+   * @param calculateChanges
    * @param nestedCallback a callback for updating the data of a nested model-data instance
    * @returns {Array}
    * @private
    */
-  _mergeUpdates(updates, nestedCallback) {
+  _mergeUpdates(updates, calculateChanges, nestedCallback) {
     let data = this._data;
     let changedKeys = [];
 
