@@ -8,7 +8,10 @@ const emberAssign = assign || merge;
 const { isEqual } = Ember;
 
 function setupDataAndNotify(modelData, updates) {
-  let changedKeys = modelData.setupData({ attributes: updates });
+  let changedKeys = modelData.setupData(
+    { attributes: updates },
+    modelData.internalModel.hasRecord
+  );
 
   modelData._notifyRecordProperties(changedKeys);
 }
@@ -43,8 +46,8 @@ export default class M3ModelData {
   setupData(data, calculateChanges) {
     return this._mergeUpdates(
       data.attributes,
-      calculateChanges,
-      setupDataAndNotify
+      setupDataAndNotify,
+      calculateChanges
     );
   }
 
@@ -227,9 +230,13 @@ export default class M3ModelData {
    * @returns {Array}
    * @private
    */
-  _mergeUpdates(updates, nestedCallback) {
+  _mergeUpdates(updates, nestedCallback, calculateChanges = true) {
     let data = this._data;
-    let changedKeys = [];
+
+    let changedKeys;
+    if (calculateChanges) {
+      changedKeys = [];
+    }
 
     if (!updates) {
       // no changes
@@ -260,7 +267,9 @@ export default class M3ModelData {
         this.destroyNestedModelData(key);
       }
 
-      changedKeys.push(key);
+      if (calculateChanges) {
+        changedKeys.push(key);
+      }
       data[key] = newValue;
     }
 
