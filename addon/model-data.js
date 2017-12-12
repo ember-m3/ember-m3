@@ -1,28 +1,41 @@
 import { assign, merge } from '@ember/polyfills';
 import { copy } from '@ember/object/internals';
 import { get } from '@ember/object';
-import { merge as mergeData } from './util';
+import Ember from 'ember';
+import { isEmbeddedObject } from './util';
 
 const emberAssign = assign || merge;
+const { isEqual } = Ember;
 
 export default class M3ModelData {
   constructor(modelName, id, clientId, storeWrapper, store, internalModel) {
     this.store = store;
     this.modelName = modelName;
     this.internalModel = internalModel;
+    this.storeWrapper = storeWrapper;
     this.__relationships = null;
     // TODO IGOR DAVID consider if this can be better, for now we need this because
     // non m3 model datas expect it to be here
     this.__implicitRelationships = Object.create(null);
     this.__data = null;
+    this.__nestedModelsData = null;
   }
 
   // PUBLIC API
 
   setupData(data) {
-    let changedKeys = mergeData(this._data, data.attributes);
+    let changedKeys = this._mergeUpdates(
+      data.attributes,
+      (nestedModelData, updates) => {
+        let changedKeys = nestedModelData.setupData({
+          attributes: updates,
+        });
+        // once changes are done, we need to notify the record
+        nestedModelData._notifyRecordProperties(changedKeys);
+      }
+    );
     // TODO Consider nested models as well
-    return Object.keys(changedKeys);
+    return changedKeys;
   }
 
   adapterWillCommit() {
@@ -95,7 +108,15 @@ export default class M3ModelData {
     let changedKeys = {};
 
     if (data) {
-      changedKeys = mergeData(this._data, data.attributes);
+      changedKeys = this._mergeUpdates(
+        data.attributes,
+        (nestedModelData, updates) => {
+          let changedKeys = nestedModelData.adapterDidCommit({
+            attributes: updates,
+          });
+          nestedModelData._notifyRecordProperties(changedKeys);
+        }
+      );
     } else {
       emberAssign(this._data, this._inFlightAttributes);
     }
@@ -103,7 +124,7 @@ export default class M3ModelData {
     this._inFlightAttributes = null;
 
     // TODO Consider nested models as well
-    return Object.keys(changedKeys);
+    return changedKeys;
   }
 
   getHasMany() {}
@@ -126,6 +147,39 @@ export default class M3ModelData {
   getBelongsTo() {}
 
   setBelongsTo() {}
+
+  getOrCreateNestedModelData(key, modelName, id, internalModel) {
+    let nestedModelData = this._nestedModelDatas[key];
+    if (!nestedModelData) {
+      nestedModelData = this._nestedModelDatas[
+        key
+      ] = this.createNestedModelData(modelName, id, internalModel);
+    }
+    return nestedModelData;
+  }
+
+  createNestedModelData(modelName, id, internalModel) {
+    return new M3ModelData(
+      modelName,
+      id,
+      null,
+      this.storeWrapper,
+      this.store,
+      internalModel
+    );
+  }
+
+  destroyNestedModelData(key) {
+    let nestedModelData = this._nestedModelDatas[key];
+    if (nestedModelData) {
+      // destroy
+      delete this._nestedModelDatas[key];
+    }
+  }
+
+  hasNestedModelData(key) {
+    return !!this._nestedModelDatas[key];
+  }
 
   setAttr(key, value) {
     let oldValue = this.getAttr(key);
@@ -165,6 +219,44 @@ export default class M3ModelData {
       key in this._inFlightAttributes ||
       key in this._data
     );
+  }
+
+  _mergeUpdates(updates, nestedCallback) {
+    let data = this._data;
+    let changedKeys = [];
+    if (!updates) {
+      // no changes
+      return changedKeys;
+    }
+    let updatedKeys = Object.keys(updates);
+    for (let i = 0; i < updatedKeys.length; i++) {
+      let key = updatedKeys[i];
+      let newValue = updates[key];
+      if (isEqual(data[key], newValue)) {
+        // values are equal, nothing to do
+        // note, updates to objects should always result in new object or there will be nothing to update
+        continue;
+      }
+      if (this.hasNestedModelData(key)) {
+        let nested = this.getOrCreateNestedModelData(key);
+        if (isEmbeddedObject(newValue)) {
+          nestedCallback(nested, newValue);
+          continue;
+        }
+        // not an embedded object, destroy the nested model data
+        this.destroyNestedModelData(key);
+      }
+      changedKeys.push(key);
+      data[key] = newValue;
+    }
+    return changedKeys;
+  }
+
+  _notifyRecordProperties(changedKeys) {
+    // TODO Use the store wrapper API
+    if (this.internalModel.hasRecord) {
+      this.internalModel._record._notifyProperties(changedKeys);
+    }
   }
 
   get _attributes() {
@@ -237,6 +329,13 @@ export default class M3ModelData {
 
   set _inFlightAttributes(v) {
     this.__inFlightAttributes = v;
+  }
+
+  get _nestedModelDatas() {
+    if (this.__nestedModelsData === null) {
+      this.__nestedModelsData = Object.create(null);
+    }
+    return this.__nestedModelsData;
   }
 
   /*
