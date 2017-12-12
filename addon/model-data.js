@@ -2,7 +2,7 @@ import { assign, merge } from '@ember/polyfills';
 import { isEqual } from '@ember/utils';
 import { copy } from '@ember/object/internals';
 import { get } from '@ember/object';
-import { setDiff } from './util';
+import { setDiff, merge as mergeData } from './util';
 
 const emberAssign = assign || merge;
 
@@ -15,20 +15,15 @@ export default class M3ModelData {
     // TODO IGOR DAVID consider if this can be better, for now we need this because
     // non m3 model datas expect it to be here
     this.__implicitRelationships = Object.create(null);
+    this.__data = null;
   }
 
   // PUBLIC API
 
-  setupData(data, calculateChange) {
-    let changedKeys;
-
-    if (calculateChange) {
-      changedKeys = this._changedKeys(data.attributes);
-    }
-
-    this._data = data.attributes || null;
-
-    return changedKeys;
+  setupData(data) {
+    let changedKeys = mergeData(this._data, data.attributes);
+    // TODO Consider nested models as well
+    return Object.keys(changedKeys);
   }
 
   adapterWillCommit() {
@@ -99,20 +94,17 @@ export default class M3ModelData {
 
   adapterDidCommit(data) {
     let changedKeys = {};
-    if (data) {
-      // this.store._internalModelDidReceiveRelationshipData(this.modelName, this.id, data.relationships);
-      data = data.attributes;
-      changedKeys = this._changedKeys(data);
-    }
 
-    emberAssign(this._data, this._inFlightAttributes);
     if (data) {
-      this._data = data;
+      changedKeys = mergeData(this._data, data.attributes);
+    } else {
+      emberAssign(this._data, this._inFlightAttributes);
     }
 
     this._inFlightAttributes = null;
 
-    return changedKeys;
+    // TODO Consider nested models as well
+    return Object.keys(changedKeys);
   }
 
   getHasMany() {}
