@@ -40,8 +40,12 @@ export default class M3ModelData {
 
   // PUBLIC API
 
-  setupData(data) {
-    return this._mergeUpdates(data.attributes, setupDataAndNotify);
+  setupData(data, calculateChanges) {
+    return this._mergeUpdates(
+      data.attributes,
+      calculateChanges,
+      setupDataAndNotify
+    );
   }
 
   adapterWillCommit() {
