@@ -7,6 +7,23 @@ import { isEmbeddedObject } from './util';
 const emberAssign = assign || merge;
 const { isEqual } = Ember;
 
+function setupDataAndNotify(modelData, updates) {
+  let changedKeys = modelData.setupData({ attributes: updates });
+
+  modelData._notifyRecordProperties(changedKeys);
+}
+
+function commitInFlightData(modelData, updates) {
+  modelData._inFlightAttributes = updates;
+  modelData.adapterDidCommit(null);
+}
+
+function commitDataAndNotify(modelData, updates) {
+  let changedKeys = modelData.adapterDidCommit({ attributes: updates });
+
+  modelData._notifyRecordProperties(changedKeys);
+}
+
 export default class M3ModelData {
   constructor(modelName, id, clientId, storeWrapper, store, internalModel) {
     this.store = store;
@@ -24,18 +41,7 @@ export default class M3ModelData {
   // PUBLIC API
 
   setupData(data) {
-    let changedKeys = this._mergeUpdates(
-      data.attributes,
-      (nestedModelData, updates) => {
-        let changedKeys = nestedModelData.setupData({
-          attributes: updates,
-        });
-        // once changes are done, we need to notify the record
-        nestedModelData._notifyRecordProperties(changedKeys);
-      }
-    );
-    // TODO Consider nested models as well
-    return changedKeys;
+    return this._mergeUpdates(data.attributes, setupDataAndNotify);
   }
 
   adapterWillCommit() {
@@ -59,7 +65,7 @@ export default class M3ModelData {
   /*
       Returns an object, whose keys are changed properties, and value is an
       [oldProp, newProp] array.
-  
+
       @method changedAttributes
       @private
     */
@@ -105,26 +111,15 @@ export default class M3ModelData {
   }
 
   adapterDidCommit(data) {
-    let changedKeys = {};
-
-    if (data) {
-      changedKeys = this._mergeUpdates(
-        data.attributes,
-        (nestedModelData, updates) => {
-          let changedKeys = nestedModelData.adapterDidCommit({
-            attributes: updates,
-          });
-          nestedModelData._notifyRecordProperties(changedKeys);
-        }
-      );
-    } else {
-      emberAssign(this._data, this._inFlightAttributes);
-    }
-
+    this._mergeUpdates(this._inFlightAttributes, commitInFlightData);
     this._inFlightAttributes = null;
 
-    // TODO Consider nested models as well
-    return changedKeys;
+    if (data) {
+      return this._mergeUpdates(data.attributes, commitDataAndNotify);
+    }
+
+    // TODO can we avoid this useless allocation?
+    return {};
   }
 
   getHasMany() {}
@@ -221,34 +216,50 @@ export default class M3ModelData {
     );
   }
 
+  /**
+   *
+   * @param updates
+   * @param nestedCallback a callback for updating the data of a nested model-data instance
+   * @returns {Array}
+   * @private
+   */
   _mergeUpdates(updates, nestedCallback) {
     let data = this._data;
     let changedKeys = [];
+
     if (!updates) {
       // no changes
       return changedKeys;
     }
+
     let updatedKeys = Object.keys(updates);
+
     for (let i = 0; i < updatedKeys.length; i++) {
       let key = updatedKeys[i];
       let newValue = updates[key];
+
       if (isEqual(data[key], newValue)) {
         // values are equal, nothing to do
         // note, updates to objects should always result in new object or there will be nothing to update
         continue;
       }
+
       if (this.hasNestedModelData(key)) {
         let nested = this.getOrCreateNestedModelData(key);
+
         if (isEmbeddedObject(newValue)) {
           nestedCallback(nested, newValue);
           continue;
         }
+
         // not an embedded object, destroy the nested model data
         this.destroyNestedModelData(key);
       }
+
       changedKeys.push(key);
       data[key] = newValue;
     }
+
     return changedKeys;
   }
 
@@ -290,26 +301,26 @@ export default class M3ModelData {
       implicit relationships are relationship which have not been declared but the inverse side exists on
       another record somewhere
       For example if there was
-  
+
       ```app/models/comment.js
       import DS from 'ember-data';
-  
+
       export default DS.Model.extend({
       name: DS.attr()
       })
       ```
-  
+
       but there is also
-  
+
       ```app/models/post.js
       import DS from 'ember-data';
-  
+
       export default DS.Model.extend({
       name: DS.attr(),
       comments: DS.hasMany('comment')
       })
       ```
-  
+
       would have a implicit post relationship in order to be do things like remove ourselves from the post
       when we are deleted
     */
@@ -339,17 +350,17 @@ export default class M3ModelData {
   }
 
   /*
-  
-  
+
+
       TODO IGOR AND DAVID this shouldn't be public
       This method should only be called by records in the `isNew()` state OR once the record
       has been deleted and that deletion has been persisted.
-  
+
       It will remove this record from any associated relationships.
-  
+
       If `isNew` is true (default false), it will also completely reset all
       relationships to an empty state as well.
-  
+
       @method removeFromInverseRelationships
       @param {Boolean} isNew whether to unload from the `isNew` perspective
       @private
