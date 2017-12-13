@@ -8,6 +8,10 @@ export class SchemaManager {
   }
 
   computeBaseModelName(projectionModelName) {
+    if (typeof this.schema.computeBaseModelName !== 'function') {
+      return;
+    }
+
     return this.schema.computeBaseModelName(projectionModelName);
   }
 

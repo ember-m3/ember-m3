@@ -1,4 +1,4 @@
-import { module, skip } from 'qunit';
+import { module, test, skip } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import Ember from 'ember';
 import MegamorphicModel from 'ember-m3/model';
@@ -117,16 +117,14 @@ module('unit/projection', function(hooks) {
   });
 
   module('cache consistency', function() {
-    skip(
-      `store.peekRecord() will only return a projection or base-record if it has been fetched`,
-      function(assert) {
-        assert.expect(4);
+    test(`store.peekRecord() will only return a projection or base-record if it has been fetched`, function(assert) {
+      assert.expect(4);
 
-        const UNFETCHED_PROJECTION_ID = 'isbn:9780439708180';
-        const FETCHED_PROJECTION_ID = 'isbn:9780439708181';
-        let { store } = this;
+      const UNFETCHED_PROJECTION_ID = 'isbn:9780439708180';
+      const FETCHED_PROJECTION_ID = 'isbn:9780439708181';
+      let { store } = this;
 
-        /*
+      /*
         populate the store with a starting state of
          a base-record for the UNFETCHED_PROJECTION_ID and a projected-record
          for the FETCHED_PROJECTION_ID
@@ -135,113 +133,112 @@ module('unit/projection', function(hooks) {
           the FETCHED_PROJECTION_ID is the unfetched base-record
           the UNFETCHED_PROJECTION_ID is the already fetched base-record
         */
-        run(() => {
-          store.push({
-            data: {
-              type: BOOK_CLASS_PATH,
-              id: UNFETCHED_PROJECTION_ID,
-              attributes: {
-                title: 'Carry On! Mr. Bowditch',
-              },
+      run(() => {
+        store.push({
+          data: {
+            type: BOOK_CLASS_PATH,
+            id: UNFETCHED_PROJECTION_ID,
+            attributes: {
+              title: 'Carry On! Mr. Bowditch',
             },
-          });
-          store.preloadData({
-            data: {
-              type: BOOK_CLASS_PATH,
-              id: FETCHED_PROJECTION_ID,
-              attributes: {
-                title: `Mr. Popper's Penguins`,
-              },
-            },
-          });
-          store.push({
-            data: {
-              type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
-              id: FETCHED_PROJECTION_ID,
-              attributes: {},
-            },
-          });
+          },
         });
+        store.preloadData({
+          data: {
+            type: BOOK_CLASS_PATH,
+            id: FETCHED_PROJECTION_ID,
+            attributes: {
+              title: `Mr. Popper's Penguins`,
+            },
+          },
+        });
+        store.push({
+          data: {
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            id: FETCHED_PROJECTION_ID,
+            attributes: {},
+          },
+        });
+      });
 
-        let projection = store.peekRecord(
-          BOOK_EXCERPT_PROJECTION_CLASS_PATH,
-          UNFETCHED_PROJECTION_ID
-        );
-        assert.equal(
-          projection,
-          undefined,
-          'The unfetched projection with a fetched base-record is unfound by peekRecord()'
-        );
+      let projection = store.peekRecord(
+        BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+        UNFETCHED_PROJECTION_ID
+      );
 
-        projection = store.peekRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, FETCHED_PROJECTION_ID);
-        assert.ok(
-          projection instanceof MegamorphicModel,
-          'The fetched projection is found by peekRecord()'
-        );
+      assert.equal(
+        projection,
+        null,
+        'The unfetched projection with a fetched base-record is unfound by peekRecord()'
+      );
 
-        let record = store.peekRecord(BOOK_CLASS_PATH, UNFETCHED_PROJECTION_ID);
-        assert.ok(
-          record instanceof MegamorphicModel,
-          'The fetched base-record is found by peekRecord()'
-        );
+      projection = store.peekRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, FETCHED_PROJECTION_ID);
+      assert.ok(
+        projection instanceof MegamorphicModel,
+        'The fetched projection is found by peekRecord()'
+      );
 
-        record = store.peekRecord(BOOK_CLASS_PATH, FETCHED_PROJECTION_ID);
-        assert.equal(
-          record,
-          undefined,
-          'The unfetched base-record with a fetched projection is unfound by peekRecord()'
-        );
-      }
-    );
+      let record = store.peekRecord(BOOK_CLASS_PATH, UNFETCHED_PROJECTION_ID);
+      assert.ok(
+        record instanceof MegamorphicModel,
+        'The fetched base-record is found by peekRecord()'
+      );
 
-    skip(
-      `store.findRecord() will only fetch a projection or base-model if it has not been fetched previously`,
-      function(assert) {
-        assert.expect(12);
+      record = store.peekRecord(BOOK_CLASS_PATH, FETCHED_PROJECTION_ID);
 
-        const UNFETCHED_PROJECTION_ID = 'isbn:9780439708180';
-        const FETCHED_PROJECTION_ID = 'isbn:9780439708181';
-        let { store } = this;
+      assert.equal(
+        record,
+        null,
+        'The unfetched base-record with a fetched projection is unfound by peekRecord()'
+      );
+    });
 
-        let expectedFindRecordModelName;
-        let trueFindRecordModelName;
-        let expectedFindRecordId;
-        let findRecordCallCount = 0;
+    test(`store.findRecord() will only fetch a projection or base-model if it has not been fetched previously`, function(assert) {
+      assert.expect(12);
 
-        this.owner.register(
-          'adapter:-ember-m3',
-          Ember.Object.extend({
-            findRecord(store, modelClass, id, snapshot) {
-              findRecordCallCount++;
-              assert.equal(
-                snapshot.modelName,
-                expectedFindRecordModelName,
-                'findRecord snapshot has the correct modelName'
-              );
-              assert.equal(id, expectedFindRecordId, 'findRecord received the correct id');
+      const UNFETCHED_PROJECTION_ID = 'isbn:9780439708180';
+      const FETCHED_PROJECTION_ID = 'isbn:9780439708181';
+      let { store } = this;
 
-              return Promise.resolve({
-                data: {
-                  id: expectedFindRecordId,
-                  type: trueFindRecordModelName,
-                  attributes: {
-                    title: 'Carry on! Mr. Bowditch',
-                  },
+      let expectedFindRecordModelName;
+      let trueFindRecordModelName;
+      let expectedFindRecordId;
+      let findRecordCallCount = 0;
+
+      this.owner.register(
+        'adapter:-ember-m3',
+        Ember.Object.extend({
+          findRecord(store, modelClass, id, snapshot) {
+            findRecordCallCount++;
+            assert.equal(
+              snapshot.modelName,
+              expectedFindRecordModelName,
+              'findRecord snapshot has the correct modelName'
+            );
+            assert.equal(id, expectedFindRecordId, 'findRecord received the correct id');
+
+            return Promise.resolve({
+              data: {
+                id: expectedFindRecordId,
+                type: trueFindRecordModelName,
+                attributes: {
+                  title: 'Carry on! Mr. Bowditch',
                 },
-              });
-            },
+              },
+            });
+          },
 
-            shouldReloadRecord() {
-              return false;
-            },
+          shouldReloadRecord() {
+            return false;
+          },
 
-            shouldBackgroundReloadRecord() {
-              return false;
-            },
-          })
-        );
+          shouldBackgroundReloadRecord() {
+            return false;
+          },
+        })
+      );
 
-        /*
+      /*
         populate the store with a starting state of
          a base-record for the UNFETCHED_PROJECTION_ID and a projected-record
          for the FETCHED_PROJECTION_ID
@@ -250,101 +247,98 @@ module('unit/projection', function(hooks) {
           the FETCHED_PROJECTION_ID is the unfetched base-record
           the UNFETCHED_PROJECTION_ID is the already fetched base-record
         */
-        run(() => {
-          store.push({
-            data: {
-              type: BOOK_CLASS_PATH,
-              id: UNFETCHED_PROJECTION_ID,
-              attributes: {
-                title: 'Carry On! Mr. Bowditch',
-              },
+      run(() => {
+        store.push({
+          data: {
+            type: BOOK_CLASS_PATH,
+            id: UNFETCHED_PROJECTION_ID,
+            attributes: {
+              title: 'Carry On! Mr. Bowditch',
             },
-          });
-          store.preloadData({
-            data: {
-              type: BOOK_CLASS_PATH,
-              id: FETCHED_PROJECTION_ID,
-              attributes: {
-                title: `Mr. Popper's Penguins`,
-              },
-            },
-          });
-          store.push({
-            data: {
-              type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
-              id: FETCHED_PROJECTION_ID,
-              attributes: {},
-            },
-          });
+          },
         });
+        store.preloadData({
+          data: {
+            type: BOOK_CLASS_PATH,
+            id: FETCHED_PROJECTION_ID,
+            attributes: {
+              title: `Mr. Popper's Penguins`,
+            },
+          },
+        });
+        store.push({
+          data: {
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            id: FETCHED_PROJECTION_ID,
+            attributes: {},
+          },
+        });
+      });
 
-        /*
+      /*
         Setup findRecord params for projection requests
 
         remember:
           the FETCHED_PROJECTION_ID is the unfetched base-record
           the UNFETCHED_PROJECTION_ID is the already fetched base-record
        */
-        findRecordCallCount = 0;
-        expectedFindRecordModelName = NORM_BOOK_EXCERPT_PROJECTION_CLASS_PATH;
-        trueFindRecordModelName = BOOK_EXCERPT_PROJECTION_CLASS_PATH;
-        expectedFindRecordId = UNFETCHED_PROJECTION_ID;
+      findRecordCallCount = 0;
+      expectedFindRecordModelName = NORM_BOOK_EXCERPT_PROJECTION_CLASS_PATH;
+      trueFindRecordModelName = BOOK_EXCERPT_PROJECTION_CLASS_PATH;
+      expectedFindRecordId = UNFETCHED_PROJECTION_ID;
 
-        run(() => {
-          store
-            .findRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, FETCHED_PROJECTION_ID)
-            .then(model => {
-              assert.equal(
-                get(model, 'id'),
-                FETCHED_PROJECTION_ID,
-                'we retrieved the already fetched the model'
-              );
-              assert.equal(findRecordCallCount, 0, 'We did not re-fetch');
-            });
+      run(() => {
+        store.findRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, FETCHED_PROJECTION_ID).then(model => {
+          assert.equal(
+            get(model, 'id'),
+            FETCHED_PROJECTION_ID,
+            'we retrieved the already fetched the model'
+          );
+          assert.equal(findRecordCallCount, 0, 'We did not re-fetch');
         });
+      });
 
-        run(() => {
-          store
-            .findRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, UNFETCHED_PROJECTION_ID)
-            .then(model => {
-              assert.equal(get(model, 'id'), UNFETCHED_PROJECTION_ID, 'we fetched the model');
-              assert.equal(findRecordCallCount, 1, 'We made a single request');
-            });
-        });
+      run(() => {
+        store
+          .findRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, UNFETCHED_PROJECTION_ID)
+          .then(model => {
+            assert.equal(get(model, 'id'), UNFETCHED_PROJECTION_ID, 'we fetched the model');
+            assert.equal(findRecordCallCount, 1, 'We made a single request');
+          });
+      });
 
-        /*
+      /*
         Setup findRecord params for base-record requests,
 
         remember:
           the FETCHED_PROJECTION_ID is the unfetched base-record
           the UNFETCHED_PROJECTION_ID is the already fetched base-record
       */
-        findRecordCallCount = 0;
-        expectedFindRecordModelName = NORM_BOOK_CLASS_PATH;
-        trueFindRecordModelName = BOOK_CLASS_PATH;
-        expectedFindRecordId = FETCHED_PROJECTION_ID;
+      findRecordCallCount = 0;
+      expectedFindRecordModelName = NORM_BOOK_CLASS_PATH;
+      trueFindRecordModelName = BOOK_CLASS_PATH;
+      expectedFindRecordId = FETCHED_PROJECTION_ID;
 
-        run(() => {
-          store.findRecord(BOOK_CLASS_PATH, UNFETCHED_PROJECTION_ID).then(model => {
-            assert.equal(
-              get(model, 'id'),
-              UNFETCHED_PROJECTION_ID,
-              'we retrieved the already fetched the model'
-            );
-            assert.equal(findRecordCallCount, 0, 'We did not re-fetch');
-          });
+      run(() => {
+        store.findRecord(BOOK_CLASS_PATH, UNFETCHED_PROJECTION_ID).then(model => {
+          assert.equal(
+            get(model, 'id'),
+            UNFETCHED_PROJECTION_ID,
+            'we retrieved the already fetched the model'
+          );
+          assert.equal(findRecordCallCount, 0, 'We did not re-fetch');
         });
+      });
 
-        run(() => {
-          store.findRecord(BOOK_CLASS_PATH, FETCHED_PROJECTION_ID).then(model => {
-            assert.equal(get(model, 'id'), FETCHED_PROJECTION_ID, 'we fetched the model');
-            assert.equal(findRecordCallCount, 1, 'We made a single request');
-          });
+      run(() => {
+        store.findRecord(BOOK_CLASS_PATH, FETCHED_PROJECTION_ID).then(model => {
+          assert.equal(get(model, 'id'), FETCHED_PROJECTION_ID, 'we fetched the model');
+          assert.equal(findRecordCallCount, 1, 'We made a single request');
         });
-      }
-    );
+      });
+    });
 
-    skip(`store.peekAll() will not return partial records`, function(assert) {
+    test(`store.peekAll() will not return partial records`, function(assert) {
       let { store } = this;
 
       run(() => {
@@ -408,7 +402,7 @@ module('unit/projection', function(hooks) {
       assert.equal(get(recordArray.objectAt(0), 'id'), '1', 'We find the expected record');
     });
 
-    skip('Projections proxy whitelisted attributes to a base-record', function(assert) {
+    test('Projections proxy whitelisted attributes to a base-record', function(assert) {
       let { store } = this;
       const BOOK_ID = 'isbn:9780439708181';
       const BOOK_TITLE = 'Adventures in Wonderland';

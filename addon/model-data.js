@@ -55,6 +55,11 @@ export default class M3ModelData {
 
     this.schemaInterface = new M3SchemaInterface(this);
     this._schema = SchemaManager;
+
+    this.baseModelName = this._schema.computeBaseModelName(this.modelName);
+
+    // TODO we may not have ID yet?
+    this.baseModelData = this.baseModelName ? store.modelDataFor(this.baseModelName, id) : null;
   }
 
   // PUBLIC API
@@ -172,6 +177,9 @@ export default class M3ModelData {
   }
 
   get _data() {
+    if (this.baseModelData !== null) {
+      return this.baseModelData._data;
+    }
     if (this.__data === null) {
       this.__data = Object.create(null);
     }
