@@ -1,11 +1,15 @@
 import Ember from 'ember';
 import DS from 'ember-data';
+// import { InternalModel } from 'ember-data/-private';
 
 import MegamorphicModel from '../model';
 import M3ModelData from '../model-data';
 import MegamorphicModelFactory from '../factory';
 import SchemaManager from '../schema-manager';
 import QueryCache from '../query-cache';
+
+const { dasherize } = Ember.String;
+// const EmptyState = new InternalModel().currentState;
 
 // TODO: this is a stopgap.  We want to replace this with a public
 // DS.Model/Schema API
@@ -16,6 +20,47 @@ export function extendStore(Store) {
       this._super(...arguments);
       this._queryCache = new QueryCache({ store: this });
       this._globalM3Cache = new Object(null);
+    },
+
+    /*
+      This is a temporary method that mimics
+      what will eventually become the `store.preloadData()` API
+      in intent (e.g. it pushes data into the store without marking
+      it as loaded).
+      This is here only until we are able to directly work off of the model-data branches
+      of ember-data and ember-m3.
+     */
+    preloadData(document) {
+      let { data, included } = document;
+
+      if (Array.isArray(included)) {
+        for (let i = 0; i < included.length; i++) {
+          this._preloadSingleResource(included[i]);
+        }
+      }
+
+      if (Array.isArray(data)) {
+        for (let i = 0; i < data.length; i++) {
+          this._preloadSingleResource(data[i]);
+        }
+      } else if (typeof data === 'object' && data !== null) {
+        this._preloadSingleResource(data);
+      }
+    },
+
+    _preloadSingleResource(data) {
+      let modelName = dasherize(data.type);
+      let modelData = this.modelDataFor(modelName, data.id);
+      let isUpdate = false;
+      // let isUpdate = modelData.currentState.isEmpty === false;
+
+      modelData.setupData(data);
+
+      if (isUpdate === true) {
+        // this.recordArrayManager.recordDidChange(modelData);
+      } else {
+        // internalModel.currentState = EmptyState;
+      }
     },
 
     _hasModelFor(modelName) {

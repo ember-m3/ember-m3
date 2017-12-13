@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import { isEmbeddedObject } from './util';
+import SchemaManager from './schema-manager';
 
 const { isEqual } = Ember;
 
@@ -30,6 +31,14 @@ export default class M3ModelData {
     this.__implicitRelationships = Object.create(null);
     this.__data = null;
     this.__nestedModelsData = null;
+    this._schema = SchemaManager;
+
+    this.baseModelName = this._schema.computeBaseModelName(this.modelName);
+
+    // TODO we may not have ID yet?
+    this.baseModelData = this.baseModelName
+      ? store.modelDataFor(this.baseModelName, id)
+      : null;
   }
 
   // PUBLIC API
@@ -50,7 +59,10 @@ export default class M3ModelData {
 
   // TODO, Maybe can model as destroying model data?
   resetRecord() {
-    this._data = null;
+    if (this.baseModelData === null) {
+      // only reset the data if it is not a projection
+      this._data = null;
+    }
   }
 
   /*
@@ -213,13 +225,23 @@ export default class M3ModelData {
   }
 
   get _data() {
+    if (this.baseModelData !== null) {
+      return this.baseModelData._data;
+    }
+
     if (this.__data === null) {
       this.__data = Object.create(null);
     }
+
     return this.__data;
   }
 
   set _data(v) {
+    if (this.baseModelData !== null) {
+      this.baseModelData._data = v;
+      return;
+    }
+
     this.__data = v;
   }
 
@@ -258,6 +280,10 @@ export default class M3ModelData {
   }
 
   get _inFlightAttributes() {
+    if (this.baseModelData !== null) {
+      return this.baseModelData._inFlightAttributes;
+    }
+
     if (this.__inFlightAttributes === null) {
       this.__inFlightAttributes = Object.create(null);
     }
@@ -265,6 +291,11 @@ export default class M3ModelData {
   }
 
   set _inFlightAttributes(v) {
+    if (this.baseModelData !== null) {
+      this.baseModelData._inFlightAttributes = v;
+      return;
+    }
+
     this.__inFlightAttributes = v;
   }
 
