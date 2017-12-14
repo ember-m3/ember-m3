@@ -13,6 +13,31 @@ const {
   loaded: { saved: loadedSaved },
 } = RootState;
 
+function createNestedModelData(
+  parentModelData,
+  key,
+  modelName,
+  id,
+  internalModel
+) {
+  return parentModelData.getOrCreateNestedModelData(
+    key,
+    modelName,
+    id,
+    internalModel
+  );
+}
+
+function createDetachedNestedModelData(
+  parentModelData,
+  key,
+  modelName,
+  id,
+  internalModel
+) {
+  return parentModelData.createNestedModelData(modelName, id, internalModel);
+}
+
 class EmbeddedSnapshot {
   constructor(record) {
     this.record = record;
@@ -44,7 +69,7 @@ class EmbeddedInternalModel {
     _data,
     store,
     parentInternalModel,
-    isArrayElement,
+    createModelDataCallback,
   }) {
     this.id = id;
     this.modelName = modelName;
@@ -52,20 +77,13 @@ class EmbeddedInternalModel {
     // TODO FIX IGOR DAVID
 
     // TODO IGOR DAVID CLEANUP
-    if (isArrayElement) {
-      this._modelData = parentInternalModel._modelData.createNestedModelData(
-        modelName,
-        id,
-        this
-      );
-    } else {
-      this._modelData = parentInternalModel._modelData.getOrCreateNestedModelData(
-        key,
-        modelName,
-        id,
-        this
-      );
-    }
+    this._modelData = createModelDataCallback(
+      parentInternalModel._modelData,
+      key,
+      modelName,
+      id,
+      this
+    );
     this._modelData.setupData({
       attributes: _data,
     });
@@ -91,7 +109,7 @@ function resolveValue(
   store,
   schema,
   model,
-  isArrayElement = false
+  createModelDataCallback = createNestedModelData
 ) {
   if (schema.isAttributeArrayReference(key, value, modelName)) {
     return resolveRecordArray(key, value, modelName, store, schema, model);
@@ -119,7 +137,7 @@ function resolveValue(
     let internalModel = new EmbeddedInternalModel({
       key,
       store,
-      isArrayElement,
+      createModelDataCallback,
       id: nested.id,
       // maintain consistency with internalmodel.modelName, which is normalized
       // internally within ember-data
@@ -156,7 +174,7 @@ function resolvePlainArray(key, value, modelName, store, schema, model) {
       store,
       schema,
       model,
-      true
+      createDetachedNestedModelData
     );
   }
 
