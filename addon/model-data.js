@@ -133,6 +133,16 @@ export default class M3ModelData {
     return key in this._data;
   }
 
+  getResourceIdentifier() {
+    let { modelName, clientId, id } = this.internalModel;
+
+    return {
+      id,
+      clientId,
+      type: modelName,
+    };
+  }
+
   /**
    *
    * @param updates
