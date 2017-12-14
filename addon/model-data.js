@@ -1,10 +1,6 @@
-import { assign, merge } from '@ember/polyfills';
-import { copy } from '@ember/object/internals';
-import { get } from '@ember/object';
 import Ember from 'ember';
 import { isEmbeddedObject } from './util';
 
-const emberAssign = assign || merge;
 const { isEqual } = Ember;
 
 function setupDataAndNotify(modelData, updates) {
@@ -14,11 +10,6 @@ function setupDataAndNotify(modelData, updates) {
   );
 
   modelData._notifyRecordProperties(changedKeys);
-}
-
-function commitInFlightData(modelData, updates) {
-  modelData._inFlightAttributes = updates;
-  modelData.adapterDidCommit(null);
 }
 
 function commitDataAndNotify(modelData, updates) {
@@ -51,21 +42,14 @@ export default class M3ModelData {
     );
   }
 
-  adapterWillCommit() {
-    this._inFlightAttributes = this._attributes;
-    this._attributes = null;
-  }
+  adapterWillCommit() {}
 
   hasChangedAttributes() {
-    return (
-      this.__attributes !== null && Object.keys(this.__attributes).length > 0
-    );
+    return false;
   }
 
   // TODO, Maybe can model as destroying model data?
   resetRecord() {
-    this.__attributes = null;
-    this.__inFlightAttributes = null;
     this._data = null;
   }
 
@@ -78,73 +62,27 @@ export default class M3ModelData {
     */
   // TODO DAVID once we deal with dirtyness, need to bring back updateChangedAttributes
   changedAttributes() {
-    let oldData = this._data;
-    let currentData = this._attributes;
-    let inFlightData = this._inFlightAttributes;
-    let newData = emberAssign(copy(inFlightData), currentData);
-    let diffData = Object.create(null);
-    let newDataKeys = Object.keys(newData);
-
-    for (let i = 0, length = newDataKeys.length; i < length; i++) {
-      let key = newDataKeys[i];
-      diffData[key] = [oldData[key], newData[key]];
-    }
-
-    return diffData;
+    return {};
   }
 
   rollbackAttributes() {
-    let dirtyKeys;
-    if (this.hasChangedAttributes()) {
-      dirtyKeys = Object.keys(this._attributes);
-      this._attributes = null;
-    }
-
-    if (get(this.internalModel, 'isError')) {
-      this._inFlightAttributes = null;
-      // TODO IGOR DAVID seems bad to have to go back, maybe move to internalModel?
-      this.internalModel.didCleanError();
-    }
-
-    if (this.internalModel.isNew()) {
-      this.removeFromInverseRelationships(true);
-    }
-
-    if (this.internalModel.isValid()) {
-      this._inFlightAttributes = null;
-    }
-
-    return dirtyKeys;
+    // this is noop
   }
 
   adapterDidCommit(data) {
-    this._mergeUpdates(this._inFlightAttributes, commitInFlightData);
-    this._inFlightAttributes = null;
-
     if (data) {
       return this._mergeUpdates(data.attributes, commitDataAndNotify);
     }
 
     // TODO can we avoid this useless allocation?
-    return {};
+    return [];
   }
 
   getHasMany() {}
 
   setHasMany() {}
 
-  saveWasRejected() {
-    let keys = Object.keys(this._inFlightAttributes);
-    if (keys.length > 0) {
-      let attrs = this._attributes;
-      for (let i = 0; i < keys.length; i++) {
-        if (attrs[keys[i]] === undefined) {
-          attrs[keys[i]] = this._inFlightAttributes[keys[i]];
-        }
-      }
-    }
-    this._inFlightAttributes = null;
-  }
+  saveWasRejected() {}
 
   getBelongsTo() {}
 
@@ -184,43 +122,15 @@ export default class M3ModelData {
   }
 
   setAttr(key, value) {
-    let oldValue = this.getAttr(key);
-    let originalValue;
-
-    if (value !== oldValue) {
-      // Add the new value to the changed attributes hash; it will get deleted by
-      // the 'didSetProperty' handler if it is no different from the original value
-      this._attributes[key] = value;
-
-      if (key in this._inFlightAttributes) {
-        originalValue = this._inFlightAttributes[key];
-      } else {
-        originalValue = this._data[key];
-      }
-      // If we went back to our original value, we shouldn't keep the attribute around anymore
-      if (value === originalValue) {
-        delete this._attributes[key];
-      }
-    }
+    this._data[key] = value;
   }
 
   getAttr(key) {
-    // TODO IGOR DAVID investigate why attributes would be null
-    if (this._attributes && key in this._attributes) {
-      return this._attributes[key];
-    } else if (this._inFlightAttributes && key in this._inFlightAttributes) {
-      return this._inFlightAttributes[key];
-    } else {
-      return this._data[key];
-    }
+    return this._data[key];
   }
 
   hasAttr(key) {
-    return (
-      key in this._attributes ||
-      key in this._inFlightAttributes ||
-      key in this._data
-    );
+    return key in this._data;
   }
 
   /**
@@ -283,16 +193,9 @@ export default class M3ModelData {
     }
   }
 
-  get _attributes() {
-    if (this.__attributes === null) {
-      this.__attributes = Object.create(null);
-    }
-    return this.__attributes;
-  }
+  get _attributes() {}
 
-  set _attributes(v) {
-    this.__attributes = v;
-  }
+  set _attributes(v) {}
 
   // TODO IGOR and DAVID, shouldn't need this
   get _relationships() {
