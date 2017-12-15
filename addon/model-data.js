@@ -76,6 +76,10 @@ export default class M3ModelData {
   }
 
   pushData(data, calculateChange) {
+    if (!calculateChange) {
+      // check whether we have projections, which will require notifications
+      calculateChange = this._projections && this._projections.length > 0;
+    }
     let changedKeys = this._mergeUpdates(data.attributes, pushDataAndNotify, calculateChange);
 
     if (calculateChange) {
@@ -233,13 +237,10 @@ export default class M3ModelData {
    * @returns {Array}
    * @private
    */
-  _mergeUpdates(updates, nestedCallback, calculateChanges = true) {
+  _mergeUpdates(updates, nestedCallback) {
     let data = this._data;
 
-    let changedKeys;
-    if (calculateChanges) {
-      changedKeys = [];
-    }
+    let changedKeys = [];
 
     if (!updates) {
       // no changes
@@ -279,9 +280,7 @@ export default class M3ModelData {
         this.destroyNestedModelData(key);
       }
 
-      if (calculateChanges) {
-        changedKeys.push(key);
-      }
+      changedKeys.push(key);
       data[key] = newValue;
     }
 

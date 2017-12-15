@@ -761,7 +761,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Updating a projection updates the base-record and other projections', function(assert) {
+    test('Updating a projection updates the base-record and other projections', function(assert) {
       let baseRecord = this.records.baseRecord;
       let { store } = this;
 

@@ -49,7 +49,16 @@ export function extendStore(Store) {
       let modelName = dasherize(data.type);
       let modelData = this.modelDataFor(modelName, data.id);
 
-      modelData.pushData(data);
+      let changedKeys = modelData.pushData(data);
+
+      // We need to explicitly notify any possible record, which may have been associated
+      // with the preloaded ModelData. We don't delegate this to InternalModel
+      // to not confuse the implementation whether the `setupData` call also means
+      // it has been loaded
+      let internalModel = this._internalModelForId(modelName, data.id);
+      if (internalModel && internalModel.hasRecord) {
+        internalModel._record._notifyProperties(changedKeys);
+      }
     },
 
     // Store hooks necessary for using a single model class
