@@ -54,7 +54,10 @@ export function extendStore(Store) {
       let isUpdate = false;
       // let isUpdate = modelData.currentState.isEmpty === false;
 
-      modelData.setupData(data);
+      // TODO All other uses of setupData notifies the record of any
+      // properties changes, but not this one. Temporary we have an
+      // explicit parameter to make setupData notify the record as well
+      modelData.setupData(data, true, true);
 
       if (isUpdate === true) {
         // this.recordArrayManager.recordDidChange(modelData);

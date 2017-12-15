@@ -504,6 +504,12 @@ export default class MegamorphicModel extends Ember.Object {
       return;
     }
 
+    if (!this._schema.isAttributeIncluded(this._modelName, key)) {
+      throw new Error(
+        `Cannot set non-whitelisted property ${key} on type ${this._modelName}`
+      );
+    }
+
     if (this._schema.getAttributeAlias(this._modelName, key)) {
       throw new Error(
         `You tried to set '${key}' to '${value}', but '${key}' is an alias in '${

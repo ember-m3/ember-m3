@@ -46,15 +46,17 @@ export default class M3ModelData {
 
   // PUBLIC API
 
-  setupData(data, calculateChanges) {
-    let changedKeys = this._mergeUpdates(
-      data.attributes,
-      setupDataAndNotify,
-      calculateChanges
-    );
-    if (calculateChanges) {
-      this._notifyProjectionProperties(changedKeys);
+  setupData(data, calculateChanges, notify) {
+    // TODO One more parameter is used to indicate we need setupData to
+    // also notify records of any changes, because preload does not do
+    // it, but it should
+    let changedKeys = this._mergeUpdates(data.attributes, setupDataAndNotify);
+    this._notifyProjectionProperties(changedKeys);
+
+    if (notify) {
+      this._notifyRecordProperties(changedKeys);
     }
+
     return changedKeys;
   }
 
@@ -188,13 +190,10 @@ export default class M3ModelData {
    * @returns {Array}
    * @private
    */
-  _mergeUpdates(updates, nestedCallback, calculateChanges = true) {
+  _mergeUpdates(updates, nestedCallback) {
     let data = this._data;
 
-    let changedKeys;
-    if (calculateChanges) {
-      changedKeys = [];
-    }
+    let changedKeys = [];
 
     if (!updates) {
       // no changes
@@ -225,9 +224,7 @@ export default class M3ModelData {
         this.destroyNestedModelData(key);
       }
 
-      if (calculateChanges) {
-        changedKeys.push(key);
-      }
+      changedKeys.push(key);
       data[key] = newValue;
     }
 
