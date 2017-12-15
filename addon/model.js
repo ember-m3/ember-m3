@@ -311,6 +311,9 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   notifyPropertyChange(key) {
+    if (!this._schema.isAttributeIncluded(this._modelName, key)) {
+      return;
+    }
     let oldValue = this._cache[key];
     let newValue = this._internalModel._modelData.getAttr(key);
 
