@@ -33,22 +33,29 @@ export default class M3ModelData {
     this.__nestedModelsData = null;
     this._schema = SchemaManager;
 
-    this.baseModelName = this._schema.computeBaseModelName(this.modelName);
+    let baseModelName = this._schema.computeBaseModelName(this.modelName);
 
-    // TODO we may not have ID yet?
-    this.baseModelData = this.baseModelName
-      ? store.modelDataFor(this.baseModelName, id)
-      : null;
+    this.__projections = null;
+    if (baseModelName) {
+      // TODO we may not have ID yet?
+      this._initBaseModelData(baseModelName, id);
+    } else {
+      this.baseModelData = null;
+    }
   }
 
   // PUBLIC API
 
   setupData(data, calculateChanges) {
-    return this._mergeUpdates(
+    let changedKeys = this._mergeUpdates(
       data.attributes,
       setupDataAndNotify,
       calculateChanges
     );
+    if (calculateChanges) {
+      this._notifyProjectionProperties(changedKeys);
+    }
+    return changedKeys;
   }
 
   adapterWillCommit() {}
@@ -83,7 +90,11 @@ export default class M3ModelData {
 
   adapterDidCommit(data) {
     if (data) {
-      return this._mergeUpdates(data.attributes, commitDataAndNotify);
+      let changedKeys = this._mergeUpdates(
+        data.attributes,
+        commitDataAndNotify
+      );
+      this._notifyProjectionProperties(changedKeys);
     }
 
     // TODO can we avoid this useless allocation?
@@ -135,6 +146,7 @@ export default class M3ModelData {
 
   setAttr(key, value) {
     this._data[key] = value;
+    this._notifyProjectionProperties([key]);
   }
 
   getAttr(key) {
@@ -153,6 +165,20 @@ export default class M3ModelData {
       clientId,
       type: modelName,
     };
+  }
+
+  _initBaseModelData(modelName, id) {
+    this.baseModelData = this.store.modelDataFor(modelName, id);
+    this.baseModelData._registerProjection(this);
+  }
+
+  _registerProjection(modelData) {
+    if (!this.__projections) {
+      // we ensure projections contains the base as well
+      // so we have complete list of all related model datas
+      this.__projections = [this];
+    }
+    this.__projections.push(modelData);
   }
 
   /**
@@ -215,6 +241,17 @@ export default class M3ModelData {
     }
   }
 
+  _notifyProjectionProperties(changedKeys) {
+    let projections = this._projections;
+    if (projections) {
+      for (let i = 0; i < projections.length; i++) {
+        if (projections[i] !== this) {
+          projections[i]._notifyRecordProperties(changedKeys);
+        }
+      }
+    }
+  }
+
   get _attributes() {}
 
   set _attributes(v) {}
@@ -243,6 +280,13 @@ export default class M3ModelData {
     }
 
     this.__data = v;
+  }
+
+  get _projections() {
+    if (this.baseModelData !== null) {
+      return this.baseModelData._projections;
+    }
+    return this.__projections;
   }
 
   /*

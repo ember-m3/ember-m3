@@ -328,6 +328,9 @@ export default class MegamorphicModel extends Ember.Object {
       let key;
       for (let i = 0, length = keys.length; i < length; i++) {
         key = keys[i];
+        if (!this._schema.isAttributeIncluded(this._modelName, key)) {
+          continue;
+        }
         let oldValue = this._cache[key];
         let newValue = this._internalModel._modelData.getAttr(key);
 
@@ -519,7 +522,7 @@ export default class MegamorphicModel extends Ember.Object {
     if (this._schema.isAttributeArrayReference(key, value, this._modelName)) {
       this._setRecordArray(key, value);
     } else {
-      this._internalModel._modelData._data[key] = value;
+      this._internalModel._modelData.setAttr(key, value);
       delete this._cache[key];
     }
 
@@ -534,7 +537,7 @@ export default class MegamorphicModel extends Ember.Object {
       // TODO: should have a schema hook for this
       ids[i] = get(models.objectAt(i), 'id');
     }
-    this._internalModel._modelData._data[key] = ids;
+    this._internalModel._modelData.setAttr(key, ids);
 
     if (key in this._cache) {
       let recordArray = this._cache[key];

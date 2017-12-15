@@ -808,7 +808,7 @@ module('unit/projection', function(hooks) {
       this.records = null;
     });
 
-    skip('Setting on the base-record updates projections', function(assert) {
+    test('Setting on the base-record updates projections', function(assert) {
       let { baseRecord } = this.records;
 
       run(() => {
