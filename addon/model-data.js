@@ -57,10 +57,11 @@ export default class M3ModelData {
   }
 
   // TODO, Maybe can model as destroying model data?
-  resetRecord() {
-    if (this.baseModelData === null) {
-      // only reset the data if it is not a projection
-      this._data = null;
+  resetRecord() {}
+
+  destroy() {
+    if (this.baseModelData) {
+      this.baseModelData._unregisterProjection(this);
     }
   }
 
@@ -159,6 +160,10 @@ export default class M3ModelData {
     };
   }
 
+  shouldDestroy() {
+    return !this._projections || this._projections.length === 0;
+  }
+
   _initBaseModelData(modelName, id) {
     this.baseModelData = this.store.modelDataFor(modelName, id);
     this.baseModelData._registerProjection(this);
@@ -171,6 +176,16 @@ export default class M3ModelData {
       this.__projections = [this];
     }
     this.__projections.push(modelData);
+  }
+
+  _unregisterProjection(modelData) {
+    if (!this.__projections) {
+      return;
+    }
+    let idx = this.__projections.indexOf(modelData);
+    if (idx !== -1) {
+      this.__projections.splice(idx, 1);
+    }
   }
 
   /**
