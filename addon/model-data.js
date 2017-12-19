@@ -107,9 +107,11 @@ export default class M3ModelData {
     if (parentKey !== undefined && parentKey !== null) {
       this._parentModelData._addChildModelData(parentKey, parentValueIsArray, this);
     }
-    // TODO we may not have ID yet?
-    if (this._baseModelName) {
+
+    if (this._baseModelName && this.id) {
       this._initBaseModelData(this._baseModelName, id);
+    } else {
+      this._baseModelData = null;
     }
   }
 
@@ -213,6 +215,20 @@ export default class M3ModelData {
     if (attributes !== undefined) {
       changedKeys = this._mergeUpdates(attributes, commitDataAndNotify, true);
       changedKeys = this._filterChangedKeys(changedKeys);
+    }
+
+    if (!this.id && jsonApiResource && jsonApiResource.id) {
+      this.id = '' + jsonApiResource.id;
+      if (this._baseModelName) {
+        // Fresh projection was saved, we need to connect it with the base model data
+        let projectionData = this._data;
+        this._initBaseModelData(this._baseModelName, this.id);
+        // TODO We only do this because there might be inflight attributes, which the server
+        // didn't include in the response
+        this._baseModelData._inverseMergeUpdates(projectionData);
+        // we need to reset the __data to reread it from the base model data
+        this.__data = null;
+      }
     }
 
     this._updateChangedAttributes();
@@ -625,6 +641,25 @@ export default class M3ModelData {
     // if this model data is the last one in the projections list, then all of the others have been destroyed
     // note: should not be possible to get into state of no projections (projections.length === 0)
     return this.__projections.length === 1 && this.__projections[0] === this;
+  }
+
+  _inverseMergeUpdates(updates) {
+    // TODO Add more tests for this case
+    // TODO Add support for nested objects
+    if (!updates) {
+      return;
+    }
+    let data = this._data;
+
+    let updatedKeys = Object.keys(updates);
+    for (let i = 0; i < updatedKeys.length; i++) {
+      let key = updatedKeys[i];
+
+      if (key in data) {
+        continue;
+      }
+      data[key] = updates[key];
+    }
   }
 
   /*
