@@ -1740,155 +1740,19 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip(
-      'Updating a resolution property via the base-record updates projections and nested projections',
-      function(assert) {
-        let { store } = this;
-        let { baseRecord, projectedExcerpt } = this.records;
+    test('Updating a resolution property via the base-record updates projections and nested projections', function(assert) {
+      let { store } = this;
+      let { baseRecord, projectedExcerpt } = this.records;
 
-        run(() => {
-          store.push({
-            data: {
-              id: BOOK_ID,
-              type: BOOK_CLASS_PATH,
-              attributes: {},
-            },
-            included: [
-              {
-                id: PUBLISHER_ID,
-                type: PUBLISHER_CLASS,
-                attributes: {
-                  location: NEW_PUBLISHER_LOCATION,
-                  owner: NEW_PUBLISHER_OWNER,
-                },
-              },
-            ],
-          });
-        });
-
-        let { baseRecordWatcher, excerptWatcher } = this.watchers;
-
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
-
-        assert.watchedPropertyCount(
-          baseCounters['publisher.owner'],
-          1,
-          'Afterwards we have dirtied baseRecord.description'
-        );
-        assert.watchedPropertyCount(
-          excerptCounters['publisher.owner'],
-          1,
-          'Afterwards we have dirtied baseRecord.description'
-        );
-        assert.equal(
-          get(baseRecord, 'publisher.owner'),
-          NEW_PUBLISHER_OWNER,
-          'base-record has the correct publisher.owner'
-        );
-        assert.equal(
-          get(projectedExcerpt, 'publisher.owner'),
-          NEW_PUBLISHER_OWNER,
-          'excerpt has the correct publisher.owner'
-        );
-      }
-    );
-
-    skip(
-      'Setting a resolution property via a projection updates the base-record, other projections and nested projections',
-      function(assert) {
-        let { baseRecord, projectedExcerpt } = this.records;
-
-        run(() => {
-          set(projectedExcerpt, 'publisher.location', NEW_PUBLISHER_LOCATION);
-          set(projectedExcerpt, 'publisher.owner', NEW_PUBLISHER_OWNER);
-        });
-
-        let { baseRecordWatcher, excerptWatcher } = this.watchers;
-
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
-
-        assert.watchedPropertyCount(
-          baseCounters['publisher.owner'],
-          1,
-          'Afterwards we have dirtied baseRecord.publisher.owner'
-        );
-        assert.watchedPropertyCount(
-          excerptCounters['publisher.owner'],
-          1,
-          'Afterwards we have dirtied baseRecord.publisher.owner'
-        );
-        assert.equal(
-          get(baseRecord, 'publisher.owner'),
-          NEW_PUBLISHER_OWNER,
-          'base-record has the correct publisher.owner'
-        );
-        assert.equal(
-          get(projectedExcerpt, 'publisher.owner'),
-          NEW_PUBLISHER_OWNER,
-          'excerpt has the correct publisher.owner'
-        );
-      }
-    );
-
-    skip(
-      'Setting a resolution property via a nested projection updates the base-record and other projections',
-      function(assert) {
-        let { baseRecord, projectedExcerpt, projectedPreview } = this.records;
-
-        run(() => {
-          set(projectedPreview, 'publisher.location', NEW_PUBLISHER_LOCATION);
-        });
-
-        assert.throws(
-          () => {
-            run(() => {
-              set(projectedPreview, 'publisher.owner', NEW_PUBLISHER_OWNER);
-            });
+      run(() => {
+        store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {},
           },
-          /whitelist/gi,
-          'Setting a non-whitelisted property on a projection over a resolved record throws an error'
-        );
-
-        let { baseRecordWatcher, excerptWatcher } = this.watchers;
-
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
-
-        assert.watchedPropertyCount(
-          baseCounters['publisher.owner'],
-          0,
-          'Afterwards we have not dirtied baseRecord.publisher.owner'
-        );
-        assert.watchedPropertyCount(
-          excerptCounters['publisher.owner'],
-          0,
-          'Afterwards we have not  dirtied baseRecord.publisher.owner'
-        );
-        assert.equal(
-          get(baseRecord, 'publisher.owner'),
-          PUBLISHER_OWNER,
-          'base-record has the correct publisher.owner'
-        );
-        assert.equal(
-          get(projectedExcerpt, 'publisher.owner'),
-          PUBLISHER_OWNER,
-          'excerpt has the correct publisher.owner'
-        );
-      }
-    );
-
-    skip(
-      'Updating a resolution property via a projection updates the base-record, other projections and nested projections',
-      function(assert) {
-        let { store } = this;
-
-        let { baseRecord, projectedExcerpt } = this.records;
-
-        run(() => {
-          store.preloadData({
-            data: {
+          included: [
+            {
               id: PUBLISHER_ID,
               type: PUBLISHER_CLASS,
               attributes: {
@@ -1896,112 +1760,233 @@ module('unit/projection', function(hooks) {
                 owner: NEW_PUBLISHER_OWNER,
               },
             },
+          ],
+        });
+      });
+
+      let { baseRecordWatcher, excerptWatcher } = this.watchers;
+
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
+
+      assert.watchedPropertyCount(
+        baseCounters['publisher.owner'],
+        1,
+        'Afterwards we have dirtied baseRecord.description'
+      );
+      assert.watchedPropertyCount(
+        excerptCounters['publisher.owner'],
+        1,
+        'Afterwards we have dirtied baseRecord.description'
+      );
+      assert.equal(
+        get(baseRecord, 'publisher.owner'),
+        NEW_PUBLISHER_OWNER,
+        'base-record has the correct publisher.owner'
+      );
+      assert.equal(
+        get(projectedExcerpt, 'publisher.owner'),
+        NEW_PUBLISHER_OWNER,
+        'excerpt has the correct publisher.owner'
+      );
+    });
+
+    test('Setting a resolution property via a projection updates the base-record, other projections and nested projections', function(assert) {
+      let { baseRecord, projectedExcerpt } = this.records;
+
+      run(() => {
+        set(projectedExcerpt, 'publisher.location', NEW_PUBLISHER_LOCATION);
+        set(projectedExcerpt, 'publisher.owner', NEW_PUBLISHER_OWNER);
+      });
+
+      let { baseRecordWatcher, excerptWatcher } = this.watchers;
+
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
+
+      assert.watchedPropertyCount(
+        baseCounters['publisher.owner'],
+        1,
+        'Afterwards we have dirtied baseRecord.publisher.owner'
+      );
+      assert.watchedPropertyCount(
+        excerptCounters['publisher.owner'],
+        1,
+        'Afterwards we have dirtied baseRecord.publisher.owner'
+      );
+      assert.equal(
+        get(baseRecord, 'publisher.owner'),
+        NEW_PUBLISHER_OWNER,
+        'base-record has the correct publisher.owner'
+      );
+      assert.equal(
+        get(projectedExcerpt, 'publisher.owner'),
+        NEW_PUBLISHER_OWNER,
+        'excerpt has the correct publisher.owner'
+      );
+    });
+
+    test('Setting a resolution property via a nested projection updates the base-record and other projections', function(assert) {
+      let { baseRecord, projectedExcerpt, projectedPreview } = this.records;
+
+      run(() => {
+        set(projectedPreview, 'publisher.location', NEW_PUBLISHER_LOCATION);
+      });
+
+      assert.throws(
+        () => {
+          run(() => {
+            set(projectedPreview, 'publisher.owner', NEW_PUBLISHER_OWNER);
           });
-          store.push({
-            data: {
+        },
+        /whitelist/gi,
+        'Setting a non-whitelisted property on a projection over a resolved record throws an error'
+      );
+
+      let { baseRecordWatcher, excerptWatcher } = this.watchers;
+
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
+
+      assert.watchedPropertyCount(
+        baseCounters['publisher.owner'],
+        0,
+        'Afterwards we have not dirtied baseRecord.publisher.owner'
+      );
+      assert.watchedPropertyCount(
+        excerptCounters['publisher.owner'],
+        0,
+        'Afterwards we have not  dirtied baseRecord.publisher.owner'
+      );
+      assert.equal(
+        get(baseRecord, 'publisher.owner'),
+        PUBLISHER_OWNER,
+        'base-record has the correct publisher.owner'
+      );
+      assert.equal(
+        get(projectedExcerpt, 'publisher.owner'),
+        PUBLISHER_OWNER,
+        'excerpt has the correct publisher.owner'
+      );
+    });
+
+    test('Updating a resolution property via a projection updates the base-record, other projections and nested projections', function(assert) {
+      let { store } = this;
+
+      let { baseRecord, projectedExcerpt } = this.records;
+
+      run(() => {
+        store.preloadData({
+          data: {
+            id: PUBLISHER_ID,
+            type: PUBLISHER_CLASS,
+            attributes: {
+              location: NEW_PUBLISHER_LOCATION,
+              owner: NEW_PUBLISHER_OWNER,
+            },
+          },
+        });
+        store.push({
+          data: {
+            id: PUBLISHER_ID,
+            type: PROJECTED_PUBLISHER_CLASS,
+            attributes: {},
+          },
+        });
+      });
+
+      let { baseRecordWatcher, excerptWatcher } = this.watchers;
+
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
+
+      assert.watchedPropertyCount(
+        baseCounters['publisher.owner'],
+        1,
+        'Afterwards we have dirtied baseRecord.description'
+      );
+      assert.watchedPropertyCount(
+        excerptCounters['publisher.owner'],
+        1,
+        'Afterwards we have dirtied baseRecord.description'
+      );
+      assert.equal(
+        get(baseRecord, 'publisher.owner'),
+        NEW_PUBLISHER_OWNER,
+        'base-record has the correct publisher.owner'
+      );
+      assert.equal(
+        get(projectedExcerpt, 'publisher.owner'),
+        NEW_PUBLISHER_OWNER,
+        'excerpt has the correct publisher.owner'
+      );
+    });
+
+    test('Updating a resolution property via a nested projection updates the base-record, other projections', function(assert) {
+      let { store } = this;
+      let { baseRecord, projectedExcerpt } = this.records;
+
+      run(() => {
+        store.preloadData({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              publisher: PUBLISHER_URN,
+            },
+          },
+          included: [
+            {
+              id: PUBLISHER_ID,
+              type: PUBLISHER_CLASS,
+              attributes: {
+                location: NEW_PUBLISHER_LOCATION,
+              },
+            },
+          ],
+        });
+        store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {},
+          },
+          included: [
+            {
               id: PUBLISHER_ID,
               type: PROJECTED_PUBLISHER_CLASS,
               attributes: {},
             },
-          });
+          ],
         });
+      });
 
-        let { baseRecordWatcher, excerptWatcher } = this.watchers;
+      let { baseRecordWatcher, excerptWatcher } = this.watchers;
 
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
 
-        assert.watchedPropertyCount(
-          baseCounters['publisher.owner'],
-          1,
-          'Afterwards we have dirtied baseRecord.description'
-        );
-        assert.watchedPropertyCount(
-          excerptCounters['publisher.owner'],
-          1,
-          'Afterwards we have dirtied baseRecord.description'
-        );
-        assert.equal(
-          get(baseRecord, 'publisher.owner'),
-          NEW_PUBLISHER_OWNER,
-          'base-record has the correct publisher.owner'
-        );
-        assert.equal(
-          get(projectedExcerpt, 'publisher.owner'),
-          NEW_PUBLISHER_OWNER,
-          'excerpt has the correct publisher.owner'
-        );
-      }
-    );
-
-    skip(
-      'Updating a resolution property via a nested projection updates the base-record, other projections',
-      function(assert) {
-        let { store } = this;
-        let { baseRecord, projectedExcerpt } = this.records;
-
-        run(() => {
-          store.preloadData({
-            data: {
-              id: BOOK_ID,
-              type: BOOK_CLASS_PATH,
-              attributes: {
-                publisher: PUBLISHER_URN,
-              },
-            },
-            included: [
-              {
-                id: PUBLISHER_ID,
-                type: PUBLISHER_CLASS,
-                attributes: {
-                  location: NEW_PUBLISHER_LOCATION,
-                },
-              },
-            ],
-          });
-          store.push({
-            data: {
-              id: BOOK_ID,
-              type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
-              attributes: {},
-            },
-            included: [
-              {
-                id: PUBLISHER_ID,
-                type: PROJECTED_PUBLISHER_CLASS,
-                attributes: {},
-              },
-            ],
-          });
-        });
-
-        let { baseRecordWatcher, excerptWatcher } = this.watchers;
-
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
-
-        assert.watchedPropertyCount(
-          baseCounters['publisher.owner'],
-          0,
-          'Afterwards we have not dirtied baseRecord.publisher.owner'
-        );
-        assert.watchedPropertyCount(
-          excerptCounters['publisher.owner'],
-          0,
-          'Afterwards we have not  dirtied baseRecord.publisher.owner'
-        );
-        assert.equal(
-          get(baseRecord, 'publisher.owner'),
-          PUBLISHER_OWNER,
-          'base-record has the correct publisher.owner'
-        );
-        assert.equal(
-          get(projectedExcerpt, 'publisher.owner'),
-          PUBLISHER_OWNER,
-          'excerpt has the correct publisher.owner'
-        );
-      }
-    );
+      assert.watchedPropertyCount(
+        baseCounters['publisher.owner'],
+        0,
+        'Afterwards we have not dirtied baseRecord.publisher.owner'
+      );
+      assert.watchedPropertyCount(
+        excerptCounters['publisher.owner'],
+        0,
+        'Afterwards we have not  dirtied baseRecord.publisher.owner'
+      );
+      assert.equal(
+        get(baseRecord, 'publisher.owner'),
+        PUBLISHER_OWNER,
+        'base-record has the correct publisher.owner'
+      );
+      assert.equal(
+        get(projectedExcerpt, 'publisher.owner'),
+        PUBLISHER_OWNER,
+        'excerpt has the correct publisher.owner'
+      );
+    });
   });
 
   skip(
