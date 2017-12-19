@@ -17,7 +17,15 @@ function commitDataAndNotify(modelData, updates) {
 }
 
 export default class M3ModelData {
-  constructor(modelName, id, clientId, storeWrapper, store, internalModel) {
+  constructor(
+    modelName,
+    id,
+    clientId,
+    storeWrapper,
+    store,
+    internalModel,
+    baseModelData
+  ) {
     this.store = store;
     this.modelName = modelName;
     this.id = id;
@@ -31,14 +39,22 @@ export default class M3ModelData {
     this.__nestedModelsData = null;
     this._schema = SchemaManager;
 
-    this.baseModelName = this._schema.computeBaseModelName(this.modelName);
-
-    this.__projections = null;
-    if (this.baseModelName && this.id) {
-      // TODO we may not have ID yet?
-      this._initBaseModelData(this.baseModelName, id);
+    if (baseModelData) {
+      // this is the case of nested model data and we are receiving the base model data directly
+      this.baseModelData = baseModelData;
+      this.baseModelData._registerProjection(this);
     } else {
-      this.baseModelData = null;
+      // TODO This should not be done for nested models, but we don't actually distinguish right now
+      //  whether they are nested or not
+      this.baseModelName = this._schema.computeBaseModelName(this.modelName);
+
+      this.__projections = null;
+      if (this.baseModelName && this.id) {
+        // TODO we may not have ID yet?
+        this._initBaseModelData(this.baseModelName, id);
+      } else {
+        this.baseModelData = null;
+      }
     }
   }
 
@@ -108,21 +124,40 @@ export default class M3ModelData {
   getOrCreateNestedModelData(key, modelName, id, internalModel) {
     let nestedModelData = this._nestedModelDatas[key];
     if (!nestedModelData) {
+      let baseNestedModelData;
+      if (this.baseModelData) {
+        // we have a base, ask it for a nested model data
+        let baseNestedModelName = this._schema.computeBaseModelName(modelName);
+        // TODO We don't have any associated internal model though, because Ember Data is not tracking these, we may have
+        // to fill in the internal model when it is available
+        baseNestedModelData = this.baseModelData.getOrCreateNestedModelData(
+          key,
+          baseNestedModelName,
+          id,
+          null
+        );
+      }
       nestedModelData = this._nestedModelDatas[
         key
-      ] = this.createNestedModelData(modelName, id, internalModel);
+      ] = this.createNestedModelData(
+        modelName,
+        id,
+        internalModel,
+        baseNestedModelData
+      );
     }
     return nestedModelData;
   }
 
-  createNestedModelData(modelName, id, internalModel) {
+  createNestedModelData(modelName, id, internalModel, baseModelData) {
     return new M3ModelData(
       modelName,
       id,
       null,
       this.storeWrapper,
       this.store,
-      internalModel
+      internalModel,
+      baseModelData
     );
   }
 

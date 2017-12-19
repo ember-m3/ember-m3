@@ -1164,43 +1164,40 @@ module('unit/projection', function(hooks) {
       this.records = null;
     });
 
-    skip(
-      'Setting an embedded object property on the base-record updates the value for projections',
-      function(assert) {
-        let { baseRecord, projectedExcerpt } = this.records;
+    test('Setting an embedded object property on the base-record updates the value for projections', function(assert) {
+      let { baseRecord, projectedExcerpt } = this.records;
 
-        run(() => {
-          set(baseRecord, 'author.location', NEW_AUTHOR_LOCATION);
-          set(baseRecord, 'author.age', NEW_AUTHOR_AGE);
-        });
+      run(() => {
+        set(baseRecord, 'author.location', NEW_AUTHOR_LOCATION);
+        set(baseRecord, 'author.age', NEW_AUTHOR_AGE);
+      });
 
-        let { baseRecordWatcher, excerptWatcher } = this.watchers;
+      let { baseRecordWatcher, excerptWatcher } = this.watchers;
 
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
 
-        assert.watchedPropertyCount(
-          baseCounters['author.age'],
-          1,
-          'Afterwards we have dirtied excerpt.author.age'
-        );
-        assert.watchedPropertyCount(
-          excerptCounters['author.age'],
-          1,
-          'Afterwards we have dirtied excerpt.author.age'
-        );
-        assert.equal(
-          get(baseRecord, 'author.age'),
-          NEW_AUTHOR_AGE,
-          'base-record has the correct author.age'
-        );
-        assert.equal(
-          get(projectedExcerpt, 'author.age'),
-          NEW_AUTHOR_AGE,
-          'excerpt has the correct author.age'
-        );
-      }
-    );
+      assert.watchedPropertyCount(
+        baseCounters['author.age'],
+        1,
+        'Afterwards we have dirtied excerpt.author.age'
+      );
+      assert.watchedPropertyCount(
+        excerptCounters['author.age'],
+        1,
+        'Afterwards we have dirtied excerpt.author.age'
+      );
+      assert.equal(
+        get(baseRecord, 'author.age'),
+        NEW_AUTHOR_AGE,
+        'base-record has the correct author.age'
+      );
+      assert.equal(
+        get(projectedExcerpt, 'author.age'),
+        NEW_AUTHOR_AGE,
+        'excerpt has the correct author.age'
+      );
+    });
 
     skip(
       'Updating an embedded object property on the base-record updates the value for projections',
