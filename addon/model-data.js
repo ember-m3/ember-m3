@@ -67,7 +67,7 @@ export default class M3ModelData {
 
     this.baseModelName = this._schema.computeBaseModelName(this.modelName);
 
-    if (this.baseModelName) {
+    if (this.baseModelName && this.id) {
       // TODO we may not have ID yet?
       this._initBaseModelData(this.baseModelName, id);
     } else {
@@ -121,9 +121,23 @@ export default class M3ModelData {
 
   didCommit(data) {
     let changedKeys;
-    if (data) {
+    if (data && data.attributes) {
       changedKeys = this._mergeUpdates(data.attributes, commitDataAndNotify);
       this._notifyProjectionProperties(changedKeys);
+    }
+
+    if (!this.id && data && data.id) {
+      this.id = coerceId(data.id);
+      if (this.baseModelName) {
+        // Fresh projection was saved, we need to connect it with the base model data
+        let projectionData = this._data;
+        this._initBaseModelData(this.baseModelName, this.id);
+        // TODO We only do this because there might be inflight attributes, which the server
+        // didn't include in the response
+        this.baseModelData._inverseMergeUpdates(projectionData);
+        // we need to reset the __data to reread it from the base model data
+        this.__data = null;
+      }
     }
 
     return changedKeys || [];
@@ -308,6 +322,25 @@ export default class M3ModelData {
     // if this model data is the last one in the projections list, then all of the others have been destroyed
     // note: should not be possible to get into state of no projections (projections.length === 0)
     return this.__projections.length === 1 && this.__projections[0] === this;
+  }
+
+  _inverseMergeUpdates(updates) {
+    // TODO Add more tests for this case
+    // TODO Add support for nested objects
+    if (!updates) {
+      return;
+    }
+    let data = this._data;
+
+    let updatedKeys = Object.keys(updates);
+    for (let i = 0; i < updatedKeys.length; i++) {
+      let key = updatedKeys[i];
+
+      if (key in data) {
+        continue;
+      }
+      data[key] = updates[key];
+    }
   }
 
   /**
