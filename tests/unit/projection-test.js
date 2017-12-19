@@ -2114,63 +2114,69 @@ module('unit/projection', function(hooks) {
     const BOOK_CHAPTER_1 = 'Down the Rabbit-Hole';
     const BOOK_CHAPTER_2 = 'Looking-Glass House';
 
-    skip(
-      'independently created projections of the same base-type but no ID do not share their data',
-      function(assert) {
-        let projectedPreview = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
+    test('independently created projections of the same base-type but no ID do not share their data', function(assert) {
+      let projectedPreview = run(() =>
+        this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
           title: BOOK_TITLE_1,
-        });
-        let projectedExcerpt = this.store.createRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, {
+        })
+      );
+      let projectedExcerpt = run(() =>
+        this.store.createRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, {
           title: BOOK_TITLE_2,
-        });
+        })
+      );
 
-        assert.equal(
-          get(projectedPreview, 'title'),
-          BOOK_TITLE_1,
-          'Expected title of preview projection to be correct'
-        );
-        assert.equal(
-          get(projectedExcerpt, 'title'),
-          BOOK_TITLE_2,
-          'Expected title of excerpt projection to be correct'
-        );
-      }
-    );
+      assert.equal(
+        get(projectedPreview, 'title'),
+        BOOK_TITLE_1,
+        'Expected title of preview projection to be correct'
+      );
+      assert.equal(
+        get(projectedExcerpt, 'title'),
+        BOOK_TITLE_2,
+        'Expected title of excerpt projection to be correct'
+      );
+    });
 
-    skip(
-      'independently created projections of the same projection-type but no ID do not share their data',
-      function(assert) {
-        let projectedPreview1 = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
+    test('independently created projections of the same projection-type but no ID do not share their data', function(assert) {
+      let projectedPreview1 = run(() =>
+        this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
           title: BOOK_TITLE_1,
-        });
-        let projectedPreview2 = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
+        })
+      );
+      let projectedPreview2 = run(() =>
+        this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
           title: BOOK_TITLE_2,
-        });
+        })
+      );
 
-        assert.equal(
-          get(projectedPreview1, 'title'),
-          BOOK_TITLE_1,
-          'Expected title of preview projection to be correct'
-        );
-        assert.equal(
-          get(projectedPreview2, 'title'),
-          BOOK_TITLE_2,
-          'Expected title of the second preview projection to be correct'
-        );
-      }
-    );
+      assert.equal(
+        get(projectedPreview1, 'title'),
+        BOOK_TITLE_1,
+        'Expected title of preview projection to be correct'
+      );
+      assert.equal(
+        get(projectedPreview2, 'title'),
+        BOOK_TITLE_2,
+        'Expected title of the second preview projection to be correct'
+      );
+    });
 
     skip(
       'independently created projections of the same base-type and ID share their data',
       function(assert) {
-        let projectedPreview = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
-          id: BOOK_ID,
-          title: BOOK_TITLE_1,
-        });
-        let projectedExcerpt = this.store.createRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, {
-          id: BOOK_ID,
-          title: BOOK_TITLE_2,
-        });
+        let projectedPreview = run(() =>
+          this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
+            id: BOOK_ID,
+            title: BOOK_TITLE_1,
+          })
+        );
+        let projectedExcerpt = run(() =>
+          this.store.createRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, {
+            id: BOOK_ID,
+            title: BOOK_TITLE_2,
+          })
+        );
 
         assert.equal(
           get(projectedPreview, 'title'),
@@ -2183,7 +2189,9 @@ module('unit/projection', function(hooks) {
           'Expected title of excerpt projection to be correct'
         );
 
-        set(projectedExcerpt, 'title', BOOK_TITLE_1);
+        run(() => {
+          set(projectedExcerpt, 'title', BOOK_TITLE_1);
+        });
 
         assert.equal(
           get(projectedPreview, 'title'),
@@ -2198,9 +2206,8 @@ module('unit/projection', function(hooks) {
       }
     );
 
-    skip(
-      'independently creating projections of the same projection-type and ID is not allowed',
-      function(assert) {
+    test('independently creating projections of the same projection-type and ID is not allowed', function(assert) {
+      run(() => {
         this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
           id: BOOK_ID,
         });
@@ -2210,13 +2217,13 @@ module('unit/projection', function(hooks) {
               id: BOOK_ID,
             });
           },
-          /exist/,
+          /has already been used/,
           'Expected create record for same projection and ID to throw an error'
         );
-      }
-    );
+      });
+    });
 
-    skip('we can create and save a projection', function(assert) {
+    test('we can create and save a projection', function(assert) {
       let createRecordCalls = 0;
 
       this.owner.register(
@@ -2252,30 +2259,32 @@ module('unit/projection', function(hooks) {
         })
       );
 
-      let projectedPreview = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
-        title: BOOK_TITLE_1,
+      let projectedPreview = run(() => {
+        let record = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
+          title: BOOK_TITLE_1,
+        });
+        record.save();
+        return record;
       });
 
-      return projectedPreview.save().then(() => {
-        assert.equal(
-          get(projectedPreview, 'isNew'),
-          false,
-          'Expected the projection to be marked as saved'
-        );
-        assert.equal(
-          get(projectedPreview, 'id'),
-          BOOK_ID,
-          'Expected the new record to have picked up the returned ID'
-        );
-        assert.equal(
-          createRecordCalls,
-          1,
-          'Expected `createRecord` to have been called exactly once.'
-        );
-      });
+      assert.equal(
+        get(projectedPreview, 'isNew'),
+        false,
+        'Expected the projection to be marked as saved'
+      );
+      assert.equal(
+        get(projectedPreview, 'id'),
+        BOOK_ID,
+        'Expected the new record to have picked up the returned ID'
+      );
+      assert.equal(
+        createRecordCalls,
+        1,
+        'Expected `createRecord` to have been called exactly once.'
+      );
     });
 
-    skip('new projections are correctly cached after save', function(assert) {
+    test('new projections are correctly cached after save', function(assert) {
       this.owner.register(
         'adapter:-ember-m3',
         Ember.Object.extend({
@@ -2298,12 +2307,12 @@ module('unit/projection', function(hooks) {
         })
       );
 
-      let projectedPreview = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
-        title: BOOK_TITLE_1,
-      });
-
-      run(() => {
-        projectedPreview.save();
+      let projectedPreview = run(() => {
+        let record = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
+          title: BOOK_TITLE_1,
+        });
+        record.save();
+        return record;
       });
 
       let peekedPreview = run(() => {
@@ -2344,12 +2353,13 @@ module('unit/projection', function(hooks) {
         })
       );
 
-      let projectedPreview = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
-        title: BOOK_TITLE_1,
-      });
+      let projectedPreview = run(() => {
+        let record = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
+          title: BOOK_TITLE_1,
+        });
 
-      run(() => {
-        projectedPreview.save();
+        record.save();
+        return record;
       });
 
       // instead of involving adapter, just push the data and check things were correctly updated
