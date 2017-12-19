@@ -1989,9 +1989,7 @@ module('unit/projection', function(hooks) {
       });
     });
 
-    skip(`Unloading a projection does not unload the base-record and other projections`, function(
-      assert
-    ) {
+    test(`Unloading a projection does not unload the base-record and other projections`, function(assert) {
       let { baseRecord, projectedPreview, projectedExcerpt } = this.records;
 
       run(() => {
@@ -1999,11 +1997,11 @@ module('unit/projection', function(hooks) {
       });
 
       // projectedPreview has been unloaded
-      assert.equal(this.store.hasRecordForId(projectedPreview, BOOK_ID), false);
+      assert.equal(this.store.hasRecordForId(BOOK_PREVIEW_PROJECTION_CLASS_PATH, BOOK_ID), false);
       assert.equal(get(projectedPreview, 'isDestroyed'), true);
 
       // baseRecord is still around
-      assert.equal(this.store.hasRecordForId(baseRecord, BOOK_ID), true);
+      assert.equal(this.store.hasRecordForId(BOOK_CLASS_PATH, BOOK_ID), true);
       assert.equal(get(baseRecord, 'isDestroyed'), false);
       // TODO How can we check whether the underlying structure were not destroyed in the case of unload
       // Functionality can continue to work even in case of a bug
@@ -2011,7 +2009,7 @@ module('unit/projection', function(hooks) {
       assert.equal(get(baseRecord, 'title'), BOOK_TITLE);
 
       // projectedExcerpt is still arond
-      assert.equal(this.store.hasRecordForId(projectedExcerpt, BOOK_ID), true);
+      assert.equal(this.store.hasRecordForId(BOOK_EXCERPT_PROJECTION_CLASS_PATH, BOOK_ID), true);
       assert.equal(get(projectedExcerpt, 'isDestroyed'), false);
       assert.equal(get(projectedExcerpt, '_internalModel.isDestroyed'), false);
       assert.equal(get(projectedExcerpt, 'title'), BOOK_TITLE);
@@ -2025,11 +2023,11 @@ module('unit/projection', function(hooks) {
       });
 
       // baseRecord has been unloaded
-      assert.equal(this.store.hasRecordForId(baseRecord, BOOK_ID), false);
+      assert.equal(this.store.hasRecordForId(BOOK_CLASS_PATH, BOOK_ID), false);
       assert.equal(get(baseRecord, 'isDestroyed'), true);
 
       // projectedPreview is still around
-      assert.equal(this.store.hasRecordForId(projectedPreview, BOOK_ID), true);
+      assert.equal(this.store.hasRecordForId(BOOK_PREVIEW_PROJECTION_CLASS_PATH, BOOK_ID), true);
       assert.equal(get(projectedPreview, 'isDestroyed'), false);
       // TODO How can we check whether the underlying structure were not destroyed in the case of unload
       // Functionality can continue to work even in case of a bug
