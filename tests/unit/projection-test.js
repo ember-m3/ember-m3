@@ -1866,7 +1866,7 @@ module('unit/projection', function(hooks) {
       assert.equal(get(projectedExcerpt, 'title'), BOOK_TITLE);
     });
 
-    skip(`Unloading the base-record does not unload the projection`, function(assert) {
+    test(`Unloading the base-record does not unload the projection`, function(assert) {
       let { baseRecord, projectedPreview } = this.records;
 
       run(() => {
