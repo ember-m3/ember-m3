@@ -20,6 +20,7 @@ export default class M3ModelData {
   constructor(modelName, id, clientId, storeWrapper, store, internalModel) {
     this.store = store;
     this.modelName = modelName;
+    this.id = id;
     this.internalModel = internalModel;
     this.storeWrapper = storeWrapper;
     this.__relationships = null;
@@ -30,12 +31,12 @@ export default class M3ModelData {
     this.__nestedModelsData = null;
     this._schema = SchemaManager;
 
-    let baseModelName = this._schema.computeBaseModelName(this.modelName);
+    this.baseModelName = this._schema.computeBaseModelName(this.modelName);
 
     this.__projections = null;
-    if (baseModelName) {
+    if (this.baseModelName && this.id) {
       // TODO we may not have ID yet?
-      this._initBaseModelData(baseModelName, id);
+      this._initBaseModelData(this.baseModelName, id);
     } else {
       this.baseModelData = null;
     }
@@ -150,6 +151,21 @@ export default class M3ModelData {
     return key in this._data;
   }
 
+  setId(id) {
+    if (this.id === id) {
+      return;
+    }
+    this.id = id;
+    if (!this.baseModelName) {
+      return;
+    }
+    let projectionData = this._data;
+    this._initBaseModelData(this.baseModelName, this.id);
+    this.baseModelData._inverseMergeUpdates(projectionData);
+    // we need to reset the __data to reread it from the base
+    this.__data = null;
+  }
+
   getResourceIdentifier() {
     let { modelName, clientId, id } = this.internalModel;
 
@@ -185,6 +201,25 @@ export default class M3ModelData {
     let idx = this.__projections.indexOf(modelData);
     if (idx !== -1) {
       this.__projections.splice(idx, 1);
+    }
+  }
+
+  _inverseMergeUpdates(updates) {
+    // TODO Add more tests for this case
+    // TODO Add support for nested objects
+    if (!updates) {
+      return;
+    }
+    let data = this._data;
+
+    let updatedKeys = Object.keys(updates);
+    for (let i = 0; i < updatedKeys.length; i++) {
+      let key = updatedKeys[i];
+
+      if (key in data) {
+        continue;
+      }
+      data[key] = updates[key];
     }
   }
 

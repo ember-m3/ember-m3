@@ -2506,9 +2506,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('newly created and saved projections can receive updates', function(
-      assert
-    ) {
+    test('newly created and saved projections can receive updates', function(assert) {
       this.owner.register(
         'adapter:-ember-m3',
         Ember.Object.extend({
