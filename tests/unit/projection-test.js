@@ -417,6 +417,81 @@ module('unit/projection', function(hooks) {
     });
   });
 
+  test('Updating an embedded object property to null can still be updated again', function(assert) {
+    const BOOK_ID = 'isbn:9780439708181';
+    const AUTHOR_NAME = 'Lewis Carroll';
+    const NEW_AUTHOR_NAME = 'J.K. Rowling';
+
+    let { store } = this;
+
+    let baseRecord;
+    let projectedExcerpt;
+
+    run(() => {
+      baseRecord = store.push({
+        data: {
+          id: BOOK_ID,
+          type: BOOK_CLASS_PATH,
+          attributes: {
+            author: {
+              name: AUTHOR_NAME,
+            },
+          },
+        },
+      });
+
+      projectedExcerpt = store.push({
+        data: {
+          id: BOOK_ID,
+          type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+          attributes: {},
+        },
+      });
+    });
+
+    // force nested model to be created
+    projectedExcerpt.get('author');
+
+    // reset author to null
+    run(() => {
+      store.push({
+        data: {
+          id: BOOK_ID,
+          type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+          attributes: {
+            author: null,
+          },
+        },
+      });
+    });
+
+    // update author again
+    run(() => {
+      store.push({
+        data: {
+          id: BOOK_ID,
+          type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+          attributes: {
+            author: {
+              name: NEW_AUTHOR_NAME,
+            },
+          },
+        },
+      });
+    });
+
+    assert.equal(
+      get(baseRecord, 'author.name'),
+      NEW_AUTHOR_NAME,
+      'base-record has the correct author.name'
+    );
+    assert.equal(
+      get(projectedExcerpt, 'author.name'),
+      NEW_AUTHOR_NAME,
+      'excerpt has the correct author.name'
+    );
+  });
+
   module('property notifications on top-level attributes', function(hooks) {
     /*
       All of the tests in this module MUST implement the following:
@@ -897,13 +972,23 @@ module('unit/projection', function(hooks) {
 
       assert.deepEqual(
         baseRecordWatcher.counts,
-        { author: 0, 'author.name': 0, 'author.location': 1 },
+        {
+          author: 0,
+          'author.name': 0,
+          'author.location': 1,
+          'author.age': baseRecordWatcher.counts['author.age'],
+        },
         'Final baseRecord state'
       );
 
       assert.deepEqual(
         excerptWatcher.counts,
-        { author: 0, 'author.name': 0, 'author.location': 1 },
+        {
+          author: 0,
+          'author.name': 0,
+          'author.location': 1,
+          'author.age': excerptWatcher.counts['author.age'],
+        },
         'Final excerpt state'
       );
 
@@ -962,7 +1047,7 @@ module('unit/projection', function(hooks) {
       this.records = null;
     });
 
-    skip('Setting an embedded object property on the base-record updates the value for projections', function(assert) {
+    test('Setting an embedded object property on the base-record updates the value for projections', function(assert) {
       let { baseRecord, projectedExcerpt } = this.records;
 
       run(() => {
@@ -989,7 +1074,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Updating an embedded object property on the base-record updates the value for projections', function(assert) {
+    test('Updating an embedded object property on the base-record updates the value for projections', function(assert) {
       let { store } = this;
       let { baseRecord, projectedExcerpt } = this.records;
 
@@ -1027,16 +1112,17 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Setting an embedded object property on a projection updates the base-record and other projections', function(assert) {
+    test('Setting an embedded object property on a projection updates the base-record and other projections', function(assert) {
       let { baseRecord, projectedExcerpt } = this.records;
       let { baseRecordWatcher, excerptWatcher } = this.watchers;
-      let baseCounts = baseRecordWatcher.counts;
-      let excerptCounts = excerptWatcher.counts;
 
       run(() => {
         set(projectedExcerpt, 'author.location', NEW_AUTHOR_LOCATION);
         set(projectedExcerpt, 'author.age', NEW_AUTHOR_AGE);
       });
+
+      let baseCounts = baseRecordWatcher.counts;
+      let excerptCounts = excerptWatcher.counts;
 
       assert.equal(baseCounts['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
       assert.equal(excerptCounts['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
@@ -1052,7 +1138,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Setting an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
+    test('Setting an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
       let { baseRecord, projectedExcerpt, projectedPreview } = this.records;
 
       run(() => {
@@ -1095,7 +1181,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Updating an embedded object property on a projection updates the base-record and other projections', function(assert) {
+    test('Updating an embedded object property on a projection updates the base-record and other projections', function(assert) {
       let { store } = this;
       let { baseRecord, projectedExcerpt } = this.records;
 
@@ -1132,7 +1218,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Updating an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
+    test('Updating an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
       let { store } = this;
       let { baseRecord, projectedExcerpt } = this.records;
 

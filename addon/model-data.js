@@ -72,16 +72,7 @@ class M3SchemaInterface {
 }
 
 export default class M3ModelData {
-  constructor(
-    modelName,
-    id,
-    clientId,
-    storeWrapper,
-    parentModelData,
-    parentKey,
-    parentValueIsArray,
-    embeddedInternalModel
-  ) {
+  constructor(modelName, id, clientId, storeWrapper, parentModelData, baseModelData) {
     this.modelName = modelName;
     this.clientId = clientId;
     this.id = id;
@@ -93,26 +84,17 @@ export default class M3ModelData {
 
     // Properties related to child model datas
     this._parentModelData = parentModelData;
-    this._embeddedInternalModel = embeddedInternalModel;
+    this._embeddedInternalModel = null;
     this.__childModelDatas = null;
     this._schema = SchemaManager;
 
     this.schemaInterface = new M3SchemaInterface(this);
 
     // Properties related to projections
-    this._baseModelName = this._schema.computeBaseModelName(this.modelName);
-    this._baseModelData = null;
+    this._baseModelData = baseModelData;
     this._projections = null;
 
-    if (parentKey !== undefined && parentKey !== null) {
-      this._parentModelData._addChildModelData(parentKey, parentValueIsArray, this);
-    }
-
-    if (this._baseModelName) {
-      this._initBaseModelData();
-    } else {
-      this._baseModelData = null;
-    }
+    this._initBaseModelData();
   }
 
   // PUBLIC API
@@ -490,22 +472,64 @@ export default class M3ModelData {
   }
 
   _initBaseModelData() {
-    this._baseModelData = this.storeWrapper.modelDataFor(
-      this._baseModelName,
-      this.id,
-      this.clientId
-    );
-    this._baseModelData._registerProjection(this);
+    if (!this._baseModelData) {
+      let baseModelName = this._schema.computeBaseModelName(this.modelName);
+      if (!baseModelName) {
+        return;
+      }
+
+      this._baseModelData = this.storeWrapper.modelDataFor(baseModelName, this.id, this.clientId);
+    }
+
+    if (this._baseModelData) {
+      this._baseModelData._registerProjection(this);
+    }
   }
 
-  _addChildModelData(key, isArray, modelData) {
-    let childModelDatas = this._childModelDatas;
-    if (isArray) {
-      childModelDatas[key] = childModelDatas[key] || [];
-      childModelDatas[key].push(modelData);
+  _getChildModelData(key, idx, modelName, id, embeddedInternalModel) {
+    let childModelData;
+    if (idx !== undefined && idx !== null) {
+      let childModelDatas = this._childModelDatas[key];
+      if (!childModelDatas) {
+        childModelDatas = this._childModelDatas[key] = [];
+      }
+      childModelData = childModelDatas[idx];
+      if (!childModelData) {
+        childModelData = childModelDatas[idx] = this._createChildModelData(key, idx, modelName, id);
+      }
     } else {
-      childModelDatas[key] = modelData;
+      childModelData = this._childModelDatas[key];
+      if (!childModelData) {
+        childModelData = this._childModelDatas[key] = this._createChildModelData(
+          key,
+          null,
+          modelName,
+          id
+        );
+      }
     }
+    if (!childModelData._embeddedInternalModel) {
+      childModelData._embeddedInternalModel = embeddedInternalModel;
+    }
+    return childModelData;
+  }
+
+  _createChildModelData(key, idx, modelName, id) {
+    let baseChildModelData;
+    if (this._baseModelData) {
+      // use the base model name if it is available, but otherwise just use the model name - it might be already
+      // the base one
+      let childBaseModelName = this._schema.computeBaseModelName(modelName) || modelName;
+      baseChildModelData = this._baseModelData._getChildModelData(
+        key,
+        idx,
+        childBaseModelName,
+        id,
+        null
+      );
+    }
+
+    return new M3ModelData(modelName, id, null, this.storeWrapper, this, baseChildModelData);
   }
 
   _destroyChildModelData(key) {
@@ -516,6 +540,13 @@ export default class M3ModelData {
     if (childModelData) {
       // destroy
       delete this._childModelDatas[key];
+    }
+    if (this._projections) {
+      // TODO Add a test for this destruction
+      // start from 1 as we know the first projection is the model data
+      for (let i = 1; i < this._projections.length; i++) {
+        this._projections[i]._destroyChildModelData(key);
+      }
     }
   }
 
@@ -698,9 +729,13 @@ export default class M3ModelData {
   _notifyRecordProperties(changedKeys) {
     if (this._embeddedInternalModel) {
       this._embeddedInternalModel.record._notifyProperties(changedKeys);
-    } else {
+    } else if (!this._parentModelData) {
+      // only notify through the store if it is not a child model data
       notifyProperties(this.storeWrapper, this.modelName, this.id, this.clientId, changedKeys);
     }
+    // else base model data that was initialized by a projection but never
+    // fetched via `unknownProperty`, which is the only case where we have no
+    // record, and therefore nothing to notify
   }
 
   _notifyProjectionProperties(changedKeys) {
