@@ -1199,245 +1199,230 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip(
-      'Updating an embedded object property on the base-record updates the value for projections',
-      function(assert) {
-        let { store } = this;
-        let { baseRecord, projectedExcerpt } = this.records;
+    test('Updating an embedded object property on the base-record updates the value for projections', function(assert) {
+      let { store } = this;
+      let { baseRecord, projectedExcerpt } = this.records;
 
-        run(() => {
-          store.push({
-            data: {
-              id: BOOK_ID,
-              type: BOOK_CLASS_PATH,
-              attributes: {
-                author: {
-                  location: NEW_AUTHOR_LOCATION,
-                  age: NEW_AUTHOR_AGE,
-                },
+      run(() => {
+        store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              author: {
+                location: NEW_AUTHOR_LOCATION,
+                age: NEW_AUTHOR_AGE,
               },
             },
-          });
-        });
-
-        let { baseRecordWatcher, excerptWatcher } = this.watchers;
-
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
-
-        assert.watchedPropertyCount(
-          baseCounters['author.age'],
-          1,
-          'Afterwards we have dirtied excerpt.author.age'
-        );
-        assert.watchedPropertyCount(
-          excerptCounters['author.age'],
-          1,
-          'Afterwards we have dirtied excerpt.author.age'
-        );
-        assert.equal(
-          get(baseRecord, 'author.age'),
-          NEW_AUTHOR_AGE,
-          'base-record has the correct author.age'
-        );
-        assert.equal(
-          get(projectedExcerpt, 'author.age'),
-          NEW_AUTHOR_AGE,
-          'excerpt has the correct author.age'
-        );
-      }
-    );
-
-    skip(
-      'Setting an embedded object property on a projection updates the base-record and other projections',
-      function(assert) {
-        let { baseRecord, projectedExcerpt } = this.records;
-        let { baseRecordWatcher, excerptWatcher } = this.watchers;
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
-
-        run(() => {
-          set(projectedExcerpt, 'author.location', NEW_AUTHOR_LOCATION);
-          set(projectedExcerpt, 'author.age', NEW_AUTHOR_AGE);
-        });
-
-        assert.watchedPropertyCount(
-          baseCounters['author.age'],
-          1,
-          'Afterwards we have dirtied excerpt.author.age'
-        );
-        assert.watchedPropertyCount(
-          excerptCounters['author.age'],
-          1,
-          'Afterwards we have dirtied excerpt.author.age'
-        );
-        assert.equal(
-          get(baseRecord, 'author.age'),
-          NEW_AUTHOR_AGE,
-          'base-record has the correct author.age'
-        );
-        assert.equal(
-          get(projectedExcerpt, 'author.age'),
-          NEW_AUTHOR_AGE,
-          'excerpt has the correct author.age'
-        );
-      }
-    );
-
-    skip(
-      'Setting an embedded object property on a nested projection updates the base-record and other projections',
-      function(assert) {
-        let { baseRecord, projectedExcerpt, projectedPreview } = this.records;
-
-        run(() => {
-          set(projectedPreview, 'author.location', NEW_AUTHOR_LOCATION);
-        });
-
-        assert.throws(
-          () => {
-            run(() => {
-              set(projectedPreview, 'author.age', NEW_AUTHOR_AGE);
-            });
           },
-          /whitelist/gi,
-          'Setting a non-whitelisted property on a projection over an embedded object throws an error'
-        );
+        });
+      });
 
-        let { baseRecordWatcher, excerptWatcher } = this.watchers;
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
+      let { baseRecordWatcher, excerptWatcher } = this.watchers;
 
-        assert.watchedPropertyCount(
-          baseCounters['author.age'],
-          0,
-          'Afterwards we have not dirtied excerpt.author.age'
-        );
-        assert.watchedPropertyCount(
-          excerptCounters['author.age'],
-          0,
-          'Afterwards we have not dirtied excerpt.author.age'
-        );
-        assert.equal(
-          get(baseRecord, 'author.age'),
-          AUTHOR_AGE,
-          'base-record has the correct author.age'
-        );
-        assert.equal(
-          get(projectedExcerpt, 'author.age'),
-          AUTHOR_AGE,
-          'excerpt has the correct author.age'
-        );
-      }
-    );
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
 
-    skip(
-      'Updating an embedded object property on a projection updates the base-record and other projections',
-      function(assert) {
-        let { store } = this;
-        let { baseRecord, projectedExcerpt } = this.records;
+      assert.watchedPropertyCount(
+        baseCounters['author.age'],
+        1,
+        'Afterwards we have dirtied excerpt.author.age'
+      );
+      assert.watchedPropertyCount(
+        excerptCounters['author.age'],
+        1,
+        'Afterwards we have dirtied excerpt.author.age'
+      );
+      assert.equal(
+        get(baseRecord, 'author.age'),
+        NEW_AUTHOR_AGE,
+        'base-record has the correct author.age'
+      );
+      assert.equal(
+        get(projectedExcerpt, 'author.age'),
+        NEW_AUTHOR_AGE,
+        'excerpt has the correct author.age'
+      );
+    });
 
-        run(() => {
-          store.preloadData({
-            data: {
-              id: BOOK_ID,
-              type: BOOK_CLASS_PATH,
-              attributes: {
-                author: {
-                  location: NEW_AUTHOR_LOCATION,
-                  age: NEW_AUTHOR_AGE,
-                },
+    test('Setting an embedded object property on a projection updates the base-record and other projections', function(assert) {
+      let { baseRecord, projectedExcerpt } = this.records;
+      let { baseRecordWatcher, excerptWatcher } = this.watchers;
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
+
+      run(() => {
+        set(projectedExcerpt, 'author.location', NEW_AUTHOR_LOCATION);
+        set(projectedExcerpt, 'author.age', NEW_AUTHOR_AGE);
+      });
+
+      assert.watchedPropertyCount(
+        baseCounters['author.age'],
+        1,
+        'Afterwards we have dirtied excerpt.author.age'
+      );
+      assert.watchedPropertyCount(
+        excerptCounters['author.age'],
+        1,
+        'Afterwards we have dirtied excerpt.author.age'
+      );
+      assert.equal(
+        get(baseRecord, 'author.age'),
+        NEW_AUTHOR_AGE,
+        'base-record has the correct author.age'
+      );
+      assert.equal(
+        get(projectedExcerpt, 'author.age'),
+        NEW_AUTHOR_AGE,
+        'excerpt has the correct author.age'
+      );
+    });
+
+    test('Setting an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
+      let { baseRecord, projectedExcerpt, projectedPreview } = this.records;
+
+      run(() => {
+        set(projectedPreview, 'author.location', NEW_AUTHOR_LOCATION);
+      });
+
+      assert.throws(
+        () => {
+          run(() => {
+            set(projectedPreview, 'author.age', NEW_AUTHOR_AGE);
+          });
+        },
+        /whitelist/gi,
+        'Setting a non-whitelisted property on a projection over an embedded object throws an error'
+      );
+
+      let { baseRecordWatcher, excerptWatcher } = this.watchers;
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
+
+      assert.watchedPropertyCount(
+        baseCounters['author.age'],
+        0,
+        'Afterwards we have not dirtied excerpt.author.age'
+      );
+      assert.watchedPropertyCount(
+        excerptCounters['author.age'],
+        0,
+        'Afterwards we have not dirtied excerpt.author.age'
+      );
+      assert.equal(
+        get(baseRecord, 'author.age'),
+        AUTHOR_AGE,
+        'base-record has the correct author.age'
+      );
+      assert.equal(
+        get(projectedExcerpt, 'author.age'),
+        AUTHOR_AGE,
+        'excerpt has the correct author.age'
+      );
+    });
+
+    test('Updating an embedded object property on a projection updates the base-record and other projections', function(assert) {
+      let { store } = this;
+      let { baseRecord, projectedExcerpt } = this.records;
+
+      run(() => {
+        store.preloadData({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              author: {
+                location: NEW_AUTHOR_LOCATION,
+                age: NEW_AUTHOR_AGE,
               },
             },
-          });
-          store.push({
-            data: {
-              id: BOOK_ID,
-              type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
-              attributes: {},
-            },
-          });
+          },
         });
+        store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {},
+          },
+        });
+      });
 
-        let { baseRecordWatcher, excerptWatcher } = this.watchers;
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
+      let { baseRecordWatcher, excerptWatcher } = this.watchers;
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
 
-        assert.watchedPropertyCount(
-          baseCounters['author.age'],
-          1,
-          'Afterwards we have dirtied excerpt.author.age'
-        );
-        assert.watchedPropertyCount(
-          excerptCounters['author.age'],
-          1,
-          'Afterwards we have dirtied excerpt.author.age'
-        );
-        assert.equal(
-          get(baseRecord, 'author.age'),
-          NEW_AUTHOR_AGE,
-          'base-record has the correct author.age'
-        );
-        assert.equal(
-          get(projectedExcerpt, 'author.age'),
-          NEW_AUTHOR_AGE,
-          'excerpt has the correct author.age'
-        );
-      }
-    );
+      assert.watchedPropertyCount(
+        baseCounters['author.age'],
+        1,
+        'Afterwards we have dirtied excerpt.author.age'
+      );
+      assert.watchedPropertyCount(
+        excerptCounters['author.age'],
+        1,
+        'Afterwards we have dirtied excerpt.author.age'
+      );
+      assert.equal(
+        get(baseRecord, 'author.age'),
+        NEW_AUTHOR_AGE,
+        'base-record has the correct author.age'
+      );
+      assert.equal(
+        get(projectedExcerpt, 'author.age'),
+        NEW_AUTHOR_AGE,
+        'excerpt has the correct author.age'
+      );
+    });
 
-    skip(
-      'Updating an embedded object property on a nested projection updates the base-record and other projections',
-      function(assert) {
-        let { store } = this;
-        let { baseRecord, projectedExcerpt } = this.records;
+    test('Updating an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
+      let { store } = this;
+      let { baseRecord, projectedExcerpt } = this.records;
 
-        run(() => {
-          store.preloadData({
-            data: {
-              id: BOOK_ID,
-              type: BOOK_CLASS_PATH,
-              attributes: {
-                author: {
-                  location: NEW_AUTHOR_LOCATION,
-                },
+      run(() => {
+        store.preloadData({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              author: {
+                location: NEW_AUTHOR_LOCATION,
               },
             },
-          });
-          store.push({
-            data: {
-              id: BOOK_ID,
-              type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
-              attributes: {},
-            },
-          });
+          },
         });
+        store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+            attributes: {},
+          },
+        });
+      });
 
-        let { baseRecordWatcher, excerptWatcher } = this.watchers;
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
+      let { baseRecordWatcher, excerptWatcher } = this.watchers;
+      let baseCounters = baseRecordWatcher.counters;
+      let excerptCounters = excerptWatcher.counters;
 
-        assert.watchedPropertyCount(
-          baseCounters['author.age'],
-          0,
-          'Afterwards we have not dirtied excerpt.author.age'
-        );
-        assert.watchedPropertyCount(
-          excerptCounters['author.age'],
-          0,
-          'Afterwards we have not dirtied excerpt.author.age'
-        );
-        assert.equal(
-          get(baseRecord, 'author.age'),
-          AUTHOR_AGE,
-          'base-record has the correct author.age'
-        );
-        assert.equal(
-          get(projectedExcerpt, 'author.age'),
-          AUTHOR_AGE,
-          'excerpt has the correct author.age'
-        );
-      }
-    );
+      assert.watchedPropertyCount(
+        baseCounters['author.age'],
+        0,
+        'Afterwards we have not dirtied excerpt.author.age'
+      );
+      assert.watchedPropertyCount(
+        excerptCounters['author.age'],
+        0,
+        'Afterwards we have not dirtied excerpt.author.age'
+      );
+      assert.equal(
+        get(baseRecord, 'author.age'),
+        AUTHOR_AGE,
+        'base-record has the correct author.age'
+      );
+      assert.equal(
+        get(projectedExcerpt, 'author.age'),
+        AUTHOR_AGE,
+        'excerpt has the correct author.age'
+      );
+    });
   });
 
   module('property notifications on resolved objects', function(hooks) {
