@@ -2,9 +2,13 @@ import { isEqual } from '@ember/utils';
 import { assign, merge } from '@ember/polyfills';
 import { copy } from '@ember/object/internals';
 import { assert } from '@ember/debug';
+import { dasherize } from '@ember/string';
+import { isNone } from '@ember/utils';
+
 import { coerceId } from 'ember-data/-private';
 import Ember from 'ember';
-import { isEmbeddedObject } from './util';
+
+import SchemaManager from './schema-manager';
 
 const emberAssign = assign || merge;
 
@@ -42,6 +46,7 @@ export default class M3ModelData {
     this.clientId = clientId;
     this.id = id;
     this.storeWrapper = storeWrapper;
+    this._schema = SchemaManager;
     this.isDestroyed = false;
     this.reset();
   }
@@ -324,12 +329,21 @@ export default class M3ModelData {
       if (this.hasNestedModelData(key)) {
         let nested = this.getOrCreateNestedModelData(key);
 
-        if (isEmbeddedObject(newValue)) {
+        // we need to compute the new nested type, hopefully it is not too slow
+        let newNestedDef = this._schema.computeNestedModel(key, newValue, this.modelName);
+        let newType = newNestedDef && newNestedDef.type && dasherize(newNestedDef.type);
+        let isSameType =
+          newType === nested.modelName || (isNone(newType) && isNone(nested.modelName));
+
+        let newId = newNestedDef && newNestedDef.id;
+        let isSameId = newId === nested.id || (isNone(newId) && isNone(nested.id));
+
+        if (newNestedDef && isSameType && isSameId) {
           nestedCallback(nested, newValue);
           continue;
         }
 
-        // not an embedded object, destroy the nested model data
+        // not an embedded object anymore or type changed, destroy the nested model data
         this.destroyNestedModelData(key);
       }
 
