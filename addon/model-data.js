@@ -1,7 +1,8 @@
-import { isEqual } from '@ember/utils';
+import { isEqual, isNone } from '@ember/utils';
+import { dasherize } from '@ember/string';
 import { assign, merge } from '@ember/polyfills';
 import { copy } from '@ember/object/internals';
-import { isEmbeddedObject } from 'ember-m3/util';
+import SchemaManager from 'ember-m3/schema-manager';
 
 const emberAssign = assign || merge;
 
@@ -46,6 +47,7 @@ export default class M3ModelData {
     this._parentModelData = parentModelData;
     this._embeddedInternalModel = embeddedInternalModel;
     this.__childModelDatas = null;
+    this._schema = SchemaManager;
 
     this.schemaInterface = new M3SchemaInterface(this);
 
@@ -374,6 +376,9 @@ export default class M3ModelData {
   }
 
   _destroyChildModelData(key) {
+    if (!this.__childModelDatas) {
+      return;
+    }
     let childModelData = this._childModelDatas[key];
     if (childModelData) {
       // destroy
@@ -381,12 +386,38 @@ export default class M3ModelData {
     }
   }
 
-  _hasNonArrayChildModelData(key) {
-    return (
-      this.__childModelDatas &&
-      this.__childModelDatas[key] &&
-      !Array.isArray(this.__childModelDatas[key])
+  /*
+    Returns an existing child model data, which can be reused for merging updates or undefined if
+    there is no such child model data.
+
+    @param {string} key - The key, which to apply an update to
+    @param {Mixed} newValue - The updates, which needs to be merged
+    @return {M3ModelData} The child model data, which can be reused or undefined if there is none.
+   */
+  _getExistingChildModelData(key, newValue) {
+    if (
+      !this.__childModelDatas ||
+      !this.__childModelDatas[key] ||
+      Array.isArray(this.__childModelDatas[key])
+    ) {
+      return undefined;
+    }
+    let nested = this._childModelDatas[key];
+
+    // we need to compute the new nested type, hopefully it is not too slow
+    let newNestedDef = this._schema.computeNestedModel(
+      key,
+      newValue,
+      this.modelName,
+      this.schemaInterface
     );
+    let newType = newNestedDef && newNestedDef.type && dasherize(newNestedDef.type);
+    let isSameType = newType === nested.modelName || (isNone(newType) && isNone(nested.modelName));
+
+    let newId = newNestedDef && newNestedDef.id;
+    let isSameId = newId === nested.id || (isNone(newId) && isNone(nested.id));
+
+    return newNestedDef && isSameType && isSameId ? nested : null;
   }
 
   _destroy() {
@@ -476,17 +507,13 @@ export default class M3ModelData {
         continue;
       }
 
-      if (this._hasNonArrayChildModelData(key)) {
-        let nested = this._childModelDatas[key];
-
-        if (isEmbeddedObject(newValue)) {
-          nestedCallback(nested, newValue);
-          continue;
-        }
-
-        // not an embedded object, destroy the nested model data
-        this._destroyChildModelData(key);
+      let reusableChild = this._getExistingChildModelData(key, newValue);
+      if (reusableChild) {
+        nestedCallback(reusableChild, newValue);
+        continue;
       }
+      // not an embedded object, destroy the nested model data
+      this._destroyChildModelData(key);
 
       if (calculateChanges) {
         changedKeys.push(key);

@@ -8,7 +8,3 @@ export const OWNER_KEY = (function() {
     return ownerSymbol;
   }
 })();
-
-export function isEmbeddedObject(value) {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
-}

@@ -294,12 +294,8 @@ export default class MegamorphicModel extends EmberObject {
       let newValue = this._internalModel._modelData.getAttr(key);
 
       let oldIsRecordArray = oldValue && oldValue instanceof M3RecordArray;
-      let oldWasModel = oldValue && oldValue instanceof MegamorphicModel;
-      let newIsObject = newValue !== null && typeof newValue === 'object';
 
-      if (oldWasModel && newIsObject) {
-        // updating keys in nested models is handled by model-data
-      } else if (oldIsRecordArray) {
+      if (oldIsRecordArray) {
         // TODO: do this lazily
         let internalModels = resolveRecordArrayInternalModels(
           key,
