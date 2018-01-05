@@ -1117,6 +1117,53 @@ module('unit/model', function(hooks) {
     );
   });
 
+  test('omitted attributes in nested hashes are detected as changed', function(assert) {
+    let propChange = this.sinon.spy(
+      MegamorphicModel.prototype,
+      'notifyPropertyChange'
+    );
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            relatedBooks: {
+              firstBook: `Harry Potter and the Sorcer's Stone`,
+              secondBook: 'Harry Potter and the Chamber of Secrets',
+            },
+          },
+        },
+      });
+    });
+
+    run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            relatedBooks: {
+              thirdBook: 'Harry Potter and the Prisoner of Azkaban',
+            },
+          },
+        },
+      });
+    });
+
+    assert.equal(
+      get(model, 'relatedBooks.firstBook'),
+      null,
+      'omitted attribute is removed'
+    );
+    assert.deepEqual(
+      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      [[model + '', ['relatedBooks']]],
+      'omitted attributes in hashes trigger change'
+    );
+  });
+
   test('null attributes are detected as changed', function(assert) {
     let propChange = this.sinon.spy(
       MegamorphicModel.prototype,
