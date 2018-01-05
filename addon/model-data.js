@@ -1,8 +1,10 @@
 import Ember from 'ember';
 import { isEqual } from '@ember/utils';
 import { assert } from '@ember/debug';
+import { dasherize } from '@ember/string';
+import { isNone } from '@ember/utils';
+import SchemaManager from './schema-manager';
 import { coerceId } from 'ember-data/-private';
-import { isEmbeddedObject } from './util';
 
 class M3SchemaInterface {
   constructor(modelData) {
@@ -52,6 +54,7 @@ export default class M3ModelData {
     this.__nestedModelsData = null;
 
     this.schemaInterface = new M3SchemaInterface(this);
+    this._schema = SchemaManager;
   }
 
   // PUBLIC API
@@ -221,12 +224,21 @@ export default class M3ModelData {
       if (this.hasNestedModelData(key)) {
         let nested = this.getOrCreateNestedModelData(key);
 
-        if (isEmbeddedObject(newValue)) {
+        // we need to compute the new nested type, hopefully it is not too slow
+        let newNestedDef = this._schema.computeNestedModel(key, newValue, this.modelName);
+        let newType = newNestedDef && newNestedDef.type && dasherize(newNestedDef.type);
+        let isSameType =
+          newType === nested.modelName || (isNone(newType) && isNone(nested.modelName));
+
+        let newId = newNestedDef && newNestedDef.id;
+        let isSameId = newId === nested.id || (isNone(newId) && isNone(nested.id));
+
+        if (newNestedDef && isSameType && isSameId) {
           nestedCallback(nested, newValue);
           continue;
         }
 
-        // not an embedded object, destroy the nested model data
+        // not an embedded object anymore or type changed, destroy the nested model data
         this.destroyNestedModelData(key);
       }
 
