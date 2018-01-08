@@ -5,7 +5,7 @@ import { dasherize } from '@ember/string';
 import M3ModelData from './model-data';
 import SchemaManager from './schema-manager';
 import M3RecordArray from './record-array';
-import { OWNER_KEY } from './util';
+import { OWNER_KEY, isEmbeddedObject } from './util';
 
 const { get, set, propertyWillChange, propertyDidChange, computed, A } = Ember;
 
@@ -280,7 +280,7 @@ export default class MegamorphicModel extends Ember.Object {
 
       let oldIsRecordArray = oldValue && oldValue instanceof M3RecordArray;
       let oldWasModel = oldValue && oldValue instanceof MegamorphicModel;
-      let newIsObject = typeof newValue === 'object';
+      let newIsObject = isEmbeddedObject(newValue);
 
       if (oldWasModel && newIsObject) {
         oldValue._didReceiveNestedProperties(
