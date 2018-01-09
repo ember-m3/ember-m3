@@ -320,26 +320,6 @@ export default class M3ModelData {
     return this.__implicitRelationships;
   }
 
-  get _inFlightAttributes() {
-    if (this.baseModelData !== null) {
-      return this.baseModelData._inFlightAttributes;
-    }
-
-    if (this.__inFlightAttributes === null) {
-      this.__inFlightAttributes = Object.create(null);
-    }
-    return this.__inFlightAttributes;
-  }
-
-  set _inFlightAttributes(v) {
-    if (this.baseModelData !== null) {
-      this.baseModelData._inFlightAttributes = v;
-      return;
-    }
-
-    this.__inFlightAttributes = v;
-  }
-
   get _nestedModelDatas() {
     if (this.__nestedModelsData === null) {
       this.__nestedModelsData = Object.create(null);
