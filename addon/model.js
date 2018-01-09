@@ -2,10 +2,9 @@ import Ember from 'ember';
 import { RootState } from 'ember-data/-private';
 import { dasherize } from '@ember/string';
 
-import M3ModelData from './model-data';
 import SchemaManager from './schema-manager';
 import M3RecordArray from './record-array';
-import { OWNER_KEY, isEmbeddedObject } from './util';
+import { OWNER_KEY } from './util';
 
 const { get, set, propertyWillChange, propertyDidChange, computed, A } = Ember;
 
@@ -13,6 +12,31 @@ const {
   deleted: { uncommitted: deletedUncommitted },
   loaded: { saved: loadedSaved },
 } = RootState;
+
+function createNestedModelData(
+  parentModelData,
+  key,
+  modelName,
+  id,
+  internalModel
+) {
+  return parentModelData.getOrCreateNestedModelData(
+    key,
+    modelName,
+    id,
+    internalModel
+  );
+}
+
+function createDetachedNestedModelData(
+  parentModelData,
+  key,
+  modelName,
+  id,
+  internalModel
+) {
+  return parentModelData.createNestedModelData(modelName, id, internalModel);
+}
 
 class EmbeddedSnapshot {
   constructor(record) {
@@ -38,19 +62,26 @@ class EmbeddedSnapshot {
 }
 
 class EmbeddedInternalModel {
-  constructor({ id, modelName, _data, store, parentInternalModel }) {
+  constructor({
+    id,
+    key,
+    modelName,
+    _data,
+    store,
+    parentInternalModel,
+    createModelDataCallback,
+  }) {
     this.id = id;
     this.modelName = modelName;
 
     // TODO FIX IGOR DAVID
 
     // TODO IGOR DAVID CLEANUP
-    this._modelData = new M3ModelData(
+    this._modelData = createModelDataCallback(
+      parentInternalModel._modelData,
+      key,
       modelName,
       id,
-      null,
-      parentInternalModel._modelData.storeWrapper,
-      store,
       this
     );
     this._modelData.setupData({
@@ -59,15 +90,27 @@ class EmbeddedInternalModel {
     this.store = store;
     this.parentInternalModel = parentInternalModel;
 
-    this.record = null;
+    this._record = null;
+  }
+
+  get hasRecord() {
+    return !!this._record;
   }
 
   createSnapshot() {
-    return new EmbeddedSnapshot(this.record);
+    return new EmbeddedSnapshot(this._record);
   }
 }
 
-function resolveValue(key, value, modelName, store, schema, model) {
+function resolveValue(
+  key,
+  value,
+  modelName,
+  store,
+  schema,
+  model,
+  createModelDataCallback = createNestedModelData
+) {
   if (schema.isAttributeArrayReference(key, value, modelName)) {
     return resolveRecordArray(key, value, modelName, store, schema, model);
   }
@@ -92,12 +135,14 @@ function resolveValue(key, value, modelName, store, schema, model) {
   let nested = schema.computeNestedModel(key, value, modelName);
   if (nested) {
     let internalModel = new EmbeddedInternalModel({
+      key,
+      store,
+      createModelDataCallback,
       id: nested.id,
       // maintain consistency with internalmodel.modelName, which is normalized
       // internally within ember-data
       modelName: nested.type ? dasherize(nested.type) : null,
       _data: nested.attributes,
-      store,
       parentInternalModel: model._internalModel,
     });
     let nestedModel = new EmbeddedMegamorphicModel({
@@ -106,7 +151,7 @@ function resolveValue(key, value, modelName, store, schema, model) {
       _parentModel: model,
       _topModel: model._topModel,
     });
-    internalModel.record = nestedModel;
+    internalModel._record = nestedModel;
 
     return nestedModel;
   }
@@ -122,7 +167,15 @@ function resolvePlainArray(key, value, modelName, store, schema, model) {
   let result = new Array(value.length);
 
   for (let i = 0; i < value.length; ++i) {
-    result[i] = resolveValue(key, value[i], modelName, store, schema, model);
+    result[i] = resolveValue(
+      key,
+      value[i],
+      modelName,
+      store,
+      schema,
+      model,
+      createDetachedNestedModelData
+    );
   }
 
   return result;
@@ -271,37 +324,31 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   _notifyProperties(keys) {
-    Ember.beginPropertyChanges();
-    let key;
-    for (let i = 0, length = keys.length; i < length; i++) {
-      key = keys[i];
-      let oldValue = this._cache[key];
-      let newValue = this._internalModel._modelData.getAttr(key);
+    Ember.changeProperties(() => {
+      let key;
+      for (let i = 0, length = keys.length; i < length; i++) {
+        key = keys[i];
+        let oldValue = this._cache[key];
+        let newValue = this._internalModel._modelData.getAttr(key);
 
-      let oldIsRecordArray = oldValue && oldValue instanceof M3RecordArray;
-      let oldWasModel = oldValue && oldValue instanceof MegamorphicModel;
-      let newIsObject = isEmbeddedObject(newValue);
+        let oldIsRecordArray = oldValue && oldValue instanceof M3RecordArray;
 
-      if (oldWasModel && newIsObject) {
-        oldValue._didReceiveNestedProperties(
-          this._internalModel._modelData._data[key]
-        );
-      } else if (oldIsRecordArray) {
-        let internalModels = resolveRecordArrayInternalModels(
-          key,
-          newValue,
-          this._modelName,
-          this._store,
-          this._schema
-        );
-        oldValue._setInternalModels(internalModels);
-      } else {
-        // anything -> undefined | primitive
-        delete this._cache[key];
-        this.notifyPropertyChange(key);
+        if (oldIsRecordArray) {
+          let internalModels = resolveRecordArrayInternalModels(
+            key,
+            newValue,
+            this._modelName,
+            this._store,
+            this._schema
+          );
+          oldValue._setInternalModels(internalModels);
+        } else {
+          // anything -> undefined | primitive
+          delete this._cache[key];
+          this.notifyPropertyChange(key);
+        }
       }
-    }
-    Ember.endPropertyChanges();
+    });
   }
 
   _didReceiveNestedProperties(data) {
