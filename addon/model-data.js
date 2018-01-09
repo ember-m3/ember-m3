@@ -1,9 +1,39 @@
 import { isEqual } from '@ember/utils';
 import { assign, merge } from '@ember/polyfills';
 import { copy } from '@ember/object/internals';
+import { assert } from '@ember/debug';
 import { coerceId } from 'ember-data/-private';
+import Ember from 'ember';
+import { isEmbeddedObject } from './util';
 
 const emberAssign = assign || merge;
+
+function setupDataAndNotify(modelData, updates) {
+  let changedKeys = modelData.pushData({ attributes: updates });
+
+  modelData._notifyRecordProperties(changedKeys);
+}
+
+function commitDataAndNotify(modelData, updates) {
+  let changedKeys = modelData.didCommit({ attributes: updates });
+
+  modelData._notifyRecordProperties(changedKeys);
+}
+
+class NestedModelDataWrapper {
+  constructor(nestedInternalModel) {
+    this.internalModel = nestedInternalModel;
+  }
+
+  notifyPropertyChange(modelName, id, clientId, key) {
+    // TODO enhance this assert
+    assert('TODO', modelName === this.internalModel.modelName && id === this.internalModel.id);
+
+    if (this.internalModel.hasRecord) {
+      this.internalModel._record.notifyPropertyChange(key);
+    }
+  }
+}
 
 export default class M3ModelData {
   constructor(modelName, id, clientId, storeWrapper, store) {
@@ -27,13 +57,8 @@ export default class M3ModelData {
   }
 
   pushData(data, calculateChange) {
-    let changedKeys;
+    let changedKeys = this._mergeUpdates(data.attributes, setupDataAndNotify, calculateChange);
 
-    if (calculateChange) {
-      changedKeys = this._changedKeys(data.attributes);
-    }
-
-    emberAssign(this._data, data.attributes);
     if (this.__attributes) {
       // only do if we have attribute changes
       this._updateChangedAttributes();
@@ -59,6 +84,7 @@ export default class M3ModelData {
     this._data = null;
     this._attributes = null;
     this.__inFlightAttributes = null;
+    this.__nestedModelsData = null;
   }
 
   addToHasMany() {}
@@ -104,7 +130,8 @@ export default class M3ModelData {
     if (data) {
       data = data.attributes;
     }
-    let changedKeys = this._changedKeys(data);
+    // TODO Figure out how to handle the merging in case of inflight attributes
+    let changedKeys = this._mergeUpdates(data, commitDataAndNotify);
 
     emberAssign(this._data, this._inFlightAttributes);
     if (data) {
@@ -186,6 +213,35 @@ export default class M3ModelData {
 
   clientDidCreate() {}
 
+  getOrCreateNestedModelData(key, modelName, id, internalModel) {
+    let nestedModelData = this._nestedModelDatas[key];
+    if (!nestedModelData) {
+      nestedModelData = this._nestedModelDatas[key] = this.createNestedModelData(
+        modelName,
+        id,
+        internalModel
+      );
+    }
+    return nestedModelData;
+  }
+
+  createNestedModelData(modelName, id, internalModel) {
+    let storeWrapper = new NestedModelDataWrapper(internalModel);
+    return new M3ModelData(modelName, id, null, storeWrapper, this.store);
+  }
+
+  destroyNestedModelData(key) {
+    let nestedModelData = this._nestedModelDatas[key];
+    if (nestedModelData) {
+      // destroy
+      delete this._nestedModelDatas[key];
+    }
+  }
+
+  hasNestedModelData(key) {
+    return !!this._nestedModelDatas[key];
+  }
+
   get _attributes() {
     if (this.__attributes === null) {
       this.__attributes = Object.create(null);
@@ -219,6 +275,79 @@ export default class M3ModelData {
     this.__inFlightAttributes = v;
   }
 
+  get _nestedModelDatas() {
+    if (this.__nestedModelsData === null) {
+      this.__nestedModelsData = Object.create(null);
+    }
+    return this.__nestedModelsData;
+  }
+
+  /**
+   *
+   * @param updates
+   * @param nestedCallback a callback for updating the data of a nested model-data instance
+   * @returns {Array}
+   * @private
+   */
+  _mergeUpdates(updates, nestedCallback, calculateChanges = true) {
+    let data = this._data;
+
+    let changedKeys;
+    if (calculateChanges) {
+      changedKeys = [];
+    }
+
+    if (!updates) {
+      // no changes
+      return changedKeys;
+    }
+
+    let updatedKeys = Object.keys(updates);
+
+    for (let i = 0; i < updatedKeys.length; i++) {
+      let key = updatedKeys[i];
+      let newValue = updates[key];
+
+      if (isEqual(data[key], newValue)) {
+        // values are equal, nothing to do
+        // note, updates to objects should always result in new object or there will be nothing to update
+        continue;
+      }
+
+      if (this.hasNestedModelData(key)) {
+        let nested = this.getOrCreateNestedModelData(key);
+
+        if (isEmbeddedObject(newValue)) {
+          nestedCallback(nested, newValue);
+          continue;
+        }
+
+        // not an embedded object, destroy the nested model data
+        this.destroyNestedModelData(key);
+      }
+
+      if (calculateChanges) {
+        changedKeys.push(key);
+      }
+      data[key] = newValue;
+    }
+
+    return changedKeys;
+  }
+
+  _notifyRecordProperties(changedKeys) {
+    Ember.beginPropertyChanges();
+    for (let i = 0; i < changedKeys.length; i++) {
+      this.storeWrapper.notifyPropertyChange(
+        this.modelName,
+        this.id,
+        this.clientId,
+        changedKeys[i]
+      );
+    }
+    Ember.endPropertyChanges();
+  }
+
   /*
     Checks if the attributes which are considered as changed are still
     different to the state which is acknowledged by the server.
@@ -244,89 +373,6 @@ export default class M3ModelData {
         delete attrs[attribute];
       }
     }
-  }
-
-  /*
-    Ember Data has 3 buckets for storing the value of an attribute on an internalModel.
-
-    `_data` holds all of the attributes that have been acknowledged by
-    a backend via the adapter. When rollbackAttributes is called on a model all
-    attributes will revert to the record's state in `_data`.
-
-    `_attributes` holds any change the user has made to an attribute
-    that has not been acknowledged by the adapter. Any values in
-    `_attributes` are have priority over values in `_data`.
-
-    `_inFlightAttributes`. When a record is being synced with the
-    backend the values in `_attributes` are copied to
-    `_inFlightAttributes`. This way if the backend acknowledges the
-    save but does not return the new state Ember Data can copy the
-    values from `_inFlightAttributes` to `_data`. Without having to
-    worry about changes made to `_attributes` while the save was
-    happenign.
-
-
-    Changed keys builds a list of all of the values that may have been
-    changed by the backend after a successful save.
-
-    It does this by iterating over each key, value pair in the payload
-    returned from the server after a save. If the `key` is found in
-    `_attributes` then the user has a local changed to the attribute
-    that has not been synced with the server and the key is not
-    included in the list of changed keys.
-
-
-
-    If the value, for a key differs from the value in what Ember Data
-    believes to be the truth about the backend state (A merger of the
-    `_data` and `_inFlightAttributes` objects where
-    `_inFlightAttributes` has priority) then that means the backend
-    has updated the value and the key is added to the list of changed
-    keys.
-
-    @method _changedKeys
-    @private
-  */
-  /*
-      TODO IGOR DAVID
-      There seems to be a potential bug here, where we will return keys that are not
-      in the schema
-  */
-  _changedKeys(updates) {
-    let changedKeys = [];
-
-    if (updates) {
-      let original, i, value, key;
-      let keys = Object.keys(updates);
-      let length = keys.length;
-      let hasAttrs = this.hasChangedAttributes();
-      let attrs;
-      if (hasAttrs) {
-        attrs = this._attributes;
-      }
-
-      original = emberAssign(Object.create(null), this._data);
-      original = emberAssign(original, this._inFlightAttributes);
-
-      for (i = 0; i < length; i++) {
-        key = keys[i];
-        value = updates[key];
-
-        // A value in _attributes means the user has a local change to
-        // this attributes. We never override this value when merging
-        // updates from the backend so we should not sent a change
-        // notification if the server value differs from the original.
-        if (hasAttrs === true && attrs[key] !== undefined) {
-          continue;
-        }
-
-        if (!isEqual(original[key], value)) {
-          changedKeys.push(key);
-        }
-      }
-    }
-
-    return changedKeys;
   }
 
   toString() {
