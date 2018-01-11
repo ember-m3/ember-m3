@@ -44,9 +44,6 @@ export default class M3ModelData {
   // PUBLIC API
 
   setupData(data) {
-    // TODO One more parameter is used to indicate we need setupData to
-    // also notify records of any changes, because preload does not do
-    // it, but it should
     let changedKeys = this._mergeUpdates(data.attributes, setupDataAndNotify);
     this._notifyProjectionProperties(changedKeys);
 
