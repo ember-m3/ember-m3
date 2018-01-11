@@ -49,7 +49,7 @@
     "eslint-config-prettier": "^2.9.0",
     "eslint-plugin-prettier": "^2.3.1",
     "loader.js": "^4.2.3",
-    "pretender": "^1.4.2",
+    "pretender": "^2.0.0",
     "prettier": "1.8.2"
   },
   "engines": {
