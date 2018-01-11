@@ -5,10 +5,7 @@ import SchemaManager from './schema-manager';
 const { isEqual } = Ember;
 
 function setupDataAndNotify(modelData, updates) {
-  let changedKeys = modelData.setupData(
-    { attributes: updates },
-    modelData.internalModel.hasRecord
-  );
+  let changedKeys = modelData.setupData({ attributes: updates });
 
   modelData._notifyRecordProperties(changedKeys);
 }
@@ -46,16 +43,12 @@ export default class M3ModelData {
 
   // PUBLIC API
 
-  setupData(data, calculateChanges, notify) {
+  setupData(data) {
     // TODO One more parameter is used to indicate we need setupData to
     // also notify records of any changes, because preload does not do
     // it, but it should
     let changedKeys = this._mergeUpdates(data.attributes, setupDataAndNotify);
     this._notifyProjectionProperties(changedKeys);
-
-    if (notify) {
-      this._notifyRecordProperties(changedKeys);
-    }
 
     return changedKeys;
   }

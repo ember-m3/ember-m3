@@ -51,18 +51,16 @@ export function extendStore(Store) {
     _preloadSingleResource(data) {
       let modelName = dasherize(data.type);
       let modelData = this.modelDataFor(modelName, data.id);
-      let isUpdate = false;
-      // let isUpdate = modelData.currentState.isEmpty === false;
 
-      // TODO All other uses of setupData notifies the record of any
-      // properties changes, but not this one. Temporary we have an
-      // explicit parameter to make setupData notify the record as well
-      modelData.setupData(data, true, true);
+      let changedKeys = modelData.setupData(data, true, true);
 
-      if (isUpdate === true) {
-        // this.recordArrayManager.recordDidChange(modelData);
-      } else {
-        // internalModel.currentState = EmptyState;
+      // We need to explicitly notify any possible record, which may have been associated
+      // with the preloaded ModelData. We don't delegate this to InternalModel
+      // to not confuse the implementation whether the `setupData` call also means
+      // it has been loaded
+      let internalModel = this._internalModelForId(modelName, data.id);
+      if (internalModel && internalModel.hasRecord) {
+        internalModel._record._notifyProperties(changedKeys);
       }
     },
 
