@@ -52,7 +52,7 @@ export function extendStore(Store) {
       let modelName = dasherize(data.type);
       let modelData = this.modelDataFor(modelName, data.id);
 
-      let changedKeys = modelData.setupData(data, true, true);
+      let changedKeys = modelData.setupData(data, true);
 
       // We need to explicitly notify any possible record, which may have been associated
       // with the preloaded ModelData. We don't delegate this to InternalModel
