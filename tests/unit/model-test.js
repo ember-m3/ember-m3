@@ -1117,6 +1117,53 @@ module('unit/model', function(hooks) {
     );
   });
 
+  test('omitted attributes in nested hashes are detected as changed', function(assert) {
+    let propChange = this.sinon.spy(
+      MegamorphicModel.prototype,
+      'notifyPropertyChange'
+    );
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            relatedBooks: {
+              firstBook: `Harry Potter and the Sorcer's Stone`,
+              secondBook: 'Harry Potter and the Chamber of Secrets',
+            },
+          },
+        },
+      });
+    });
+
+    run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            relatedBooks: {
+              thirdBook: 'Harry Potter and the Prisoner of Azkaban',
+            },
+          },
+        },
+      });
+    });
+
+    assert.equal(
+      get(model, 'relatedBooks.firstBook'),
+      null,
+      'omitted attribute is removed'
+    );
+    assert.deepEqual(
+      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      [[model + '', ['relatedBooks']]],
+      'omitted attributes in hashes trigger change'
+    );
+  });
+
   test('null attributes are detected as changed', function(assert) {
     let propChange = this.sinon.spy(
       MegamorphicModel.prototype,
@@ -1754,6 +1801,124 @@ module('unit/model', function(hooks) {
       'nested model not set'
     );
     assert.equal(init.callCount, 1, 'no additional models created');
+  });
+
+  test('nested model updates with no changes except changed type (reified)', function(assert) {
+    let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
+    let propChange = this.sinon.spy(
+      MegamorphicModel.prototype,
+      'notifyPropertyChange'
+    );
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextPart: {
+              name: 'The Boy Who Lived',
+              number: 1,
+              type: 'com.example.bookstore.Chapter',
+            },
+          },
+        },
+      });
+    });
+
+    get(model, 'nextPart');
+
+    assert.equal(init.callCount, 2, 'two models are created initially');
+
+    run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextPart: {
+              name: 'The Boy Who Lived',
+              number: 1,
+              type: 'com.example.bookstore.Prologue',
+            },
+          },
+        },
+      });
+    });
+
+    get(model, 'nextPart');
+
+    assert.equal(
+      init.callCount,
+      3,
+      'new model has been created for the update'
+    );
+    assert.deepEqual(
+      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      [[model + '', ['nextPart']]],
+      'nested model change has been triggered if type has changed'
+    );
+  });
+
+  test('nested model updates with no changes except id (reified)', function(assert) {
+    let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
+    let propChange = this.sinon.spy(
+      MegamorphicModel.prototype,
+      'notifyPropertyChange'
+    );
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: {
+              id: 1,
+              name: 'The Boy Who Lived',
+              type: 'com.example.bookstore.Chapter',
+            },
+          },
+        },
+      });
+    });
+
+    get(model, 'nextChapter');
+
+    assert.equal(init.callCount, 2, 'two models are created initially');
+
+    run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: {
+              id: 2,
+              name: 'The Boy Who Lived',
+              type: 'com.example.bookstore.Chapter',
+            },
+          },
+        },
+      });
+    });
+
+    get(model, 'nextChapter');
+
+    assert.equal(
+      init.callCount,
+      3,
+      'new model has been created for the update'
+    );
+    assert.deepEqual(
+      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      [[model + '', ['nextChapter']]],
+      'nested model change has been triggered if id has changed'
+    );
   });
 
   test('nested model updates with no changes (model inert)', function(assert) {
