@@ -455,7 +455,11 @@ export default class MegamorphicModel extends Ember.Object {
       return;
     }
 
-    throw new Error(`You tried to set 'id' to '${value}' for '${this._modelName}' but records can only set their ID by providing it to store.createRecord()`);
+    throw new Error(
+      `You tried to set 'id' to '${value}' for '${
+        this._modelName
+      }' but records can only set their ID by providing it to store.createRecord()`
+    );
   }
 
   // TODO: drop change events for unretrieved properties
