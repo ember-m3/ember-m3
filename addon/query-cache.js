@@ -41,28 +41,22 @@ export default class QueryCache {
     let loadPromise;
 
     if (backgroundReload || reload || cachedValue === undefined) {
-      loadPromise = this._adapter
-        .ajax(adapterUrl, method, options)
-        .then(rawPayload => {
-          let serializer = this._store.serializerFor('-ember-m3');
-          let payload = serializer.normalizeResponse(
-            this._store,
-            MegamorphicModel,
-            rawPayload,
-            cacheKey,
-            'query-url'
-          );
-          let result = this._createResult(
-            payload,
-            { url, params, method, cacheKey },
-            array
-          );
+      loadPromise = this._adapter.ajax(adapterUrl, method, options).then(rawPayload => {
+        let serializer = this._store.serializerFor('-ember-m3');
+        let payload = serializer.normalizeResponse(
+          this._store,
+          MegamorphicModel,
+          rawPayload,
+          cacheKey,
+          'query-url'
+        );
+        let result = this._createResult(payload, { url, params, method, cacheKey }, array);
 
-          if (cacheKey) {
-            this._addResultToCache(result, cacheKey);
-          }
-          return result;
-        });
+        if (cacheKey) {
+          this._addResultToCache(result, cacheKey);
+        }
+        return result;
+      });
     }
 
     if (reload || cachedValue === undefined) {
@@ -124,11 +118,7 @@ export default class QueryCache {
       // if we have a host we'll get '/' from joining, otherwise if we're
       // producing only a path respect whatever the namespace is configured as
       let stripLeadingSlash = parts.length > 0;
-      namespace = stripSlash(
-        get(this._adapter, 'namespace') || '',
-        stripLeadingSlash,
-        true
-      );
+      namespace = stripSlash(get(this._adapter, 'namespace') || '', stripLeadingSlash, true);
       if (namespace.length > 0) {
         parts.push(namespace);
       }
@@ -189,8 +179,7 @@ export default class QueryCache {
   }
 
   _addRecordToReverseCache({ id }, cacheKey) {
-    let cacheKeys = (this._reverseQueryCache[id] =
-      this._reverseQueryCache[id] || []);
+    let cacheKeys = (this._reverseQueryCache[id] = this._reverseQueryCache[id] || []);
     // no need to check for presence as we're only here b/c of a cache miss
     cacheKeys.push(cacheKey);
   }
@@ -214,9 +203,7 @@ export default class QueryCache {
   }
 
   get _adapter() {
-    return (
-      this.__adapter || (this.__adapter = this._store.adapterFor('-ember-m3'))
-    );
+    return this.__adapter || (this.__adapter = this._store.adapterFor('-ember-m3'));
   }
 
   toString() {

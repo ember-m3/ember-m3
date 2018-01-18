@@ -64,11 +64,7 @@ test('it adds `store.unloadURL`', function(assert) {
 
   assert.equal(typeof this.store.unloadURL, 'function', 'unloadURL added');
   this.sinon.stub(this.store._queryCache, 'unloadURL').callsFake((...args) => {
-    assert.deepEqual(
-      [...args],
-      [cacheKey],
-      'arguments are passed down to queryCache'
-    );
+    assert.deepEqual([...args], [cacheKey], 'arguments are passed down to queryCache');
   });
 
   this.store.unloadURL(cacheKey);
@@ -81,26 +77,17 @@ test('it adds `store.containsURL`', function(assert) {
 
   assert.equal(typeof this.store.containsURL, 'function', 'containsURL added');
   this.sinon.stub(this.store._queryCache, 'contains').callsFake((...args) => {
-    assert.deepEqual(
-      [...args],
-      [cacheKey],
-      'arguments are passed down to queryCache'
-    );
+    assert.deepEqual([...args], [cacheKey], 'arguments are passed down to queryCache');
   });
 
   this.store.containsURL(cacheKey);
 });
 
-test('uses the -ember-m3 adapter for schema-recognized types', function(
-  assert
-) {
+test('uses the -ember-m3 adapter for schema-recognized types', function(assert) {
   this.store.adapterFor('non-matching-type');
 
   assert.deepEqual(
-    zip(
-      this.adapterForStub.thisValues.map(x => x + ''),
-      this.adapterForStub.args
-    ),
+    zip(this.adapterForStub.thisValues.map(x => x + ''), this.adapterForStub.args),
     [[this.store + '', ['non-matching-type']]],
     'non-matching types are passed through'
   );
@@ -108,28 +95,17 @@ test('uses the -ember-m3 adapter for schema-recognized types', function(
   this.store.adapterFor('com.example.bookstore.Book');
 
   assert.deepEqual(
-    zip(
-      this.adapterForStub.thisValues.map(x => x + ''),
-      this.adapterForStub.args
-    ),
-    [
-      [this.store + '', ['non-matching-type']],
-      [this.store + '', ['-ember-m3']],
-    ],
+    zip(this.adapterForStub.thisValues.map(x => x + ''), this.adapterForStub.args),
+    [[this.store + '', ['non-matching-type']], [this.store + '', ['-ember-m3']]],
     'matching types use the -ember-m3 adapter'
   );
 });
 
-test('uses the -ember-m3 serializer for schema-recognized types', function(
-  assert
-) {
+test('uses the -ember-m3 serializer for schema-recognized types', function(assert) {
   this.store.serializerFor('non-matching-type');
 
   assert.deepEqual(
-    zip(
-      this.serializerForStub.thisValues.map(x => x + ''),
-      this.serializerForStub.args
-    ),
+    zip(this.serializerForStub.thisValues.map(x => x + ''), this.serializerForStub.args),
     [[this.store + '', ['non-matching-type']]],
     'non-matching types are passed through'
   );
@@ -137,28 +113,17 @@ test('uses the -ember-m3 serializer for schema-recognized types', function(
   this.store.serializerFor('com.example.bookstore.Book');
 
   assert.deepEqual(
-    zip(
-      this.serializerForStub.thisValues.map(x => x + ''),
-      this.serializerForStub.args
-    ),
-    [
-      [this.store + '', ['non-matching-type']],
-      [this.store + '', ['-ember-m3']],
-    ],
+    zip(this.serializerForStub.thisValues.map(x => x + ''), this.serializerForStub.args),
+    [[this.store + '', ['non-matching-type']], [this.store + '', ['-ember-m3']]],
     'matching types use the -ember-m3 serializer'
   );
 });
 
-test('uses the -ember-m3 model factory for schema-recognized types', function(
-  assert
-) {
+test('uses the -ember-m3 model factory for schema-recognized types', function(assert) {
   this.store.modelFactoryFor('non-matching-type');
 
   assert.deepEqual(
-    zip(
-      this.modelFactoryForStub.thisValues.map(x => x + ''),
-      this.modelFactoryForStub.args
-    ),
+    zip(this.modelFactoryForStub.thisValues.map(x => x + ''), this.modelFactoryForStub.args),
     [[this.store + '', ['non-matching-type']]],
     'non-matching types are passed through'
   );
@@ -170,10 +135,7 @@ test('uses the -ember-m3 model factory for schema-recognized types', function(
   );
 
   assert.deepEqual(
-    zip(
-      this.modelFactoryForStub.thisValues.map(x => x + ''),
-      this.modelFactoryForStub.args
-    ),
+    zip(this.modelFactoryForStub.thisValues.map(x => x + ''), this.modelFactoryForStub.args),
     [[this.store + '', ['non-matching-type']]],
     'matching types do not require a call to super'
   );

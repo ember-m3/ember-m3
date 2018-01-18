@@ -23,24 +23,12 @@ module('unit/schema-manager', function() {
       };
 
       SchemaManager.registerSchema(schema1);
-      assert.ok(
-        SchemaManager.includesModel('m1'),
-        'schema1 reigstered (includes m1)'
-      );
-      assert.notOk(
-        SchemaManager.includesModel('m2'),
-        'schema1 reigstered (!includes m2)'
-      );
+      assert.ok(SchemaManager.includesModel('m1'), 'schema1 reigstered (includes m1)');
+      assert.notOk(SchemaManager.includesModel('m2'), 'schema1 reigstered (!includes m2)');
 
       SchemaManager.registerSchema(schema2);
-      assert.notOk(
-        SchemaManager.includesModel('m1'),
-        'schema2 reigstered (!includes m1)'
-      );
-      assert.ok(
-        SchemaManager.includesModel('m2'),
-        'schema2 reigstered (includes m2)'
-      );
+      assert.notOk(SchemaManager.includesModel('m1'), 'schema2 reigstered (!includes m1)');
+      assert.ok(SchemaManager.includesModel('m2'), 'schema2 reigstered (includes m2)');
     });
   });
 
@@ -52,19 +40,11 @@ module('unit/schema-manager', function() {
         },
       });
 
-      assert.equal(
-        SchemaManager.includesModel('com.example.bookstore.Book'),
-        true
-      );
-      assert.equal(
-        SchemaManager.includesModel('com.example.petstore.Pet'),
-        false
-      );
+      assert.equal(SchemaManager.includesModel('com.example.bookstore.Book'), true);
+      assert.equal(SchemaManager.includesModel('com.example.petstore.Pet'), false);
     });
 
-    test('can specify what fields refer to other models in the store', function(
-      assert
-    ) {
+    test('can specify what fields refer to other models in the store', function(assert) {
       SchemaManager.registerSchema({
         computeAttributeReference(key, value) {
           if (/^ref-/i.test(key)) {
@@ -77,14 +57,11 @@ module('unit/schema-manager', function() {
         },
       });
 
-      assert.deepEqual(
-        SchemaManager.computeAttributeReference('ref-foo', 200),
-        { type: 'foo', id: 200 }
-      );
-      assert.deepEqual(
-        SchemaManager.computeAttributeReference('foo', 70),
-        null
-      );
+      assert.deepEqual(SchemaManager.computeAttributeReference('ref-foo', 200), {
+        type: 'foo',
+        id: 200,
+      });
+      assert.deepEqual(SchemaManager.computeAttributeReference('foo', 70), null);
     });
 
     test('can specify a nested model matcher', function(assert) {
@@ -94,10 +71,7 @@ module('unit/schema-manager', function() {
         },
       });
 
-      assert.equal(
-        SchemaManager.computeNestedModel('com.example.bookstore.Author'),
-        true
-      );
+      assert.equal(SchemaManager.computeNestedModel('com.example.bookstore.Author'), true);
       assert.equal(SchemaManager.computeNestedModel('name'), false);
     });
 
@@ -115,27 +89,15 @@ module('unit/schema-manager', function() {
       });
 
       assert.equal(
-        SchemaManager.transformValue(
-          'com.example.bookstore.Book',
-          'name',
-          'jeff'
-        ),
+        SchemaManager.transformValue('com.example.bookstore.Book', 'name', 'jeff'),
         'jeff OMG!'
       );
       assert.equal(
-        SchemaManager.transformValue(
-          'com.example.bookstore.Book',
-          'alternateName',
-          'jeff'
-        ),
+        SchemaManager.transformValue('com.example.bookstore.Book', 'alternateName', 'jeff'),
         'jeff'
       );
       assert.equal(
-        SchemaManager.transformValue(
-          'com.example.bookstore.Author',
-          'name',
-          'jeff'
-        ),
+        SchemaManager.transformValue('com.example.bookstore.Author', 'name', 'jeff'),
         'jeff'
       );
     });
@@ -153,74 +115,34 @@ module('unit/schema-manager', function() {
         },
       });
 
+      assert.equal(SchemaManager.isAttributeIncluded('com.example.bookstore.Book', 'name'), true);
+      assert.equal(SchemaManager.isAttributeIncluded('com.example.bookstore.Book', 'age'), false);
+      assert.equal(SchemaManager.isAttributeIncluded('com.example.bookstore.Author', 'name'), true);
+      assert.equal(SchemaManager.isAttributeIncluded('com.example.bookstore.Author', 'age'), true);
       assert.equal(
-        SchemaManager.isAttributeIncluded('com.example.bookstore.Book', 'name'),
+        SchemaManager.isAttributeIncluded('com.example.bookstore.ReaderComment', 'name'),
         true
       );
       assert.equal(
-        SchemaManager.isAttributeIncluded('com.example.bookstore.Book', 'age'),
-        false
-      );
-      assert.equal(
-        SchemaManager.isAttributeIncluded(
-          'com.example.bookstore.Author',
-          'name'
-        ),
+        SchemaManager.isAttributeIncluded('com.example.bookstore.ReaderComment', 'age'),
         true
       );
       assert.equal(
-        SchemaManager.isAttributeIncluded(
-          'com.example.bookstore.Author',
-          'age'
-        ),
+        SchemaManager.isAttributeIncluded('com.example.bookstore.SearchResult', 'name'),
         true
       );
       assert.equal(
-        SchemaManager.isAttributeIncluded(
-          'com.example.bookstore.ReaderComment',
-          'name'
-        ),
-        true
-      );
-      assert.equal(
-        SchemaManager.isAttributeIncluded(
-          'com.example.bookstore.ReaderComment',
-          'age'
-        ),
-        true
-      );
-      assert.equal(
-        SchemaManager.isAttributeIncluded(
-          'com.example.bookstore.SearchResult',
-          'name'
-        ),
-        true
-      );
-      assert.equal(
-        SchemaManager.isAttributeIncluded(
-          'com.example.bookstore.SearchResult',
-          'age'
-        ),
+        SchemaManager.isAttributeIncluded('com.example.bookstore.SearchResult', 'age'),
         true
       );
     });
   });
 
-  test('.isAttributeIncluded does not error when no schema is registered', function(
-    assert
-  ) {
-    assert.equal(
-      SchemaManager.isAttributeIncluded('com.example.movies.Movie', 'name'),
-      true
-    );
+  test('.isAttributeIncluded does not error when no schema is registered', function(assert) {
+    assert.equal(SchemaManager.isAttributeIncluded('com.example.movies.Movie', 'name'), true);
   });
 
-  test('.transformValue does not error when no schema is registered', function(
-    assert
-  ) {
-    assert.equal(
-      SchemaManager.transformValue('com.example.moves.Movie', 'name', 'jeff'),
-      'jeff'
-    );
+  test('.transformValue does not error when no schema is registered', function(assert) {
+    assert.equal(SchemaManager.transformValue('com.example.moves.Movie', 'name', 'jeff'), 'jeff');
   });
 });

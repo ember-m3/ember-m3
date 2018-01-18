@@ -14,23 +14,13 @@ test('payloads can be rendered as m3 models', function(assert) {
 
     assert.deepEqual(
       page.books().map(x => x.id()),
-      [
-        'isbn:9780760768570',
-        'isbn:9780760768587',
-        'isbn:9780760768594',
-        'isbn:9780297609568',
-      ],
+      ['isbn:9780760768570', 'isbn:9780760768587', 'isbn:9780760768594', 'isbn:9780297609568'],
       'top-level collection ids rendered'
     );
 
     assert.deepEqual(
       page.books().map(x => x.authorName()),
-      [
-        'Winston Churchill',
-        'Winston Churchill',
-        'Winston Churchill',
-        'Winston Churchill',
-      ],
+      ['Winston Churchill', 'Winston Churchill', 'Winston Churchill', 'Winston Churchill'],
       'able to read nested attributes from top-level referenced collection items'
     );
 
