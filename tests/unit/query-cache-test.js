@@ -79,68 +79,34 @@ module('unit/query-cache', function(hooks) {
     });
   });
 
-  test('._buildUrl uses the adapter host if no host in the URL', function(
-    assert
-  ) {
+  test('._buildUrl uses the adapter host if no host in the URL', function(assert) {
     this.adapter.host = 'http://library.gg';
 
-    assert.equal(
-      this.queryCache._buildUrl('books/123'),
-      'http://library.gg/books/123'
-    );
-    assert.equal(
-      this.queryCache._buildUrl('/books/123'),
-      'http://library.gg/books/123'
-    );
+    assert.equal(this.queryCache._buildUrl('books/123'), 'http://library.gg/books/123');
+    assert.equal(this.queryCache._buildUrl('/books/123'), 'http://library.gg/books/123');
 
     this.adapter.host = 'http://library.gg:81';
 
-    assert.equal(
-      this.queryCache._buildUrl('books/123'),
-      'http://library.gg:81/books/123'
-    );
-    assert.equal(
-      this.queryCache._buildUrl('/books/123'),
-      'http://library.gg:81/books/123'
-    );
+    assert.equal(this.queryCache._buildUrl('books/123'), 'http://library.gg:81/books/123');
+    assert.equal(this.queryCache._buildUrl('/books/123'), 'http://library.gg:81/books/123');
 
     this.adapter.host = 'https://library.gg:81';
 
-    assert.equal(
-      this.queryCache._buildUrl('books/123'),
-      'https://library.gg:81/books/123'
-    );
-    assert.equal(
-      this.queryCache._buildUrl('/books/123'),
-      'https://library.gg:81/books/123'
-    );
+    assert.equal(this.queryCache._buildUrl('books/123'), 'https://library.gg:81/books/123');
+    assert.equal(this.queryCache._buildUrl('/books/123'), 'https://library.gg:81/books/123');
 
     this.adapter.host = '//library.gg';
 
-    assert.equal(
-      this.queryCache._buildUrl('books/123'),
-      '//library.gg/books/123'
-    );
-    assert.equal(
-      this.queryCache._buildUrl('/books/123'),
-      '//library.gg/books/123'
-    );
+    assert.equal(this.queryCache._buildUrl('books/123'), '//library.gg/books/123');
+    assert.equal(this.queryCache._buildUrl('/books/123'), '//library.gg/books/123');
 
     this.adapter.host = '//library.gg:81';
 
-    assert.equal(
-      this.queryCache._buildUrl('books/123'),
-      '//library.gg:81/books/123'
-    );
-    assert.equal(
-      this.queryCache._buildUrl('/books/123'),
-      '//library.gg:81/books/123'
-    );
+    assert.equal(this.queryCache._buildUrl('books/123'), '//library.gg:81/books/123');
+    assert.equal(this.queryCache._buildUrl('/books/123'), '//library.gg:81/books/123');
   });
 
-  test('._buildUrl ignores adapter host if host is specified', function(
-    assert
-  ) {
+  test('._buildUrl ignores adapter host if host is specified', function(assert) {
     this.adapter.host = 'http://foodcourt.gg';
 
     assert.equal(
@@ -149,9 +115,7 @@ module('unit/query-cache', function(hooks) {
     );
   });
 
-  test('._buildUrl passes absolute paths through if adapter has no host', function(
-    assert
-  ) {
+  test('._buildUrl passes absolute paths through if adapter has no host', function(assert) {
     this.adapter.host = undefined;
 
     assert.equal(this.queryCache._buildUrl('/books/123'), '/books/123');
@@ -162,9 +126,7 @@ module('unit/query-cache', function(hooks) {
     assert.equal(this.queryCache._buildUrl('/books/123'), '/books/123');
   });
 
-  test('._buildUrl uses the adapter namespace if the URL is relative', function(
-    assert
-  ) {
+  test('._buildUrl uses the adapter namespace if the URL is relative', function(assert) {
     this.adapter.namespace = 'api/v1';
 
     // ember-data implicitly converts namespaces to absolute paths, so preserve
@@ -176,33 +138,21 @@ module('unit/query-cache', function(hooks) {
     assert.equal(this.queryCache._buildUrl('books/123'), '/api/v1/books/123');
   });
 
-  test('._buildUrl does not include adapter namespace if the path is absolute', function(
-    assert
-  ) {
+  test('._buildUrl does not include adapter namespace if the path is absolute', function(assert) {
     this.adapter.namespace = '/api/v1';
 
     assert.equal(this.queryCache._buildUrl('/books/123'), '/books/123');
   });
 
-  test('._buildUrl uses the adapter host and namespace for relative paths', function(
-    assert
-  ) {
+  test('._buildUrl uses the adapter host and namespace for relative paths', function(assert) {
     this.adapter.host = 'http://library.gg';
     this.adapter.namespace = '/api/v1';
 
-    assert.equal(
-      this.queryCache._buildUrl('books/123'),
-      'http://library.gg/api/v1/books/123'
-    );
-    assert.equal(
-      this.queryCache._buildUrl('/books/123'),
-      'http://library.gg/books/123'
-    );
+    assert.equal(this.queryCache._buildUrl('books/123'), 'http://library.gg/api/v1/books/123');
+    assert.equal(this.queryCache._buildUrl('/books/123'), 'http://library.gg/books/123');
   });
 
-  test('_buildUrl throws for relative paths if no host or namespace is provided', function(
-    assert
-  ) {
+  test('_buildUrl throws for relative paths if no host or namespace is provided', function(assert) {
     this.adapter.host = undefined;
     this.adapter.namespace = undefined;
 
@@ -223,15 +173,13 @@ module('unit/query-cache', function(hooks) {
       })
     );
 
-    return this.queryCache
-      .queryURL('/uwot', { params: { param: 'value' } })
-      .then(() => {
-        assert.deepEqual(
-          stubCalls(this.adapterAjax),
-          [[this.adapter + '', ['/uwot', 'GET', { data: { param: 'value' } }]]],
-          'adapter.ajax called with right args'
-        );
-      });
+    return this.queryCache.queryURL('/uwot', { params: { param: 'value' } }).then(() => {
+      assert.deepEqual(
+        stubCalls(this.adapterAjax),
+        [[this.adapter + '', ['/uwot', 'GET', { data: { param: 'value' } }]]],
+        'adapter.ajax called with right args'
+      );
+    });
   });
 
   test('.queryURL can accept a method', function(assert) {
@@ -344,11 +292,7 @@ module('unit/query-cache', function(hooks) {
     return this.queryCache
       .queryURL('/uwot', options)
       .then(model => {
-        assert.equal(
-          model.id,
-          1,
-          'the returned promise fulfills with the model'
-        );
+        assert.equal(model.id, 1, 'the returned promise fulfills with the model');
       })
       .then(() => {
         this.adapterAjax.returns(resolve(secondPayload));
@@ -361,22 +305,12 @@ module('unit/query-cache', function(hooks) {
         return cachedResult;
       })
       .then(model => {
-        assert.equal(
-          model.id,
-          1,
-          'the returned promise fulfills with the model'
-        );
-        assert.equal(
-          this.adapterAjax.callCount,
-          1,
-          'adapter.ajax is not called again (cache hit)'
-        );
+        assert.equal(model.id, 1, 'the returned promise fulfills with the model');
+        assert.equal(this.adapterAjax.callCount, 1, 'adapter.ajax is not called again (cache hit)');
       });
   });
 
-  test('.queryURL does not cache results when not given a cacheKey', function(
-    assert
-  ) {
+  test('.queryURL does not cache results when not given a cacheKey', function(assert) {
     let firstPayload = {
       data: {
         id: 1,
@@ -396,27 +330,15 @@ module('unit/query-cache', function(hooks) {
     return this.queryCache
       .queryURL('/uwot')
       .then(model => {
-        assert.equal(
-          model.id,
-          1,
-          'the returned promise fulfills with the model'
-        );
+        assert.equal(model.id, 1, 'the returned promise fulfills with the model');
       })
       .then(() => {
         this.adapterAjax.returns(resolve(secondPayload));
         return this.queryCache.queryURL('/uwot');
       })
       .then(model => {
-        assert.equal(
-          model.id,
-          2,
-          'the returned promise fulfills with the model'
-        );
-        assert.equal(
-          this.adapterAjax.callCount,
-          2,
-          'adapter.ajax is called again'
-        );
+        assert.equal(model.id, 2, 'the returned promise fulfills with the model');
+        assert.equal(this.adapterAjax.callCount, 2, 'adapter.ajax is called again');
       });
   });
 
@@ -442,27 +364,15 @@ module('unit/query-cache', function(hooks) {
     return this.queryCache
       .queryURL('/uwot', { cacheKey })
       .then(model => {
-        assert.equal(
-          model.id,
-          1,
-          'the returned promise fulfills with the model'
-        );
+        assert.equal(model.id, 1, 'the returned promise fulfills with the model');
       })
       .then(() => {
         this.adapterAjax.returns(resolve(secondPayload));
         return this.queryCache.queryURL('/uwot', { cacheKey, reload: true });
       })
       .then(model => {
-        assert.equal(
-          model.id,
-          2,
-          'the returned promise fulfills with the model'
-        );
-        assert.equal(
-          this.adapterAjax.callCount,
-          2,
-          'adapter.ajax is called again'
-        );
+        assert.equal(model.id, 2, 'the returned promise fulfills with the model');
+        assert.equal(this.adapterAjax.callCount, 2, 'adapter.ajax is called again');
       });
   });
 
@@ -495,11 +405,7 @@ module('unit/query-cache', function(hooks) {
     return this.queryCache
       .queryURL('/uwot', { cacheKey })
       .then(model => {
-        assert.equal(
-          model.get('name'),
-          'sally',
-          'the returned promise fulfills with the model'
-        );
+        assert.equal(model.get('name'), 'sally', 'the returned promise fulfills with the model');
       })
       .then(() => {
         this.adapterAjax.returns(deferredBackgroundReload.promise);
@@ -514,19 +420,11 @@ module('unit/query-cache', function(hooks) {
           'sally',
           'the returned promise fulfills with the cached model'
         );
-        assert.equal(
-          this.adapterAjax.callCount,
-          2,
-          'adapter.ajax is called again'
-        );
+        assert.equal(this.adapterAjax.callCount, 2, 'adapter.ajax is called again');
 
         deferredBackgroundReload.resolve(secondPayload);
         return deferredBackgroundReload.promise.then(() => {
-          assert.equal(
-            model.get('name'),
-            'sandy',
-            'the internal model is asynchronously updated'
-          );
+          assert.equal(model.get('name'), 'sandy', 'the internal model is asynchronously updated');
         });
       });
   });
@@ -556,11 +454,7 @@ module('unit/query-cache', function(hooks) {
     return this.queryCache
       .queryURL('/uwot', options)
       .then(model => {
-        assert.equal(
-          model.id,
-          '1',
-          'the returned promise fulfills with the model'
-        );
+        assert.equal(model.id, '1', 'the returned promise fulfills with the model');
         model.unloadRecord();
       })
       .then(() => {
@@ -569,22 +463,14 @@ module('unit/query-cache', function(hooks) {
       })
       .then(model => {
         assert.equal(model.id, '2', 'cache is cleared when model is unloaded');
-        assert.equal(
-          this.adapterAjax.callCount,
-          2,
-          'adapter.ajax is called again'
-        );
+        assert.equal(this.adapterAjax.callCount, 2, 'adapter.ajax is called again');
       })
       .then(() => {
         return this.queryCache.queryURL('/uwot', options);
       })
       .then(model => {
         assert.equal(model.id, '2', 'cache can be used after being cleared');
-        assert.equal(
-          this.adapterAjax.callCount,
-          2,
-          'adapter.ajax is not called again'
-        );
+        assert.equal(this.adapterAjax.callCount, 2, 'adapter.ajax is not called again');
       });
   });
 
@@ -639,26 +525,14 @@ module('unit/query-cache', function(hooks) {
           ['3'],
           'cache is cleared when any member model is unloaded'
         );
-        assert.equal(
-          this.adapterAjax.callCount,
-          2,
-          'adapter.ajax is called again'
-        );
+        assert.equal(this.adapterAjax.callCount, 2, 'adapter.ajax is called again');
       })
       .then(() => {
         return this.queryCache.queryURL('/uwot', options);
       })
       .then(models => {
-        assert.deepEqual(
-          models.map(x => x.id),
-          ['3'],
-          'cache can be used after being cleared'
-        );
-        assert.equal(
-          this.adapterAjax.callCount,
-          2,
-          'adapter.ajax is not called again'
-        );
+        assert.deepEqual(models.map(x => x.id), ['3'], 'cache can be used after being cleared');
+        assert.equal(this.adapterAjax.callCount, 2, 'adapter.ajax is not called again');
       });
   });
 
@@ -714,9 +588,7 @@ module('unit/query-cache', function(hooks) {
       });
   });
 
-  test('the cache entry for a query is invalidated by cacheKey', function(
-    assert
-  ) {
+  test('the cache entry for a query is invalidated by cacheKey', function(assert) {
     let firstPayload = {
       data: {
         id: 1,
@@ -737,9 +609,7 @@ module('unit/query-cache', function(hooks) {
     });
   });
 
-  test('contains by cacheKey correctly returns true when a query is cached', function(
-    assert
-  ) {
+  test('contains by cacheKey correctly returns true when a query is cached', function(assert) {
     let firstPayload = {
       data: {
         id: 1,
@@ -758,9 +628,7 @@ module('unit/query-cache', function(hooks) {
     });
   });
 
-  test('models are removed from results when they are unloaded', function(
-    assert
-  ) {
+  test('models are removed from results when they are unloaded', function(assert) {
     let firstPayload = {
       data: [
         {
@@ -794,37 +662,36 @@ module('unit/query-cache', function(hooks) {
     this.adapterAjax.withArgs('/uwot').returns(resolve(firstPayload));
     this.adapterAjax.withArgs('/okay').returns(resolve(secondPayload));
 
-    return Promise.all([
-      this.queryCache.queryURL('/uwot'),
-      this.queryCache.queryURL('/okay'),
-    ]).then(([firstResult, secondResult]) => {
-      assert.deepEqual(
-        firstResult.toArray().map(x => x.id),
-        ['1', '2'],
-        'results are initially correct'
-      );
-      assert.deepEqual(
-        secondResult.toArray().map(x => x.id),
-        ['2', '3'],
-        'results are initially correct'
-      );
+    return Promise.all([this.queryCache.queryURL('/uwot'), this.queryCache.queryURL('/okay')]).then(
+      ([firstResult, secondResult]) => {
+        assert.deepEqual(
+          firstResult.toArray().map(x => x.id),
+          ['1', '2'],
+          'results are initially correct'
+        );
+        assert.deepEqual(
+          secondResult.toArray().map(x => x.id),
+          ['2', '3'],
+          'results are initially correct'
+        );
 
-      run(() => {
-        firstResult.objectAt(1).unloadRecord();
-      });
+        run(() => {
+          firstResult.objectAt(1).unloadRecord();
+        });
 
-      assert.deepEqual(
-        firstResult.toArray().map(x => x.id),
-        ['1'],
-        'models are removed from queryURL results when unloaded'
-      );
+        assert.deepEqual(
+          firstResult.toArray().map(x => x.id),
+          ['1'],
+          'models are removed from queryURL results when unloaded'
+        );
 
-      assert.deepEqual(
-        secondResult.toArray().map(x => x.id),
-        ['3'],
-        'models are removed from queryURL results when unloaded'
-      );
-    });
+        assert.deepEqual(
+          secondResult.toArray().map(x => x.id),
+          ['3'],
+          'models are removed from queryURL results when unloaded'
+        );
+      }
+    );
   });
 
   test('queryURL returns a record array that can be updated', function(assert) {
@@ -861,51 +728,25 @@ module('unit/query-cache', function(hooks) {
     this.adapterAjax.returns(resolve(firstPayload));
 
     return this.queryCache.queryURL('/ohai').then(models => {
-      assert.deepEqual(
-        models.toArray().map(x => x.id),
-        ['1', '2'],
-        'models are initially correct'
-      );
+      assert.deepEqual(models.toArray().map(x => x.id), ['1', '2'], 'models are initially correct');
 
       this.adapterAjax.returns(resolve(secondPayload));
 
       let updatePromise = models.update();
 
-      assert.equal(
-        models.get('isUpdating'),
-        true,
-        'record array is updating during update'
-      );
+      assert.equal(models.get('isUpdating'), true, 'record array is updating during update');
 
       return updatePromise.then(fulfillmentValue => {
-        assert.equal(
-          fulfillmentValue,
-          models,
-          'promise fulfills with the existing record array'
-        );
-        assert.equal(
-          models.get('isLoaded'),
-          true,
-          'record array is loaded after update'
-        );
-        assert.equal(
-          models.get('isUpdating'),
-          false,
-          'record array is not updating after update'
-        );
+        assert.equal(fulfillmentValue, models, 'promise fulfills with the existing record array');
+        assert.equal(models.get('isLoaded'), true, 'record array is loaded after update');
+        assert.equal(models.get('isUpdating'), false, 'record array is not updating after update');
 
-        assert.deepEqual(
-          models.toArray().map(x => x.id),
-          ['1', '3'],
-          'models are updated'
-        );
+        assert.deepEqual(models.toArray().map(x => x.id), ['1', '3'], 'models are updated');
       });
     });
   });
 
-  test('update uses the original http method and query params', function(
-    assert
-  ) {
+  test('update uses the original http method and query params', function(assert) {
     let payload = {
       data: [
         {
@@ -937,9 +778,7 @@ module('unit/query-cache', function(hooks) {
       });
   });
 
-  test('queryURL goes through a serializer to normalize responses', function(
-    assert
-  ) {
+  test('queryURL goes through a serializer to normalize responses', function(assert) {
     let payload = {
       name: 'name name?',
       wat: 'definitely',

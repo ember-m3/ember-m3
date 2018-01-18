@@ -35,9 +35,7 @@ module('unit/store', function(hooks) {
     this.sinon.restore();
   });
 
-  test('records are added to, and unloaded from, the global m3 cache', function(
-    assert
-  ) {
+  test('records are added to, and unloaded from, the global m3 cache', function(assert) {
     run(() =>
       this.store.push({
         data: [
@@ -74,9 +72,9 @@ module('unit/store', function(hooks) {
       'Identity map contains expected types'
     );
 
-    let bookIds = A(
-      this.store._internalModelsFor('com.example.bookstore.book')._models
-    ).mapBy('id');
+    let bookIds = A(this.store._internalModelsFor('com.example.bookstore.book')._models).mapBy(
+      'id'
+    );
 
     assert.deepEqual(
       bookIds,
@@ -108,18 +106,12 @@ module('unit/store', function(hooks) {
     );
 
     run(() =>
-      this.store
-        .peekRecord('com.example.bookstore.Book', 'isbn:9780439708180')
-        .unloadRecord()
+      this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439708180').unloadRecord()
     );
 
     assert.deepEqual(
       Object.keys(this.store._globalM3Cache).sort(),
-      [
-        'isbn:9780439064873',
-        'isbn:9780439708180/chapter/1',
-        'isbn:9780439708180/chapter/2',
-      ],
+      ['isbn:9780439064873', 'isbn:9780439708180/chapter/1', 'isbn:9780439708180/chapter/2'],
       'global cache can unload records'
     );
 

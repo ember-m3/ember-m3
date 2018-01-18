@@ -6,20 +6,9 @@ import SchemaManager from './schema-manager';
 import M3RecordArray from './record-array';
 import { setDiff, OWNER_KEY } from './util';
 
-const {
-  get,
-  set,
-  isEqual,
-  propertyWillChange,
-  propertyDidChange,
-  computed,
-  A,
-} = Ember;
+const { get, set, isEqual, propertyWillChange, propertyDidChange, computed, A } = Ember;
 
-const {
-  deleted: { uncommitted: deletedUncommitted },
-  loaded: { saved: loadedSaved },
-} = RootState;
+const { deleted: { uncommitted: deletedUncommitted }, loaded: { saved: loadedSaved } } = RootState;
 
 class EmbeddedSnapshot {
   constructor(record) {
@@ -30,9 +19,7 @@ class EmbeddedSnapshot {
   }
 
   serialize(options) {
-    return this.record._store
-      .serializerFor('-ember-m3')
-      .serialize(this, options);
+    return this.record._store.serializerFor('-ember-m3').serialize(this, options);
   }
 
   eachAttribute(callback, binding) {
@@ -131,26 +118,14 @@ function resolveRecordArray(key, value, modelName, store, schema) {
     return array;
   }
 
-  let internalModels = resolveRecordArrayInternalModels(
-    key,
-    value,
-    modelName,
-    store,
-    schema
-  );
+  let internalModels = resolveRecordArrayInternalModels(key, value, modelName, store, schema);
 
   array._setInternalModels(internalModels);
 
   return array;
 }
 
-function resolveRecordArrayInternalModels(
-  key,
-  value,
-  modelName,
-  store,
-  schema
-) {
+function resolveRecordArrayInternalModels(key, value, modelName, store, schema) {
   let internalModels = new Array(value.length);
   for (let i = 0; i < internalModels.length; ++i) {
     let reference = schema.computeAttributeReference(key, value[i], modelName);
@@ -158,10 +133,7 @@ function resolveRecordArrayInternalModels(
       if (reference.type) {
         // for schemas with a global id-space but multiple types, schemas may
         // report a type of null
-        internalModels[i] = store._internalModelForId(
-          reference.type,
-          reference.id
-        );
+        internalModels[i] = store._internalModelForId(reference.type, reference.id);
       } else {
         internalModels[i] = store._globalM3Cache[reference.id];
       }
@@ -476,9 +448,9 @@ export default class MegamorphicModel extends Ember.Object {
 
     if (this._schema.getAttributeAlias(this._modelName, key)) {
       throw new Error(
-        `You tried to set '${key}' to '${value}', but '${
-          key
-        }' is an alias in '${this._modelName}' and aliases are read-only`
+        `You tried to set '${key}' to '${value}', but '${key}' is an alias in '${
+          this._modelName
+        }' and aliases are read-only`
       );
     }
 

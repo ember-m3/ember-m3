@@ -10,10 +10,7 @@ const URNRegExp = /^urn:/;
 export function initialize(/* application */) {
   SchemaManager.registerSchema({
     computeAttributeReference(key, value) {
-      if (
-        typeof value === 'string' &&
-        (ISBNRegExp.test(value) || URNRegExp.test(value))
-      ) {
+      if (typeof value === 'string' && (ISBNRegExp.test(value) || URNRegExp.test(value))) {
         return {
           type: null,
           id: value,
@@ -30,11 +27,7 @@ export function initialize(/* application */) {
     },
 
     computeNestedModel(key, value) {
-      if (
-        typeof value === 'object' &&
-        value !== null &&
-        typeof value.$type === 'string'
-      ) {
+      if (typeof value === 'object' && value !== null && typeof value.$type === 'string') {
         return {
           id: value.isbn,
           type: value.$type,

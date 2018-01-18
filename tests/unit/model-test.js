@@ -155,9 +155,7 @@ module('unit/model', function(hooks) {
     );
   });
 
-  test('.unknownProperty resolves id-matched values to external m3-models', function(
-    assert
-  ) {
+  test('.unknownProperty resolves id-matched values to external m3-models', function(assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -180,10 +178,7 @@ module('unit/model', function(hooks) {
       });
     });
 
-    assert.equal(
-      get(model, 'followedBy.name'),
-      'Harry Potter and the Chamber of Secrets'
-    );
+    assert.equal(get(model, 'followedBy.name'), 'Harry Potter and the Chamber of Secrets');
     assert.equal(get(model, 'followedBy').constructor, MegamorphicModel);
   });
 
@@ -222,11 +217,7 @@ module('unit/model', function(hooks) {
       });
     });
 
-    assert.equal(
-      get(model, 'firstChapter.name'),
-      'The Boy Who Lived',
-      'resolve with type'
-    );
+    assert.equal(get(model, 'firstChapter.name'), 'The Boy Who Lived', 'resolve with type');
     assert.equal(
       get(model, 'lastChapter.name'),
       'The Man with Two Faces',
@@ -259,20 +250,12 @@ module('unit/model', function(hooks) {
     });
 
     run(() =>
-      this.store
-        .peekRecord('com.example.bookstore.Chapter', 'urn:chapter17')
-        .unloadRecord()
+      this.store.peekRecord('com.example.bookstore.Chapter', 'urn:chapter17').unloadRecord()
     );
-    assert.equal(
-      get(model, 'lastChapter'),
-      null,
-      'global m3 cache removed unloaded record'
-    );
+    assert.equal(get(model, 'lastChapter'), null, 'global m3 cache removed unloaded record');
   });
 
-  test('.unknownProperty resolves id-matched values to external DS.models', function(
-    assert
-  ) {
+  test('.unknownProperty resolves id-matched values to external DS.models', function(assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -299,9 +282,7 @@ module('unit/model', function(hooks) {
     assert.equal(get(model, 'author').constructor, this.Author);
   });
 
-  test('.unknownProperty resolves nested-matched values as nested m3-models', function(
-    assert
-  ) {
+  test('.unknownProperty resolves nested-matched values as nested m3-models', function(assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -344,19 +325,11 @@ module('unit/model', function(hooks) {
     assert.equal(get(model, 'relatedToAuthor.value.name'), 'JK Rowling');
     assert.equal(get(model, 'relatedToAuthor.value').constructor, this.Author);
     assert.equal(get(model, 'relatedToBook.relation'), 'Next in series');
-    assert.equal(
-      get(model, 'relatedToBook.value.name'),
-      'Harry Potter and the Chamber of Secrets'
-    );
-    assert.equal(
-      get(model, 'relatedToBook.value').constructor,
-      MegamorphicModel
-    );
+    assert.equal(get(model, 'relatedToBook.value.name'), 'Harry Potter and the Chamber of Secrets');
+    assert.equal(get(model, 'relatedToBook.value').constructor, MegamorphicModel);
   });
 
-  test('.unknownProperty resolves arrays of id-matched values', function(
-    assert
-  ) {
+  test('.unknownProperty resolves arrays of id-matched values', function(assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -440,10 +413,7 @@ module('unit/model', function(hooks) {
           type: 'com.example.bookstore.Book',
           attributes: {
             name: `Harry Potter and the Sorcerer's Stone`,
-            otherBooksInSeries: [
-              'urn:isbn9780439064873',
-              'urn:isbn9780439136365',
-            ],
+            otherBooksInSeries: ['urn:isbn9780439064873', 'urn:isbn9780439136365'],
           },
         },
         included: [
@@ -465,18 +435,13 @@ module('unit/model', function(hooks) {
       });
     });
 
-    assert.deepEqual(
-      get(model, 'otherBooksInSeries').map(x => get(x, 'name')),
-      [
-        'Harry Potter and the Chamber of Secrets',
-        'Harry Potter and the Prisoner of Azkaban',
-      ]
-    );
+    assert.deepEqual(get(model, 'otherBooksInSeries').map(x => get(x, 'name')), [
+      'Harry Potter and the Chamber of Secrets',
+      'Harry Potter and the Prisoner of Azkaban',
+    ]);
   });
 
-  test('.unknownProperty resolves arrays of nested-matched values', function(
-    assert
-  ) {
+  test('.unknownProperty resolves arrays of nested-matched values', function(assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -543,21 +508,13 @@ module('unit/model', function(hooks) {
 
     let relatedItems = get(model, 'relatedItems');
     assert.equal(relatedItems.length, 3, 'array has right length');
-    assert.equal(
-      get(relatedItems[0], 'name'),
-      'Chapter 1: The Boy Who Lived',
-      'array nested'
-    );
+    assert.equal(get(relatedItems[0], 'name'), 'Chapter 1: The Boy Who Lived', 'array nested');
     assert.equal(
       get(relatedItems[1], 'name'),
       'Harry Potter and the Chamber of Secrets',
       'array ref-to-m3'
     );
-    assert.equal(
-      get(relatedItems[2], 'name'),
-      'JK Rowling',
-      'array ref-to-ds.model'
-    );
+    assert.equal(get(relatedItems[2], 'name'), 'JK Rowling', 'array ref-to-ds.model');
   });
 
   test('.unknownProperty resolves reference arrays', function(assert) {
@@ -609,10 +566,7 @@ module('unit/model', function(hooks) {
       'com.example.bookstore.Book',
       'isbn:9780439064873'
     );
-    let gobletOfFire = this.store.peekRecord(
-      'com.example.bookstore.Book',
-      'isbn:9780439139601'
-    );
+    let gobletOfFire = this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439139601');
     model.set('otherBooksInSeries', [chamberOfSecrets, gobletOfFire]);
     assert.deepEqual(
       get(model, 'otherBooksInSeries').mapBy('id'),
@@ -679,11 +633,7 @@ module('unit/model', function(hooks) {
     );
 
     let otherBooksInSeries = get(model, 'otherBooksInSeries');
-    assert.deepEqual(
-      otherBooksInSeries.mapBy('id'),
-      [],
-      'null ref arrays resolved'
-    );
+    assert.deepEqual(otherBooksInSeries.mapBy('id'), [], 'null ref arrays resolved');
 
     run(() => {
       this.store.push({
@@ -724,21 +674,13 @@ module('unit/model', function(hooks) {
       })
     );
 
-    assert.equal(
-      get(model, 'nothing'),
-      undefined,
-      'non-existent attribute returns undefind'
-    );
+    assert.equal(get(model, 'nothing'), undefined, 'non-existent attribute returns undefind');
     assert.equal(
       get(model, 'hardback'),
       true,
       'missing attribute with default returns default value'
     );
-    assert.equal(
-      get(model, 'publishedIn'),
-      'UK',
-      'specified attributes trump defaults'
-    );
+    assert.equal(get(model, 'publishedIn'), 'UK', 'specified attributes trump defaults');
   });
 
   test('.unknownProperty supports alias values', function(assert) {
@@ -781,11 +723,7 @@ module('unit/model', function(hooks) {
       })
     );
 
-    assert.equal(
-      get(model, 'publisher'),
-      'Penguin Classics',
-      'default value not transformed'
-    );
+    assert.equal(get(model, 'publisher'), 'Penguin Classics', 'default value not transformed');
 
     run(() =>
       this.store.push({
@@ -806,9 +744,7 @@ module('unit/model', function(hooks) {
     );
   });
 
-  test('early set of an ID to a newly created records is allowed', function(
-    assert
-  ) {
+  test('early set of an ID to a newly created records is allowed', function(assert) {
     let model = run(() =>
       this.store.createRecord('com.example.bookstore.Book', {
         id: 'my-crazy-id',
@@ -818,9 +754,7 @@ module('unit/model', function(hooks) {
     assert.equal(get(model, 'id'), 'my-crazy-id', 'init id property set');
   });
 
-  test('late set of an ID to a newly created records is not allowed', function(
-    assert
-  ) {
+  test('late set of an ID to a newly created records is not allowed', function(assert) {
     let model = run(() =>
       this.store.createRecord('com.example.bookstore.Book', {
         name: 'Marlborough: His Life and Times',
@@ -839,9 +773,7 @@ module('unit/model', function(hooks) {
   // This is unspecified behaviour; unclear if we can do anything sane here
   // TODO: 'default values are not checked for reference arrays'
 
-  test('m3 models can be created with initial properties (init prop buffering)', function(
-    assert
-  ) {
+  test('m3 models can be created with initial properties (init prop buffering)', function(assert) {
     let model = run(() =>
       this.store.createRecord('com.example.bookstore.Book', {
         name: 'Marlborough: His Life and Times',
@@ -850,11 +782,7 @@ module('unit/model', function(hooks) {
       })
     );
 
-    assert.equal(
-      get(model, 'name'),
-      'Marlborough: His Life and Times',
-      'init property set'
-    );
+    assert.equal(get(model, 'name'), 'Marlborough: His Life and Times', 'init property set');
     assert.equal(get(model, 'isbn'), '978-0226106335', 'init property set');
     assert.equal(
       get(model, 'publisher'),
@@ -863,9 +791,7 @@ module('unit/model', function(hooks) {
     );
   });
 
-  test('.setUnknownProperty updates data and clears simple attribute cache', function(
-    assert
-  ) {
+  test('.setUnknownProperty updates data and clears simple attribute cache', function(assert) {
     let model = run(() =>
       this.store.push({
         data: {
@@ -878,11 +804,7 @@ module('unit/model', function(hooks) {
       })
     );
 
-    assert.equal(
-      get(model, 'title'),
-      'The Birth of Britain',
-      'initial - alias'
-    );
+    assert.equal(get(model, 'title'), 'The Birth of Britain', 'initial - alias');
     assert.equal(get(model, 'name'), 'The Birth of Britain', 'initial - prop');
 
     set(model, 'name', 'Vol. I');
@@ -927,21 +849,13 @@ module('unit/model', function(hooks) {
     // check that alias doesn't get prop changes when not requested
     set(model, 'name', 'First Book');
 
-    assert.deepEqual(
-      propChanges,
-      [[model + '', 'fans']],
-      'change events trigger for direct props'
-    );
+    assert.deepEqual(propChanges, [[model + '', 'fans']], 'change events trigger for direct props');
 
     propChanges.splice(0, propChanges.length);
     assert.equal(get(model, 'title'), `First Book`, 'initialize alias');
     set(model, 'name', 'Book 1');
 
-    assert.deepEqual(
-      propChanges,
-      [[model + '', 'title']],
-      'change events trigger for aliases'
-    );
+    assert.deepEqual(propChanges, [[model + '', 'title']], 'change events trigger for aliases');
   });
 
   // TODO: '.setUnknownProperty can update belongs-to relationships'
@@ -1037,16 +951,10 @@ module('unit/model', function(hooks) {
     assert.equal(get(model, 'nextChapter.name'), 'The Boy Who Lived');
     assert.equal(init.callCount, 2, 'nested model is cached');
 
-    assert.equal(
-      get(model, 'nextChapter.nextChapter.name'),
-      'The Vanishing Glass'
-    );
+    assert.equal(get(model, 'nextChapter.nextChapter.name'), 'The Vanishing Glass');
     assert.equal(init.callCount, 3, 'doubly nested model is created lazily');
 
-    assert.equal(
-      get(model, 'nextChapter.nextChapter.name'),
-      'The Vanishing Glass'
-    );
+    assert.equal(get(model, 'nextChapter.nextChapter.name'), 'The Vanishing Glass');
     assert.equal(init.callCount, 3, 'doubly nested model is cached');
   });
 
@@ -1073,9 +981,7 @@ module('unit/model', function(hooks) {
     );
   });
 
-  test('nested models with unnormalized model names can have defaults', function(
-    assert
-  ) {
+  test('nested models with unnormalized model names can have defaults', function(assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -1100,10 +1006,7 @@ module('unit/model', function(hooks) {
   });
 
   test('attribute property changes are properly detected', function(assert) {
-    let propChange = this.sinon.spy(
-      MegamorphicModel.prototype,
-      'notifyPropertyChange'
-    );
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
     let model = run(() => {
       return this.store.push({
         data: {
@@ -1128,17 +1031,13 @@ module('unit/model', function(hooks) {
       });
     });
 
-    assert.deepEqual(
-      zip(propChange.thisValues.map(x => x + ''), propChange.args),
-      [[model + '', ['name']]]
-    );
+    assert.deepEqual(zip(propChange.thisValues.map(x => x + ''), propChange.args), [
+      [model + '', ['name']],
+    ]);
   });
 
   test('omitted attributes are treated as deleted', function(assert) {
-    let propChange = this.sinon.spy(
-      MegamorphicModel.prototype,
-      'notifyPropertyChange'
-    );
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
     let model = run(() => {
       return this.store.push({
@@ -1172,14 +1071,9 @@ module('unit/model', function(hooks) {
     );
   });
 
-  test('omitted attributes in nested models are treated as deleted', function(
-    assert
-  ) {
+  test('omitted attributes in nested models are treated as deleted', function(assert) {
     let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
-    let propChange = this.sinon.spy(
-      MegamorphicModel.prototype,
-      'notifyPropertyChange'
-    );
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
     let model = run(() => {
       return this.store.push({
@@ -1252,10 +1146,7 @@ module('unit/model', function(hooks) {
   });
 
   test('new attributes are treated as changed', function(assert) {
-    let propChange = this.sinon.spy(
-      MegamorphicModel.prototype,
-      'notifyPropertyChange'
-    );
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
     let model = run(() => {
       return this.store.push({
@@ -1295,13 +1186,8 @@ module('unit/model', function(hooks) {
     assert.equal(get(model, 'chapterCount'), 17);
   });
 
-  test('new attributes in nested models are treated as changed', function(
-    assert
-  ) {
-    let propChange = this.sinon.spy(
-      MegamorphicModel.prototype,
-      'notifyPropertyChange'
-    );
+  test('new attributes in nested models are treated as changed', function(assert) {
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
     let model = run(() => {
       return this.store.push({
@@ -1344,14 +1230,9 @@ module('unit/model', function(hooks) {
     );
   });
 
-  test('nested model attribute changes are properly detected', function(
-    assert
-  ) {
+  test('nested model attribute changes are properly detected', function(assert) {
     let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
-    let propChange = this.sinon.spy(
-      MegamorphicModel.prototype,
-      'notifyPropertyChange'
-    );
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
     let model = run(() => {
       return this.store.push({
@@ -1382,16 +1263,8 @@ module('unit/model', function(hooks) {
 
     assert.equal(init.callCount, 3, 'models created lazily');
 
-    assert.equal(
-      get(nested, 'name'),
-      `The Boy Who whatever`,
-      'get nested.name'
-    );
-    assert.equal(
-      get(doubleNested, 'name'),
-      'The Vanishing dunno',
-      'get nested.nested.name'
-    );
+    assert.equal(get(nested, 'name'), `The Boy Who whatever`, 'get nested.name');
+    assert.equal(get(doubleNested, 'name'), 'The Vanishing dunno', 'get nested.nested.name');
 
     run(() => {
       return this.store.push({
@@ -1423,10 +1296,7 @@ module('unit/model', function(hooks) {
 
   test('nested model updates null -> model', function(assert) {
     let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
-    let propChange = this.sinon.spy(
-      MegamorphicModel.prototype,
-      'notifyPropertyChange'
-    );
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
     let model = run(() => {
       return this.store.push({
@@ -1462,31 +1332,20 @@ module('unit/model', function(hooks) {
       });
     });
 
-    assert.equal(
-      init.callCount,
-      1,
-      'nested models are not eaagerly created from changes'
-    );
+    assert.equal(init.callCount, 1, 'nested models are not eaagerly created from changes');
     assert.deepEqual(
       zip(propChange.thisValues.map(x => x + ''), propChange.args),
       [[model + '', ['nextChapter']]],
       'nested model from null is treated as a change'
     );
 
-    assert.equal(
-      get(model, 'nextChapter.name'),
-      'The Boy Who Lived',
-      'nested model attrs set'
-    );
+    assert.equal(get(model, 'nextChapter.name'), 'The Boy Who Lived', 'nested model attrs set');
     assert.equal(init.callCount, 2, 'nested models are lazily created');
   });
 
   test('nested model updates primitive -> model', function(assert) {
     let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
-    let propChange = this.sinon.spy(
-      MegamorphicModel.prototype,
-      'notifyPropertyChange'
-    );
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
     let model = run(() => {
       return this.store.push({
@@ -1501,16 +1360,8 @@ module('unit/model', function(hooks) {
       });
     });
 
-    assert.equal(
-      get(model, 'name'),
-      `Harry Potter and the Sorcerer's Stone`,
-      'get model.property'
-    );
-    assert.equal(
-      get(model, 'nextChapter'),
-      `The Boy Who Lived`,
-      'get model.nested'
-    );
+    assert.equal(get(model, 'name'), `Harry Potter and the Sorcerer's Stone`, 'get model.property');
+    assert.equal(get(model, 'nextChapter'), `The Boy Who Lived`, 'get model.nested');
     assert.equal(init.callCount, 1, 'one model is initially created');
 
     run(() => {
@@ -1528,31 +1379,20 @@ module('unit/model', function(hooks) {
       });
     });
 
-    assert.equal(
-      init.callCount,
-      1,
-      'nested models are not eaagerly created from changes'
-    );
+    assert.equal(init.callCount, 1, 'nested models are not eaagerly created from changes');
     assert.deepEqual(
       zip(propChange.thisValues.map(x => x + ''), propChange.args),
       [[model + '', ['nextChapter']]],
       'nested model from null is treated as a change'
     );
 
-    assert.equal(
-      get(model, 'nextChapter.name'),
-      'The Boy Who Lived',
-      'get model.nested.name'
-    );
+    assert.equal(get(model, 'nextChapter.name'), 'The Boy Who Lived', 'get model.nested.name');
     assert.equal(init.callCount, 2, 'nested models are lazily created');
   });
 
   test('nested model updates model -> null (model reified)', function(assert) {
     let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
-    let propChange = this.sinon.spy(
-      MegamorphicModel.prototype,
-      'notifyPropertyChange'
-    );
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
     let model = run(() => {
       return this.store.push({
@@ -1569,11 +1409,7 @@ module('unit/model', function(hooks) {
       });
     });
 
-    assert.equal(
-      get(model, 'nextChapter.name'),
-      `The Boy Who Lived`,
-      'get model.nested'
-    );
+    assert.equal(get(model, 'nextChapter.name'), `The Boy Who Lived`, 'get model.nested');
     assert.equal(init.callCount, 2, 'nested models created');
 
     run(() => {
@@ -1595,19 +1431,12 @@ module('unit/model', function(hooks) {
       'nested model -> null is a change'
     );
 
-    assert.equal(
-      get(model, 'nextChapter.name'),
-      undefined,
-      'nested model cleared'
-    );
+    assert.equal(get(model, 'nextChapter.name'), undefined, 'nested model cleared');
   });
 
   test('nested model updates model -> primitive', function(assert) {
     let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
-    let propChange = this.sinon.spy(
-      MegamorphicModel.prototype,
-      'notifyPropertyChange'
-    );
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
     let model = run(() => {
       return this.store.push({
@@ -1624,11 +1453,7 @@ module('unit/model', function(hooks) {
       });
     });
 
-    assert.equal(
-      get(model, 'nextChapter.name'),
-      `The Boy Who Lived`,
-      'get model.nested'
-    );
+    assert.equal(get(model, 'nextChapter.name'), `The Boy Who Lived`, 'get model.nested');
     assert.equal(init.callCount, 2, 'nested models created');
 
     run(() => {
@@ -1651,19 +1476,12 @@ module('unit/model', function(hooks) {
       'nested model -> primitive is a change'
     );
 
-    assert.equal(
-      get(model, 'nextChapter'),
-      'The Boy Who Lived',
-      'nested model -> primitive'
-    );
+    assert.equal(get(model, 'nextChapter'), 'The Boy Who Lived', 'nested model -> primitive');
   });
 
   test('nested model updates model -> null (model inert)', function(assert) {
     let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
-    let propChange = this.sinon.spy(
-      MegamorphicModel.prototype,
-      'notifyPropertyChange'
-    );
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
     let model = run(() => {
       return this.store.push({
@@ -1701,20 +1519,13 @@ module('unit/model', function(hooks) {
       'nested model -> null is a change'
     );
 
-    assert.equal(
-      get(model, 'nextChapter.name'),
-      undefined,
-      'nested model not set'
-    );
+    assert.equal(get(model, 'nextChapter.name'), undefined, 'nested model not set');
     assert.equal(init.callCount, 1, 'no additional models created');
   });
 
   test('nested model updates (model -> model) no changes', function(assert) {
     let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
-    let propChange = this.sinon.spy(
-      MegamorphicModel.prototype,
-      'notifyPropertyChange'
-    );
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
     let model = run(() => {
       return this.store.push({
@@ -1758,14 +1569,9 @@ module('unit/model', function(hooks) {
     );
   });
 
-  test('nested array attribute changes are properly detected', function(
-    assert
-  ) {
+  test('nested array attribute changes are properly detected', function(assert) {
     let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
-    let propChange = this.sinon.spy(
-      MegamorphicModel.prototype,
-      'notifyPropertyChange'
-    );
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
     let model = run(() => {
       return this.store.push({
@@ -1788,11 +1594,7 @@ module('unit/model', function(hooks) {
     });
 
     let childModel = get(model, 'chapters')[1];
-    assert.equal(
-      init.callCount,
-      3,
-      'nested models in arrays are eagerly reified'
-    );
+    assert.equal(init.callCount, 3, 'nested models in arrays are eagerly reified');
 
     run(() => {
       return this.store.push({
@@ -1829,25 +1631,15 @@ module('unit/model', function(hooks) {
     assert.equal(init.callCount, 5, 'nested models in arrays are not re-used');
   });
 
-  test(`.serialize serializers with the user's -ember-m3 serializer`, function(
-    assert
-  ) {
+  test(`.serialize serializers with the user's -ember-m3 serializer`, function(assert) {
     assert.expect(4);
 
     this.owner.register(
       'serializer:-ember-m3',
       Ember.Object.extend({
         serialize(snapshot, options) {
-          assert.deepEqual(
-            options,
-            { some: 'options' },
-            'options are passed through to serialize'
-          );
-          assert.equal(
-            snapshot.attr('name'),
-            'The Winds of Winter',
-            'attr - name'
-          );
+          assert.deepEqual(options, { some: 'options' }, 'options are passed through to serialize');
+          assert.equal(snapshot.attr('name'), 'The Winds of Winter', 'attr - name');
           assert.equal(
             snapshot.attr('estimatedPubDate'),
             'January 2622',
@@ -1889,11 +1681,7 @@ module('unit/model', function(hooks) {
       'adapter:-ember-m3',
       Ember.Object.extend({
         updateRecord(store, type, snapshot) {
-          assert.equal(
-            snapshot.record.get('isSaving'),
-            true,
-            'record is saving'
-          );
+          assert.equal(snapshot.record.get('isSaving'), true, 'record is saving');
           return Promise.resolve({
             data: {
               id: 1,
@@ -1950,11 +1738,7 @@ module('unit/model', function(hooks) {
         findRecord(store, type, id, snapshot) {
           // TODO: this is annoying but name normalization means we get the wrong
           // model name in snapshots. See #11
-          assert.equal(
-            snapshot.modelName,
-            'com.example.bookstore.book',
-            'snapshot.modelName'
-          );
+          assert.equal(snapshot.modelName, 'com.example.bookstore.book', 'snapshot.modelName');
           assert.equal(id, '1', 'findRecord(id)');
           return Promise.resolve({
             data: {
@@ -2020,11 +1804,7 @@ module('unit/model', function(hooks) {
       'adapter:-ember-m3',
       Ember.Object.extend({
         deleteRecord(store, type, snapshot) {
-          assert.equal(
-            snapshot.record.get('isDeleted'),
-            true,
-            'model is deleted'
-          );
+          assert.equal(snapshot.record.get('isDeleted'), true, 'model is deleted');
           return Promise.resolve();
         },
       })
@@ -2088,9 +1868,7 @@ module('unit/model', function(hooks) {
     );
   });
 
-  test('.unloadRecord on a nested model warns and does not error', function(
-    assert
-  ) {
+  test('.unloadRecord on a nested model warns and does not error', function(assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -2116,10 +1894,7 @@ module('unit/model', function(hooks) {
       'record in identity map'
     );
     assert.equal(
-      this.store.hasRecordForId(
-        'com.example.bookstore.RelatedLink',
-        'urn:author:2'
-      ),
+      this.store.hasRecordForId('com.example.bookstore.RelatedLink', 'urn:author:2'),
       false,
       'nested record do not appear in identity map'
     );
@@ -2184,11 +1959,7 @@ module('unit/model', function(hooks) {
           // TODO: this is annoying but name normalization means we get the wrong
           // model name in snapshots.  Should fix this upstream by dropping name
           // normalization.  See #11
-          assert.equal(
-            snapshot.modelName,
-            'com.example.bookstore.book',
-            'snapshot.modelName'
-          );
+          assert.equal(snapshot.modelName, 'com.example.bookstore.book', 'snapshot.modelName');
           assert.equal(modelClass, MegamorphicModel);
           assert.equal(id, 'isbn:9780439708180', 'findRecord(id)');
 
@@ -2203,16 +1974,10 @@ module('unit/model', function(hooks) {
     );
 
     return run(() =>
-      this.store
-        .findRecord('com.example.bookstore.Book', 'isbn:9780439708180')
-        .then(model => {
-          assert.equal(model.get('id'), 'isbn:9780439708180', 'model.id');
-          assert.equal(
-            model.constructor,
-            MegamorphicModel,
-            'model.constructor'
-          );
-        })
+      this.store.findRecord('com.example.bookstore.Book', 'isbn:9780439708180').then(model => {
+        assert.equal(model.get('id'), 'isbn:9780439708180', 'model.id');
+        assert.equal(model.constructor, MegamorphicModel, 'model.constructor');
+      })
     );
   });
 
@@ -2227,10 +1992,7 @@ module('unit/model', function(hooks) {
     );
 
     assert.equal(
-      this.store.hasRecordForId(
-        'com.example.bookstore.Book',
-        'isbn:9780439708180'
-      ),
+      this.store.hasRecordForId('com.example.bookstore.Book', 'isbn:9780439708180'),
       true,
       'model present'
     );
@@ -2239,10 +2001,7 @@ module('unit/model', function(hooks) {
       this.store.unloadRecord(model);
     });
     assert.equal(
-      this.store.hasRecordForId(
-        'com.example.bookstore.Book',
-        'isbn:9780439708180'
-      ),
+      this.store.hasRecordForId('com.example.bookstore.Book', 'isbn:9780439708180'),
       false,
       'model gone'
     );
@@ -2339,33 +2098,31 @@ module('unit/model', function(hooks) {
     );
 
     return run(() =>
-      this.store
-        .query('com.example.bookstore.book', { author: 'JK Rowling' })
-        .then(models => {
-          assert.deepEqual(
-            models.mapBy('id'),
-            ['isbn:9780439708180', 'isbn:9780439064873'],
-            'models.[id]'
-          );
-          assert.deepEqual(
-            models.mapBy('constructor'),
-            [MegamorphicModel, MegamorphicModel],
-            'models.[constructor]'
-          );
+      this.store.query('com.example.bookstore.book', { author: 'JK Rowling' }).then(models => {
+        assert.deepEqual(
+          models.mapBy('id'),
+          ['isbn:9780439708180', 'isbn:9780439064873'],
+          'models.[id]'
+        );
+        assert.deepEqual(
+          models.mapBy('constructor'),
+          [MegamorphicModel, MegamorphicModel],
+          'models.[constructor]'
+        );
 
-          this.store.push({
-            data: {
-              id: 'isbn:9780439136365',
-              type: 'com.example.bookstore.book',
-            },
-          });
+        this.store.push({
+          data: {
+            id: 'isbn:9780439136365',
+            type: 'com.example.bookstore.book',
+          },
+        });
 
-          assert.deepEqual(
-            models.mapBy('id'),
-            ['isbn:9780439708180', 'isbn:9780439064873'],
-            'models.[id]'
-          );
-        })
+        assert.deepEqual(
+          models.mapBy('id'),
+          ['isbn:9780439708180', 'isbn:9780439064873'],
+          'models.[id]'
+        );
+      })
     );
   });
 
@@ -2394,16 +2151,10 @@ module('unit/model', function(hooks) {
     );
 
     return run(() =>
-      this.store
-        .queryRecord('com.example.bookstore.book', { author: 'JK Rowling' })
-        .then(model => {
-          assert.equal(model.get('id'), 'isbn:9780439708180', 'model.id');
-          assert.equal(
-            model.constructor,
-            MegamorphicModel,
-            'model.constructor'
-          );
-        })
+      this.store.queryRecord('com.example.bookstore.book', { author: 'JK Rowling' }).then(model => {
+        assert.equal(model.get('id'), 'isbn:9780439708180', 'model.id');
+        assert.equal(model.constructor, MegamorphicModel, 'model.constructor');
+      })
     );
   });
 
@@ -2417,25 +2168,16 @@ module('unit/model', function(hooks) {
       });
 
       assert.equal(
-        this.store.hasRecordForId(
-          'com.example.bookstore.book',
-          'isbn:9780439136365'
-        ),
+        this.store.hasRecordForId('com.example.bookstore.book', 'isbn:9780439136365'),
         true,
         'book in store'
       );
-      let model = this.store.peekRecord(
-        'com.example.bookstore.book',
-        'isbn:9780439136365'
-      );
+      let model = this.store.peekRecord('com.example.bookstore.book', 'isbn:9780439136365');
       this.store.unloadRecord(model);
     });
 
     assert.equal(
-      this.store.hasRecordForId(
-        'com.example.bookstore.book',
-        'isbn:9780439136365'
-      ),
+      this.store.hasRecordForId('com.example.bookstore.book', 'isbn:9780439136365'),
       false,
       'book unloaded'
     );
@@ -2448,11 +2190,7 @@ module('unit/model', function(hooks) {
       'adapter:-ember-m3',
       Ember.Object.extend({
         findRecord(store, modelClass, id, snapshot) {
-          assert.equal(
-            snapshot.modelName,
-            'com.example.bookstore.book',
-            'snapshot.modelName'
-          );
+          assert.equal(snapshot.modelName, 'com.example.bookstore.book', 'snapshot.modelName');
           assert.equal(modelClass, MegamorphicModel);
           assert.equal(id, 'isbn:9780439708180', 'findRecord(id)');
 
@@ -2467,38 +2205,19 @@ module('unit/model', function(hooks) {
     );
 
     run(() => {
-      let ref = this.store.getReference(
-        'com.example.bookstore.book',
-        'isbn:9780439708180'
-      );
+      let ref = this.store.getReference('com.example.bookstore.book', 'isbn:9780439708180');
 
       return ref
         .load()
         .then(model => {
-          assert.deepEqual(
-            model.get('id'),
-            'isbn:9780439708180',
-            'ref.load(x => x.id)'
-          );
-          assert.deepEqual(
-            model.constructor,
-            MegamorphicModel,
-            'ref.load(x => x.constructor)'
-          );
+          assert.deepEqual(model.get('id'), 'isbn:9780439708180', 'ref.load(x => x.id)');
+          assert.deepEqual(model.constructor, MegamorphicModel, 'ref.load(x => x.constructor)');
 
           return ref.reload();
         })
         .then(model => {
-          assert.deepEqual(
-            model.get('id'),
-            'isbn:9780439708180',
-            'ref.reload(x => x.id)'
-          );
-          assert.deepEqual(
-            model.constructor,
-            MegamorphicModel,
-            'ref.reload(x => x.constructor)'
-          );
+          assert.deepEqual(model.get('id'), 'isbn:9780439708180', 'ref.reload(x => x.id)');
+          assert.deepEqual(model.constructor, MegamorphicModel, 'ref.reload(x => x.constructor)');
         });
     });
   });
@@ -2513,10 +2232,7 @@ module('unit/model', function(hooks) {
       });
 
       assert.equal(
-        this.store.hasRecordForId(
-          'com.example.bookstore.Book',
-          'isbn:9780439708180'
-        ),
+        this.store.hasRecordForId('com.example.bookstore.Book', 'isbn:9780439708180'),
         true,
         'store has model'
       );
@@ -2535,11 +2251,7 @@ module('unit/model', function(hooks) {
 
     assert.equal(authorModel, this.Author, 'modelFor DS.Model');
     assert.equal(bookModel, MegamorphicModel, 'modelFor schema-matching');
-    assert.equal(
-      chapterModel,
-      MegamorphicModel,
-      'modelFor other schema-matching'
-    );
+    assert.equal(chapterModel, MegamorphicModel, 'modelFor other schema-matching');
   });
 
   test('store.peekAll', function(assert) {
@@ -2659,72 +2371,42 @@ module('unit/model', function(hooks) {
     });
 
     assert.equal(
-      get(
-        this.store.peekRecord(
-          'com.example.bookstore.Book',
-          'isbn:9780439708180'
-        ),
-        'id'
-      ),
+      get(this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439708180'), 'id'),
       'isbn:9780439708180'
     );
     assert.equal(
-      get(
-        this.store.peekRecord(
-          'com.example.bookstore.Book',
-          'isbn:9780439064873'
-        ),
-        'id'
-      ),
+      get(this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439064873'), 'id'),
       'isbn:9780439064873'
     );
     assert.equal(
-      this.store.peekRecord(
-        'com.example.bookstore.Book',
-        'isbn:9780439708180/chapter/1'
-      ),
+      this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439708180/chapter/1'),
       null
     );
     assert.equal(
-      this.store.peekRecord(
-        'com.example.bookstore.Book',
-        'isbn:9780439708180/chapter/2'
-      ),
+      this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439708180/chapter/2'),
       null
     );
 
     assert.equal(
       get(
-        this.store.peekRecord(
-          'com.example.bookstore.Chapter',
-          'isbn:9780439708180/chapter/1'
-        ),
+        this.store.peekRecord('com.example.bookstore.Chapter', 'isbn:9780439708180/chapter/1'),
         'id'
       ),
       'isbn:9780439708180/chapter/1'
     );
     assert.equal(
       get(
-        this.store.peekRecord(
-          'com.example.bookstore.Chapter',
-          'isbn:9780439708180/chapter/2'
-        ),
+        this.store.peekRecord('com.example.bookstore.Chapter', 'isbn:9780439708180/chapter/2'),
         'id'
       ),
       'isbn:9780439708180/chapter/2'
     );
     assert.equal(
-      this.store.peekRecord(
-        'com.example.bookstore.Chapter',
-        'isbn:9780439708180'
-      ),
+      this.store.peekRecord('com.example.bookstore.Chapter', 'isbn:9780439708180'),
       null
     );
     assert.equal(
-      this.store.peekRecord(
-        'com.example.bookstore.Chapter',
-        'isbn:9780439064873'
-      ),
+      this.store.peekRecord('com.example.bookstore.Chapter', 'isbn:9780439064873'),
       null
     );
   });
@@ -2754,60 +2436,36 @@ module('unit/model', function(hooks) {
     });
 
     assert.equal(
-      this.store.hasRecordForId(
-        'com.example.bookstore.Book',
-        'isbn:9780439708180'
-      ),
+      this.store.hasRecordForId('com.example.bookstore.Book', 'isbn:9780439708180'),
       true
     );
     assert.equal(
-      this.store.hasRecordForId(
-        'com.example.bookstore.Book',
-        'isbn:9780439064873'
-      ),
+      this.store.hasRecordForId('com.example.bookstore.Book', 'isbn:9780439064873'),
       true
     );
     assert.equal(
-      this.store.hasRecordForId(
-        'com.example.bookstore.Book',
-        'isbn:9780439708180/chapter/1'
-      ),
+      this.store.hasRecordForId('com.example.bookstore.Book', 'isbn:9780439708180/chapter/1'),
       false
     );
     assert.equal(
-      this.store.hasRecordForId(
-        'com.example.bookstore.Book',
-        'isbn:9780439708180/chapter/2'
-      ),
+      this.store.hasRecordForId('com.example.bookstore.Book', 'isbn:9780439708180/chapter/2'),
       false
     );
 
     assert.equal(
-      this.store.hasRecordForId(
-        'com.example.bookstore.Chapter',
-        'isbn:9780439708180'
-      ),
+      this.store.hasRecordForId('com.example.bookstore.Chapter', 'isbn:9780439708180'),
       false
     );
     assert.equal(
-      this.store.hasRecordForId(
-        'com.example.bookstore.Chapter',
-        'isbn:9780439064873'
-      ),
+      this.store.hasRecordForId('com.example.bookstore.Chapter', 'isbn:9780439064873'),
       false
     );
     assert.equal(
-      this.store.hasRecordForId(
-        'com.example.bookstore.Chapter',
-        'isbn:9780439708180/chapter/1'
-      ),
+      this.store.hasRecordForId('com.example.bookstore.Chapter', 'isbn:9780439708180/chapter/1'),
       true
     );
     assert.equal(
-      this.store.hasRecordForId(
-        'com.example.bookstore.Chapter',
-        'isbn:9780439708180/chapter/2'
-      ),
+      this.store.hasRecordForId('com.example.bookstore.Chapter', 'isbn:9780439708180/chapter/2'),
       true
     );
   });
