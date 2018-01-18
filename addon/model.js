@@ -362,8 +362,12 @@ export default class MegamorphicModel extends Ember.Object {
     return this._internalModel.save(options).then(() => this);
   }
 
-  reload() {
-    return this._store.findRecord(this._modelName, this.id, { reload: true });
+  reload(options = {}) {
+    // passing in options here is something you can't actually do with DS.Model
+    // but there isn't a good reason for this; that support should be added in
+    // ember-data
+    options.reload = true;
+    return this._store.findRecord(this._modelName, this.id, options);
   }
 
   deleteRecord() {

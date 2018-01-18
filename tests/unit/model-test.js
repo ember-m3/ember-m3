@@ -1729,8 +1729,8 @@ module('unit/model', function(hooks) {
     );
   });
 
-  test('.reload calls findRecord with reload: true', function(assert) {
-    assert.expect(2);
+  test('.reload calls findRecord with reload: true and passes adapterOptions', function(assert) {
+    assert.expect(3);
 
     this.owner.register(
       'adapter:-ember-m3',
@@ -1740,6 +1740,16 @@ module('unit/model', function(hooks) {
           // model name in snapshots. See #11
           assert.equal(snapshot.modelName, 'com.example.bookstore.book', 'snapshot.modelName');
           assert.equal(id, '1', 'findRecord(id)');
+          let { adapterOptions } = snapshot;
+
+          assert.deepEqual(
+            adapterOptions,
+            {
+              doAdapterThings: true,
+            },
+            'adapterOptions passed to adapter from model.reload'
+          );
+
           return Promise.resolve({
             data: {
               id: 1,
@@ -1765,7 +1775,7 @@ module('unit/model', function(hooks) {
       });
     });
 
-    return run(() => model.reload());
+    return run(() => model.reload({ adapterOptions: { doAdapterThings: true } }));
   });
 
   test('.deleteRecord works', function(assert) {
