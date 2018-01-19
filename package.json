@@ -1,6 +1,6 @@
 {
   "name": "ember-m3",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "The default blueprint for ember-cli addons.",
   "keywords": ["ember-addon"],
   "license": "MIT",
