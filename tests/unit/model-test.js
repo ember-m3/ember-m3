@@ -754,7 +754,9 @@ module('unit/model', function(hooks) {
     assert.equal(get(model, 'id'), 'my-crazy-id', 'init id property set');
   });
 
-  test('late set of an ID to a newly created records is not allowed', function(assert) {
+  test('late set of an id for top-level models to a newly created records is not allowed', function(
+    assert
+  ) {
     let model = run(() =>
       this.store.createRecord('com.example.bookstore.Book', {
         name: 'Marlborough: His Life and Times',
@@ -768,6 +770,40 @@ module('unit/model', function(hooks) {
       /You tried to set 'id' to 'my-crazy-id' for 'com.example.bookstore.book' but records can only set their ID by providing it to store.createRecord\(\)/,
       'error to set ID late'
     );
+  });
+
+  test('late set of an id for nested models to a newly created records is allowed', function(
+    assert
+  ) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            nextChapter: {
+              name: 'The Boy Who Lived',
+              nextChapter: {
+                name: 'The Vanishing Glass',
+              },
+            },
+          },
+        },
+      });
+    });
+
+    assert.throws(
+      () => {
+        set(model, 'id', 'mutated-id');
+      },
+      /You tried to set 'id' to 'mutated-id' for 'com.example.bookstore.book' but records can only set their ID by providing it to store.createRecord\(\)/,
+      'error to set ID late'
+    );
+
+    let nestedModel = get(model, 'nextChapter');
+    set(nestedModel, 'id', 'mutated-id');
+
+    assert.equal(get(nestedModel, 'id'), 'mutated-id'), 'able to set id of nested model';
   });
 
   // This is unspecified behaviour; unclear if we can do anything sane here
