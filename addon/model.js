@@ -530,4 +530,14 @@ class EmbeddedMegamorphicModel extends MegamorphicModel {
       { id: 'ember-m3.nested-model-unloadRecord' }
     );
   }
+
+  // no special behaviour for ids of embedded/nested models
+
+  get id() {
+    return this.unknownProperty('id');
+  }
+
+  set id(value) {
+    return this.setUnknownProperty('id', value);
+  }
 }
