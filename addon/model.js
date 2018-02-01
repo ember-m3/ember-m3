@@ -257,7 +257,7 @@ export default class MegamorphicModel extends Ember.Object {
 
       let oldIsRecordArray = oldValue && oldValue instanceof M3RecordArray;
       let oldWasModel = oldValue && oldValue instanceof MegamorphicModel;
-      let newIsObject = typeof newValue === 'object';
+      let newIsObject = newValue !== null && typeof newValue === 'object';
 
       if (oldWasModel && newIsObject) {
         oldValue._didReceiveNestedProperties(this._internalModel._modelData.getAttr(key));
@@ -356,9 +356,15 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   rollbackAttributes() {
+    let dirtyKeys = this._internalModel._modelData.rollbackAttributes();
     // TODO: we could actually support this feature
     this._internalModel.currentState = loadedSaved;
+
     propertyDidChange(this, 'currentState');
+
+    if (dirtyKeys && dirtyKeys.length > 0) {
+      this._notifyProperties(dirtyKeys);
+    }
   }
 
   unknownProperty(key) {

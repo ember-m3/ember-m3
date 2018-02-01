@@ -569,6 +569,9 @@ module('unit/model', function(hooks) {
       'ref arrays can be "set" like DS.hasMany'
     );
 
+    // Need to rollback to detect the changes from the server
+    model.rollbackAttributes();
+
     run(() => {
       this.store.push({
         data: {
@@ -1058,10 +1061,10 @@ module('unit/model', function(hooks) {
     ]);
   });
 
-  test('omitted attributes are treated as deleted', function(assert) {
+  test('omitted attributes do not trigger changes', function(assert) {
     let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
-    let model = run(() => {
+    run(() => {
       return this.store.push({
         data: {
           id: 'isbn:9780439708180',
@@ -1088,12 +1091,48 @@ module('unit/model', function(hooks) {
 
     assert.deepEqual(
       zip(propChange.thisValues.map(x => x + ''), propChange.args),
-      [[model + '', ['name']]],
-      'omitted attributes are treated as deleted'
+      [],
+      'omitted attributes do not trigger changes'
     );
   });
 
-  test('omitted attributes in nested models are treated as deleted', function(assert) {
+  test('null attributes are detected as changed', function(assert) {
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            author: 'JK Rowling',
+          },
+        },
+      });
+    });
+
+    run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: null,
+            author: 'JK Rowling',
+          },
+        },
+      });
+    });
+
+    assert.deepEqual(
+      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      [[model + '', ['name']]],
+      'nulled attributes are treated as changed'
+    );
+  });
+
+  test('nulled attributes in nested models are detected as changed', function(assert) {
     let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
     let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
@@ -1139,9 +1178,11 @@ module('unit/model', function(hooks) {
             name: `Harry Potter and the Sorcerer's Stone`,
             nextChapter: {
               id: 'ch1',
+              name: null,
               number: 1,
               nextChapter: {
                 id: 'ch2',
+                name: null,
                 number: 2,
               },
             },
@@ -1154,17 +1195,79 @@ module('unit/model', function(hooks) {
       zip(propChange.thisValues.map(x => x + ''), propChange.args),
       [
         [nested + '', ['name']],
+        [nested + '', ['number']],
         [doubleNested + '', ['name']],
         [doubleNested + '', ['number']],
-        [nested + '', ['number']],
       ],
-      'omitted attributes in nested models are deleted'
+      'nulled attributes in nested models are detected as changed'
     );
 
     assert.equal(get(nested, 'number'), 1);
-    assert.equal(get(nested, 'name'), undefined);
+    assert.equal(get(nested, 'name'), null);
     assert.equal(get(doubleNested, 'number'), 2);
-    assert.equal(get(doubleNested, 'name'), undefined);
+    assert.equal(get(doubleNested, 'name'), null);
+  });
+
+  test('omitted attributes in nested models are not detected as changed', function(assert) {
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: {
+              id: 'ch1',
+              name: 'The Boy Who Lived',
+              number: 0,
+              nextChapter: {
+                id: 'ch2',
+                name: 'The Vanishing Glass',
+                number: 1,
+              },
+            },
+          },
+        },
+      });
+    });
+
+    assert.equal(propChange.callCount, 0, 'no property changes');
+
+    let nested = get(model, 'nextChapter');
+    let doubleNested = get(model, 'nextChapter.nextChapter');
+
+    run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: {
+              id: 'ch1',
+              number: 0,
+              nextChapter: {
+                id: 'ch2',
+                number: 1,
+              },
+            },
+          },
+        },
+      });
+    });
+
+    assert.deepEqual(
+      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      [],
+      'nulled attributes in nested models are detected as changed'
+    );
+
+    assert.equal(get(nested, 'number'), 0);
+    assert.equal(get(nested, 'name'), 'The Boy Who Lived');
+    assert.equal(get(doubleNested, 'number'), 1);
+    assert.equal(get(doubleNested, 'name'), 'The Vanishing Glass');
   });
 
   test('new attributes are treated as changed', function(assert) {
@@ -1441,6 +1544,7 @@ module('unit/model', function(hooks) {
           type: 'com.example.bookstore.Book',
           attributes: {
             name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: null,
           },
         },
       });
@@ -1529,6 +1633,7 @@ module('unit/model', function(hooks) {
           type: 'com.example.bookstore.Book',
           attributes: {
             name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: null,
           },
         },
       });
@@ -1744,6 +1849,7 @@ module('unit/model', function(hooks) {
           {
             name: 'The Winds of Winter',
             estimatedRating: '11/10',
+            estimatedPubDate: '2231?',
           },
           'data post save resolve'
         );
@@ -1966,18 +2072,14 @@ module('unit/model', function(hooks) {
     model.rollbackAttributes();
 
     assert.equal(
-      model.get('currentState.stateName'),
+      get(model, 'currentState.stateName'),
       'root.loaded.saved',
       'after rolling back model.state loaded.saved'
     );
     assert.deepEqual(
-      model._internalModel._modelData._data,
-      {
-        // We do not error, but we also do not actually support rolling back
-        // attributes
-        name: 'Some other book',
-      },
-      'rollbackAttributes does not alter _data'
+      get(model, 'name'),
+      'The Winds of Winter',
+      'rollbackAttributes reverts changes to the record'
     );
   });
 
