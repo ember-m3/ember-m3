@@ -105,10 +105,6 @@ export default class M3ModelData {
     this.storeWrapper.disconnectRecord(this.modelName, this.id, this.clientId);
   }
 
-  isRecordInUse() {
-    return this.storeWrapper.isRecordInUse(this.modelName, this.id, this.clientId);
-  }
-
   isAttrDirty() {
     return false;
   }
@@ -128,47 +124,6 @@ export default class M3ModelData {
 
   clientDidCreate() {}
 
-  /*
-    Ember Data has 3 buckets for storing the value of an attribute on an internalModel.
-
-    `_data` holds all of the attributes that have been acknowledged by
-    a backend via the adapter. When rollbackAttributes is called on a model all
-    attributes will revert to the record's state in `_data`.
-
-    `_attributes` holds any change the user has made to an attribute
-    that has not been acknowledged by the adapter. Any values in
-    `_attributes` are have priority over values in `_data`.
-
-    `_inFlightAttributes`. When a record is being synced with the
-    backend the values in `_attributes` are copied to
-    `_inFlightAttributes`. This way if the backend acknowledges the
-    save but does not return the new state Ember Data can copy the
-    values from `_inFlightAttributes` to `_data`. Without having to
-    worry about changes made to `_attributes` while the save was
-    happenign.
-
-
-    Changed keys builds a list of all of the values that may have been
-    changed by the backend after a successful save.
-
-    It does this by iterating over each key, value pair in the payload
-    returned from the server after a save. If the `key` is found in
-    `_attributes` then the user has a local changed to the attribute
-    that has not been synced with the server and the key is not
-    included in the list of changed keys.
-
-
-
-    If the value, for a key differs from the value in what Ember Data
-    believes to be the truth about the backend state (A merger of the
-    `_data` and `_inFlightAttributes` objects where
-    `_inFlightAttributes` has priority) then that means the backend
-    has updated the value and the key is added to the list of changed
-    keys.
-
-    @method _changedKeys
-    @private
-  */
   _changedKeys(updates) {
     if (!updates) {
       return [];

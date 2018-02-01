@@ -33,13 +33,10 @@ class EmbeddedSnapshot {
 }
 
 class EmbeddedInternalModel {
-  constructor({ id, modelName, _data, store, parentInternalModel }) {
+  constructor({ id, modelName, attributes, store, parentInternalModel }) {
     this.id = id;
     this.modelName = modelName;
 
-    // TODO FIX IGOR DAVID
-
-    // TODO IGOR DAVID CLEANUP
     this._modelData = new M3ModelData(
       modelName,
       id,
@@ -49,7 +46,7 @@ class EmbeddedInternalModel {
       this
     );
     this._modelData.pushData({
-      attributes: _data,
+      attributes,
     });
     this.store = store;
     this.parentInternalModel = parentInternalModel;
@@ -93,7 +90,7 @@ function resolveValue(key, value, modelName, store, schema, model) {
       // maintain consistency with internalmodel.modelName, which is normalized
       // internally within ember-data
       modelName: nested.type ? dasherize(nested.type) : null,
-      _data: nested.attributes,
+      attributes: nested.attributes,
       store,
       parentInternalModel: model._internalModel,
     });
