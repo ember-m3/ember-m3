@@ -8,7 +8,7 @@ import { isEmbeddedObject } from './util';
 
 const emberAssign = assign || merge;
 
-function setupDataAndNotify(modelData, updates) {
+function pushDataAndNotify(modelData, updates) {
   let changedKeys = modelData.pushData({ attributes: updates });
 
   modelData._notifyRecordProperties(changedKeys);
@@ -57,7 +57,7 @@ export default class M3ModelData {
   }
 
   pushData(data, calculateChange) {
-    let changedKeys = this._mergeUpdates(data.attributes, setupDataAndNotify, calculateChange);
+    let changedKeys = this._mergeUpdates(data.attributes, pushDataAndNotify, calculateChange);
 
     if (this.__attributes) {
       // only do if we have attribute changes
@@ -72,6 +72,7 @@ export default class M3ModelData {
   }
 
   willCommit() {
+    // TODO Iterate over nested models as well
     this._inFlightAttributes = this._attributes;
     this._attributes = null;
   }
@@ -123,6 +124,9 @@ export default class M3ModelData {
 
     this._inFlightAttributes = null;
 
+    // TODO Rollback nested models
+    // TODO How to do rollback of nested models inside an array as we don't track them
+
     return dirtyKeys;
   }
 
@@ -130,19 +134,20 @@ export default class M3ModelData {
     if (data) {
       data = data.attributes;
     }
-    // TODO Figure out how to handle the merging in case of inflight attributes
-    let changedKeys = this._mergeUpdates(data, commitDataAndNotify);
 
+    let changedKeys;
+
+    // TODO This only iterates over nested models if we have updates for them
     emberAssign(this._data, this._inFlightAttributes);
     if (data) {
-      emberAssign(this._data, data);
+      changedKeys = this._mergeUpdates(data, commitDataAndNotify);
     }
 
     this._inFlightAttributes = null;
 
     this._updateChangedAttributes();
 
-    return changedKeys;
+    return changedKeys || [];
   }
 
   getHasMany() {}
@@ -160,6 +165,8 @@ export default class M3ModelData {
       }
     }
     this._inFlightAttributes = null;
+
+    // TODO Reject inflight for nested models as well
   }
 
   getBelongsTo() {}
