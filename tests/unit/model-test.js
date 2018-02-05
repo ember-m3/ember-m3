@@ -2174,6 +2174,31 @@ module('unit/model', function(hooks) {
     );
   });
 
+  test('.changedAttributes returns the dirty attributes', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+            author: 'George R. R. Martin',
+          },
+        },
+      });
+    });
+
+    model.set('name', 'Alice in Wonderland');
+
+    assert.deepEqual(
+      model.changedAttributes(),
+      {
+        name: ['The Winds of Winter', 'Alice in Wonderland'],
+      },
+      'changed attributes should be return as changed'
+    );
+  });
+
   test('.rollbackAttributes resets state from dirty', function(assert) {
     let model = run(() => {
       return this.store.push({
@@ -2200,6 +2225,59 @@ module('unit/model', function(hooks) {
       'The Winds of Winter',
       'rollbackAttributes reverts changes to the record'
     );
+  });
+
+  test('updates from .save does not overwrite attributes set after .save is called', function(assert) {
+    this.owner.register(
+      'adapter:-ember-m3',
+      Ember.Object.extend({
+        updateRecord() {
+          return Promise.resolve({
+            data: {
+              id: 1,
+              type: 'com.example.bookstore.Book',
+              attributes: {
+                name: "Harry Potter and the Sorcerer's Stone",
+                author: 'J. K. Rowling',
+              },
+            },
+          });
+        },
+      })
+    );
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+            author: 'George R. R. Martin',
+          },
+        },
+      });
+    });
+
+    model.set('name', 'Alice in Wonderland');
+
+    run(() => {
+      let savePromise = model.save();
+
+      model.set('author', 'Lewis Carroll');
+
+      savePromise.then(() => {
+        assert.equal(
+          model.get('author'),
+          'Lewis Carroll',
+          'the author was set after save, should not be updated'
+        );
+        assert.equal(
+          model.get('name'),
+          "Harry Potter and the Sorcerer's Stone",
+          'the name of the book is updated from the save'
+        );
+      });
+    });
   });
 
   test('store.findRecord', function(assert) {
