@@ -7,6 +7,10 @@ export class SchemaManager {
     return this.schema.computeAttributeReference(key, value, modelname, schemaInterface);
   }
 
+  computeBaseModelName(projectionModelName) {
+    return this.schema.computeBaseModelName(projectionModelName);
+  }
+
   isAttributeArrayReference(key, value, modelname, schemaInterface) {
     return this.schema.isAttributeArrayReference(key, value, modelname, schemaInterface);
   }
