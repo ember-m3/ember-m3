@@ -54,7 +54,12 @@ function resolveValue(key, value, modelName, store, schema, model) {
     return resolvePlainArray(key, value, modelName, store, schema, model);
   }
 
-  let reference = schema.computeAttributeReference(key, value, modelName);
+  let reference = schema.computeAttributeReference(
+    key,
+    value,
+    modelName,
+    model._internalModel._data
+  );
   if (reference) {
     if (reference.type === null) {
       // for schemas with a global id-space but multiple types, schemas may

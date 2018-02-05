@@ -3,8 +3,8 @@ export class SchemaManager {
     this.schema = null;
   }
 
-  computeAttributeReference(key, value, modelname) {
-    return this.schema.computeAttributeReference(key, value, modelname);
+  computeAttributeReference(key, value, modelname, data) {
+    return this.schema.computeAttributeReference(key, value, modelname, data);
   }
 
   isAttributeArrayReference(key, value, modelname) {
