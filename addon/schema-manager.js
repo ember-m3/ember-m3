@@ -7,12 +7,12 @@ export class SchemaManager {
     return this.schema.computeAttributeReference(key, value, modelname, data);
   }
 
-  isAttributeArrayReference(key, value, modelname) {
-    return this.schema.isAttributeArrayReference(key, value, modelname);
+  isAttributeArrayReference(key, value, modelname, data) {
+    return this.schema.isAttributeArrayReference(key, value, modelname, data);
   }
 
-  computeNestedModel(key, value, modelname) {
-    return this.schema.computeNestedModel(key, value, modelname);
+  computeNestedModel(key, value, modelname, data) {
+    return this.schema.computeNestedModel(key, value, modelname, data);
   }
 
   includesModel(key, value, modelName) {

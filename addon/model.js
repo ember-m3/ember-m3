@@ -54,12 +54,9 @@ function resolveValue(key, value, modelName, store, schema, model) {
     return resolvePlainArray(key, value, modelName, store, schema, model);
   }
 
-  let reference = schema.computeAttributeReference(
-    key,
-    value,
-    modelName,
-    model._internalModel._data
-  );
+  const dataHash = model._internalModel._data;
+  let reference = schema.computeAttributeReference(key, value, modelName, dataHash);
+
   if (reference) {
     if (reference.type === null) {
       // for schemas with a global id-space but multiple types, schemas may
@@ -72,7 +69,7 @@ function resolveValue(key, value, modelName, store, schema, model) {
     }
   }
 
-  let nested = schema.computeNestedModel(key, value, modelName);
+  let nested = schema.computeNestedModel(key, value, modelName, dataHash);
   if (nested) {
     let internalModel = new EmbeddedInternalModel({
       id: nested.id,
@@ -411,11 +408,14 @@ export default class MegamorphicModel extends Ember.Object {
       }
 
       let defaultValue = this._schema.getDefaultValue(this._modelName, key);
-      return (this._cache[key] = defaultValue);
+
+      // If default value is not defined, resolve the key for reference
+      if (defaultValue !== undefined) {
+        return (this._cache[key] = defaultValue);
+      }
     }
 
     let value = this._schema.transformValue(this._modelName, key, rawValue);
-
     return (this._cache[key] = resolveValue(
       key,
       value,
@@ -470,7 +470,9 @@ export default class MegamorphicModel extends Ember.Object {
     // entityUrn)
     // TODO: similarly this.get('arr').pushObject doesn't update the underlying
     // _data
-    if (this._schema.isAttributeArrayReference(key, value, this._modelName)) {
+    if (
+      this._schema.isAttributeArrayReference(key, value, this._modelName, this._internalModel._data)
+    ) {
       this._setRecordArray(key, value);
     } else {
       this._internalModel._data[key] = value;
