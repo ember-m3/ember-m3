@@ -713,6 +713,52 @@ module('unit/model', function(hooks) {
     assert.equal(get(model, 'hb'), true, 'alias to missing with default');
   });
 
+  test('.unknownProperty resolves id-matched values to external m3-models when special ref present in _data passed to schema', function(
+    assert
+  ) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            pubDate: 'September 1989',
+            '*relatedBook': 'isbn:9780439136365',
+          },
+        },
+        included: [
+          {
+            id: 'isbn:9780439136365',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Order of the Phoenix`,
+            },
+          },
+        ],
+      });
+    });
+
+    SchemaManager.schema.computeAttributeReference = function(key, value, modelName, data) {
+      let refValue = data['*' + key];
+      if (typeof value === 'string' && refValue && refValue === value && /^isbn:/.test(value)) {
+        return {
+          type: null,
+          id: value,
+        };
+      }
+      return null;
+    };
+
+    model.set('relatedBook', 'isbn:9780439136365');
+    model.set('otherBook', 'isbn:9780439136366');
+
+    assert.equal(get(model, 'relatedBook.name'), `Harry Potter and the Order of the Phoenix`);
+    assert.equal(get(model, 'relatedBook.pubDate'), undefined);
+
+    assert.equal(get(model, 'otherBook'), 'isbn:9780439136366');
+  });
+
   test('default values are not transformed', function(assert) {
     let model = run(() =>
       this.store.push({
