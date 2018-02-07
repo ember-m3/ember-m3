@@ -2,6 +2,13 @@
 
 ## master
 
+## 0.3.3
+
+* schema APIs now have access to the full data hash.  This enables schemas that
+  depend on key mutations.  For example, `computeAttributeReference` might work
+  based on a key prefix `{ '*book': '123' }` that differs from the property
+  name (in this example, `book`).  Thanks @dnalagatla
+
 ## 0.3.2
 
 * setting `id` now only asserts for top-level models, and not embedded models
