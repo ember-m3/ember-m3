@@ -68,7 +68,7 @@ export function initialize() {
       return BookstoreRegExp.test(modelName);
     },
 
-    computeAttributeReference(key, value) {
+    computeAttributeReference(key, value, modelName, data) {
       if (!value) { return; }
 
       let match;
@@ -86,7 +86,7 @@ export function initialize() {
       }
     },
 
-    computeNestedModel(key, value) {
+    computeNestedModel(key, value, modelName, data) {
       if (value && typeof value === 'object') {
         return {
           id: value.id,
@@ -299,7 +299,7 @@ The `schema` you pass in is an object with the following properties.
   `modelName`.  It's fine to just `return true` here but this hook allows
   `ember-m3` to work alongside `DS.Model`.
 
-- `computeAttributeReference(key, value)`  A function that determines
+- `computeAttributeReference(key, value, modelName, data)`  A function that determines
   whether an attribute is a reference.  If it is not, return `null` or
   `undefined`.
   Otherwise return an object with properties:
@@ -309,13 +309,13 @@ The `schema` you pass in is an object with the following properties.
   Note that attribute references are all treated as synchronous.  There is no
   ember-m3 analogue to `DS.Model` async relationships.
 
--  `isAttributeArrayReference(key, value, modelName)` Whether the attribute
+-  `isAttributeArrayReference(key, value, modelName, data)` Whether the attribute
    should be treated as an array reference.  If `false` array values whose members are
    attribute references will still be resolved as an array of models.  If `true`
    they will be resoled as a `RecordArray` of models; additionally a
    `RecordArray` will be returned even for `null` values.
 
-- `computeNestedModel(key, value, modelName)` Whether `value` should be treated
+- `computeNestedModel(key, value, modelName, data)` Whether `value` should be treated
   as a nested model.  Useful for deeply nested references, eg with the following
   data:
   ```js
@@ -339,7 +339,7 @@ The `schema` you pass in is an object with the following properties.
   treat all objects as nested models (be careful with transforms; you may
   want to explicitly check `value.constructor`).  eg
   ```js
-  computeNestedModel(key, value, modelName) {
+  computeNestedModel(key, value, modelName, data) {
     if(value && value.constructor === Object) {
       return {
         id: value.id,

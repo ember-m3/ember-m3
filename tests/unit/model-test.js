@@ -37,7 +37,7 @@ module('unit/model', function(hooks) {
         return /^com.example.bookstore\./i.test(modelName);
       },
 
-      computeAttributeReference(key, value) {
+      computeAttributeReference(key, value, modelName, data) {
         if (/^isbn:/.test(value)) {
           return {
             id: value,
@@ -54,6 +54,15 @@ module('unit/model', function(hooks) {
             type: null,
             id: value,
           };
+        } else if (value === undefined) {
+          let refValue = data['*' + key];
+          if (typeof refValue === 'string' && refValue && /^isbn:/.test(refValue)) {
+            return {
+              type: null,
+              id: refValue,
+            };
+          }
+          return null;
         }
       },
 
@@ -92,7 +101,7 @@ module('unit/model', function(hooks) {
               return `${value}, of course`;
             },
             pubDate(value) {
-              return new Date(Date.parse(value));
+              return value === undefined ? undefined : new Date(Date.parse(value));
             },
           },
         },
@@ -711,6 +720,35 @@ module('unit/model', function(hooks) {
     );
     assert.equal(get(model, 'cost'), undefined, 'alias to missing');
     assert.equal(get(model, 'hb'), true, 'alias to missing with default');
+  });
+
+  test('.unknownProperty passes the model data hash to schema when resolving values', function(
+    assert
+  ) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            pubDate: 'September 1989',
+            '*relatedBook': 'isbn:9780439136365',
+          },
+        },
+        included: [
+          {
+            id: 'isbn:9780439136365',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Order of the Phoenix`,
+            },
+          },
+        ],
+      });
+    });
+    assert.equal(get(model, 'relatedBook.name'), `Harry Potter and the Order of the Phoenix`);
+    assert.equal(get(model, 'relatedBook.pubDate'), undefined);
   });
 
   test('default values are not transformed', function(assert) {
