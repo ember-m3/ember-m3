@@ -712,9 +712,7 @@ module('unit/model', function(hooks) {
     assert.equal(get(model, 'hb'), true, 'alias to missing with default');
   });
 
-  test('.unknownProperty passes the model data hash to schema when resolving values', function(
-    assert
-  ) {
+  test('.unknownProperty passes the model data hash to schema when resolving values', function(assert) {
     let model = run(() => {
       return this.store.push({
         data: {
