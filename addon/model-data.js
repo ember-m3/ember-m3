@@ -105,6 +105,10 @@ export default class M3ModelData {
     this.storeWrapper.disconnectRecord(this.modelName, this.id, this.clientId);
   }
 
+  isRecordInUse() {
+    return this.storeWrapper.isRecordInUse(this.modelName, this.id, this.clientId);
+  }
+
   isAttrDirty() {
     return false;
   }
