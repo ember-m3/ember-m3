@@ -1,4 +1,4 @@
-import { module, test } from 'qunit';
+import { module, test, skip } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
 
@@ -126,9 +126,7 @@ module('unit/model', function(hooks) {
     assert.equal(typeof klassAttrsMap.has, 'function', 'M3.attributes.has()');
   });
 
-  test('.unknownProperty returns undefined for attributes not included in the schema', function(
-    assert
-  ) {
+  test('.unknownProperty returns undefined for attributes not included in the schema', function(assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -191,9 +189,7 @@ module('unit/model', function(hooks) {
     assert.equal(get(model, 'followedBy').constructor, MegamorphicModel);
   });
 
-  test('.unknownProperty resolves id-matched values to external m3-models of different types', function(
-    assert
-  ) {
+  test('.unknownProperty resolves id-matched values to external m3-models of different types', function(assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -374,9 +370,7 @@ module('unit/model', function(hooks) {
     ]);
   });
 
-  test('.unknownProperty resolves arrays of id-matched values against the global cache', function(
-    assert
-  ) {
+  test('.unknownProperty resolves arrays of id-matched values against the global cache', function(assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -412,9 +406,7 @@ module('unit/model', function(hooks) {
     ]);
   });
 
-  test('.unknownProperty resolves record arrays of id-matched values against the global cache', function(
-    assert
-  ) {
+  test('.unknownProperty resolves record arrays of id-matched values against the global cache', function(assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -477,9 +469,7 @@ module('unit/model', function(hooks) {
     ]);
   });
 
-  test('.unknownProperty resolves heterogenous arrays of m3-references, ds-references and nested objects', function(
-    assert
-  ) {
+  test('.unknownProperty resolves heterogenous arrays of m3-references, ds-references and nested objects', function(assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -587,6 +577,9 @@ module('unit/model', function(hooks) {
       ['isbn:9780439064873', 'isbn:9780439139601'],
       'ref arrays can be "set" like DS.hasMany'
     );
+
+    // Need to rollback to detect the changes from the server
+    model.rollbackAttributes();
 
     run(() => {
       this.store.push({
@@ -792,9 +785,7 @@ module('unit/model', function(hooks) {
     assert.equal(get(model, 'id'), 'my-crazy-id', 'init id property set');
   });
 
-  test('late set of an id for top-level models to a newly created records is not allowed', function(
-    assert
-  ) {
+  test('late set of an id for top-level models to a newly created records is not allowed', function(assert) {
     let model = run(() =>
       this.store.createRecord('com.example.bookstore.Book', {
         name: 'Marlborough: His Life and Times',
@@ -810,9 +801,7 @@ module('unit/model', function(hooks) {
     );
   });
 
-  test('late set of an id for nested models to a newly created records is allowed', function(
-    assert
-  ) {
+  test('late set of an id for nested models to a newly created records is allowed', function(assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -934,7 +923,7 @@ module('unit/model', function(hooks) {
 
   // TODO: '.setUnknownProperty can update belongs-to relationships'
 
-  test('DS.Models can have relationships into m3 models', function(assert) {
+  skip('DS.Models can have relationships into m3 models', function(assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -1110,10 +1099,10 @@ module('unit/model', function(hooks) {
     ]);
   });
 
-  test('omitted attributes are treated as deleted', function(assert) {
+  test('omitted attributes do not trigger changes', function(assert) {
     let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
-    let model = run(() => {
+    run(() => {
       return this.store.push({
         data: {
           id: 'isbn:9780439708180',
@@ -1140,12 +1129,48 @@ module('unit/model', function(hooks) {
 
     assert.deepEqual(
       zip(propChange.thisValues.map(x => x + ''), propChange.args),
-      [[model + '', ['name']]],
-      'omitted attributes are treated as deleted'
+      [],
+      'omitted attributes do not trigger changes'
     );
   });
 
-  test('omitted attributes in nested models are treated as deleted', function(assert) {
+  test('null attributes are detected as changed', function(assert) {
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            author: 'JK Rowling',
+          },
+        },
+      });
+    });
+
+    run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: null,
+            author: 'JK Rowling',
+          },
+        },
+      });
+    });
+
+    assert.deepEqual(
+      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      [[model + '', ['name']]],
+      'nulled attributes are treated as changed'
+    );
+  });
+
+  test('nulled attributes in nested models are detected as changed', function(assert) {
     let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
     let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
@@ -1191,9 +1216,11 @@ module('unit/model', function(hooks) {
             name: `Harry Potter and the Sorcerer's Stone`,
             nextChapter: {
               id: 'ch1',
+              name: null,
               number: 1,
               nextChapter: {
                 id: 'ch2',
+                name: null,
                 number: 2,
               },
             },
@@ -1205,18 +1232,80 @@ module('unit/model', function(hooks) {
     assert.deepEqual(
       zip(propChange.thisValues.map(x => x + ''), propChange.args),
       [
-        [nested + '', ['name']],
         [doubleNested + '', ['name']],
         [doubleNested + '', ['number']],
+        [nested + '', ['name']],
         [nested + '', ['number']],
       ],
-      'omitted attributes in nested models are deleted'
+      'nulled attributes in nested models are detected as changed'
     );
 
     assert.equal(get(nested, 'number'), 1);
-    assert.equal(get(nested, 'name'), undefined);
+    assert.equal(get(nested, 'name'), null);
     assert.equal(get(doubleNested, 'number'), 2);
-    assert.equal(get(doubleNested, 'name'), undefined);
+    assert.equal(get(doubleNested, 'name'), null);
+  });
+
+  test('omitted attributes in nested models are not detected as changed', function(assert) {
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: {
+              id: 'ch1',
+              name: 'The Boy Who Lived',
+              number: 0,
+              nextChapter: {
+                id: 'ch2',
+                name: 'The Vanishing Glass',
+                number: 1,
+              },
+            },
+          },
+        },
+      });
+    });
+
+    assert.equal(propChange.callCount, 0, 'no property changes');
+
+    let nested = get(model, 'nextChapter');
+    let doubleNested = get(model, 'nextChapter.nextChapter');
+
+    run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: {
+              id: 'ch1',
+              number: 0,
+              nextChapter: {
+                id: 'ch2',
+                number: 1,
+              },
+            },
+          },
+        },
+      });
+    });
+
+    assert.deepEqual(
+      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      [],
+      'nulled attributes in nested models are detected as changed'
+    );
+
+    assert.equal(get(nested, 'number'), 0);
+    assert.equal(get(nested, 'name'), 'The Boy Who Lived');
+    assert.equal(get(doubleNested, 'number'), 1);
+    assert.equal(get(doubleNested, 'name'), 'The Vanishing Glass');
   });
 
   test('new attributes are treated as changed', function(assert) {
@@ -1493,6 +1582,7 @@ module('unit/model', function(hooks) {
           type: 'com.example.bookstore.Book',
           attributes: {
             name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: null,
           },
         },
       });
@@ -1581,6 +1671,7 @@ module('unit/model', function(hooks) {
           type: 'com.example.bookstore.Book',
           attributes: {
             name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: null,
           },
         },
       });
@@ -1597,7 +1688,111 @@ module('unit/model', function(hooks) {
     assert.equal(init.callCount, 1, 'no additional models created');
   });
 
-  test('nested model updates (model -> model) no changes', function(assert) {
+  test('nested model updates with no changes except changed type (reified)', function(assert) {
+    let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextPart: {
+              name: 'The Boy Who Lived',
+              number: 1,
+              type: 'com.example.bookstore.Chapter',
+            },
+          },
+        },
+      });
+    });
+
+    get(model, 'nextPart');
+
+    assert.equal(init.callCount, 2, 'two models are created initially');
+
+    run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextPart: {
+              name: 'The Boy Who Lived',
+              number: 1,
+              type: 'com.example.bookstore.Prologue',
+            },
+          },
+        },
+      });
+    });
+
+    get(model, 'nextPart');
+
+    assert.equal(init.callCount, 3, 'new model has been created for the update');
+    assert.deepEqual(
+      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      [[model + '', ['nextPart']]],
+      'nested model change has been triggered if type has changed'
+    );
+  });
+
+  test('nested model updates with no changes except id (reified)', function(assert) {
+    let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: {
+              id: 1,
+              name: 'The Boy Who Lived',
+              type: 'com.example.bookstore.Chapter',
+            },
+          },
+        },
+      });
+    });
+
+    get(model, 'nextChapter');
+
+    assert.equal(init.callCount, 2, 'two models are created initially');
+
+    run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: {
+              id: 2,
+              name: 'The Boy Who Lived',
+              type: 'com.example.bookstore.Chapter',
+            },
+          },
+        },
+      });
+    });
+
+    get(model, 'nextChapter');
+
+    assert.equal(init.callCount, 3, 'new model has been created for the update');
+    assert.deepEqual(
+      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      [[model + '', ['nextChapter']]],
+      'nested model change has been triggered if id has changed'
+    );
+  });
+
+  test('nested model updates with no changes (model inert)', function(assert) {
     let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
     let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
@@ -1639,7 +1834,56 @@ module('unit/model', function(hooks) {
     assert.deepEqual(
       zip(propChange.thisValues.map(x => x + ''), propChange.args),
       [[model + '', ['nextChapter']]],
-      'nested pojo -> pojo change even if hte values are deep equal'
+      'nested pojo -> pojo change is not triggered if the values are the same'
+    );
+  });
+
+  test('nested model updates with no changes (model reifed)', function(assert) {
+    let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: {
+              name: 'The Boy Who Lived',
+              number: 1,
+            },
+          },
+        },
+      });
+    });
+
+    // trigger nested model creation
+    get(model, 'nextChapter.name');
+
+    assert.equal(init.callCount, 2, 'one nested model initially created');
+
+    run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: {
+              name: 'The Boy Who Lived',
+              number: 1,
+            },
+          },
+        },
+      });
+    });
+
+    assert.equal(init.callCount, 2, 'no additional models created');
+    assert.deepEqual(
+      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      [],
+      'nested pojo -> pojo change is not triggered if the values are the same and the nested model is reified'
     );
   });
 
@@ -1792,10 +2036,11 @@ module('unit/model', function(hooks) {
       model.save().then(() => {
         assert.equal(model.get('isSaving'), false, 'model done saving');
         assert.deepEqual(
-          model._internalModel._data,
+          model._internalModel._modelData._data,
           {
             name: 'The Winds of Winter',
             estimatedRating: '11/10',
+            estimatedPubDate: '2231?',
           },
           'data post save resolve'
         );
@@ -2001,6 +2246,31 @@ module('unit/model', function(hooks) {
     );
   });
 
+  test('.changedAttributes returns the dirty attributes', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+            author: 'George R. R. Martin',
+          },
+        },
+      });
+    });
+
+    model.set('name', 'Alice in Wonderland');
+
+    assert.deepEqual(
+      model.changedAttributes(),
+      {
+        name: ['The Winds of Winter', 'Alice in Wonderland'],
+      },
+      'changed attributes should be return as changed'
+    );
+  });
+
   test('.rollbackAttributes resets state from dirty', function(assert) {
     let model = run(() => {
       return this.store.push({
@@ -2018,19 +2288,68 @@ module('unit/model', function(hooks) {
     model.rollbackAttributes();
 
     assert.equal(
-      model.get('currentState.stateName'),
+      get(model, 'currentState.stateName'),
       'root.loaded.saved',
       'after rolling back model.state loaded.saved'
     );
     assert.deepEqual(
-      model._internalModel._data,
-      {
-        // We do not error, but we also do not actually support rolling back
-        // attributes
-        name: 'Some other book',
-      },
-      'rollbackAttributes does not alter _data'
+      get(model, 'name'),
+      'The Winds of Winter',
+      'rollbackAttributes reverts changes to the record'
     );
+  });
+
+  test('updates from .save does not overwrite attributes set after .save is called', function(assert) {
+    this.owner.register(
+      'adapter:-ember-m3',
+      Ember.Object.extend({
+        updateRecord() {
+          return Promise.resolve({
+            data: {
+              id: 1,
+              type: 'com.example.bookstore.Book',
+              attributes: {
+                name: "Harry Potter and the Sorcerer's Stone",
+                author: 'J. K. Rowling',
+              },
+            },
+          });
+        },
+      })
+    );
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+            author: 'George R. R. Martin',
+          },
+        },
+      });
+    });
+
+    model.set('name', 'Alice in Wonderland');
+
+    run(() => {
+      let savePromise = model.save();
+
+      model.set('author', 'Lewis Carroll');
+
+      savePromise.then(() => {
+        assert.equal(
+          model.get('author'),
+          'Lewis Carroll',
+          'the author was set after save, should not be updated'
+        );
+        assert.equal(
+          model.get('name'),
+          "Harry Potter and the Sorcerer's Stone",
+          'the name of the book is updated from the save'
+        );
+      });
+    });
   });
 
   test('store.findRecord', function(assert) {
