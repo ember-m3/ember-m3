@@ -22,7 +22,7 @@
     "ember-source": "^2.16.2"
   },
   "peerDependencies": {
-    "ember-data": "~2.18"
+    "ember-data": "~3.1.0"
   },
   "devDependencies": {
     "broccoli-asset-rev": "^2.4.5",
@@ -38,7 +38,7 @@
     "ember-cli-shims": "^1.1.0",
     "ember-cli-sri": "^2.1.0",
     "ember-cli-uglify": "^1.2.0",
-    "ember-data": "~2.17.0-beta.2",
+    "ember-data": "emberjs/data#60ea116ac9ccf3868a62a3cfd05c4e23ec406763",
     "ember-disable-prototype-extensions": "^1.1.2",
     "ember-export-application-global": "^2.0.0",
     "ember-load-initializers": "^1.0.0",
