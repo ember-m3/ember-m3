@@ -805,11 +805,21 @@ module('unit/model', function(hooks) {
       });
     });
     let otherBooks = get(model, 'otherBooksInSeries');
-    assert.deepEqual(otherBooks.map(b => get(b, 'name')), ['Harry Potter and the Chamber of Secrets', 'Harry Potter and the Prisoner of Azkaban'], 'attr array ref is array-like');
+    assert.deepEqual(
+      otherBooks.map(b => get(b, 'name')),
+      ['Harry Potter and the Chamber of Secrets', 'Harry Potter and the Prisoner of Azkaban'],
+      'attr array ref is array-like'
+    );
 
-    set(model, 'otherBooksInSeries', [this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439064873')]);
+    set(model, 'otherBooksInSeries', [
+      this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439064873'),
+    ]);
     // This is part of the special sauce of record arrays
-    assert.deepEqual(otherBooks.map(b => get(b, 'name')), ['Harry Potter and the Chamber of Secrets'], 'array ref updated in place on set');
+    assert.deepEqual(
+      otherBooks.map(b => get(b, 'name')),
+      ['Harry Potter and the Chamber of Secrets'],
+      'array ref updated in place on set'
+    );
   });
 
   test('default values are not transformed', function(assert) {

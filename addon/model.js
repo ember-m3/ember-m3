@@ -467,7 +467,12 @@ export default class MegamorphicModel extends Ember.Object {
     if (
       // TODO: check if we have a new value here
       // TODO: maybe we can computeAttributeArrayRef here
-      this._schema.isAttributeArrayReference(key, value, this._modelName, this._internalModel._modelData.schemaInterface)
+      this._schema.isAttributeArrayReference(
+        key,
+        value,
+        this._modelName,
+        this._internalModel._modelData.schemaInterface
+      )
     ) {
       this._setRecordArray(key, value);
     } else {
