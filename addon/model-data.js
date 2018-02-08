@@ -100,11 +100,6 @@ export default class M3ModelData {
     this.destroy();
   }
 
-  destroy() {
-    this.isDestroyed = true;
-    this.storeWrapper.disconnectRecord(this.modelName, this.id, this.clientId);
-  }
-
   isRecordInUse() {
     return this.storeWrapper.isRecordInUse(this.modelName, this.id, this.clientId);
   }
@@ -114,6 +109,15 @@ export default class M3ModelData {
   }
 
   removeFromInverseRelationships() {}
+
+  clientDidCreate() {}
+
+  // INTERNAL API
+
+  destroy() {
+    this.isDestroyed = true;
+    this.storeWrapper.disconnectRecord(this.modelName, this.id, this.clientId);
+  }
 
   get _data() {
     if (this.__data === null) {
@@ -125,8 +129,6 @@ export default class M3ModelData {
   set _data(v) {
     this.__data = v;
   }
-
-  clientDidCreate() {}
 
   _changedKeys(updates) {
     if (!updates) {

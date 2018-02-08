@@ -7,9 +7,6 @@ import MegamorphicModelFactory from '../factory';
 import SchemaManager from '../schema-manager';
 import QueryCache from '../query-cache';
 
-// TODO: this is a stopgap.  We want to replace this with a public
-// DS.Model/Schema API
-
 export function extendStore(Store) {
   Store.reopen({
     init() {
@@ -17,6 +14,8 @@ export function extendStore(Store) {
       this._queryCache = new QueryCache({ store: this });
       this._globalM3Cache = new Object(null);
     },
+
+    // Store hooks necessary for using a single model class
 
     _hasModelFor(modelName) {
       return SchemaManager.includesModel(modelName) || this._super(modelName);
@@ -50,6 +49,8 @@ export function extendStore(Store) {
       return this._super(modelName, id, clientId, storeWrapper);
     },
 
+    // queryURL store API
+
     queryURL(url, options) {
       return this._queryCache.queryURL(url, options);
     },
@@ -61,6 +62,9 @@ export function extendStore(Store) {
     containsURL(cacheKey) {
       return this._queryCache.contains(cacheKey);
     },
+
+    // These two hooks are used for the secondary cache
+    // TODO: make secondary caches possible via public API
 
     _pushInternalModel(jsonAPIResource) {
       let internalModel = this._super(jsonAPIResource);
