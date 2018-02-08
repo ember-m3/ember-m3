@@ -37,8 +37,14 @@ module('unit/model', function(hooks) {
         return /^com.example.bookstore\./i.test(modelName);
       },
 
+      // TODO: split this up to different tests
       computeAttributeReference(key, value, modelName, schemaInterface) {
-        if (/^isbn:/.test(value)) {
+        if (this.isAttributeArrayReference(key) && Array.isArray(value)) {
+          return value.map(id => ({
+            type: null,
+            id,
+          }));
+        } else if (/^isbn:/.test(value)) {
           return {
             id: value,
             type: 'com.example.bookstore.Book',
@@ -766,6 +772,44 @@ module('unit/model', function(hooks) {
       ['Harry Potter and the Chamber of Secrets', 'Harry Potter and the Prisoner of Azkaban'],
       'compute attribute array reference'
     );
+  });
+
+  test('schema can return a different value for attribute array references', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            pubDate: 'September 1989',
+            '*otherBooksInSeries': ['isbn:9780439064873', 'isbn:9780439136365'],
+          },
+        },
+        included: [
+          {
+            id: 'isbn:9780439064873',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Chamber of Secrets`,
+            },
+          },
+          {
+            id: 'isbn:9780439136365',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Prisoner of Azkaban`,
+            },
+          },
+        ],
+      });
+    });
+    let otherBooks = get(model, 'otherBooksInSeries');
+    assert.deepEqual(otherBooks.map(b => get(b, 'name')), ['Harry Potter and the Chamber of Secrets', 'Harry Potter and the Prisoner of Azkaban'], 'attr array ref is array-like');
+
+    set(model, 'otherBooksInSeries', [this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439064873')]);
+    // This is part of the special sauce of record arrays
+    assert.deepEqual(otherBooks.map(b => get(b, 'name')), ['Harry Potter and the Chamber of Secrets'], 'array ref updated in place on set');
   });
 
   test('default values are not transformed', function(assert) {

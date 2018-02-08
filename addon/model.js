@@ -75,9 +75,10 @@ function resolveValue(key, value, modelName, store, schema, model) {
   const schemaInterface = model._internalModel._modelData.schemaInterface;
 
   if (schema.isAttributeArrayReference(key, value, modelName, schemaInterface)) {
-    return resolveRecordArray(key, value, modelName, store, schema, model, schemaInterface);
+    return resolveRecordArray(key, value, modelName, store, schema, schemaInterface);
   }
 
+  // TODO: remove this and instead just have computeAttributeReference return an array of refs
   if (Array.isArray(value)) {
     return resolvePlainArray(key, value, modelName, store, schema, model, schemaInterface);
   }
@@ -141,10 +142,6 @@ function resolveRecordArray(key, value, modelName, store, schema, schemaInterfac
     manager: recordArrayManager,
   });
 
-  if (value == null) {
-    return array;
-  }
-
   let internalModels = resolveRecordArrayInternalModels(
     key,
     value,
@@ -160,17 +157,21 @@ function resolveRecordArray(key, value, modelName, store, schema, schemaInterfac
 }
 
 function resolveRecordArrayInternalModels(key, value, modelName, store, schema, schemaInterface) {
-  let internalModels = new Array(value.length);
+  // TODO: mention in UPGRADING.md
+  let reference = schema.computeAttributeReference(key, value, modelName, schemaInterface);
+  if (reference === undefined || reference === null) {
+    reference = [];
+  }
+  let internalModels = new Array(reference.length);
+
   for (let i = 0; i < internalModels.length; ++i) {
-    let reference = schema.computeAttributeReference(key, value[i], modelName, schemaInterface);
-    if (reference) {
-      if (reference.type) {
-        // for schemas with a global id-space but multiple types, schemas may
-        // report a type of null
-        internalModels[i] = store._internalModelForId(reference.type, reference.id);
-      } else {
-        internalModels[i] = store._globalM3Cache[reference.id];
-      }
+    let singleRef = reference[i];
+    if (singleRef.type) {
+      // for schemas with a global id-space but multiple types, schemas may
+      // report a type of null
+      internalModels[i] = store._internalModelForId(singleRef.type, singleRef.id);
+    } else {
+      internalModels[i] = store._globalM3Cache[singleRef.id];
     }
   }
 
@@ -464,7 +465,9 @@ export default class MegamorphicModel extends Ember.Object {
     // TODO: similarly this.get('arr').pushObject doesn't update the underlying
     // _data
     if (
-      this._schema.isAttributeArrayReference(key, value, this._modelName, this._internalModel._data)
+      // TODO: check if we have a new value here
+      // TODO: maybe we can computeAttributeArrayRef here
+      this._schema.isAttributeArrayReference(key, value, this._modelName, this._internalModel._modelData.schemaInterface)
     ) {
       this._setRecordArray(key, value);
     } else {
