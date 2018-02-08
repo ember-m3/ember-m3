@@ -2,6 +2,16 @@ import { isEqual } from '@ember/utils';
 import { coerceId } from 'ember-data/-private';
 import { setDiff } from './util';
 
+class M3SchemaInterface {
+  constructor(modelData) {
+    this.modelData = modelData;
+  }
+
+  getAttr(name) {
+    return this.modelData.getAttr(name);
+  }
+}
+
 export default class M3ModelData {
   constructor(modelName, id, clientId, storeWrapper, store) {
     this.store = store;
@@ -11,6 +21,8 @@ export default class M3ModelData {
     this.storeWrapper = storeWrapper;
     this.isDestroyed = false;
     this.reset();
+
+    this.schemaInterface = new M3SchemaInterface(this);
   }
 
   // PUBLIC API

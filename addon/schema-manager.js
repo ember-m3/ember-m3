@@ -3,16 +3,16 @@ export class SchemaManager {
     this.schema = null;
   }
 
-  computeAttributeReference(key, value, modelname, data) {
-    return this.schema.computeAttributeReference(key, value, modelname, data);
+  computeAttributeReference(key, value, modelname, schemaInterface) {
+    return this.schema.computeAttributeReference(key, value, modelname, schemaInterface);
   }
 
-  isAttributeArrayReference(key, value, modelname, data) {
-    return this.schema.isAttributeArrayReference(key, value, modelname, data);
+  isAttributeArrayReference(key, value, modelname, schemaInterface) {
+    return this.schema.isAttributeArrayReference(key, value, modelname, schemaInterface);
   }
 
-  computeNestedModel(key, value, modelname, data) {
-    return this.schema.computeNestedModel(key, value, modelname, data);
+  computeNestedModel(key, value, modelname, schemaInterface) {
+    return this.schema.computeNestedModel(key, value, modelname, schemaInterface);
   }
 
   includesModel(key, value, modelName) {

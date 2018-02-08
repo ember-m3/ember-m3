@@ -59,31 +59,40 @@ class EmbeddedInternalModel {
   }
 }
 
+function resolveReference(reference, store) {
+  if (reference.type === null) {
+    // for schemas with a global id-space but multiple types, schemas may
+    // report a type of null
+    let internalModel = store._globalM3Cache[reference.id];
+    return internalModel ? internalModel.getRecord() : null;
+  } else {
+    // respect the user schema's type if provided
+    return store.peekRecord(reference.type, reference.id);
+  }
+}
+
 function resolveValue(key, value, modelName, store, schema, model) {
-  if (schema.isAttributeArrayReference(key, value, modelName)) {
-    return resolveRecordArray(key, value, modelName, store, schema, model);
+  const schemaInterface = model._internalModel._modelData.schemaInterface;
+
+  if (schema.isAttributeArrayReference(key, value, modelName, schemaInterface)) {
+    return resolveRecordArray(key, value, modelName, store, schema, model, schemaInterface);
   }
 
   if (Array.isArray(value)) {
-    return resolvePlainArray(key, value, modelName, store, schema, model);
+    return resolvePlainArray(key, value, modelName, store, schema, model, schemaInterface);
   }
 
-  const dataHash = model._internalModel._data;
-  let reference = schema.computeAttributeReference(key, value, modelName, dataHash);
+  let reference = schema.computeAttributeReference(key, value, modelName, schemaInterface);
 
-  if (reference) {
-    if (reference.type === null) {
-      // for schemas with a global id-space but multiple types, schemas may
-      // report a type of null
-      let internalModel = store._globalM3Cache[reference.id];
-      return internalModel ? internalModel.getRecord() : null;
+  if (reference !== undefined && reference !== null) {
+    if (Array.isArray(reference)) {
+      return reference.map(singleRef => resolveReference(singleRef, store));
     } else {
-      // respect the user schema's type if provided
-      return store.peekRecord(reference.type, reference.id);
+      return resolveReference(reference, store);
     }
   }
 
-  let nested = schema.computeNestedModel(key, value, modelName, dataHash);
+  let nested = schema.computeNestedModel(key, value, modelName, schemaInterface);
   if (nested) {
     let internalModel = new EmbeddedInternalModel({
       id: nested.id,
@@ -108,7 +117,7 @@ function resolveValue(key, value, modelName, store, schema, model) {
   return value;
 }
 
-function resolvePlainArray(key, value, modelName, store, schema, model) {
+function resolvePlainArray(key, value, modelName, store, schema, model, schemaInterface) {
   if (value == null) {
     return new Array(0);
   }
@@ -116,13 +125,13 @@ function resolvePlainArray(key, value, modelName, store, schema, model) {
   let result = new Array(value.length);
 
   for (let i = 0; i < value.length; ++i) {
-    result[i] = resolveValue(key, value[i], modelName, store, schema, model);
+    result[i] = resolveValue(key, value[i], modelName, store, schema, model, schemaInterface, i);
   }
 
   return result;
 }
 
-function resolveRecordArray(key, value, modelName, store, schema) {
+function resolveRecordArray(key, value, modelName, store, schema, schemaInterface) {
   let recordArrayManager = store._recordArrayManager;
 
   let array = M3RecordArray.create({
@@ -136,17 +145,24 @@ function resolveRecordArray(key, value, modelName, store, schema) {
     return array;
   }
 
-  let internalModels = resolveRecordArrayInternalModels(key, value, modelName, store, schema);
+  let internalModels = resolveRecordArrayInternalModels(
+    key,
+    value,
+    modelName,
+    store,
+    schema,
+    schemaInterface
+  );
 
   array._setInternalModels(internalModels);
 
   return array;
 }
 
-function resolveRecordArrayInternalModels(key, value, modelName, store, schema) {
+function resolveRecordArrayInternalModels(key, value, modelName, store, schema, schemaInterface) {
   let internalModels = new Array(value.length);
   for (let i = 0; i < internalModels.length; ++i) {
-    let reference = schema.computeAttributeReference(key, value[i], modelName);
+    let reference = schema.computeAttributeReference(key, value[i], modelName, schemaInterface);
     if (reference) {
       if (reference.type) {
         // for schemas with a global id-space but multiple types, schemas may

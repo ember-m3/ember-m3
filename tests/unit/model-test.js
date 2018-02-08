@@ -37,7 +37,7 @@ module('unit/model', function(hooks) {
         return /^com.example.bookstore\./i.test(modelName);
       },
 
-      computeAttributeReference(key, value, modelName, data) {
+      computeAttributeReference(key, value, modelName, schemaInterface) {
         if (/^isbn:/.test(value)) {
           return {
             id: value,
@@ -55,12 +55,17 @@ module('unit/model', function(hooks) {
             id: value,
           };
         } else if (value === undefined) {
-          let refValue = data['*' + key];
-          if (typeof refValue === 'string' && refValue && /^isbn:/.test(refValue)) {
+          let refValue = schemaInterface.getAttr(`*${key}`);
+          if (typeof refValue === 'string') {
             return {
               type: null,
               id: refValue,
             };
+          } else if (Array.isArray(refValue)) {
+            return refValue.map(x => ({
+              type: null,
+              id: x,
+            }));
           }
           return null;
         }
@@ -712,7 +717,7 @@ module('unit/model', function(hooks) {
     assert.equal(get(model, 'hb'), true, 'alias to missing with default');
   });
 
-  test('.unknownProperty passes the model data hash to schema when resolving values', function(assert) {
+  test('schema can access other attributes when computing attribute references', function(assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -721,12 +726,27 @@ module('unit/model', function(hooks) {
           attributes: {
             name: `Harry Potter and the Sorcerer's Stone`,
             pubDate: 'September 1989',
-            '*relatedBook': 'isbn:9780439136365',
+            '*relatedBook': 'isbn:9780439358071',
+            '*relatedBooks': ['isbn:9780439064873', 'isbn:9780439136365'],
           },
         },
         included: [
           {
+            id: 'isbn:9780439064873',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Chamber of Secrets`,
+            },
+          },
+          {
             id: 'isbn:9780439136365',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Prisoner of Azkaban`,
+            },
+          },
+          {
+            id: 'isbn:9780439358071',
             type: 'com.example.bookstore.Book',
             attributes: {
               name: `Harry Potter and the Order of the Phoenix`,
@@ -735,8 +755,17 @@ module('unit/model', function(hooks) {
         ],
       });
     });
-    assert.equal(get(model, 'relatedBook.name'), `Harry Potter and the Order of the Phoenix`);
+    assert.equal(
+      get(model, 'relatedBook.name'),
+      `Harry Potter and the Order of the Phoenix`,
+      'computing attribute reference'
+    );
     assert.equal(get(model, 'relatedBook.pubDate'), undefined);
+    assert.deepEqual(
+      get(model, 'relatedBooks').map(b => get(b, 'name')),
+      ['Harry Potter and the Chamber of Secrets', 'Harry Potter and the Prisoner of Azkaban'],
+      'compute attribute array reference'
+    );
   });
 
   test('default values are not transformed', function(assert) {
