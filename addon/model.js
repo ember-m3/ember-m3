@@ -2,11 +2,12 @@ import Ember from 'ember';
 import { RootState } from 'ember-data/-private';
 import { dasherize } from '@ember/string';
 
+import M3ModelData from './model-data';
 import SchemaManager from './schema-manager';
 import M3RecordArray from './record-array';
-import { setDiff, OWNER_KEY } from './util';
+import { OWNER_KEY } from './util';
 
-const { get, set, isEqual, propertyWillChange, propertyDidChange, computed, A } = Ember;
+const { get, set, propertyWillChange, propertyDidChange, computed, A } = Ember;
 
 const { deleted: { uncommitted: deletedUncommitted }, loaded: { saved: loadedSaved } } = RootState;
 
@@ -32,10 +33,23 @@ class EmbeddedSnapshot {
 }
 
 class EmbeddedInternalModel {
-  constructor({ id, modelName, _data }) {
+  constructor({ id, modelName, attributes, store, parentInternalModel }) {
     this.id = id;
     this.modelName = modelName;
-    this._data = _data;
+
+    this._modelData = new M3ModelData(
+      modelName,
+      id,
+      null,
+      parentInternalModel._modelData.storeWrapper,
+      store,
+      this
+    );
+    this._modelData.pushData({
+      attributes,
+    });
+    this.store = store;
+    this.parentInternalModel = parentInternalModel;
 
     this.record = null;
   }
@@ -45,38 +59,50 @@ class EmbeddedInternalModel {
   }
 }
 
+function resolveReference(reference, store) {
+  if (reference.type === null) {
+    // for schemas with a global id-space but multiple types, schemas may
+    // report a type of null
+    let internalModel = store._globalM3Cache[reference.id];
+    return internalModel ? internalModel.getRecord() : null;
+  } else {
+    // respect the user schema's type if provided
+    return store.peekRecord(reference.type, reference.id);
+  }
+}
+
 function resolveValue(key, value, modelName, store, schema, model) {
-  if (schema.isAttributeArrayReference(key, value, modelName)) {
-    return resolveRecordArray(key, value, modelName, store, schema, model);
+  const schemaInterface = model._internalModel._modelData.schemaInterface;
+
+  if (schema.isAttributeArrayReference(key, value, modelName, schemaInterface)) {
+    return resolveRecordArray(key, value, modelName, store, schema, schemaInterface);
   }
 
+  // TODO: remove this and instead just have computeAttributeReference return an array of refs
   if (Array.isArray(value)) {
-    return resolvePlainArray(key, value, modelName, store, schema, model);
+    return resolvePlainArray(key, value, modelName, store, schema, model, schemaInterface);
   }
 
-  const dataHash = model._internalModel._data;
-  let reference = schema.computeAttributeReference(key, value, modelName, dataHash);
+  let reference = schema.computeAttributeReference(key, value, modelName, schemaInterface);
 
-  if (reference) {
-    if (reference.type === null) {
-      // for schemas with a global id-space but multiple types, schemas may
-      // report a type of null
-      let internalModel = store._globalM3Cache[reference.id];
-      return internalModel ? internalModel.getRecord() : null;
+  if (reference !== undefined && reference !== null) {
+    if (Array.isArray(reference)) {
+      return reference.map(singleRef => resolveReference(singleRef, store));
     } else {
-      // respect the user schema's type if provided
-      return store.peekRecord(reference.type, reference.id);
+      return resolveReference(reference, store);
     }
   }
 
-  let nested = schema.computeNestedModel(key, value, modelName, dataHash);
+  let nested = schema.computeNestedModel(key, value, modelName, schemaInterface);
   if (nested) {
     let internalModel = new EmbeddedInternalModel({
       id: nested.id,
       // maintain consistency with internalmodel.modelName, which is normalized
       // internally within ember-data
       modelName: nested.type ? dasherize(nested.type) : null,
-      _data: nested.attributes,
+      attributes: nested.attributes,
+      store,
+      parentInternalModel: model._internalModel,
     });
     let nestedModel = new EmbeddedMegamorphicModel({
       store,
@@ -92,7 +118,7 @@ function resolveValue(key, value, modelName, store, schema, model) {
   return value;
 }
 
-function resolvePlainArray(key, value, modelName, store, schema, model) {
+function resolvePlainArray(key, value, modelName, store, schema, model, schemaInterface) {
   if (value == null) {
     return new Array(0);
   }
@@ -100,13 +126,13 @@ function resolvePlainArray(key, value, modelName, store, schema, model) {
   let result = new Array(value.length);
 
   for (let i = 0; i < value.length; ++i) {
-    result[i] = resolveValue(key, value[i], modelName, store, schema, model);
+    result[i] = resolveValue(key, value[i], modelName, store, schema, model, schemaInterface, i);
   }
 
   return result;
 }
 
-function resolveRecordArray(key, value, modelName, store, schema) {
+function resolveRecordArray(key, value, modelName, store, schema, schemaInterface) {
   let recordArrayManager = store._recordArrayManager;
 
   let array = M3RecordArray.create({
@@ -116,29 +142,36 @@ function resolveRecordArray(key, value, modelName, store, schema) {
     manager: recordArrayManager,
   });
 
-  if (value == null) {
-    return array;
-  }
-
-  let internalModels = resolveRecordArrayInternalModels(key, value, modelName, store, schema);
+  let internalModels = resolveRecordArrayInternalModels(
+    key,
+    value,
+    modelName,
+    store,
+    schema,
+    schemaInterface
+  );
 
   array._setInternalModels(internalModels);
 
   return array;
 }
 
-function resolveRecordArrayInternalModels(key, value, modelName, store, schema) {
-  let internalModels = new Array(value.length);
+function resolveRecordArrayInternalModels(key, value, modelName, store, schema, schemaInterface) {
+  // TODO: mention in UPGRADING.md
+  let reference = schema.computeAttributeReference(key, value, modelName, schemaInterface);
+  if (reference === undefined || reference === null) {
+    reference = [];
+  }
+  let internalModels = new Array(reference.length);
+
   for (let i = 0; i < internalModels.length; ++i) {
-    let reference = schema.computeAttributeReference(key, value[i], modelName);
-    if (reference) {
-      if (reference.type) {
-        // for schemas with a global id-space but multiple types, schemas may
-        // report a type of null
-        internalModels[i] = store._internalModelForId(reference.type, reference.id);
-      } else {
-        internalModels[i] = store._globalM3Cache[reference.id];
-      }
+    let singleRef = reference[i];
+    if (singleRef.type) {
+      // for schemas with a global id-space but multiple types, schemas may
+      // report a type of null
+      internalModels[i] = store._internalModelForId(singleRef.type, singleRef.id);
+    } else {
+      internalModels[i] = store._globalM3Cache[singleRef.id];
     }
   }
 
@@ -153,34 +186,6 @@ function disallowAliasSet(object, key, value) {
   );
 }
 
-/**
-  Calculate the changed keys from prior and new `data`s.  This follows similar
-  semantics to `InternalModel._changedKeys`.
-
-  The key difference is that omitted attributes and new attributes are treated
-  as changes, instead of ignored.
-
-  There is another difference, which is that there's no notion of
-  `_inflightAttributes` or `_attributes`, but this will likely need to change
-  when m3 composes a write story.
-*/
-function calculateChangedKeys(oldValue, newValue) {
-  let oldKeys = Object.keys(oldValue).sort();
-  let newKeys = Object.keys(newValue).sort();
-
-  // omitted keys are treated as changes
-  let result = setDiff(oldKeys, newKeys);
-
-  for (let i = 0; i < newKeys.length; ++i) {
-    let key = newKeys[i];
-    if (!isEqual(oldValue[key], newValue[key])) {
-      result.push(key);
-    }
-  }
-
-  return result;
-}
-
 class YesManAttributesSingletonClass {
   has() {
     return true;
@@ -192,6 +197,7 @@ class YesManAttributesSingletonClass {
     return;
   }
 }
+
 const YesManAttributes = new YesManAttributesSingletonClass();
 
 const retrieveFromCurrentState = computed('currentState', function(key) {
@@ -260,25 +266,20 @@ export default class MegamorphicModel extends Ember.Object {
     this[property.name] = property.descriptor.value;
   }
 
-  _assignAttributes(attributes) {
-    // Don't merge; overwrite
-    this._internalModel._data = attributes;
-  }
-
   _notifyProperties(keys) {
     Ember.beginPropertyChanges();
     let key;
     for (let i = 0, length = keys.length; i < length; i++) {
       key = keys[i];
       let oldValue = this._cache[key];
-      let newValue = this._internalModel._data[key];
+      let newValue = this._internalModel._modelData.getAttr(key);
 
       let oldIsRecordArray = oldValue && oldValue instanceof M3RecordArray;
       let oldWasModel = oldValue && oldValue instanceof MegamorphicModel;
       let newIsObject = typeof newValue === 'object';
 
       if (oldWasModel && newIsObject) {
-        oldValue._didReceiveNestedProperties(this._internalModel._data[key]);
+        oldValue._didReceiveNestedProperties(this._internalModel._modelData.getAttr(key));
       } else if (oldIsRecordArray) {
         let internalModels = resolveRecordArrayInternalModels(
           key,
@@ -298,19 +299,10 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   _didReceiveNestedProperties(data) {
-    let changedKeys = calculateChangedKeys(this._internalModel._data, data);
-    this._internalModel._data = data;
+    let changedKeys = this._internalModel._modelData.pushData({ attributes: data }, true);
     if (changedKeys.length > 0) {
       this._notifyProperties(changedKeys);
     }
-  }
-
-  _changedKeys(data) {
-    if (!data) {
-      return [];
-    }
-
-    return calculateChangedKeys(this._internalModel._data, data);
   }
 
   changedAttributes() {
@@ -327,18 +319,18 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   debugJSON() {
-    return this._internalModel._data;
+    return this._internalModel._modelData._data;
   }
 
   eachAttribute(callback, binding) {
-    if (!this._internalModel._data) {
+    if (!this._internalModel._modelData._data) {
       // see #14
       return;
     }
 
     // Properties in `data` are treated as attributes for serialization purposes
     // if the schema does not consider them references
-    Object.keys(this._internalModel._data).forEach(callback, binding);
+    Object.keys(this._internalModel._modelData._data).forEach(callback, binding);
   }
 
   unloadRecord() {
@@ -397,7 +389,9 @@ export default class MegamorphicModel extends Ember.Object {
       return;
     }
 
-    let rawValue = this._internalModel._data[key];
+    let rawValue = this._internalModel._modelData.getAttr(key);
+    // TODO IGOR DAVID
+    // figure out if any of the below should be moved into model data
     if (rawValue === undefined) {
       let alias = this._schema.getAttributeAlias(this._modelName, key);
       if (alias) {
@@ -471,11 +465,18 @@ export default class MegamorphicModel extends Ember.Object {
     // TODO: similarly this.get('arr').pushObject doesn't update the underlying
     // _data
     if (
-      this._schema.isAttributeArrayReference(key, value, this._modelName, this._internalModel._data)
+      // TODO: check if we have a new value here
+      // TODO: maybe we can computeAttributeArrayRef here
+      this._schema.isAttributeArrayReference(
+        key,
+        value,
+        this._modelName,
+        this._internalModel._modelData.schemaInterface
+      )
     ) {
       this._setRecordArray(key, value);
     } else {
-      this._internalModel._data[key] = value;
+      this._internalModel._modelData.setAttr(key, value);
       delete this._cache[key];
     }
 
@@ -490,7 +491,7 @@ export default class MegamorphicModel extends Ember.Object {
       // TODO: should have a schema hook for this
       ids[i] = get(models.objectAt(i), 'id');
     }
-    this._internalModel._data[key] = ids;
+    this._internalModel._modelData.setAttr(key, ids);
 
     if (key in this._cache) {
       let recordArray = this._cache[key];

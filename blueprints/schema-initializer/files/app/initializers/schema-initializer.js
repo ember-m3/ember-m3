@@ -2,22 +2,22 @@ import SchemaManager from 'ember-m3/schema-manager';
 
 export function initialize(/* application */) {
   SchemaManager.registerSchema({
-
-    computeAttributeReference(/* key, value, modelName, data */) {
+    computeAttributeReference(/* key, value, modelName, schemaInterface */) {
       // If the attribute with value `value` under key `key` of `modelName` is
-      // a reference to another model, return `{ type, id }`, otherwise return
-      // null.
+      // a reference to another model, return `{ type, id }`.  If it's an array
+      // of references return an array of `{ type, id }` pairs.  Otherwise,
+      // return `null`.
       return null;
     },
 
-    isAttributeArrayReference(/* key, value, modelName, data */) {
+    isAttributeArrayReference(/* key, value, modelName, schemaInterface */) {
       // If the attribute with value `value` under key `key` of `modelName` is
       // an array of references to models (eg a has-many) return `true` and
       // `false` otherwise.
       return false;
     },
 
-    computeNestedModel(/* key, value, modelName, data */) {
+    computeNestedModel(/* key, value, modelName, schemaInterface */) {
       // If the attribute with value `value` under key `key` of `modelName`
       // should be treated as a nested model instead of a plain POJO, then
       // return `{ id, type, attributes }`.  Arrays will have this method
@@ -86,5 +86,5 @@ export function initialize(/* application */) {
 
 export default {
   name: 'm3-schema-initializer',
-  initialize
+  initialize,
 };

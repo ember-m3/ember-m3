@@ -68,7 +68,7 @@ export function initialize() {
       return BookstoreRegExp.test(modelName);
     },
 
-    computeAttributeReference(key, value, modelName, data) {
+    computeAttributeReference(key, value, modelName, schemaInterface) {
       if (!value) { return; }
 
       let match;
@@ -86,7 +86,7 @@ export function initialize() {
       }
     },
 
-    computeNestedModel(key, value, modelName, data) {
+    computeNestedModel(key, value, modelName, schemaInterface) {
       if (value && typeof value === 'object') {
         return {
           id: value.id,
@@ -339,7 +339,7 @@ The `schema` you pass in is an object with the following properties.
   treat all objects as nested models (be careful with transforms; you may
   want to explicitly check `value.constructor`).  eg
   ```js
-  computeNestedModel(key, value, modelName, data) {
+  computeNestedModel(key, value, modelName, schemaInterface) {
     if(value && value.constructor === Object) {
       return {
         id: value.id,

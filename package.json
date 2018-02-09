@@ -18,10 +18,11 @@
       "node_modules/.bin/prettier --write --ignore-path .gitignore 'addon/**/*.js' 'app/**/*.js' 'tests/**/*.js'"
   },
   "dependencies": {
-    "ember-cli-babel": "^6.3.0"
+    "ember-cli-babel": "^6.3.0",
+    "ember-source": "^2.16.2"
   },
   "peerDependencies": {
-    "ember-data": "~2.17.0-beta.2"
+    "ember-data": "~3.1.0"
   },
   "devDependencies": {
     "broccoli-asset-rev": "^2.4.5",
@@ -37,7 +38,7 @@
     "ember-cli-shims": "^1.1.0",
     "ember-cli-sri": "^2.1.0",
     "ember-cli-uglify": "^1.2.0",
-    "ember-data": "~2.17.0-beta.2",
+    "ember-data": "emberjs/data#60ea116ac9ccf3868a62a3cfd05c4e23ec406763",
     "ember-disable-prototype-extensions": "^1.1.2",
     "ember-export-application-global": "^2.0.0",
     "ember-load-initializers": "^1.0.0",
@@ -50,7 +51,7 @@
     "eslint-plugin-prettier": "^2.3.1",
     "loader.js": "^4.2.3",
     "pretender": "^1.4.2",
-    "prettier": "1.8.2"
+    "prettier": "^1.9.1"
   },
   "engines": {
     "node": "^4.5 || 6.* || >= 7.*"
