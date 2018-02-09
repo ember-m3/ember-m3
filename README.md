@@ -221,8 +221,15 @@ normalization to JSON API.
 
 #### Caching
 
-When `cacheKey` is provided the response payload is cached.  This can be useful
-to show, eg dashboard data or any other data that changes over time.
+When `cacheKey` is provided, the response is cached under `cacheKey`.
+
+If the response contains an model with an id, that model will be cached under that id as
+well as under the `cacheKey`.  The entry under the model's id and under the `cacheKey` will
+point to the same model.  Changes to the model will be reflected in both the models
+retrieved by `cacheKey` and the models retreived by the model's id.
+
+Using `cacheKey` with `queryURL` can be useful to show, eg dashboard data or any other data
+that changes over time.
 
 Consider the following:
 
@@ -236,7 +243,7 @@ the request is made the promise will resolve immediately with the cached values
 while loading fresh values in the background.
 
 Note that what is actually cached is the result: ie either a `MegamorphicModel`
-or, more likely, a `RecordArray` of `MegamorphicModel`s.  
+or, more likely, a `RecordArray` of `MegamorphicModel`s.
 
 ---
 
