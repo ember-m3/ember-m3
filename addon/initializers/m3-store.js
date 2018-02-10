@@ -7,6 +7,8 @@ import MegamorphicModelFactory from '../factory';
 import SchemaManager from '../schema-manager';
 import QueryCache from '../query-cache';
 
+let hasReopened = false;
+
 export function extendStore(Store) {
   Store.reopen({
     init() {
@@ -100,6 +102,11 @@ export function extendDataAdapter(DataAdapter) {
 }
 
 export function initialize() {
+  if (hasReopened === true) {
+    return;
+  }
+
+  hasReopened = true;
   extendStore(DS.Store);
   extendDataAdapter(Ember.DataAdapter);
 }
