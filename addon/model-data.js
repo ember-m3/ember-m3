@@ -28,14 +28,22 @@ function commitDataAndNotify(modelData, updates) {
   modelData._notifyRecordProperties(changedKeys);
 }
 
+/**
+ * Model Data Wrapper used by nested models.
+ *
+ * The wrapper does not implement the whole API, only the minimal set, which
+ * is required by M3 ModelData.
+ */
 class NestedModelDataWrapper {
   constructor(nestedInternalModel) {
     this.internalModel = nestedInternalModel;
   }
 
   notifyPropertyChange(modelName, id, clientId, key) {
-    // TODO enhance this assert
-    assert('TODO', modelName === this.internalModel.modelName && id === this.internalModel.id);
+    assert(
+      `Nested model datas can only notify of property changes their associated record. Blocked an attempt to notify ${modelName} with ID ${id} for ${key} property`,
+      modelName === this.internalModel.modelName && id === this.internalModel.id
+    );
 
     if (this.internalModel.hasRecord) {
       this.internalModel._record.notifyPropertyChange(key);
@@ -44,19 +52,21 @@ class NestedModelDataWrapper {
 }
 
 export default class M3ModelData {
-  constructor(modelName, id, clientId, storeWrapper, store) {
-    this.store = store;
+  constructor(modelName, id, clientId, storeWrapper) {
     this.modelName = modelName;
     this.clientId = clientId;
     this.id = id;
     this.storeWrapper = storeWrapper;
+    this.schemaInterface = new M3SchemaInterface(this);
+
     this.__data = null;
     this.__nestedModelsData = null;
-
-    this.schemaInterface = new M3SchemaInterface(this);
-    this._schema = SchemaManager;
     this.__projections = null;
+
+    this._schema = SchemaManager;
+
     this.baseModelName = this._schema.computeBaseModelName(this.modelName);
+
     if (this.baseModelName) {
       // TODO we may not have ID yet?
       this._initBaseModelData(this.baseModelName, id);
@@ -141,12 +151,12 @@ export default class M3ModelData {
     return key in this._data;
   }
 
-  unloadRecord() {
-    this.destroy();
-  }
-
   isAttrDirty() {
     return false;
+  }
+
+  unloadRecord() {
+    this.destroy();
   }
 
   removeFromInverseRelationships() {}
@@ -155,6 +165,20 @@ export default class M3ModelData {
 
   // INTERNAL API
 
+  /**
+   * Returns an associated nested model data for given property in the current one.
+   *
+   * Nested model datas created through this function are tracked in the parent, which
+   * allows updates to nested models to be merged with existing data instead of completely
+   * overwritten.
+   *
+   * @param {string} key - The name of the field, holding the nested model
+   * @param {string} modelName - The model name of the nested model as computed by the schema
+   * @param {string} id - The ID of the nested model as computed by the schema.
+   * @param {EmbeddedInternalModel} internalModel - The internal model, backing the nested model.
+   * @return {M3ModelData}
+   * @private
+   */
   getOrCreateNestedModelData(key, modelName, id, internalModel) {
     let nestedModelData = this._nestedModelDatas[key];
     if (!nestedModelData) {
@@ -167,11 +191,26 @@ export default class M3ModelData {
     return nestedModelData;
   }
 
+  /**
+   * Creates new nested model data.
+   *
+   * @param {string} modelName - The model name of the nested model as computed by the schema
+   * @param {string} id - The ID of the nested model as computed by the schema.
+   * @param {EmbeddedInternalModel} internalModel - The internal model, backing the nested model.
+   * @return {M3ModelData}
+   * @private
+   */
   createNestedModelData(modelName, id, internalModel) {
     let storeWrapper = new NestedModelDataWrapper(internalModel);
-    return new M3ModelData(modelName, id, null, storeWrapper, this.store);
+    return new M3ModelData(modelName, id, null, storeWrapper);
   }
 
+  /**
+   * Destroys nested model data for given key, when it is no longer needed.
+   *
+   * @param {string} key - The name of the field, holding the nested model.
+   * @private
+   */
   destroyNestedModelData(key) {
     let nestedModelData = this._nestedModelDatas[key];
     if (nestedModelData) {
@@ -180,6 +219,13 @@ export default class M3ModelData {
     }
   }
 
+  /**
+   * Returns whether a nested model data exist for given key or not.
+   *
+   * @param {string} key - The name of the field, which may hold a nested model.
+   * @return {M3ModelData}
+   * @private
+   */
   hasNestedModelData(key) {
     return !!this._nestedModelDatas[key];
   }
@@ -217,7 +263,7 @@ export default class M3ModelData {
   }
 
   _initBaseModelData(modelName, id) {
-    this.baseModelData = this.store.modelDataFor(modelName, id);
+    this.baseModelData = this.storeWrapper.modelDataFor(modelName, id);
     this.baseModelData._registerProjection(this);
   }
 
@@ -233,7 +279,9 @@ export default class M3ModelData {
   /**
    *
    * @param updates
-   * @param nestedCallback a callback for updating the data of a nested model-data instance
+   * @param nestedCallback a callback for updating the data of a nested model-data instance.
+   *                       Main reason to delegate this to a separate function is to be able
+   *                       to distinguish between updates from `pushData` and `didCommit`.
    * @returns {Array}
    * @private
    */
@@ -263,7 +311,12 @@ export default class M3ModelData {
         let nested = this.getOrCreateNestedModelData(key);
 
         // we need to compute the new nested type, hopefully it is not too slow
-        let newNestedDef = this._schema.computeNestedModel(key, newValue, this.modelName);
+        let newNestedDef = this._schema.computeNestedModel(
+          key,
+          newValue,
+          this.modelName,
+          this.schemaInterface
+        );
         let newType = newNestedDef && newNestedDef.type && dasherize(newNestedDef.type);
         let isSameType =
           newType === nested.modelName || (isNone(newType) && isNone(nested.modelName));

@@ -90,7 +90,7 @@ export function extendStore(Store) {
 
     createModelDataFor(modelName, id, clientId, storeWrapper) {
       if (SchemaManager.includesModel(modelName)) {
-        return new M3ModelData(modelName, id, clientId, storeWrapper, this);
+        return new M3ModelData(modelName, id, clientId, storeWrapper);
       }
       return this._super(modelName, id, clientId, storeWrapper);
     },
