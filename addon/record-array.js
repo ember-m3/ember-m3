@@ -10,16 +10,12 @@ export default RecordArray.extend({
   replaceContent(idx, removeAmt, newModels) {
     let addAmt = newModels.length;
 
-    this.arrayContentWillChange(idx, removeAmt, addAmt);
-
     let newInternalModels = new Array(addAmt);
     for (let i = 0; i < newInternalModels.length; ++i) {
       newInternalModels[i] = newModels.objectAt(i)._internalModel;
     }
-    this.content.splice(idx, removeAmt, ...newInternalModels);
+    this.content.replace(idx, removeAmt, newInternalModels);
     // TODO: update the backing m3's internalModel._data
-
-    this.arrayContentDidChange(idx, removeAmt, addAmt);
   },
 
   _update() {
