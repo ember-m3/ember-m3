@@ -1,9 +1,17 @@
 import { isEqual } from '@ember/utils';
 import { assign, merge } from '@ember/polyfills';
 import { copy } from '@ember/object/internals';
-import { setDiff } from 'ember-m3/util';
+import { isEmbeddedObject } from 'ember-m3/util';
 
 const emberAssign = assign || merge;
+
+function pushDataAndNotify(modelData, updates) {
+  modelData.pushData({ attributes: updates }, true, true);
+}
+
+function commitDataAndNotify(modelData, updates) {
+  modelData.didCommit({ attributes: updates }, true);
+}
 
 class M3SchemaInterface {
   constructor(modelData) {
@@ -36,19 +44,14 @@ export default class M3ModelData {
     this.__inFlightAttributes = null;
 
     this._parentModelData = parentModelData;
-    this.__childModelDatas = null;
-    if (parentKey !== undefined && parentKey !== null) {
-      let parentChildren = this._parentModelData._childModelDatas;
-      if (parentValueIsArray) {
-        parentChildren[parentKey] = parentChildren[parentKey] || [];
-        parentChildren[parentKey].push(this);
-      } else {
-        parentChildren[parentKey] = this;
-      }
-    }
     this._embeddedInternalModel = embeddedInternalModel;
+    this.__childModelDatas = null;
 
     this.schemaInterface = new M3SchemaInterface(this);
+
+    if (parentKey !== undefined && parentKey !== null) {
+      this._parentModelData._addChildModelData(parentKey, parentValueIsArray, this);
+    }
   }
 
   // PUBLIC API
@@ -63,14 +66,16 @@ export default class M3ModelData {
 
   pushData(jsonApiResource, calculateChange, notifyRecord = false) {
     let changedKeys;
-
-    if (calculateChange) {
-      changedKeys = this._changedKeys(jsonApiResource.attributes);
+    if (jsonApiResource.attributes) {
+      changedKeys = this._mergeUpdates(
+        jsonApiResource.attributes,
+        pushDataAndNotify,
+        // if we need to notify the record, we must calculate the changes
+        calculateChange || notifyRecord
+      );
+      changedKeys = this._filterChangedKeys(changedKeys);
     }
 
-    if (jsonApiResource.attributes !== undefined) {
-      this._data = jsonApiResource.attributes;
-    }
     if (this.__attributes !== null) {
       // only do if we have attribute changes
       this._updateChangedAttributes();
@@ -80,33 +85,11 @@ export default class M3ModelData {
       this.id = jsonApiResource.id + '';
     }
 
-    if (this.__childModelDatas) {
-      let nestedKeys = Object.keys(this._childModelDatas);
-      for (let i = 0; i < nestedKeys.length; ++i) {
-        let childKey = nestedKeys[i];
-        let childModelData = this._childModelDatas[childKey];
-        let newAttrs = this._data[childKey];
-
-        if (newAttrs === null || typeof newAttrs !== 'object' || Array.isArray(childModelData)) {
-          // changing from nested model -> primitive we don't update inline,
-          // just discard the child model data similarly we don't push changes
-          // down to arrays of nested models because we don't associate an
-          // individual model data with its position in an array
-          //
-          // this also means that nested m3 models within arrays are not
-          // re-used between pushes of data
-          delete this._childModelDatas[childKey];
-        } else {
-          childModelData.pushData({ attributes: this._data[childKey] }, true, true);
-        }
-      }
-    }
-
     if (notifyRecord) {
       this._embeddedInternalModel.record._notifyProperties(changedKeys);
     }
 
-    return changedKeys;
+    return changedKeys || [];
   }
 
   willCommit() {
@@ -140,39 +123,23 @@ export default class M3ModelData {
     if (jsonApiResource) {
       attributes = jsonApiResource.attributes;
     }
-    let changedKeys = this._changedKeys(attributes);
 
     emberAssign(this._data, this._inFlightAttributes);
-    if (attributes !== undefined) {
-      this._data = attributes;
-    }
-
     this._inFlightAttributes = null;
 
-    this._updateChangedAttributes();
-
-    if (this.__childModelDatas) {
-      let nestedKeys = Object.keys(this._childModelDatas);
-      for (let i = 0; i < nestedKeys.length; ++i) {
-        let childKey = nestedKeys[i];
-        let childModelData = this._childModelDatas[childKey];
-        let newAttrs = this._data[childKey];
-
-        if (newAttrs === null || typeof newAttrs !== 'object' || Array.isArray(childModelData)) {
-          // we don't re-use nested models within arrays so there's no need to
-          // propagate willCommit/didCommit
-          delete this._childModelDatas[childKey];
-        } else {
-          childModelData.didCommit({ attributes: this._data[childKey] }, true);
-        }
-      }
+    let changedKeys;
+    if (attributes !== undefined) {
+      changedKeys = this._mergeUpdates(attributes, commitDataAndNotify, true);
+      changedKeys = this._filterChangedKeys(changedKeys);
     }
+
+    this._updateChangedAttributes();
 
     if (notifyRecord) {
       this._embeddedInternalModel.record._notifyProperties(changedKeys);
     }
 
-    return changedKeys;
+    return changedKeys || [];
   }
 
   getHasMany() {}
@@ -246,7 +213,7 @@ export default class M3ModelData {
     if (this.isDestroyed) {
       return;
     }
-    this.destroy();
+    this._destroy();
   }
 
   isRecordInUse() {
@@ -374,11 +341,6 @@ export default class M3ModelData {
     this.__attributes = v;
   }
 
-  destroy() {
-    this.isDestroyed = true;
-    this.storeWrapper.disconnectRecord(this.modelName, this.id, this.clientId);
-  }
-
   get _data() {
     if (this.__data === null) {
       this.__data = Object.create(null);
@@ -401,6 +363,37 @@ export default class M3ModelData {
     this.__inFlightAttributes = v;
   }
 
+  _addChildModelData(key, isArray, modelData) {
+    let childModelDatas = this._childModelDatas;
+    if (isArray) {
+      childModelDatas[key] = childModelDatas[key] || [];
+      childModelDatas[key].push(modelData);
+    } else {
+      childModelDatas[key] = modelData;
+    }
+  }
+
+  _destroyChildModelData(key) {
+    let childModelData = this._childModelDatas[key];
+    if (childModelData) {
+      // destroy
+      delete this._childModelDatas[key];
+    }
+  }
+
+  _hasNonArrayChildModelData(key) {
+    return (
+      this.__childModelDatas &&
+      this.__childModelDatas[key] &&
+      !Array.isArray(this.__childModelDatas[key])
+    );
+  }
+
+  _destroy() {
+    this.isDestroyed = true;
+    this.storeWrapper.disconnectRecord(this.modelName, this.id, this.clientId);
+  }
+
   /*
     Checks if the attributes which are considered as changed are still
     different to the state which is acknowledged by the server.
@@ -408,7 +401,7 @@ export default class M3ModelData {
     This method is needed when data for the internal model is pushed and the
     pushed data might acknowledge dirty attributes as confirmed.
 
-    @method updateChangedAttributes
+    @method _updateChangedAttributes
     @private
    */
   _updateChangedAttributes() {
@@ -428,42 +421,77 @@ export default class M3ModelData {
     }
   }
 
-  _changedKeys(updates) {
-    let changedKeys = [];
+  /*
+    Filters keys, which have local changes in _attributes, because even their value on
+    the server has changed, their local value is not and no property notification should
+    be sent for them.
+    @method _filterChangedKeys
+    @private
+   */
+  _filterChangedKeys(changedKeys) {
+    if (!changedKeys || changedKeys.length === 0) {
+      return changedKeys;
+    }
+    if (!this.hasChangedAttributes()) {
+      return changedKeys;
+    }
+    let attrs = this._attributes;
 
-    if (updates) {
-      let original, i, value, key;
-      let keys = Object.keys(updates);
-      let length = keys.length;
-      let hasAttrs = this.hasChangedAttributes();
-      let attrs;
-      if (hasAttrs) {
-        attrs = this._attributes;
+    return changedKeys.filter(key => attrs[key] === undefined);
+  }
+
+  /*
+    Merges updates from the server and delegates changes in nested objects to their respective
+    child model data.
+
+    Returns the list of changed keys ignoring any changes in its children.
+
+    @param updates
+    @param nestedCallback a callback for updating the data of a nested model-data instance
+    @returns {Array}
+    @private
+   */
+  _mergeUpdates(updates, nestedCallback, calculateChanges) {
+    let data = this._data;
+
+    let changedKeys;
+    if (calculateChanges) {
+      changedKeys = [];
+    }
+
+    if (!updates) {
+      // no changes
+      return changedKeys;
+    }
+
+    let updatedKeys = Object.keys(updates);
+
+    for (let i = 0; i < updatedKeys.length; i++) {
+      let key = updatedKeys[i];
+      let newValue = updates[key];
+
+      if (isEqual(data[key], newValue)) {
+        // values are equal, nothing to do
+        // note, updates to objects should always result in new object or there will be nothing to update
+        continue;
       }
 
-      original = emberAssign(Object.create(null), this._data);
-      original = emberAssign(original, this._inFlightAttributes);
+      if (this._hasNonArrayChildModelData(key)) {
+        let nested = this._childModelDatas[key];
 
-      for (i = 0; i < length; i++) {
-        key = keys[i];
-        value = updates[key];
-
-        // A value in _attributes means the user has a local change to
-        // this attributes. We never override this value when merging
-        // updates from the backend so we should not sent a change
-        // notification if the server value differs from the original.
-        if (hasAttrs === true && attrs[key] !== undefined) {
+        if (isEmbeddedObject(newValue)) {
+          nestedCallback(nested, newValue);
           continue;
         }
 
-        if (!isEqual(original[key], value)) {
-          // checking via `isEqual` means we'll treat all array and object properties as changed
-          changedKeys.push(key);
-        }
+        // not an embedded object, destroy the nested model data
+        this._destroyChildModelData(key);
       }
 
-      let omittedKeys = setDiff(Object.keys(original).sort(), Object.keys(updates).sort());
-      changedKeys = changedKeys.concat(omittedKeys);
+      if (calculateChanges) {
+        changedKeys.push(key);
+      }
+      data[key] = newValue;
     }
 
     return changedKeys;

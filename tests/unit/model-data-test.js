@@ -214,7 +214,7 @@ module('unit/model-data', function(hooks) {
 
       assert.deepEqual(
         changedKeys.sort(),
-        ['name', 'child1', 'child2', 'child3'].sort(),
+        ['name', 'child3'].sort(),
         'changed attributes are returned'
       );
       assert.deepEqual(
@@ -274,7 +274,7 @@ module('unit/model-data', function(hooks) {
           this.child1Model._notifyProperties.thisValues.map(x => x + ''),
           this.child1Model._notifyProperties.args
         ),
-        [[this.child1Model + '', [['name', 'child1_1']]]],
+        [[this.child1Model + '', [['name']]]],
         'child1._notifyProperties called'
       );
 
@@ -311,7 +311,7 @@ module('unit/model-data', function(hooks) {
 
       assert.deepEqual(
         changedKeys.sort(),
-        ['name', 'child1', 'child2', 'child3'].sort(),
+        ['name', 'child3'].sort(),
         'changed attributes are returned'
       );
       assert.deepEqual(
@@ -366,7 +366,7 @@ module('unit/model-data', function(hooks) {
           this.child1Model._notifyProperties.thisValues.map(x => x + ''),
           this.child1Model._notifyProperties.args
         ),
-        [[this.child1Model + '', [['name', 'child1_1']]]],
+        [[this.child1Model + '', [['name']]]],
         'child1._notifyProperties called'
       );
 

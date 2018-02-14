@@ -47,7 +47,7 @@ class EmbeddedSnapshot {
 
 // TODO: shouldn't need this anymore; this level of indirection for nested modeldata isn't useful
 class EmbeddedInternalModel {
-  constructor({ id, modelName, attributes, store, parentInternalModel, parentKey, valueInArray }) {
+  constructor({ id, modelName, attributes, parentInternalModel, parentKey, valueInArray }) {
     this.id = id;
     this.modelName = modelName;
 
@@ -64,7 +64,6 @@ class EmbeddedInternalModel {
     this._modelData.pushData({
       attributes,
     });
-    this.store = store;
     this.parentInternalModel = parentInternalModel;
 
     this.record = null;
@@ -119,7 +118,6 @@ function resolveValue(key, value, modelName, store, schema, model, valueInArray 
       // internally within ember-data
       modelName: nested.type ? dasherize(nested.type) : null,
       attributes: nested.attributes,
-      store,
       parentInternalModel: model._internalModel,
       parentKey: key,
       valueInArray,
