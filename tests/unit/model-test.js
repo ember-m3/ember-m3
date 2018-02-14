@@ -1180,10 +1180,10 @@ module('unit/model', function(hooks) {
     ]);
   });
 
-  test('omitted attributes do not trigger changes', function(assert) {
+  test('omitted attributes are treated as deletes', function(assert) {
     let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
-    run(() => {
+    let model = run(() => {
       return this.store.push({
         data: {
           id: 'isbn:9780439708180',
@@ -1195,6 +1195,8 @@ module('unit/model', function(hooks) {
         },
       });
     });
+
+    assert.equal(get(model, 'name'), `Harry Potter and the Sorcerer's Stone`, 'name initially set');
 
     run(() => {
       return this.store.push({
@@ -1208,10 +1210,16 @@ module('unit/model', function(hooks) {
       });
     });
 
+    assert.strictEqual(
+      get(model, 'name'),
+      undefined,
+      'omitted name treated as deleting the property'
+    );
+
     assert.deepEqual(
       zip(propChange.thisValues.map(x => x + ''), propChange.args),
-      [],
-      'omitted attributes do not trigger changes'
+      [[model + '', ['name']]],
+      'omitted attributes are treated as deletes'
     );
   });
 
@@ -1313,10 +1321,10 @@ module('unit/model', function(hooks) {
     assert.deepEqual(
       zip(propChange.thisValues.map(x => x + ''), propChange.args),
       [
-        [nested + '', ['name']],
-        [nested + '', ['number']],
         [doubleNested + '', ['name']],
         [doubleNested + '', ['number']],
+        [nested + '', ['name']],
+        [nested + '', ['number']],
       ],
       'nulled attributes in nested models are detected as changed'
     );
@@ -1327,7 +1335,7 @@ module('unit/model', function(hooks) {
     assert.equal(get(doubleNested, 'name'), null);
   });
 
-  test('omitted attributes in nested models are not detected as changed', function(assert) {
+  test('omitted attributes in nested models are treated as deletes', function(assert) {
     let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
     let model = run(() => {
@@ -1379,14 +1387,14 @@ module('unit/model', function(hooks) {
 
     assert.deepEqual(
       zip(propChange.thisValues.map(x => x + ''), propChange.args),
-      [],
-      'nulled attributes in nested models are detected as changed'
+      [[doubleNested + '', ['name']], [nested + '', ['name']]],
+      'omitted attributes in nested models are treated as deletes'
     );
 
     assert.equal(get(nested, 'number'), 0);
-    assert.equal(get(nested, 'name'), 'The Boy Who Lived');
+    assert.equal(get(nested, 'name'), null);
     assert.equal(get(doubleNested, 'number'), 1);
-    assert.equal(get(doubleNested, 'name'), 'The Vanishing Glass');
+    assert.equal(get(doubleNested, 'name'), null);
   });
 
   test('new attributes are treated as changed', function(assert) {
@@ -1663,7 +1671,6 @@ module('unit/model', function(hooks) {
           type: 'com.example.bookstore.Book',
           attributes: {
             name: `Harry Potter and the Sorcerer's Stone`,
-            nextChapter: null,
           },
         },
       });
@@ -1752,7 +1759,6 @@ module('unit/model', function(hooks) {
           type: 'com.example.bookstore.Book',
           attributes: {
             name: `Harry Potter and the Sorcerer's Stone`,
-            nextChapter: null,
           },
         },
       });
@@ -1921,7 +1927,7 @@ module('unit/model', function(hooks) {
   });
 
   test('.save saves via the store', function(assert) {
-    assert.expect(6);
+    assert.expect(4);
 
     this.owner.register(
       'adapter:-ember-m3',
@@ -1955,10 +1961,8 @@ module('unit/model', function(hooks) {
       });
     });
 
-    assert.equal(model.get('dirtyType'), null, 'initially model clean');
     assert.equal(model.get('isSaving'), false, 'initially model not saving');
     model.set('estimatedPubDate', '2231?');
-    assert.equal(model.get('dirtyType'), null, 'no dirty tracking support');
 
     return run(() =>
       model.save().then(() => {
@@ -1968,7 +1972,7 @@ module('unit/model', function(hooks) {
           {
             name: 'The Winds of Winter',
             estimatedRating: '11/10',
-            estimatedPubDate: '2231?',
+            // estimatedPubDate omitted in response
           },
           'data post save resolve'
         );
@@ -2199,7 +2203,111 @@ module('unit/model', function(hooks) {
     );
   });
 
-  test('.rollbackAttributes resets state from dirty', function(assert) {
+  test('.changedAttributes returns nested dirty attributes within an object', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            number: 0,
+            nextChapter: {
+              name: 'The Boy Who whatever',
+              number: 1,
+              nextChapter: {
+                name: 'The Vanishing dunno',
+                number: 2,
+              },
+            },
+          },
+        },
+      });
+    });
+
+    let nested = get(model, 'nextChapter');
+    let doubleNested = get(nested, 'nextChapter');
+
+    assert.deepEqual(model.changedAttributes(), {}, 'initially no attributes are changed');
+
+    set(model, 'name', 'secret book name');
+    set(model, 'newAttr', 'a wild attribute appears!');
+
+    assert.deepEqual(
+      model.changedAttributes(),
+      {
+        name: [`Harry Potter and the Sorcerer's Stone`, 'secret book name'],
+        newAttr: [undefined, 'a wild attribute appears!'],
+      },
+      'initially no attributes are changed'
+    );
+
+    set(nested, 'name', 'a new chapter name');
+    set(nested, 'newAttr', 'first chapter; new attr!');
+    set(doubleNested, 'number', 24601);
+    set(doubleNested, 'anotherNewAttr', 'another new attr!');
+
+    assert.deepEqual(
+      model.changedAttributes(),
+      {
+        name: [`Harry Potter and the Sorcerer's Stone`, 'secret book name'],
+        newAttr: [undefined, 'a wild attribute appears!'],
+        nextChapter: {
+          name: ['The Boy Who whatever', 'a new chapter name'],
+          newAttr: [undefined, 'first chapter; new attr!'],
+          nextChapter: {
+            number: [2, 24601],
+            anotherNewAttr: [undefined, 'another new attr!'],
+          },
+        },
+      },
+      'only changed attributes in nested models are included'
+    );
+  });
+
+  test('.changedAttributes returns nested dirty attributes within arrays of nested models', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+            author: 'George R. R. Martin',
+            chapters: [
+              {
+                name: 'Windy eh',
+                number: 1,
+              },
+              {
+                name: `I guess winter was coming after all`,
+                number: 2,
+              },
+            ],
+            notes: [{ value: 'Unsure if this book will ever be published' }],
+          },
+        },
+      });
+    });
+
+    let nestedModels = get(model, 'chapters');
+    set(nestedModels[0], 'name', 'super windy');
+
+    assert.deepEqual(
+      model.changedAttributes(),
+      {
+        chapters: [
+          {
+            name: ['Windy eh', 'super windy'],
+          },
+          undefined,
+        ],
+      },
+      '.changedAttributes returns nested dirty attributes within arrays of nested models'
+    );
+  });
+
+  test('.rollbackAttributes resets state from dirty (uncached)', function(assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -2220,14 +2328,128 @@ module('unit/model', function(hooks) {
       'root.loaded.saved',
       'after rolling back model.state loaded.saved'
     );
-    assert.deepEqual(
+    assert.equal(
       get(model, 'name'),
       'The Winds of Winter',
       'rollbackAttributes reverts changes to the record'
     );
   });
 
-  test('updates from .save does not overwrite attributes set after .save is called', function(assert) {
+  test('.rollbackAttributes resets state from dirty (cached)', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+          },
+        },
+      });
+    });
+
+    model.set('name', 'Some other book');
+    // cache new value in resolution cache
+    assert.equal(get(model, 'name'), 'Some other book', 'value is set correctly (and cached)');
+
+    model.rollbackAttributes();
+
+    assert.equal(
+      get(model, 'currentState.stateName'),
+      'root.loaded.saved',
+      'after rolling back model.state loaded.saved'
+    );
+    assert.equal(
+      get(model, 'name'),
+      'The Winds of Winter',
+      'rollbackAttributes reverts changes to the record'
+    );
+  });
+
+  test('.rollbackAttributes rolls back nested dirty attributes', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+            nextChapter: {
+              name: 'The first chapter',
+            },
+          },
+        },
+      });
+    });
+
+    set(model, 'nextChapter.name', 'The beginning');
+    assert.equal(get(model, 'nextChapter.name'), 'The beginning', 'nested model attribute changed');
+
+    model.rollbackAttributes();
+
+    assert.equal(
+      get(model, 'nextChapter.name'),
+      'The first chapter',
+      'rollbackAttributes reverts changes to the nested model'
+    );
+
+    assert.deepEqual(
+      model.changedAttributes(),
+      {},
+      'after rollback, there are no changed attriutes'
+    );
+  });
+
+  test('.rollbackAttributes rolls back nested dirty attributes after a rejected save', function(assert) {
+    this.owner.register(
+      'adapter:-ember-m3',
+      Ember.Object.extend({
+        updateRecord() {
+          return Promise.reject();
+        },
+      })
+    );
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+            nextChapter: {
+              name: 'The first chapter',
+            },
+          },
+        },
+      });
+    });
+
+    set(model, 'nextChapter.name', 'The beginning');
+    assert.equal(get(model, 'nextChapter.name'), 'The beginning', 'nested model attribute changed');
+
+    return run(() => model.save()).then(
+      value => {
+        throw new Error(`unexpected promise fulfillment with value ${value}`);
+      },
+      () => {
+        model.rollbackAttributes();
+
+        assert.equal(
+          get(model, 'nextChapter.name'),
+          'The first chapter',
+          'rollbackAttributes reverts changes to the nested model'
+        );
+
+        assert.deepEqual(
+          model.changedAttributes(),
+          {},
+          'after rollback, there are no changed attriutes'
+        );
+      }
+    );
+  });
+
+  test('updates from .save do not overwrite attributes  or nested attributes set after .save is called', function(assert) {
     this.owner.register(
       'adapter:-ember-m3',
       Ember.Object.extend({
@@ -2239,6 +2461,14 @@ module('unit/model', function(hooks) {
               attributes: {
                 name: "Harry Potter and the Sorcerer's Stone",
                 author: 'J. K. Rowling',
+                nextChapter: {
+                  name: 'The Boy Who Lived',
+                  number: 1,
+                  nextChapter: {
+                    name: 'The Vanishing Glass',
+                    number: 2,
+                  },
+                },
               },
             },
           });
@@ -2253,28 +2483,139 @@ module('unit/model', function(hooks) {
           attributes: {
             name: 'The Winds of Winter',
             author: 'George R. R. Martin',
+            nextChapter: {
+              name: 'Windy eh',
+              number: 1,
+              nextChapter: {
+                name: `I guess winter was coming after all`,
+                number: 2,
+              },
+            },
+          },
+        },
+      });
+    });
+    let nestedModel = get(model, 'nextChapter');
+    let doubleNested = get(model, 'nextChapter.nextChapter');
+
+    set(model, 'name', 'Alice in Wonderland');
+    set(nestedModel, 'name', 'There must be some first chapter');
+    set(doubleNested, 'name', 'Likely there is a second chapter as well');
+
+    return run(() => {
+      let savePromise = model.save();
+
+      set(model, 'author', 'Lewis Carroll');
+      set(nestedModel, 'number', 6);
+      set(doubleNested, 'number', 24601);
+
+      return savePromise.then(() => {
+        assert.equal(
+          get(model, 'author'),
+          'Lewis Carroll',
+          'the author was set after save, should not be updated'
+        );
+        assert.equal(
+          get(model, 'name'),
+          "Harry Potter and the Sorcerer's Stone",
+          'the name of the book is updated from the save'
+        );
+
+        assert.equal(
+          get(nestedModel, 'number'),
+          6,
+          'the author was set after save, should not be updated'
+        );
+        assert.equal(
+          get(nestedModel, 'name'),
+          'The Boy Who Lived',
+          'the name of the first chapter is updated from the save'
+        );
+
+        assert.equal(
+          get(doubleNested, 'number'),
+          24601,
+          'the author was set after save, should not be updated'
+        );
+        assert.equal(
+          get(doubleNested, 'name'),
+          'The Vanishing Glass',
+          'the name of the second chapter is updated from the save'
+        );
+      });
+    });
+  });
+
+  test('updates from .save clear changed attributes in nested models within arrays', function(assert) {
+    this.owner.register(
+      'adapter:-ember-m3',
+      Ember.Object.extend({
+        updateRecord() {
+          return Promise.resolve({
+            data: {
+              id: 1,
+              type: 'com.example.bookstore.Book',
+              attributes: {
+                name: "Harry Potter and the Sorcerer's Stone",
+                author: 'J. K. Rowling',
+                chapters: [
+                  {
+                    name: 'The Boy Who Lived',
+                    number: 1,
+                  },
+                  {
+                    name: 'The Vanishing Glass',
+                    number: 2,
+                  },
+                ],
+              },
+            },
+          });
+        },
+      })
+    );
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+            author: 'George R. R. Martin',
+            chapters: [
+              {
+                name: 'Windy eh',
+                number: 1,
+              },
+              {
+                name: `I guess winter was coming after all`,
+                number: 2,
+              },
+            ],
           },
         },
       });
     });
 
-    model.set('name', 'Alice in Wonderland');
+    let nestedModels = get(model, 'chapters');
+    set(nestedModels[0], 'name', 'super windy');
 
-    run(() => {
+    assert.deepEqual(
+      get(model, 'chapters').map(m => get(m, 'name')),
+      ['super windy', 'I guess winter was coming after all'],
+      'initially properties reflect locally changed attributes'
+    );
+
+    return run(() => {
       let savePromise = model.save();
 
-      model.set('author', 'Lewis Carroll');
+      set(nestedModels[0], 'name', 'sooooooo super windy');
 
-      savePromise.then(() => {
-        assert.equal(
-          model.get('author'),
-          'Lewis Carroll',
-          'the author was set after save, should not be updated'
-        );
-        assert.equal(
-          model.get('name'),
-          "Harry Potter and the Sorcerer's Stone",
-          'the name of the book is updated from the save'
+      return savePromise.then(() => {
+        assert.deepEqual(
+          get(model, 'chapters').map(m => get(m, 'name')),
+          ['The Boy Who Lived', 'The Vanishing Glass'],
+          'local changes to nested models within arrays are not preserved after adapter commit'
         );
       });
     });
