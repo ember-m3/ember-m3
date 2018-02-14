@@ -35,7 +35,6 @@ before_install:
 
 install:
   - yarn install --no-lockfile --non-interactive
-  - yarn list
 
 script:
   # Usually, it's ok to finish the test scenario without reverting
