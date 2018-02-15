@@ -332,7 +332,7 @@ export default class M3ModelData {
     if (this.isDestroyed) {
       return;
     }
-    if (this.baseModelData || this._areAllProjectionsDestroyed()) {
+    if (this._baseModelData || this._areAllProjectionsDestroyed()) {
       this._destroy();
     }
   }
@@ -564,14 +564,14 @@ export default class M3ModelData {
   }
 
   _unregisterProjection(modelData) {
-    if (!this.__projections) {
+    if (!this._projections) {
       return;
     }
-    let idx = this.__projections.indexOf(modelData);
+    let idx = this._projections.indexOf(modelData);
     if (idx === -1) {
       return;
     }
-    this.__projections.splice(idx, 1);
+    this._projections.splice(idx, 1);
 
     // if all projetions have been destroyed and the record is not use, destroy as well
     if (this._areAllProjectionsDestroyed() && !this.isRecordInUse()) {
@@ -582,8 +582,8 @@ export default class M3ModelData {
   _destroy() {
     this.isDestroyed = true;
     this.storeWrapper.disconnectRecord(this.modelName, this.id, this.clientId);
-    if (this.baseModelData) {
-      this.baseModelData._unregisterProjection(this);
+    if (this._baseModelData) {
+      this._baseModelData._unregisterProjection(this);
     }
   }
 
@@ -634,13 +634,13 @@ export default class M3ModelData {
   }
 
   _areAllProjectionsDestroyed() {
-    if (!this.__projections) {
+    if (!this._projections) {
       // no projections were ever registered
       return true;
     }
     // if this model data is the last one in the projections list, then all of the others have been destroyed
     // note: should not be possible to get into state of no projections (projections.length === 0)
-    return this.__projections.length === 1 && this.__projections[0] === this;
+    return this._projections.length === 1 && this._projections[0] === this;
   }
 
   _inverseMergeUpdates(updates) {

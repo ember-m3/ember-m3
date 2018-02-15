@@ -29,6 +29,10 @@ module('unit/model-data', function(hooks) {
         delete this.modelDatas[key];
       },
 
+      isRecordInUse() {
+        return false;
+      },
+
       notifyPropertyChange() {},
     });
 
@@ -225,6 +229,25 @@ module('unit/model-data', function(hooks) {
       baseModelData._projections,
       [baseModelData, projectedModelData],
       'Expected projected model data to be in the projections list'
+    );
+  });
+
+  test('projection model data unregister from base model data and the store on unloadRecord', function(assert) {
+    let projectionModelData = this.storeWrapper.modelDataFor('com.bookstore.projected-book', '1');
+    let baseModelData = this.storeWrapper.modelDataFor('com.bookstore.book', '1');
+
+    // unload the model data
+    projectionModelData.unloadRecord();
+
+    assert.notEqual(
+      this.storeWrapper.disconnectedModelDatas[modelDataKey(projectionModelData)],
+      null,
+      'Expected projection model data to have been disconnected from the store'
+    );
+    assert.equal(
+      baseModelData._projections.find(x => x === projectionModelData),
+      null,
+      'Expected projected model data to have been removed from the projections'
     );
   });
 
