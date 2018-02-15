@@ -1,19 +1,59 @@
 import { module, test } from 'qunit';
+import { assert } from '@ember/debug';
 import M3ModelData from 'ember-m3/model-data';
+import SchemaManager from 'ember-m3/schema-manager';
+
+const modelDataKey = ({ modelName, id }) => `${modelName}:${id}`;
 
 module('unit/model-data', function(hooks) {
   hooks.beforeEach(function() {
-    this.store = null;
-    this.storeWrapper = null;
+    let storeWrapper = (this.storeWrapper = {
+      modelDatas: {},
+      disconnectedModelDatas: {},
+
+      modelDataFor(modelName, id) {
+        let key = modelDataKey({ modelName, id });
+        return (
+          this.modelDatas[key] ||
+          (this.modelDatas[key] = new M3ModelData(modelName, id, null, storeWrapper))
+        );
+      },
+
+      disconnectRecord(modelName, id) {
+        let key = modelDataKey({ modelName, id });
+        assert(`Disconnect record called for missing model data ${key}`, this.modelDatas[key]);
+        this.disconnectedModelDatas[key] = this.modelDatas[key];
+        delete this.modelDatas[key];
+      },
+    });
+
+    this.mockInternalModel = (modelName, id) => ({
+      id,
+      modelName,
+      hasRecord: true,
+      _record: {
+        notifyPropertyChange() {},
+      },
+    });
+
+    SchemaManager.registerSchema({
+      computeBaseModelName(modelName) {
+        return modelName === 'com.bookstore.projected-book' ? 'com.bookstore.book' : null;
+      },
+
+      computeNestedModel(key, value) {
+        if (value !== null && typeof value === 'object') {
+          return {
+            id: value.id,
+            type: value.type,
+            attributes: value,
+          };
+        }
+      },
+    });
 
     this.mockModelData = function() {
-      return new M3ModelData({
-        store: this.store,
-        modelName: 'com.bookstore.book',
-        clientId: null,
-        id: '1',
-        storeWrapper: this.storeWrapper,
-      });
+      return this.storeWrapper.modelDataFor('com.bookstore.book', '1');
     };
   });
 
@@ -42,6 +82,120 @@ module('unit/model-data', function(hooks) {
     assert.notOk(
       typeof schemaInterface.setAttr === 'function',
       'schemaInterface cannot write attr'
+    );
+  });
+
+  test('`.getOrCreateNestedModelData` reuses model datas', function(assert) {
+    let modelData = this.mockModelData();
+    let nestedModelData = modelData.getOrCreateNestedModelData(
+      'preface',
+      'com.bookstore.chapter',
+      '1',
+      null
+    );
+
+    assert.notEqual(nestedModelData, null, 'Expected nested model data to be returned');
+
+    let anotherNestedModelData = modelData.getOrCreateNestedModelData(
+      'preface',
+      'com.bookstore.chapter',
+      '1',
+      null
+    );
+
+    assert.strictEqual(
+      nestedModelData,
+      anotherNestedModelData,
+      'The nested model data must be the same'
+    );
+  });
+
+  test('nested model data are destroyed, when associated property is set to null', function(assert) {
+    let modelData = this.mockModelData();
+    modelData.getOrCreateNestedModelData('preface', 'com.bookstore.chapter', '1', null);
+
+    assert.strictEqual(
+      modelData.hasNestedModelData('preface'),
+      true,
+      'Expected nested model data to be added'
+    );
+
+    modelData.pushData({
+      attributes: {
+        name: 'Harry Potter',
+        preface: null,
+      },
+    });
+
+    assert.strictEqual(
+      modelData.hasNestedModelData('preface'),
+      false,
+      'Expected nested data to have been removed'
+    );
+  });
+
+  test('nested model data are reused, when associated property has updates', function(assert) {
+    let modelData = this.mockModelData();
+    let beforeNestedModelData = modelData.getOrCreateNestedModelData(
+      'preface',
+      'com.bookstore.chapter',
+      '1',
+      this.mockInternalModel('com.bookstore.chapter', '1')
+    );
+
+    modelData.pushData({
+      attributes: {
+        name: 'Harry Potter',
+        preface: {
+          id: '1',
+          type: 'com.bookstore.chapter',
+          text: "Harry Potter's preface",
+        },
+      },
+    });
+
+    let afterNestedModelData = modelData.getOrCreateNestedModelData(
+      'preface',
+      'com.bookstore.chapter',
+      '1',
+      null
+    );
+
+    assert.strictEqual(
+      afterNestedModelData,
+      beforeNestedModelData,
+      'Expected nested model data to have been reused'
+    );
+  });
+
+  test('`.unloadRecord` disconnects the model data from the store', function(assert) {
+    let modelData = this.mockModelData();
+
+    // unload
+    modelData.unloadRecord();
+
+    assert.strictEqual(
+      this.storeWrapper.disconnectedModelDatas[modelDataKey(modelData)],
+      modelData,
+      'Expected the model data to have been disconnected'
+    );
+  });
+
+  test('projection model data initializes and register in base model data', function(assert) {
+    let projectedModelData = this.storeWrapper.modelDataFor('com.bookstore.projected-book', '1');
+
+    let baseModelData = this.storeWrapper.modelDatas[
+      modelDataKey({
+        modelName: 'com.bookstore.book',
+        id: '1',
+      })
+    ];
+
+    assert.notEqual(baseModelData, null, 'Expected base model data to be initialized');
+    assert.deepEqual(
+      baseModelData._projections,
+      [baseModelData, projectedModelData],
+      'Expected projected model data to be in the projections list'
     );
   });
 });

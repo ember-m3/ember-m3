@@ -1,6 +1,10 @@
+import Ember from 'ember';
 import { isEqual } from '@ember/utils';
+import { assert } from '@ember/debug';
+import { dasherize } from '@ember/string';
+import { isNone } from '@ember/utils';
+import SchemaManager from './schema-manager';
 import { coerceId } from 'ember-data/-private';
-import { setDiff } from './util';
 
 class M3SchemaInterface {
   constructor(modelData) {
@@ -12,17 +16,63 @@ class M3SchemaInterface {
   }
 }
 
+function pushDataAndNotify(modelData, updates) {
+  let changedKeys = modelData.pushData({ attributes: updates });
+
+  modelData._notifyRecordProperties(changedKeys);
+}
+
+function commitDataAndNotify(modelData, updates) {
+  let changedKeys = modelData.didCommit({ attributes: updates });
+
+  modelData._notifyRecordProperties(changedKeys);
+}
+
+/**
+ * Model Data Wrapper used by nested models.
+ *
+ * The wrapper does not implement the whole API, only the minimal set, which
+ * is required by M3 ModelData.
+ */
+class NestedModelDataWrapper {
+  constructor(nestedInternalModel) {
+    this.internalModel = nestedInternalModel;
+  }
+
+  notifyPropertyChange(modelName, id, clientId, key) {
+    assert(
+      `Nested model datas can only notify of property changes their associated record. Blocked an attempt to notify ${modelName} with ID ${id} for ${key} property`,
+      modelName === this.internalModel.modelName && id === this.internalModel.id
+    );
+
+    if (this.internalModel.hasRecord) {
+      this.internalModel._record.notifyPropertyChange(key);
+    }
+  }
+}
+
 export default class M3ModelData {
-  constructor(modelName, id, clientId, storeWrapper, store) {
-    this.store = store;
+  constructor(modelName, id, clientId, storeWrapper) {
     this.modelName = modelName;
     this.clientId = clientId;
     this.id = id;
     this.storeWrapper = storeWrapper;
-    this.isDestroyed = false;
-    this.reset();
-
     this.schemaInterface = new M3SchemaInterface(this);
+
+    this.__data = null;
+    this.__nestedModelsData = null;
+    this.__projections = null;
+
+    this._schema = SchemaManager;
+
+    this.baseModelName = this._schema.computeBaseModelName(this.modelName);
+
+    if (this.baseModelName) {
+      // TODO we may not have ID yet?
+      this._initBaseModelData(this.baseModelName, id);
+    } else {
+      this.baseModelData = null;
+    }
   }
 
   // PUBLIC API
@@ -36,13 +86,15 @@ export default class M3ModelData {
   }
 
   pushData(data, calculateChange) {
-    let changedKeys;
+    if (!calculateChange) {
+      // check whether we have projections, which will require notifications
+      calculateChange = this._projections && this._projections.length > 0;
+    }
+    let changedKeys = this._mergeUpdates(data.attributes, pushDataAndNotify, calculateChange);
 
     if (calculateChange) {
-      changedKeys = this._changedKeys(data.attributes);
+      this._notifyProjectionProperties(changedKeys);
     }
-
-    this._data = data.attributes || {};
 
     if (data.id) {
       this.id = coerceId(data.id);
@@ -57,10 +109,6 @@ export default class M3ModelData {
     return false;
   }
 
-  reset() {
-    this._data = null;
-  }
-
   addToHasMany() {}
 
   removeFromHasMany() {}
@@ -72,14 +120,13 @@ export default class M3ModelData {
   rollbackAttributes() {}
 
   didCommit(data) {
+    let changedKeys;
     if (data) {
-      data = data.attributes;
+      changedKeys = this._mergeUpdates(data.attributes, commitDataAndNotify);
+      this._notifyProjectionProperties(changedKeys);
     }
-    let changedKeys = this._changedKeys(data);
 
-    this._data = data;
-
-    return changedKeys;
+    return changedKeys || [];
   }
 
   getHasMany() {}
@@ -104,20 +151,12 @@ export default class M3ModelData {
     return key in this._data;
   }
 
-  unloadRecord() {
-    if (this.isDestroyed) {
-      return;
-    }
-    this.reset();
-    this.destroy();
-  }
-
-  isRecordInUse() {
-    return this.storeWrapper.isRecordInUse(this.modelName, this.id, this.clientId);
-  }
-
   isAttrDirty() {
     return false;
+  }
+
+  unloadRecord() {
+    this.destroy();
   }
 
   removeFromInverseRelationships() {}
@@ -126,12 +165,79 @@ export default class M3ModelData {
 
   // INTERNAL API
 
+  /**
+   * Returns an associated nested model data for given property in the current one.
+   *
+   * Nested model datas created through this function are tracked in the parent, which
+   * allows updates to nested models to be merged with existing data instead of completely
+   * overwritten.
+   *
+   * @param {string} key - The name of the field, holding the nested model
+   * @param {string} modelName - The model name of the nested model as computed by the schema
+   * @param {string} id - The ID of the nested model as computed by the schema.
+   * @param {EmbeddedInternalModel} internalModel - The internal model, backing the nested model.
+   * @return {M3ModelData}
+   * @private
+   */
+  getOrCreateNestedModelData(key, modelName, id, internalModel) {
+    let nestedModelData = this._nestedModelDatas[key];
+    if (!nestedModelData) {
+      nestedModelData = this._nestedModelDatas[key] = this.createNestedModelData(
+        modelName,
+        id,
+        internalModel
+      );
+    }
+    return nestedModelData;
+  }
+
+  /**
+   * Creates new nested model data.
+   *
+   * @param {string} modelName - The model name of the nested model as computed by the schema
+   * @param {string} id - The ID of the nested model as computed by the schema.
+   * @param {EmbeddedInternalModel} internalModel - The internal model, backing the nested model.
+   * @return {M3ModelData}
+   * @private
+   */
+  createNestedModelData(modelName, id, internalModel) {
+    let storeWrapper = new NestedModelDataWrapper(internalModel);
+    return new M3ModelData(modelName, id, null, storeWrapper);
+  }
+
+  /**
+   * Destroys nested model data for given key, when it is no longer needed.
+   *
+   * @param {string} key - The name of the field, holding the nested model.
+   * @private
+   */
+  destroyNestedModelData(key) {
+    let nestedModelData = this._nestedModelDatas[key];
+    if (nestedModelData) {
+      // destroy
+      delete this._nestedModelDatas[key];
+    }
+  }
+
+  /**
+   * Returns whether a nested model data exist for given key or not.
+   *
+   * @param {string} key - The name of the field, which may hold a nested model.
+   * @return {M3ModelData}
+   * @private
+   */
+  hasNestedModelData(key) {
+    return !!this._nestedModelDatas[key];
+  }
+
   destroy() {
-    this.isDestroyed = true;
     this.storeWrapper.disconnectRecord(this.modelName, this.id, this.clientId);
   }
 
   get _data() {
+    if (this.baseModelData !== null) {
+      return this.baseModelData._data;
+    }
     if (this.__data === null) {
       this.__data = Object.create(null);
     }
@@ -142,39 +248,136 @@ export default class M3ModelData {
     this.__data = v;
   }
 
-  _changedKeys(updates) {
-    if (!updates) {
-      return [];
+  get _nestedModelDatas() {
+    if (this.__nestedModelsData === null) {
+      this.__nestedModelsData = Object.create(null);
     }
-    return calculateChangedKeys(this._data, updates);
+    return this.__nestedModelsData;
+  }
+
+  get _projections() {
+    if (this.baseModelData !== null) {
+      return this.baseModelData._projections;
+    }
+    return this.__projections;
+  }
+
+  _initBaseModelData(modelName, id) {
+    this.baseModelData = this.storeWrapper.modelDataFor(modelName, id);
+    this.baseModelData._registerProjection(this);
+  }
+
+  _registerProjection(modelData) {
+    if (!this.__projections) {
+      // we ensure projections contains the base as well
+      // so we have complete list of all related model datas
+      this.__projections = [this];
+    }
+    this.__projections.push(modelData);
+  }
+
+  /**
+   *
+   * @param updates
+   * @param nestedCallback a callback for updating the data of a nested model-data instance.
+   *                       Main reason to delegate this to a separate function is to be able
+   *                       to distinguish between updates from `pushData` and `didCommit`.
+   * @returns {Array}
+   * @private
+   */
+  _mergeUpdates(updates, nestedCallback) {
+    let data = this._data;
+
+    let changedKeys = [];
+
+    if (!updates) {
+      // no changes
+      return changedKeys;
+    }
+
+    let updatedKeys = Object.keys(updates);
+
+    for (let i = 0; i < updatedKeys.length; i++) {
+      let key = updatedKeys[i];
+      let newValue = updates[key];
+
+      if (isEqual(data[key], newValue)) {
+        // values are equal, nothing to do
+        // note, updates to objects should always result in new object or there will be nothing to update
+        continue;
+      }
+
+      let reusableNestedModelData = this._getReusableNestedModel(key, newValue);
+      if (reusableNestedModelData) {
+        nestedCallback(reusableNestedModelData, newValue);
+        continue;
+      } else {
+        // not an embedded object anymore or type changed, destroy the nested model data
+        this.destroyNestedModelData(key);
+      }
+
+      changedKeys.push(key);
+      data[key] = newValue;
+    }
+
+    return changedKeys;
+  }
+
+  /**
+   * Returns an existing nested model data, which can be reused for merging updates or null if
+   * there is no such nested model data.
+   *
+   * @param {string} key - The key, which to apply an update to
+   * @param {Mixed} newValue - The updates, which needs to be merged
+   * @return {M3ModelData} The nested model data, which can be reused or null if there is none.
+   */
+  _getReusableNestedModel(key, newValue) {
+    if (!this.hasNestedModelData(key)) {
+      return false;
+    }
+    let nested = this.getOrCreateNestedModelData(key);
+
+    // we need to compute the new nested type, hopefully it is not too slow
+    let newNestedDef = this._schema.computeNestedModel(
+      key,
+      newValue,
+      this.modelName,
+      this.schemaInterface
+    );
+    let newType = newNestedDef && newNestedDef.type && dasherize(newNestedDef.type);
+    let isSameType = newType === nested.modelName || (isNone(newType) && isNone(nested.modelName));
+
+    let newId = newNestedDef && newNestedDef.id;
+    let isSameId = newId === nested.id || (isNone(newId) && isNone(nested.id));
+
+    return newNestedDef && isSameType && isSameId ? nested : null;
+  }
+
+  _notifyRecordProperties(changedKeys) {
+    Ember.beginPropertyChanges();
+    for (let i = 0; i < changedKeys.length; i++) {
+      this.storeWrapper.notifyPropertyChange(
+        this.modelName,
+        this.id,
+        this.clientId,
+        changedKeys[i]
+      );
+    }
+    Ember.endPropertyChanges();
+  }
+
+  _notifyProjectionProperties(changedKeys) {
+    let projections = this._projections;
+    if (projections) {
+      for (let i = 0; i < projections.length; i++) {
+        if (projections[i] !== this) {
+          projections[i]._notifyRecordProperties(changedKeys);
+        }
+      }
+    }
   }
 
   toString() {
     return `<${this.modelName}:${this.id}>`;
   }
-}
-
-/**
-  Calculate the changed keys from prior and new `data`s.  This follows similar
-  semantics to `InternalModel._changedKeys`.
-  The key difference is that omitted attributes and new attributes are treated
-  as changes, instead of ignored.
-  There is another difference, which is that there's no notion of
-  `_inflightAttributes` or `_attributes`, but this will likely need to change
-  when m3 composes a write story.
-*/
-function calculateChangedKeys(oldValue, newValue) {
-  let oldKeys = Object.keys(oldValue).sort();
-  let newKeys = Object.keys(newValue).sort();
-  // omitted keys are treated as changes
-  let result = setDiff(oldKeys, newKeys);
-
-  for (let i = 0; i < newKeys.length; ++i) {
-    let key = newKeys[i];
-    if (!isEqual(oldValue[key], newValue[key])) {
-      result.push(key);
-    }
-  }
-
-  return result;
 }

@@ -30,6 +30,8 @@ module('unit/initializers/m3-store', {
       adapterFor: (this.adapterForStub = this.sinon.stub()),
       serializerFor: (this.serializerForStub = this.sinon.stub()),
       modelFactoryFor: (this.modelFactoryForStub = this.sinon.stub()),
+      modelDataFor: (this.modelDataForStub = this.sinon.stub()),
+      _internalModelForId: (this.internalModelForIdStub = this.sinon.stub()),
     });
     MockStore.toString = () => 'MockStore';
     extendStore(MockStore);
@@ -81,6 +83,126 @@ test('it adds `store.containsURL`', function(assert) {
   });
 
   this.store.containsURL(cacheKey);
+});
+
+test('it adds `store.preloadData`', function(assert) {
+  assert.equal(typeof this.store.preloadData, `function`, 'preloadData added');
+});
+
+test('`store.preloadData can handle single document', function(assert) {
+  let data = {
+    data: {
+      type: 'preloaded-type',
+      id: 'preloaded-id',
+    },
+    included: [
+      {
+        type: 'included-type',
+        id: 'included-id',
+      },
+    ],
+  };
+
+  let modelDatas = [];
+
+  this.modelDataForStub.callsFake(() => {
+    let stubModelData = {
+      pushData(data) {
+        this.pushedData = data;
+      },
+    };
+    modelDatas.push(stubModelData);
+    return stubModelData;
+  });
+
+  this.store.preloadData(data);
+
+  assert.deepEqual(
+    [...data.included, data.data],
+    modelDatas.map(x => x.pushedData),
+    'expected the documents to be pushed correctly'
+  );
+  assert.deepEqual(
+    zip(this.modelDataForStub.thisValues.map(x => x + ''), this.modelDataForStub.args),
+    [
+      [this.store + '', ['included-type', 'included-id']],
+      [this.store + '', ['preloaded-type', 'preloaded-id']],
+    ],
+    'Expected the model data to be created for the correct type and id'
+  );
+});
+
+test('`store.preloadData can handle multiple documents', function(assert) {
+  let data = {
+    data: [
+      {
+        type: 'preloaded-type-1',
+        id: 'preloaded-id-1',
+      },
+      {
+        type: 'preloaded-type-2',
+        id: 'preloaded-id-2',
+      },
+    ],
+  };
+
+  let modelDatas = [];
+
+  this.modelDataForStub.callsFake(() => {
+    let stubModelData = {
+      pushData(data) {
+        this.pushedData = data;
+      },
+    };
+    modelDatas.push(stubModelData);
+    return stubModelData;
+  });
+
+  this.store.preloadData(data);
+
+  assert.deepEqual(
+    data.data,
+    modelDatas.map(x => x.pushedData),
+    'expected the documents to be pushed correctly'
+  );
+  assert.deepEqual(
+    zip(this.modelDataForStub.thisValues.map(x => x + ''), this.modelDataForStub.args),
+    [
+      [this.store + '', ['preloaded-type-1', 'preloaded-id-1']],
+      [this.store + '', ['preloaded-type-2', 'preloaded-id-2']],
+    ],
+    'Expected the model data to be created for the correct type and id'
+  );
+});
+
+test('`store.preloadData` notifies record of changed properties', function(assert) {
+  let notifyPropertiesStub = this.sinon.stub();
+
+  this.modelDataForStub.returns({
+    pushData() {
+      return ['changedKey'];
+    },
+  });
+
+  this.internalModelForIdStub.returns({
+    hasRecord: true,
+    _record: {
+      _notifyProperties: notifyPropertiesStub,
+    },
+  });
+
+  this.store.preloadData({
+    data: {
+      type: 'preloaded-type',
+      id: 'preloaded-id',
+    },
+  });
+
+  assert.deepEqual(
+    notifyPropertiesStub.args,
+    [[['changedKey']]],
+    'Expected record to be notified with correct changed keys'
+  );
 });
 
 test('uses the -ember-m3 adapter for schema-recognized types', function(assert) {

@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import DS from 'ember-data';
+import { dasherize } from '@ember/string';
 
 import MegamorphicModel from '../model';
 import M3ModelData from '../model-data';
@@ -16,6 +17,48 @@ export function extendStore(Store) {
       this._super(...arguments);
       this._queryCache = new QueryCache({ store: this });
       this._globalM3Cache = new Object(null);
+    },
+
+    /*
+      This is a temporary method that mimics
+      what will eventually become the `store.preloadData()` API
+      in intent (e.g. it pushes data into the store without marking
+      it as loaded).
+      This is here only until we are able to directly work off of the model-data branches
+      of ember-data and ember-m3.
+     */
+    preloadData(document) {
+      let { data, included } = document;
+
+      if (Array.isArray(included)) {
+        for (let i = 0; i < included.length; i++) {
+          this._preloadSingleResource(included[i]);
+        }
+      }
+
+      if (Array.isArray(data)) {
+        for (let i = 0; i < data.length; i++) {
+          this._preloadSingleResource(data[i]);
+        }
+      } else if (typeof data === 'object' && data !== null) {
+        this._preloadSingleResource(data);
+      }
+    },
+
+    _preloadSingleResource(data) {
+      let modelName = dasherize(data.type);
+      let modelData = this.modelDataFor(modelName, data.id);
+
+      let changedKeys = modelData.pushData(data);
+
+      // We need to explicitly notify any possible record, which may have been associated
+      // with the preloaded ModelData. We don't delegate this to InternalModel
+      // to not confuse the implementation whether the `setupData` call also means
+      // it has been loaded
+      let internalModel = this._internalModelForId(modelName, data.id);
+      if (internalModel && internalModel.hasRecord) {
+        internalModel._record._notifyProperties(changedKeys);
+      }
     },
 
     // Store hooks necessary for using a single model class
@@ -47,7 +90,7 @@ export function extendStore(Store) {
 
     createModelDataFor(modelName, id, clientId, storeWrapper) {
       if (SchemaManager.includesModel(modelName)) {
-        return new M3ModelData(modelName, id, clientId, storeWrapper, this);
+        return new M3ModelData(modelName, id, clientId, storeWrapper);
       }
       return this._super(modelName, id, clientId, storeWrapper);
     },
