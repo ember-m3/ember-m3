@@ -42,7 +42,9 @@ module('unit/model-data', function(hooks) {
 
     SchemaManager.registerSchema({
       computeBaseModelName(modelName) {
-        return modelName === 'com.bookstore.projected-book' ? 'com.bookstore.book' : null;
+        return ['com.bookstore.projected-book', 'com.bookstore.excerpt-book'].includes(modelName)
+          ? 'com.bookstore.book'
+          : null;
       },
 
       computeNestedModel(key, value) {
@@ -219,6 +221,99 @@ module('unit/model-data', function(hooks) {
       baseModelData._projections.find(x => x === projectionModelData),
       null,
       'Expected projected model data to have been removed from the projections'
+    );
+  });
+
+  test('base model data is disconnected from the store if there are no more projections', function(assert) {
+    let projectionModelData = this.storeWrapper.modelDataFor('com.bookstore.projected-book', '1');
+    let baseModelData = this.storeWrapper.modelDataFor('com.bookstore.book', '1');
+
+    // unload the projection model data
+    projectionModelData.unloadRecord();
+
+    assert.notEqual(
+      this.storeWrapper.disconnectedModelDatas[modelDataKey(baseModelData)],
+      null,
+      'Expected projection model data to have been disconnected from the store'
+    );
+  });
+
+  test('base model data is not disconnected from the store if there are other projections', function(assert) {
+    let projectionModelData = this.storeWrapper.modelDataFor('com.bookstore.projected-book', '1');
+    this.storeWrapper.modelDataFor('com.bookstore.excerpt-book', '1');
+    let baseModelData = this.storeWrapper.modelDataFor('com.bookstore.book', '1');
+
+    // unload the projection model data
+    projectionModelData.unloadRecord();
+
+    assert.equal(
+      this.storeWrapper.disconnectedModelDatas[modelDataKey(baseModelData)],
+      null,
+      'Expected projection model data to not have been disconnected from the store'
+    );
+  });
+
+  test('base model data is not disconnected from the store if the record is in use', function(assert) {
+    this.storeWrapper.isRecordInUse = () => true;
+
+    let projectionModelData = this.storeWrapper.modelDataFor('com.bookstore.projected-book', '1');
+    let baseModelData = this.storeWrapper.modelDataFor('com.bookstore.book', '1');
+
+    // unload the projection model data
+    projectionModelData.unloadRecord();
+
+    assert.equal(
+      this.storeWrapper.disconnectedModelDatas[modelDataKey(baseModelData)],
+      null,
+      'Expected projection model data to have been disconnected from the store'
+    );
+  });
+
+  test('projection model data connects with base model data when committed with id', function(assert) {
+    let projectionModelData = this.storeWrapper.modelDataFor('com.bookstore.projected-book', null);
+
+    assert.equal(
+      this.storeWrapper.modelDatas[modelDataKey({ modelName: 'com.bookstore.book', id: null })],
+      null,
+      'Expected base model data to not have been created'
+    );
+
+    // actually set to be saved
+    projectionModelData.setAttr('name', 'Harry Potter');
+    projectionModelData.setAttr('preface', {
+      text: "Harry Potter's preface",
+    });
+
+    projectionModelData.didCommit({
+      id: '1',
+      attributes: {},
+    });
+
+    let baseModelData = this.storeWrapper.modelDatas[
+      modelDataKey({ modelName: 'com.bookstore.book', id: '1' })
+    ];
+
+    assert.notEqual(baseModelData, null, 'Expected base model data to have been created');
+    assert.ok(
+      baseModelData._projections.find(x => x === projectionModelData),
+      'Expected projection model data to have been registered'
+    );
+    assert.strictEqual(
+      projectionModelData._data,
+      baseModelData._data,
+      'Expected projection _data hash to be the same as the base model data'
+    );
+    assert.equal(
+      projectionModelData.getAttr('name'),
+      'Harry Potter',
+      'Expected primitive attribute to have been retained'
+    );
+    assert.deepEqual(
+      projectionModelData.getAttr('preface'),
+      {
+        text: "Harry Potter's preface",
+      },
+      'Expected complex attribute to have been retained'
     );
   });
 });

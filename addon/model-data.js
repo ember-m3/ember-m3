@@ -325,7 +325,6 @@ export default class M3ModelData {
   }
 
   _inverseMergeUpdates(updates) {
-    // TODO Add more tests for this case
     // TODO Add support for nested objects
     if (!updates) {
       return;
