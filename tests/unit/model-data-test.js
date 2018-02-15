@@ -27,9 +27,28 @@ module('unit/model-data', function(hooks) {
       },
     });
 
+    this.mockInternalModel = (modelName, id) => ({
+      id,
+      modelName,
+      hasRecord: true,
+      _record: {
+        notifyPropertyChange() {},
+      },
+    });
+
     SchemaManager.registerSchema({
       computeBaseModelName(modelName) {
         return modelName === 'com.bookstore.projected-book' ? 'com.bookstore.book' : null;
+      },
+
+      computeNestedModel(key, value) {
+        if (value !== null && typeof value === 'object') {
+          return {
+            id: value.id,
+            type: value.type,
+            attributes: value,
+          };
+        }
       },
     });
 
@@ -88,6 +107,64 @@ module('unit/model-data', function(hooks) {
       nestedModelData,
       anotherNestedModelData,
       'The nested model data must be the same'
+    );
+  });
+
+  test('nested model data are destroyed, when associated property is set to null', function(assert) {
+    let modelData = this.mockModelData();
+    modelData.getOrCreateNestedModelData('preface', 'com.bookstore.chapter', '1', null);
+
+    assert.strictEqual(
+      modelData.hasNestedModelData('preface'),
+      true,
+      'Expected nested model data to be added'
+    );
+
+    modelData.pushData({
+      attributes: {
+        name: 'Harry Potter',
+        preface: null,
+      },
+    });
+
+    assert.strictEqual(
+      modelData.hasNestedModelData('preface'),
+      false,
+      'Expected nested data to have been removed'
+    );
+  });
+
+  test('nested model data are reused, when associated property has updates', function(assert) {
+    let modelData = this.mockModelData();
+    let beforeNestedModelData = modelData.getOrCreateNestedModelData(
+      'preface',
+      'com.bookstore.chapter',
+      '1',
+      this.mockInternalModel('com.bookstore.chapter', '1')
+    );
+
+    modelData.pushData({
+      attributes: {
+        name: 'Harry Potter',
+        preface: {
+          id: '1',
+          type: 'com.bookstore.chapter',
+          text: "Harry Potter's preface",
+        },
+      },
+    });
+
+    let afterNestedModelData = modelData.getOrCreateNestedModelData(
+      'preface',
+      'com.bookstore.chapter',
+      '1',
+      null
+    );
+
+    assert.strictEqual(
+      afterNestedModelData,
+      beforeNestedModelData,
+      'Expected nested model data to have been reused'
     );
   });
 
