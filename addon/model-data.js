@@ -307,28 +307,11 @@ export default class M3ModelData {
         continue;
       }
 
-      if (this.hasNestedModelData(key)) {
-        let nested = this.getOrCreateNestedModelData(key);
-
-        // we need to compute the new nested type, hopefully it is not too slow
-        let newNestedDef = this._schema.computeNestedModel(
-          key,
-          newValue,
-          this.modelName,
-          this.schemaInterface
-        );
-        let newType = newNestedDef && newNestedDef.type && dasherize(newNestedDef.type);
-        let isSameType =
-          newType === nested.modelName || (isNone(newType) && isNone(nested.modelName));
-
-        let newId = newNestedDef && newNestedDef.id;
-        let isSameId = newId === nested.id || (isNone(newId) && isNone(nested.id));
-
-        if (newNestedDef && isSameType && isSameId) {
-          nestedCallback(nested, newValue);
-          continue;
-        }
-
+      let reusableNestedModelData = this._getReusableNestedModel(key, newValue);
+      if (reusableNestedModelData) {
+        nestedCallback(reusableNestedModelData, newValue);
+        continue;
+      } else {
         // not an embedded object anymore or type changed, destroy the nested model data
         this.destroyNestedModelData(key);
       }
@@ -338,6 +321,36 @@ export default class M3ModelData {
     }
 
     return changedKeys;
+  }
+
+  /**
+   * Returns an existing nested model data, which can be reused for merging updates or null if
+   * there is no such nested model data.
+   *
+   * @param {string} key - The key, which to apply an update to
+   * @param {Mixed} newValue - The updates, which needs to be merged
+   * @return {M3ModelData} The nested model data, which can be reused or null if there is none.
+   */
+  _getReusableNestedModel(key, newValue) {
+    if (!this.hasNestedModelData(key)) {
+      return false;
+    }
+    let nested = this.getOrCreateNestedModelData(key);
+
+    // we need to compute the new nested type, hopefully it is not too slow
+    let newNestedDef = this._schema.computeNestedModel(
+      key,
+      newValue,
+      this.modelName,
+      this.schemaInterface
+    );
+    let newType = newNestedDef && newNestedDef.type && dasherize(newNestedDef.type);
+    let isSameType = newType === nested.modelName || (isNone(newType) && isNone(nested.modelName));
+
+    let newId = newNestedDef && newNestedDef.id;
+    let isSameId = newId === nested.id || (isNone(newId) && isNone(nested.id));
+
+    return newNestedDef && isSameType && isSameId ? nested : null;
   }
 
   _notifyRecordProperties(changedKeys) {
