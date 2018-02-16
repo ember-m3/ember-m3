@@ -126,17 +126,12 @@ export default class M3ModelData {
       this._notifyProjectionProperties(changedKeys);
     }
 
-    if (!this.id && data && data.id) {
+    let hasReceivedId = !this.id && data && data.id;
+    if (hasReceivedId) {
       this.id = coerceId(data.id);
       if (this.baseModelName) {
         // Fresh projection was saved, we need to connect it with the base model data
-        let projectionData = this._data;
-        this._initBaseModelData(this.baseModelName, this.id);
-        // TODO We only do this because there might be inflight attributes, which the server
-        // didn't include in the response
-        this.baseModelData._inverseMergeUpdates(projectionData);
-        // we need to reset the __data to reread it from the base model data
-        this.__data = null;
+        this._initBaseModelDataOnCommit(this.baseModelName, this.id);
       }
     }
 
@@ -284,6 +279,19 @@ export default class M3ModelData {
   _initBaseModelData(modelName, id) {
     this.baseModelData = this.storeWrapper.modelDataFor(modelName, id);
     this.baseModelData._registerProjection(this);
+  }
+
+  _initBaseModelDataOnCommit(modelName, id) {
+    // TODO Recursively init any existing nested model datas as well
+    let projectionData = this._data;
+    this._initBaseModelData(modelName, id);
+    // TODO We only do this because there might be inflight attributes, which the server
+    // didn't include in the response
+    // TODO After the merge, we need to notify records, which may have been created
+    // prior to invoking didCommit
+    this.baseModelData._inverseMergeUpdates(projectionData);
+    // we need to reset the __data to reread it from the base model data
+    this.__data = null;
   }
 
   _registerProjection(modelData) {
