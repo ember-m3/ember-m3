@@ -75,7 +75,6 @@ export default class M3ModelData {
     } else {
       this.baseModelName = this._schema.computeBaseModelName(this.modelName);
       if (this.baseModelName && this.id) {
-        // TODO we may not have ID yet?
         this._initBaseModelData(this.baseModelName, id);
       } else {
         this.baseModelData = null;
@@ -207,27 +206,28 @@ export default class M3ModelData {
    */
   getOrCreateNestedModelData(key, modelName, id, internalModel) {
     let nestedModelData = this._nestedModelDatas[key];
-    if (!nestedModelData) {
-      let baseNestedModelData;
-      if (this.baseModelData) {
-        // we have a base, ask it for a nested model data
-        let baseNestedModelName = this._schema.computeBaseModelName(modelName);
-        // TODO We don't have any associated internal model though, because Ember Data is not tracking these, we may have
-        // to fill in the internal model when it is available
-        baseNestedModelData = this.baseModelData.getOrCreateNestedModelData(
-          key,
-          baseNestedModelName,
-          id,
-          null
-        );
-      }
-      nestedModelData = this._nestedModelDatas[key] = this.createNestedModelData(
-        modelName,
+    if (nestedModelData) {
+      return nestedModelData;
+    }
+    let baseNestedModelData;
+    if (this.baseModelData) {
+      // we have a base, ask it for a nested model data
+      let baseNestedModelName = this._schema.computeBaseModelName(modelName);
+      // TODO We don't have any associated internal model though, because Ember Data is not tracking these
+      // we need to fill it in when the nested base model data is requested
+      baseNestedModelData = this.baseModelData.getOrCreateNestedModelData(
+        key,
+        baseNestedModelName,
         id,
-        internalModel,
-        baseNestedModelData
+        null
       );
     }
+    nestedModelData = this._nestedModelDatas[key] = this.createNestedModelData(
+      modelName,
+      id,
+      internalModel,
+      baseNestedModelData
+    );
     return nestedModelData;
   }
 

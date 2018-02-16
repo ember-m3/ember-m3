@@ -316,4 +316,26 @@ module('unit/model-data', function(hooks) {
       'Expected complex attribute to have been retained'
     );
   });
+
+  test('nested projection model register in the base model nested model data', function(assert) {
+    let projectionModelData = this.storeWrapper.modelDataFor('com.bookstore.projected-book', '1');
+    let baseModelData = this.storeWrapper.modelDataFor('com.bookstore.book', '1');
+
+    let nestedProjected = projectionModelData.getOrCreateNestedModelData(
+      'preface',
+      'com.bookstore.chapter'
+    );
+
+    assert.strictEqual(
+      baseModelData.hasNestedModelData('preface'),
+      true,
+      'Expected base model data to have created a nested model data'
+    );
+
+    let nestedBase = baseModelData.getOrCreateNestedModelData('preface');
+    assert.ok(
+      nestedBase._projections.find(x => x === nestedProjected),
+      'Expected the nested projection model data to be registered in the nested base model data'
+    );
+  });
 });
