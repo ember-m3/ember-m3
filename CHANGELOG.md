@@ -2,6 +2,14 @@
 
 ## master
 
+## 0.4.0
+
+* change to use ModelData.  This is based on the implementation of the [ModelData RFC](https://github.com/emberjs/rfcs/pull/293) and so is "pre-canary".  This release should therefore be considered unstable.  0.5.x will likely depend on a version of Ember Data in which ModelData is the intimate addon API.
+
+* M3 models now report changed attributes via `changedAttributes`, like Ember
+  Data.  `changedAttributes` reports changed attributes recursively for nested
+  models.
+
 ## 0.3.3
 
 * schema APIs now have access to the full data hash.  This enables schemas that
