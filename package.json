@@ -17,6 +17,18 @@
     "format":
       "node_modules/.bin/prettier --write --ignore-path .gitignore 'addon/**/*.js' 'app/**/*.js' 'tests/**/*.js'"
   },
+  "files": [
+    "package.json",
+    "CHANGELOG.md",
+    "index.js",
+    "LICENSE.md",
+    "README.md",
+    "UPGRADING.md",
+    "addon",
+    "app",
+    "blueprints",
+    "config"
+  ],
   "dependencies": {
     "ember-cli-babel": "^6.3.0"
   },
