@@ -32,8 +32,9 @@ class EmbeddedSnapshot {
   }
 }
 
+// TODO: shouldn't need this anymore; this level of indirection for nested modeldata isn't useful
 class EmbeddedInternalModel {
-  constructor({ id, modelName, attributes, store, parentInternalModel }) {
+  constructor({ id, modelName, attributes, store, parentInternalModel, parentKey, valueInArray }) {
     this.id = id;
     this.modelName = modelName;
 
@@ -42,7 +43,9 @@ class EmbeddedInternalModel {
       id,
       null,
       parentInternalModel._modelData.storeWrapper,
-      store,
+      parentInternalModel._modelData,
+      parentKey,
+      valueInArray,
       this
     );
     this._modelData.pushData({
@@ -71,16 +74,17 @@ function resolveReference(reference, store) {
   }
 }
 
-function resolveValue(key, value, modelName, store, schema, model) {
+function resolveValue(key, value, modelName, store, schema, model, valueInArray = false) {
   const schemaInterface = model._internalModel._modelData.schemaInterface;
 
+  // TODO: remove this in favour of computeAttributeReference returning arrays
   if (schema.isAttributeArrayReference(key, value, modelName, schemaInterface)) {
     return resolveRecordArray(key, value, modelName, store, schema, schemaInterface);
   }
 
-  // TODO: remove this and instead just have computeAttributeReference return an array of refs
+  // TODO: have computeNestedModel return arrays instead
   if (Array.isArray(value)) {
-    return resolvePlainArray(key, value, modelName, store, schema, model, schemaInterface);
+    return resolvePlainArray(key, value, modelName, store, schema, model);
   }
 
   let reference = schema.computeAttributeReference(key, value, modelName, schemaInterface);
@@ -96,6 +100,7 @@ function resolveValue(key, value, modelName, store, schema, model) {
   let nested = schema.computeNestedModel(key, value, modelName, schemaInterface);
   if (nested) {
     let internalModel = new EmbeddedInternalModel({
+      // nested models with ids is pretty misleading; all they really ought to need is type
       id: nested.id,
       // maintain consistency with internalmodel.modelName, which is normalized
       // internally within ember-data
@@ -103,6 +108,8 @@ function resolveValue(key, value, modelName, store, schema, model) {
       attributes: nested.attributes,
       store,
       parentInternalModel: model._internalModel,
+      parentKey: key,
+      valueInArray,
     });
     let nestedModel = new EmbeddedMegamorphicModel({
       store,
@@ -118,7 +125,8 @@ function resolveValue(key, value, modelName, store, schema, model) {
   return value;
 }
 
-function resolvePlainArray(key, value, modelName, store, schema, model, schemaInterface) {
+// ie an array of nested models
+function resolvePlainArray(key, value, modelName, store, schema, model) {
   if (value == null) {
     return new Array(0);
   }
@@ -126,7 +134,7 @@ function resolvePlainArray(key, value, modelName, store, schema, model, schemaIn
   let result = new Array(value.length);
 
   for (let i = 0; i < value.length; ++i) {
-    result[i] = resolveValue(key, value[i], modelName, store, schema, model, schemaInterface, i);
+    result[i] = resolveValue(key, value[i], modelName, store, schema, model, true);
   }
 
   return result;
@@ -276,11 +284,12 @@ export default class MegamorphicModel extends Ember.Object {
 
       let oldIsRecordArray = oldValue && oldValue instanceof M3RecordArray;
       let oldWasModel = oldValue && oldValue instanceof MegamorphicModel;
-      let newIsObject = typeof newValue === 'object';
+      let newIsObject = newValue !== null && typeof newValue === 'object';
 
       if (oldWasModel && newIsObject) {
-        oldValue._didReceiveNestedProperties(this._internalModel._modelData.getAttr(key));
+        // updating keys in nested models is handled by model-data
       } else if (oldIsRecordArray) {
+        // TODO: do this lazily
         let internalModels = resolveRecordArrayInternalModels(
           key,
           newValue,
@@ -290,6 +299,7 @@ export default class MegamorphicModel extends Ember.Object {
         );
         oldValue._setInternalModels(internalModels);
       } else {
+        // TODO: disconnect modeldata -> childModeldata in the case of nested model -> primitive
         // anything -> undefined | primitive
         delete this._cache[key];
         this.notifyPropertyChange(key);
@@ -298,17 +308,7 @@ export default class MegamorphicModel extends Ember.Object {
     Ember.endPropertyChanges();
   }
 
-  _didReceiveNestedProperties(data) {
-    let changedKeys = this._internalModel._modelData.pushData({ attributes: data }, true);
-    if (changedKeys.length > 0) {
-      this._notifyProperties(changedKeys);
-    }
-  }
-
   changedAttributes() {
-    // TODO: this will always report nothing has changed; bc we just `set` to
-    // `_data` and don't make a data/attributes distinction.  We coooould, if
-    // serializers actually need to know changed attrs.
     return this._internalModel.changedAttributes();
   }
 
@@ -375,9 +375,14 @@ export default class MegamorphicModel extends Ember.Object {
   }
 
   rollbackAttributes() {
-    // TODO: we could actually support this feature
+    let dirtyKeys = this._internalModel._modelData.rollbackAttributes();
     this._internalModel.currentState = loadedSaved;
+
     propertyDidChange(this, 'currentState');
+
+    if (dirtyKeys && dirtyKeys.length > 0) {
+      this._notifyProperties(dirtyKeys);
+    }
   }
 
   unknownProperty(key) {
