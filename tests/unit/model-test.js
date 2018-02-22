@@ -10,7 +10,7 @@ import MegamorphicModel from 'ember-m3/model';
 import SchemaManager from 'ember-m3/schema-manager';
 import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
 import EmberObject, { get, set } from '@ember/object';
-import { Promise } from 'rsvp';
+import { Promise, resolve } from 'rsvp';
 import { run } from '@ember/runloop';
 
 const UrnWithTypeRegex = /^urn:([a-zA-Z.]+):(.*)/;
@@ -625,6 +625,65 @@ module('unit/model', function(hooks) {
       ['isbn:9780439136365', 'isbn:9780439358071'],
       'ref arrays update in-place; treated like RecordArrays'
     );
+  });
+
+  test('reference arrays act like record arrays - deleted records removed', function(assert) {
+    this.owner.register(
+      'adapter:-ember-m3',
+      EmberObject.extend({
+        deleteRecord() {
+          return resolve();
+        },
+      })
+    );
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            otherBooksInSeries: ['isbn:9780439064873', 'isbn:9780439136365'],
+          },
+        },
+        included: [
+          {
+            id: 'isbn:9780439064873',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Chamber of Secrets`,
+            },
+          },
+          {
+            id: 'isbn:9780439136365',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Prisoner of Azkaban`,
+            },
+          },
+        ],
+      });
+    });
+
+    let otherBooks;
+
+    return run(() => {
+      otherBooks = get(model, 'otherBooksInSeries');
+      assert.deepEqual(
+        otherBooks.mapBy('id'),
+        ['isbn:9780439064873', 'isbn:9780439136365'],
+        'reference array initially resolved'
+      );
+
+      return otherBooks.objectAt(0).destroyRecord();
+    }).then(() => {
+      assert.strictEqual(get(model, 'otherBooksInSeries'), otherBooks, 'record array re-used');
+      assert.deepEqual(
+        otherBooks.mapBy('id'),
+        ['isbn:9780439136365'],
+        'destroyed model removed from existing record arrays'
+      );
+    });
   });
 
   test('.unknownProperty resolves null reference arrays', function(assert) {
