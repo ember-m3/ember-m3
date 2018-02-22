@@ -2,7 +2,9 @@
   "name": "ember-m3",
   "version": "0.4.0",
   "description": "The default blueprint for ember-cli addons.",
-  "keywords": ["ember-addon"],
+  "keywords": [
+    "ember-addon"
+  ],
   "license": "MIT",
   "author": "",
   "directories": {
@@ -14,8 +16,7 @@
     "build": "ember build",
     "start": "ember server",
     "test": "ember try:each",
-    "format":
-      "node_modules/.bin/prettier --write --ignore-path .gitignore 'addon/**/*.js' 'app/**/*.js' 'tests/**/*.js'"
+    "format": "node_modules/.bin/prettier --write --ignore-path .gitignore 'addon/**/*.js' 'app/**/*.js' 'tests/**/*.js'"
   },
   "files": [
     "package.json",
@@ -59,6 +60,7 @@
     "ember-source": "~3.0.0",
     "ember-welcome-page": "^3.0.0",
     "eslint-config-prettier": "^2.9.0",
+    "eslint-plugin-ember": "^5.0.3",
     "eslint-plugin-prettier": "^2.3.1",
     "loader.js": "^4.2.3",
     "pretender": "^1.4.2",
