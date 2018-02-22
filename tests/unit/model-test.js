@@ -2159,7 +2159,7 @@ module('unit/model', function(hooks) {
       false,
       'nested record do not appear in identity map'
     );
-    let warnSpy = this.sinon.spy(Ember, 'warn');
+    let warnSpy = this.sinon.stub(Ember, 'warn');
     nestedModel.unloadRecord();
     assert.deepEqual(zip(warnSpy.thisValues.map(x => x + ''), warnSpy.args), [
       [
