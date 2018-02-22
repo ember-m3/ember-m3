@@ -723,8 +723,20 @@ module('unit/model', function(hooks) {
       sept1989,
       'alias to value present with transform'
     );
+    assert.equal(
+      get(model, 'title'),
+      `Harry Potter and the Sorcerer's Stone`,
+      'alias to value present after caching'
+    );
     assert.equal(get(model, 'cost'), undefined, 'alias to missing');
     assert.equal(get(model, 'hb'), true, 'alias to missing with default');
+
+    set(model, 'name', 'Harry Potter and the different title');
+    assert.equal(
+      get(model, 'title'),
+      `Harry Potter and the different title`,
+      'alias invalidated when dependent is changed'
+    );
   });
 
   test('schema can access other attributes when computing attribute references', function(assert) {
