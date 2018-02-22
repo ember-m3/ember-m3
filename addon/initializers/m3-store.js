@@ -1,5 +1,5 @@
-import Ember from 'ember';
 import DS from 'ember-data';
+import DataAdapter from '@ember/debug/data-adapter';
 
 import MegamorphicModel from '../model';
 import M3ModelData from '../model-data';
@@ -8,7 +8,7 @@ import SchemaManager from '../schema-manager';
 import QueryCache from '../query-cache';
 
 extendStore(DS.Store);
-extendDataAdapter(Ember.DataAdapter);
+extendDataAdapter(DataAdapter);
 
 export function extendStore(Store) {
   Store.reopen({

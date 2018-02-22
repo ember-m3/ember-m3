@@ -1,6 +1,6 @@
-import Ember from 'ember';
-
-const { get, RSVP: { resolve } } = Ember;
+import { get } from '@ember/object';
+import { A } from '@ember/array';
+import { resolve } from 'rsvp';
 
 import MegamorphicModel from './model';
 import M3RecordArray from './record-array';
@@ -185,7 +185,7 @@ export default class QueryCache {
   _createRecordArray(internalModels, query) {
     let array = M3RecordArray.create({
       modelName: '-ember-m3',
-      content: Ember.A(),
+      content: A(),
       store: this._store,
       manager: this._recordArrayManager,
 
