@@ -1,6 +1,4 @@
-import Ember from 'ember';
-
-const { setOwner } = Ember;
+import { setOwner } from '@ember/application';
 
 export function setDiff(a, b) {
   let result = [];

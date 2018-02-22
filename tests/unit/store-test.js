@@ -1,4 +1,5 @@
-import Ember from 'ember';
+import { A } from '@ember/array';
+import { run } from '@ember/runloop';
 import DS from 'ember-data';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
@@ -6,8 +7,6 @@ import sinon from 'sinon';
 
 import SchemaManager from 'ember-m3/schema-manager';
 import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
-
-const { A, run } = Ember;
 
 module('unit/store', function(hooks) {
   setupTest(hooks);

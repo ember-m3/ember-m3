@@ -1,8 +1,8 @@
+import EmberObject from '@ember/object';
 import { module, test } from 'qunit';
 import sinon from 'sinon';
-import { zip } from 'lodash';
 
-import Ember from 'ember';
+import { zip } from 'lodash';
 
 import MegamorphicModelFactory from 'ember-m3/factory';
 import SchemaManager from 'ember-m3/schema-manager';
@@ -26,10 +26,15 @@ module('unit/initializers/m3-store', {
       models: {},
     });
 
-    let MockStore = Ember.Object.extend({
-      adapterFor: (this.adapterForStub = this.sinon.stub()),
-      serializerFor: (this.serializerForStub = this.sinon.stub()),
-      modelFactoryFor: (this.modelFactoryForStub = this.sinon.stub()),
+    // this indirection is to work around false positives in
+    // ember/avoid-leaking-state-in-ember-objects
+    this.adapterForStub = this.sinon.stub();
+    this.serializerForStub = this.sinon.stub();
+    this.modelFactoryForStub = this.sinon.stub();
+    let MockStore = EmberObject.extend({
+      adapterFor: this.adapterForStub,
+      serializerFor: this.serializerForStub,
+      modelFactoryFor: this.modelFactoryForStub,
     });
     MockStore.toString = () => 'MockStore';
     extendStore(MockStore);

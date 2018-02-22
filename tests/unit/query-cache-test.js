@@ -1,16 +1,17 @@
+import EmberObject from '@ember/object';
+import { Promise, defer, resolve } from 'rsvp';
+import { run } from '@ember/runloop';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
 import { zip } from 'lodash';
 
-import Ember from 'ember';
 import DS from 'ember-data';
 
 import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
 import SchemaManager from 'ember-m3/schema-manager';
 import MegamorphicModel from 'ember-m3/model';
 
-const { RSVP: { resolve, defer, Promise }, run } = Ember;
 const { Serializer } = DS;
 
 function stubCalls(stub) {
@@ -210,7 +211,7 @@ module('unit/query-cache', function(hooks) {
         type: 'my-type',
       },
     };
-    let customAdapter = Ember.Object.create({
+    let customAdapter = EmberObject.create({
       ajax: this.sinon.stub().returns(resolve(payload)),
       defaultSerializer: '-default',
       toString: () => 'my-adapter',

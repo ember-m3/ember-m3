@@ -1,13 +1,26 @@
+// This lint error disables "this.attrs" everywhere.  What could go wrong?
+/* eslint-disable ember/no-attrs-in-components */
+
 import Ember from 'ember';
 import { RootState } from 'ember-data/-private';
 import { dasherize } from '@ember/string';
+import EmberObject, { computed, get, set, defineProperty } from '@ember/object';
+import { A } from '@ember/array';
+import { warn } from '@ember/debug';
+import { alias } from '@ember/object/computed';
 
 import M3ModelData from './model-data';
 import SchemaManager from './schema-manager';
 import M3RecordArray from './record-array';
 import { OWNER_KEY } from './util';
 
-const { get, set, propertyWillChange, propertyDidChange, computed, A } = Ember;
+const { propertyDidChange } = Ember;
+let { notifyPropertyChange } = Ember;
+
+const HasNotifyPropertyChange = notifyPropertyChange !== undefined;
+if (!HasNotifyPropertyChange) {
+  notifyPropertyChange = propertyDidChange;
+}
 
 const { deleted: { uncommitted: deletedUncommitted }, loaded: { saved: loadedSaved } } = RootState;
 
@@ -145,7 +158,7 @@ function resolveRecordArray(key, value, modelName, store, schema, schemaInterfac
 
   let array = M3RecordArray.create({
     modelName: '-ember-m3',
-    content: Ember.A(),
+    content: A(),
     store: store,
     manager: recordArrayManager,
   });
@@ -218,7 +231,7 @@ const retrieveFromCurrentState = computed('currentState', function(key) {
 //      CP or setknownProperty can rely on any initialization
 let initProperites = Object.create(null);
 
-export default class MegamorphicModel extends Ember.Object {
+export default class MegamorphicModel extends EmberObject {
   init(properties) {
     // Drop Ember.Object subclassing instead
     super.init(...arguments);
@@ -366,7 +379,7 @@ export default class MegamorphicModel extends Ember.Object {
 
   deleteRecord() {
     this._internalModel.currentState = deletedUncommitted;
-    propertyDidChange(this, 'currentState');
+    notifyPropertyChange(this, 'currentState');
   }
 
   destroyRecord(options) {
@@ -378,7 +391,7 @@ export default class MegamorphicModel extends Ember.Object {
     let dirtyKeys = this._internalModel._modelData.rollbackAttributes();
     this._internalModel.currentState = loadedSaved;
 
-    propertyDidChange(this, 'currentState');
+    notifyPropertyChange(this, 'currentState');
 
     if (dirtyKeys && dirtyKeys.length > 0) {
       this._notifyProperties(dirtyKeys);
@@ -398,11 +411,12 @@ export default class MegamorphicModel extends Ember.Object {
     // TODO IGOR DAVID
     // figure out if any of the below should be moved into model data
     if (rawValue === undefined) {
-      let alias = this._schema.getAttributeAlias(this._modelName, key);
-      if (alias) {
-        const cp = Ember.computed.alias(alias);
+      let attrAlias = this._schema.getAttributeAlias(this._modelName, key);
+      if (attrAlias) {
+        const cp = alias(attrAlias);
         cp.set = disallowAliasSet;
-        this[key] = cp;
+        defineProperty(this, key, cp);
+        // may also be reasonable to fall back to Ember.get after defining the property.
         return cp.get(this, key);
       }
 
@@ -462,8 +476,6 @@ export default class MegamorphicModel extends Ember.Object {
       );
     }
 
-    propertyWillChange(this, key);
-
     // TODO: need to be able to update relationships
     // TODO: also on set(x) ask schema if this should be a ref (eg if it has an
     // entityUrn)
@@ -485,7 +497,7 @@ export default class MegamorphicModel extends Ember.Object {
       delete this._cache[key];
     }
 
-    propertyDidChange(this, key);
+    notifyPropertyChange(this, key);
   }
 
   _setRecordArray(key, models) {
@@ -521,21 +533,21 @@ MegamorphicModel.prototype.currentState = null;
 MegamorphicModel.prototype.isError = null;
 MegamorphicModel.prototype.adapterError = null;
 
-MegamorphicModel.relationshipsByName = new Ember.Map();
+MegamorphicModel.relationshipsByName = new Map();
 
 // STATE PROPS
-MegamorphicModel.prototype.isEmpty = retrieveFromCurrentState;
-MegamorphicModel.prototype.isLoading = retrieveFromCurrentState;
-MegamorphicModel.prototype.isLoaded = retrieveFromCurrentState;
-MegamorphicModel.prototype.isSaving = retrieveFromCurrentState;
-MegamorphicModel.prototype.isDeleted = retrieveFromCurrentState;
-MegamorphicModel.prototype.isNew = retrieveFromCurrentState;
-MegamorphicModel.prototype.isValid = retrieveFromCurrentState;
-MegamorphicModel.prototype.dirtyType = retrieveFromCurrentState;
+defineProperty(MegamorphicModel.prototype, 'isEmpty', retrieveFromCurrentState);
+defineProperty(MegamorphicModel.prototype, 'isLoading', retrieveFromCurrentState);
+defineProperty(MegamorphicModel.prototype, 'isLoaded', retrieveFromCurrentState);
+defineProperty(MegamorphicModel.prototype, 'isSaving', retrieveFromCurrentState);
+defineProperty(MegamorphicModel.prototype, 'isDeleted', retrieveFromCurrentState);
+defineProperty(MegamorphicModel.prototype, 'isNew', retrieveFromCurrentState);
+defineProperty(MegamorphicModel.prototype, 'isValid', retrieveFromCurrentState);
+defineProperty(MegamorphicModel.prototype, 'dirtyType', retrieveFromCurrentState);
 
 class EmbeddedMegamorphicModel extends MegamorphicModel {
   unloadRecord() {
-    Ember.warn(
+    warn(
       `Nested models cannot be directly unloaded.  Perhaps you meant to unload the top level model, '${
         this._topModel._modelName
       }:${this._topModel.id}'`,

@@ -1,8 +1,8 @@
-import Ember from 'ember';
+import { helper } from '@ember/component/helper';
 
 export function monthOf(params /*, hash*/) {
   let [date] = params;
   return date && date.getMonth() + 1;
 }
 
-export default Ember.Helper.helper(monthOf);
+export default helper(monthOf);

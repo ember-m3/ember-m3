@@ -1,16 +1,17 @@
+import Ember from 'ember';
 import { module, test, skip } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
 
 import DS from 'ember-data';
-import Ember from 'ember';
 import { zip } from 'lodash';
 
 import MegamorphicModel from 'ember-m3/model';
 import SchemaManager from 'ember-m3/schema-manager';
 import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
-
-const { get, set, run, RSVP: { Promise } } = Ember;
+import EmberObject, { get, set } from '@ember/object';
+import { Promise } from 'rsvp';
+import { run } from '@ember/runloop';
 
 const UrnWithTypeRegex = /^urn:([a-zA-Z.]+):(.*)/;
 const UrnWithoutTypeRegex = /^urn:(.*)/;
@@ -722,8 +723,20 @@ module('unit/model', function(hooks) {
       sept1989,
       'alias to value present with transform'
     );
+    assert.equal(
+      get(model, 'title'),
+      `Harry Potter and the Sorcerer's Stone`,
+      'alias to value present after caching'
+    );
     assert.equal(get(model, 'cost'), undefined, 'alias to missing');
     assert.equal(get(model, 'hb'), true, 'alias to missing with default');
+
+    set(model, 'name', 'Harry Potter and the different title');
+    assert.equal(
+      get(model, 'title'),
+      `Harry Potter and the different title`,
+      'alias invalidated when dependent is changed'
+    );
   });
 
   test('schema can access other attributes when computing attribute references', function(assert) {
@@ -1888,7 +1901,7 @@ module('unit/model', function(hooks) {
 
     this.owner.register(
       'serializer:-ember-m3',
-      Ember.Object.extend({
+      EmberObject.extend({
         serialize(snapshot, options) {
           assert.deepEqual(options, { some: 'options' }, 'options are passed through to serialize');
           assert.equal(snapshot.attr('name'), 'The Winds of Winter', 'attr - name');
@@ -1931,7 +1944,7 @@ module('unit/model', function(hooks) {
 
     this.owner.register(
       'adapter:-ember-m3',
-      Ember.Object.extend({
+      EmberObject.extend({
         updateRecord(store, type, snapshot) {
           assert.equal(snapshot.record.get('isSaving'), true, 'record is saving');
           return Promise.resolve({
@@ -1985,7 +1998,7 @@ module('unit/model', function(hooks) {
 
     this.owner.register(
       'adapter:-ember-m3',
-      Ember.Object.extend({
+      EmberObject.extend({
         findRecord(store, type, id, snapshot) {
           // TODO: this is annoying but name normalization means we get the wrong
           // model name in snapshots. See #11
@@ -2003,7 +2016,7 @@ module('unit/model', function(hooks) {
 
           return Promise.resolve({
             data: {
-              id: 1,
+              id: '1',
               type: 'com.example.bookstore.Book',
               attributes: {
                 name: 'The Winds of Winter',
@@ -2017,7 +2030,7 @@ module('unit/model', function(hooks) {
     let model = run(() => {
       return this.store.push({
         data: {
-          id: 1,
+          id: '1',
           type: 'com.example.bookstore.book',
           attributes: {
             name: 'The Winds of Winter',
@@ -2034,7 +2047,7 @@ module('unit/model', function(hooks) {
 
     this.owner.register(
       'adapter:-ember-m3',
-      Ember.Object.extend({
+      EmberObject.extend({
         deteRecord() {
           assert.ok(false, 'Did not make it to adapter');
         },
@@ -2063,7 +2076,7 @@ module('unit/model', function(hooks) {
 
     this.owner.register(
       'adapter:-ember-m3',
-      Ember.Object.extend({
+      EmberObject.extend({
         deleteRecord(store, type, snapshot) {
           assert.equal(snapshot.record.get('isDeleted'), true, 'model is deleted');
           return Promise.resolve();
@@ -2159,7 +2172,15 @@ module('unit/model', function(hooks) {
       false,
       'nested record do not appear in identity map'
     );
-    let warnSpy = this.sinon.spy(Ember, 'warn');
+
+    // This is how to assert via workmanw/ember-qunit-assert-helpers but this
+    // helper does not prevent the warning from hitting the console
+    //
+    // assert.expectNoWarning();
+    // nestedModel.unloadRecord();
+    // assert.expectWarning(`Nested models cannot be directly unloaded.  Perhaps you meant to unload the top level model, 'com.example.bookstore.book:1'`);
+
+    let warnSpy = this.sinon.stub(Ember, 'warn');
     nestedModel.unloadRecord();
     assert.deepEqual(zip(warnSpy.thisValues.map(x => x + ''), warnSpy.args), [
       [
@@ -2403,7 +2424,7 @@ module('unit/model', function(hooks) {
   test('.rollbackAttributes rolls back nested dirty attributes after a rejected save', function(assert) {
     this.owner.register(
       'adapter:-ember-m3',
-      Ember.Object.extend({
+      EmberObject.extend({
         updateRecord() {
           return Promise.reject();
         },
@@ -2452,7 +2473,7 @@ module('unit/model', function(hooks) {
   test('updates from .save do not overwrite attributes  or nested attributes set after .save is called', function(assert) {
     this.owner.register(
       'adapter:-ember-m3',
-      Ember.Object.extend({
+      EmberObject.extend({
         updateRecord() {
           return Promise.resolve({
             data: {
@@ -2549,7 +2570,7 @@ module('unit/model', function(hooks) {
   test('updates from .save clear changed attributes in nested models within arrays', function(assert) {
     this.owner.register(
       'adapter:-ember-m3',
-      Ember.Object.extend({
+      EmberObject.extend({
         updateRecord() {
           return Promise.resolve({
             data: {
@@ -2626,7 +2647,7 @@ module('unit/model', function(hooks) {
 
     this.owner.register(
       'adapter:-ember-m3',
-      Ember.Object.extend({
+      EmberObject.extend({
         findRecord(store, modelClass, id, snapshot) {
           // TODO: this is annoying but name normalization means we get the wrong
           // model name in snapshots.  Should fix this upstream by dropping name
@@ -2686,7 +2707,7 @@ module('unit/model', function(hooks) {
 
     this.owner.register(
       'adapter:-ember-m3',
-      Ember.Object.extend({
+      EmberObject.extend({
         shouldReloadAll() {
           return true;
         },
@@ -2744,7 +2765,7 @@ module('unit/model', function(hooks) {
 
     this.owner.register(
       'adapter:-ember-m3',
-      Ember.Object.extend({
+      EmberObject.extend({
         shouldReloadAll() {
           return true;
         },
@@ -2803,7 +2824,7 @@ module('unit/model', function(hooks) {
 
     this.owner.register(
       'adapter:-ember-m3',
-      Ember.Object.extend({
+      EmberObject.extend({
         shouldReloadAll() {
           return true;
         },
@@ -2860,7 +2881,7 @@ module('unit/model', function(hooks) {
 
     this.owner.register(
       'adapter:-ember-m3',
-      Ember.Object.extend({
+      EmberObject.extend({
         findRecord(store, modelClass, id, snapshot) {
           assert.equal(snapshot.modelName, 'com.example.bookstore.book', 'snapshot.modelName');
           assert.equal(modelClass, MegamorphicModel);
