@@ -7,7 +7,13 @@ import SchemaManager from './schema-manager';
 import M3RecordArray from './record-array';
 import { OWNER_KEY } from './util';
 
-const { get, set, propertyWillChange, propertyDidChange, computed, A } = Ember;
+const { get, set, propertyDidChange, computed, A } = Ember;
+let { notifyPropertyChange } = Ember;
+
+const HasNotifyPropertyChange = notifyPropertyChange !== undefined;
+if (!HasNotifyPropertyChange) {
+  notifyPropertyChange = propertyDidChange;
+}
 
 const { deleted: { uncommitted: deletedUncommitted }, loaded: { saved: loadedSaved } } = RootState;
 
@@ -366,7 +372,7 @@ export default class MegamorphicModel extends Ember.Object {
 
   deleteRecord() {
     this._internalModel.currentState = deletedUncommitted;
-    propertyDidChange(this, 'currentState');
+    notifyPropertyChange(this, 'currentState');
   }
 
   destroyRecord(options) {
@@ -378,7 +384,7 @@ export default class MegamorphicModel extends Ember.Object {
     let dirtyKeys = this._internalModel._modelData.rollbackAttributes();
     this._internalModel.currentState = loadedSaved;
 
-    propertyDidChange(this, 'currentState');
+    notifyPropertyChange(this, 'currentState');
 
     if (dirtyKeys && dirtyKeys.length > 0) {
       this._notifyProperties(dirtyKeys);
@@ -462,8 +468,6 @@ export default class MegamorphicModel extends Ember.Object {
       );
     }
 
-    propertyWillChange(this, key);
-
     // TODO: need to be able to update relationships
     // TODO: also on set(x) ask schema if this should be a ref (eg if it has an
     // entityUrn)
@@ -485,7 +489,7 @@ export default class MegamorphicModel extends Ember.Object {
       delete this._cache[key];
     }
 
-    propertyDidChange(this, key);
+    notifyPropertyChange(this, key);
   }
 
   _setRecordArray(key, models) {
