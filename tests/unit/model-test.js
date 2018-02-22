@@ -2003,7 +2003,7 @@ module('unit/model', function(hooks) {
 
           return Promise.resolve({
             data: {
-              id: 1,
+              id: '1',
               type: 'com.example.bookstore.Book',
               attributes: {
                 name: 'The Winds of Winter',
@@ -2017,7 +2017,7 @@ module('unit/model', function(hooks) {
     let model = run(() => {
       return this.store.push({
         data: {
-          id: 1,
+          id: '1',
           type: 'com.example.bookstore.book',
           attributes: {
             name: 'The Winds of Winter',
