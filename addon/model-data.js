@@ -75,6 +75,7 @@ export default class M3ModelData {
     } else {
       this.baseModelName = this._schema.computeBaseModelName(this.modelName);
       if (this.baseModelName && this.id) {
+        this.baseModelName = dasherize(this.baseModelName);
         this._initBaseModelData(this.baseModelName, id);
       } else {
         this.baseModelData = null;
