@@ -40,6 +40,9 @@ class NestedModelDataWrapper {
   }
 
   notifyPropertyChange(modelName, id, clientId, key) {
+    if (!this.internalModel) {
+      return;
+    }
     assert(
       `Nested model datas can only notify of property changes their associated record. Blocked an attempt to notify ${modelName} with ID ${id} for ${key} property`,
       modelName === this.internalModel.modelName && id === this.internalModel.id
@@ -52,7 +55,7 @@ class NestedModelDataWrapper {
 }
 
 export default class M3ModelData {
-  constructor(modelName, id, clientId, storeWrapper) {
+  constructor(modelName, id, clientId, storeWrapper, baseModelData) {
     this.modelName = modelName;
     this.clientId = clientId;
     this.id = id;
@@ -64,14 +67,19 @@ export default class M3ModelData {
     this.__projections = null;
 
     this._schema = SchemaManager;
-
-    this.baseModelName = this._schema.computeBaseModelName(this.modelName);
-
-    if (this.baseModelName && this.id) {
-      // TODO we may not have ID yet?
-      this._initBaseModelData(this.baseModelName, id);
+    if (baseModelData) {
+      // this is the case of nested model data and we are receiving the base model data directly
+      this.baseModelName = null;
+      this.baseModelData = baseModelData;
+      this.baseModelData._registerProjection(this);
     } else {
-      this.baseModelData = null;
+      this.baseModelName = this._schema.computeBaseModelName(this.modelName);
+      if (this.baseModelName && this.id) {
+        this.baseModelName = dasherize(this.baseModelName);
+        this._initBaseModelData(this.baseModelName, id);
+      } else {
+        this.baseModelData = null;
+      }
     }
   }
 
@@ -199,13 +207,28 @@ export default class M3ModelData {
    */
   getOrCreateNestedModelData(key, modelName, id, internalModel) {
     let nestedModelData = this._nestedModelDatas[key];
-    if (!nestedModelData) {
-      nestedModelData = this._nestedModelDatas[key] = this.createNestedModelData(
-        modelName,
+    if (nestedModelData) {
+      return nestedModelData;
+    }
+    let baseNestedModelData;
+    if (this.baseModelData) {
+      // we have a base, ask it for a nested model data
+      let baseNestedModelName = this._schema.computeBaseModelName(modelName);
+      // TODO We don't have any associated internal model though, because Ember Data is not tracking these
+      // we need to fill it in when the nested base model data is requested
+      baseNestedModelData = this.baseModelData.getOrCreateNestedModelData(
+        key,
+        baseNestedModelName,
         id,
-        internalModel
+        null
       );
     }
+    nestedModelData = this._nestedModelDatas[key] = this.createNestedModelData(
+      modelName,
+      id,
+      internalModel,
+      baseNestedModelData
+    );
     return nestedModelData;
   }
 
@@ -218,9 +241,9 @@ export default class M3ModelData {
    * @return {M3ModelData}
    * @private
    */
-  createNestedModelData(modelName, id, internalModel) {
+  createNestedModelData(modelName, id, internalModel, baseModelData) {
     let storeWrapper = new NestedModelDataWrapper(internalModel);
-    return new M3ModelData(modelName, id, null, storeWrapper);
+    return new M3ModelData(modelName, id, null, storeWrapper, baseModelData);
   }
 
   /**
