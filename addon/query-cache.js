@@ -1,6 +1,5 @@
 import { get } from '@ember/object';
 import { A } from '@ember/array';
-import { resolve } from 'rsvp';
 
 import MegamorphicModel from './model';
 import M3RecordArray from './record-array';
@@ -36,11 +35,11 @@ export default class QueryCache {
       options.data = params;
     }
 
-    let cachedValue = cacheKey ? this._queryCache[cacheKey] : undefined;
+    let cachedPromise = cacheKey ? this._queryCache[cacheKey] : undefined;
     let adapterUrl = this._buildUrl(url);
     let loadPromise;
 
-    if (backgroundReload || reload || cachedValue === undefined) {
+    if (backgroundReload || reload || cachedPromise === undefined) {
       loadPromise = this._adapter.ajax(adapterUrl, method, options).then(rawPayload => {
         let serializer = this._store.serializerFor('-ember-m3');
         let payload = serializer.normalizeResponse(
@@ -51,18 +50,23 @@ export default class QueryCache {
           'query-url'
         );
         let result = this._createResult(payload, { url, params, method, cacheKey }, array);
-
+        //Add result to reverseCache.
         if (cacheKey) {
-          this._addResultToCache(result, cacheKey);
+          this._addResultToReverseCache(result, cacheKey);
         }
         return result;
       });
     }
 
-    if (reload || cachedValue === undefined) {
+    if (reload || cachedPromise === undefined) {
+      //Store the promise in the cache until it is fulfilled and
+      //retrun same promise for subsequent request.
+      if (cacheKey) {
+        this._queryCache[cacheKey] = loadPromise;
+      }
       return loadPromise;
     } else {
-      return resolve(cachedValue);
+      return cachedPromise;
     }
   }
 
@@ -164,9 +168,7 @@ export default class QueryCache {
     }
   }
 
-  _addResultToCache(result, cacheKey) {
-    this._queryCache[cacheKey] = result;
-
+  _addResultToReverseCache(result, cacheKey) {
     if (result.constructor === M3RecordArray) {
       for (let i = 0; i < result.content.length; ++i) {
         this._addRecordToReverseCache(result.content[i], cacheKey);

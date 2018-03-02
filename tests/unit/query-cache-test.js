@@ -798,4 +798,29 @@ module('unit/query-cache', function(hooks) {
       assert.equal(model.get('wat'), 'definitely');
     });
   });
+
+  test('queryURL batch requests to same cacheKey', function(assert) {
+    let payload = {
+      data: [
+        {
+          id: 2,
+          type: 'my-type',
+          attributes: {},
+        },
+        {
+          id: 3,
+          type: 'my-type',
+          attributes: {},
+        },
+      ],
+    };
+    let cacheKey = 'uwot';
+    let options = { cacheKey };
+
+    this.adapterAjax.returns(resolve(payload));
+    let promise1 = this.queryCache.queryURL('/uwot', options);
+    // second call to `queryURL` before the first request finishes
+    let promise2 = this.queryCache.queryURL('/uwot', options);
+    assert.equal(promise1, promise2);
+  });
 });
