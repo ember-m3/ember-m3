@@ -259,6 +259,20 @@ export default class M3ModelData {
 
   // INTERNAL API
 
+  eachAttribute(callback, binding) {
+    if (this.__attributes !== null) {
+      Object.keys(this._attributes).forEach(callback, binding);
+    }
+
+    if (this.__inFlightAttributes !== null) {
+      Object.keys(this._inFlightAttributes).forEach(callback, binding);
+    }
+
+    if (this.__data !== null) {
+      Object.keys(this._data).forEach(callback, binding);
+    }
+  }
+
   /*
     Returns an object, whose keys are changed properties, and value is an
     [oldProp, newProp] array.

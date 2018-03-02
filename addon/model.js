@@ -336,14 +336,7 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   eachAttribute(callback, binding) {
-    if (!this._internalModel._modelData._data) {
-      // see #14
-      return;
-    }
-
-    // Properties in `data` are treated as attributes for serialization purposes
-    // if the schema does not consider them references
-    Object.keys(this._internalModel._modelData._data).forEach(callback, binding);
+    return this._internalModel._modelData.eachAttribute(callback, binding);
   }
 
   unloadRecord() {

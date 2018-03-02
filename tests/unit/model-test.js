@@ -1975,8 +1975,8 @@ module('unit/model', function(hooks) {
 
           assert.deepEqual(
             eachAttrCBCalls.sort(),
-            ['estimatedPubDate', 'name'],
-            'eachAttribute iterates data'
+            ['estimatedPubDate', 'name', 'newAttr'],
+            'eachAttribute iterates each attribute'
           );
         },
       })
@@ -1994,6 +1994,8 @@ module('unit/model', function(hooks) {
         },
       });
     });
+
+    set(model, 'newAttr', 'newAttrValue');
 
     return model.serialize({ some: 'options' });
   });
