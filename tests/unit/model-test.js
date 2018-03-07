@@ -2267,17 +2267,23 @@ module('unit/model', function(hooks) {
           attributes: {
             name: 'The Winds of Winter',
             author: 'George R. R. Martin',
+            rating: 10,
+            expectedPubDate: 'never',
           },
         },
       });
     });
 
     model.set('name', 'Alice in Wonderland');
+    model.set('rating', null);
+    model.set('expectedPubDate', undefined);
 
     assert.deepEqual(
       model.changedAttributes(),
       {
         name: ['The Winds of Winter', 'Alice in Wonderland'],
+        rating: [10, null],
+        expectedPubDate: ['never', undefined],
       },
       'changed attributes should be return as changed'
     );
@@ -2342,6 +2348,35 @@ module('unit/model', function(hooks) {
         },
       },
       'only changed attributes in nested models are included'
+    );
+  });
+
+  test('.changedAttributes returns dirty attributes for arrays of primitive values', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+            author: 'George R. R. Martin',
+            chapters: ['Windy eh', 'I guess winter was coming after all'],
+          },
+        },
+      });
+    });
+
+    set(model, 'chapters', ['so windy', 'winter winter']);
+
+    assert.deepEqual(
+      model.changedAttributes(),
+      {
+        chapters: [
+          ['Windy eh', 'I guess winter was coming after all'],
+          ['so windy', 'winter winter'],
+        ],
+      },
+      '.changedAttributes returns changed arrays'
     );
   });
 
