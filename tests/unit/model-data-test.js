@@ -17,6 +17,36 @@ module('unit/model-data', function(hooks) {
     this.sinon.restore();
   });
 
+  test(`.eachAttribute iterates attributes, in-flight attrs and data`, function(assert) {
+    let modelData = new M3ModelData(
+      'com.exmaple.bookstore.book',
+      '1',
+      null,
+      this.storeWrapper,
+      null,
+      null
+    );
+
+    modelData.pushData(
+      {
+        id: '1',
+        attributes: {
+          dataAttr: 'value',
+        },
+      },
+      false
+    );
+
+    modelData.setAttr('inFlightAttr', 'value');
+    modelData.willCommit();
+    modelData.setAttr('localAttr', 'value');
+
+    let attrsIterated = [];
+    modelData.eachAttribute(attr => attrsIterated.push(attr));
+
+    assert.deepEqual(attrsIterated, ['localAttr', 'inFlightAttr', 'dataAttr']);
+  });
+
   test(`.constructor populates the parent modelData's .childModelDatas`, function(assert) {
     let topModelData = new M3ModelData(
       'com.exmaple.bookstore.book',
