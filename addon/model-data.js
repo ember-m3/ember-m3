@@ -135,89 +135,6 @@ export default class M3ModelData {
 
   removeFromHasMany() {}
 
-  /*
-    Returns an object, whose keys are changed properties, and value is an
-    [oldProp, newProp] array.
-
-    @method changedAttributes
-    @private
-  */
-  changedAttributes() {
-    let serverState = this._data;
-    let localChanges = this._attributes;
-    let inFlightData = this._inFlightAttributes;
-    let newData = emberAssign(copy(inFlightData), localChanges);
-    let _changedAttributes = Object.create(null);
-    let newDataKeys = Object.keys(newData);
-
-    for (let i = 0, length = newDataKeys.length; i < length; i++) {
-      let key = newDataKeys[i];
-      _changedAttributes[key] = [serverState[key], newData[key]];
-    }
-
-    if (this.__childModelDatas) {
-      let nestedKeys = Object.keys(this._childModelDatas);
-      for (let i = 0; i < nestedKeys.length; ++i) {
-        let childKey = nestedKeys[i];
-        let childModelData = this._childModelDatas[childKey];
-        if (Array.isArray(childModelData)) {
-          let changes = null;
-          for (let j = 0; j < childModelData.length; ++j) {
-            let individualChildModelData = childModelData[j];
-            let childChangedAttributes = individualChildModelData.changedAttributes();
-            if (Object.keys(childChangedAttributes).length > 0) {
-              if (changes == null) {
-                changes = new Array(childModelData.length);
-              }
-              changes[j] = childChangedAttributes;
-            }
-          }
-          if (changes !== null) {
-            _changedAttributes[childKey] = changes;
-          }
-        } else {
-          let childChangedAttributes = childModelData.changedAttributes();
-          if (Object.keys(childChangedAttributes).length > 0) {
-            _changedAttributes[childKey] = childChangedAttributes;
-          }
-        }
-      }
-    }
-
-    return _changedAttributes;
-  }
-
-  rollbackAttributes(notifyRecord = false) {
-    let dirtyKeys;
-    if (this.hasChangedAttributes()) {
-      dirtyKeys = Object.keys(this._attributes);
-      this._attributes = null;
-    }
-
-    this._inFlightAttributes = null;
-
-    if (this.__childModelDatas) {
-      let nestedKeys = Object.keys(this._childModelDatas);
-      for (let i = 0; i < nestedKeys.length; ++i) {
-        let childKey = nestedKeys[i];
-        let childModelData = this._childModelDatas[childKey];
-        if (Array.isArray(childModelData)) {
-          for (let j = 0; j < childModelData.length; ++j) {
-            childModelData[j].rollbackAttributes(true);
-          }
-        } else {
-          childModelData.rollbackAttributes(true);
-        }
-      }
-    }
-
-    if (notifyRecord) {
-      this._embeddedInternalModel.record._notifyProperties(dirtyKeys);
-    }
-
-    return dirtyKeys;
-  }
-
   didCommit(jsonApiResource, notifyRecord = false) {
     let attributes;
     if (jsonApiResource) {
@@ -341,6 +258,89 @@ export default class M3ModelData {
   clientDidCreate() {}
 
   // INTERNAL API
+
+  /*
+    Returns an object, whose keys are changed properties, and value is an
+    [oldProp, newProp] array.
+
+    @method changedAttributes
+    @private
+  */
+  changedAttributes() {
+    let serverState = this._data;
+    let localChanges = this._attributes;
+    let inFlightData = this._inFlightAttributes;
+    let newData = emberAssign(copy(inFlightData), localChanges);
+    let _changedAttributes = Object.create(null);
+    let newDataKeys = Object.keys(newData);
+
+    for (let i = 0, length = newDataKeys.length; i < length; i++) {
+      let key = newDataKeys[i];
+      _changedAttributes[key] = [serverState[key], newData[key]];
+    }
+
+    if (this.__childModelDatas) {
+      let nestedKeys = Object.keys(this._childModelDatas);
+      for (let i = 0; i < nestedKeys.length; ++i) {
+        let childKey = nestedKeys[i];
+        let childModelData = this._childModelDatas[childKey];
+        if (Array.isArray(childModelData)) {
+          let changes = null;
+          for (let j = 0; j < childModelData.length; ++j) {
+            let individualChildModelData = childModelData[j];
+            let childChangedAttributes = individualChildModelData.changedAttributes();
+            if (Object.keys(childChangedAttributes).length > 0) {
+              if (changes == null) {
+                changes = new Array(childModelData.length);
+              }
+              changes[j] = childChangedAttributes;
+            }
+          }
+          if (changes !== null) {
+            _changedAttributes[childKey] = changes;
+          }
+        } else {
+          let childChangedAttributes = childModelData.changedAttributes();
+          if (Object.keys(childChangedAttributes).length > 0) {
+            _changedAttributes[childKey] = childChangedAttributes;
+          }
+        }
+      }
+    }
+
+    return _changedAttributes;
+  }
+
+  rollbackAttributes(notifyRecord = false) {
+    let dirtyKeys;
+    if (this.hasChangedAttributes()) {
+      dirtyKeys = Object.keys(this._attributes);
+      this._attributes = null;
+    }
+
+    this._inFlightAttributes = null;
+
+    if (this.__childModelDatas) {
+      let nestedKeys = Object.keys(this._childModelDatas);
+      for (let i = 0; i < nestedKeys.length; ++i) {
+        let childKey = nestedKeys[i];
+        let childModelData = this._childModelDatas[childKey];
+        if (Array.isArray(childModelData)) {
+          for (let j = 0; j < childModelData.length; ++j) {
+            childModelData[j].rollbackAttributes(true);
+          }
+        } else {
+          childModelData.rollbackAttributes(true);
+        }
+      }
+    }
+
+    if (notifyRecord) {
+      this._embeddedInternalModel.record._notifyProperties(dirtyKeys);
+    }
+
+    return dirtyKeys;
+  }
 
   get _childModelDatas() {
     if (this.__childModelDatas === null) {
