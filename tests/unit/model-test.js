@@ -1953,6 +1953,57 @@ module('unit/model', function(hooks) {
     );
   });
 
+  test('nested model updates with no changes and id = null (reified)', function(assert) {
+    let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: {
+              id: null,
+              name: 'The Boy Who Lived',
+              type: 'com.example.bookstore.Chapter',
+            },
+          },
+        },
+      });
+    });
+
+    get(model, 'nextChapter');
+
+    assert.equal(init.callCount, 2, 'two models are created initially');
+
+    run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: {
+              id: null,
+              name: 'The Boy Who Lived',
+              type: 'com.example.bookstore.Chapter',
+            },
+          },
+        },
+      });
+    });
+
+    get(model, 'nextChapter');
+
+    assert.equal(init.callCount, 2, 'no new models should be created');
+    assert.deepEqual(
+      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      [],
+      'no property change should be triggered'
+    );
+  });
   test('nested model updates with no changes (model inert)', function(assert) {
     let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
     let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
