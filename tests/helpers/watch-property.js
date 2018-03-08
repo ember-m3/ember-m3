@@ -1,38 +1,27 @@
-import Ember from 'ember';
+import { addObserver, removeObserver } from '@ember/object/observers';
 import QUnit from 'qunit';
+/*
+  Watches a property and increments a counter each time the property is invalidated.
 
-const { addObserver, removeObserver } = Ember;
+  Returns an object with the following properties:
+  - `count` - contains the number of times the property was invalidated
+  - `unwatch` - a function to stop watching the property
 
-function makeCounter() {
-  let count = 0;
-  const counter = Object.create(null);
-  counter.reset = function resetCounter() {
-    count = 0;
-  };
-
-  Object.defineProperty(counter, 'count', {
-    get() {
-      return count;
-    },
-    set() {},
-    configurable: false,
-    enumerable: true,
+  An example of how to use it:
+  ```js
+  test('that property has been invalidated', function(assert) {
+    let subject = EmberObject.create();
+    let watcher = watchProperty(subject, 'theProperty');
+    subject.set('theProperty', 'newValue');
+    assert.equal(watcher.count, 1, 'Expected `theProperty` to have been invalidated');
   });
-
-  Object.freeze(counter);
-
-  function increment() {
-    count++;
-  }
-
-  return { counter, increment };
-}
-
+  ```
+ */
 export function watchProperty(obj, propertyName) {
-  let { counter, increment } = makeCounter();
+  let count = 0;
 
   function observe() {
-    increment();
+    count++;
   }
 
   addObserver(obj, propertyName, observe);
@@ -41,12 +30,40 @@ export function watchProperty(obj, propertyName) {
     removeObserver(obj, propertyName, observe);
   }
 
-  return { counter, unwatch };
+  return {
+    get count() {
+      return count;
+    },
+    unwatch,
+  };
 }
 
+/*
+  Convenient function for watching multiple properties at once. It uses the
+  same mechanism as `watchProperty` and returns an object with the following properties:
+  - `counts` - a map from property name to the count of how many times the property was invalidated
+  - `unwatch` - a function to stop watching the properties
+
+  An example of how to use it:
+
+  test('that properties have been invalidated', function(assert) {
+    let subject = EmberObject.create();
+    let watchers = watchProperties(subject, ['property1', 'property2']);
+    subject.set('property1', 'newValue');
+    subject.set('property2', 'newValue');
+    assert.deepEqual(
+      watchers.counts,
+      {
+        property1: 1,
+        property2: 2,
+      },
+      'Expected `theProperty` to have been invalidated'
+    );
+  });
+  ```
+ */
 export function watchProperties(obj, propertyNames) {
-  let watched = {};
-  let counters = {};
+  let watchers = {};
 
   if (!Array.isArray(propertyNames)) {
     throw new Error(
@@ -57,103 +74,40 @@ export function watchProperties(obj, propertyNames) {
   for (let i = 0; i < propertyNames.length; i++) {
     let propertyName = propertyNames[i];
 
-    if (watched[propertyName] !== undefined) {
+    if (watchers[propertyName] !== undefined) {
       throw new Error(`Cannot watch the same property ${propertyName} more than once`);
     }
 
-    let { counter, increment } = makeCounter();
-    watched[propertyName] = increment;
-    counters[propertyName] = counter;
-
-    addObserver(obj, propertyName, increment);
+    watchers[propertyName] = watchProperty(obj, propertyName);
   }
 
   function unwatch() {
-    Object.keys(watched).forEach(propertyName => {
-      removeObserver(obj, propertyName, watched[propertyName]);
+    propertyNames.forEach(propertyName => {
+      watchers[propertyName].unwatch();
     });
   }
 
-  return { counters, unwatch };
+  return {
+    get counts() {
+      return propertyNames.reduce((result, prop) => {
+        result[prop] = watchers[prop].count;
+        return result;
+      }, {});
+    },
+    unwatch,
+  };
 }
-
-QUnit.assert.watchedPropertyCounts = function assertWatchedPropertyCount(
-  watchedObject,
-  expectedCounts,
-  label = ''
-) {
-  if (!watchedObject || !watchedObject.counters) {
-    throw new Error(
-      'Expected to receive the return value of watchProperties: an object containing counters'
-    );
-  }
-
-  let counters = watchedObject.counters;
-
-  Object.keys(expectedCounts).forEach(propertyName => {
-    let counter = counters[propertyName];
-    let expectedCount = expectedCounts[propertyName];
-    let assertionText = label;
-
-    if (Array.isArray(expectedCount)) {
-      label = expectedCount[1];
-      expectedCount = expectedCount[0];
-    }
-
-    assertionText += ` | Expected ${expectedCount} change notifications for ${propertyName} but recieved ${
-      counter.count
-    }`;
-
-    if (counter === undefined) {
-      throw new Error(
-        `Cannot assert expected count for ${propertyName} as there is no watcher for that property`
-      );
-    }
-
-    this.pushResult({
-      result: counter.count === expectedCount,
-      actual: counter.count,
-      expected: expectedCount,
-      message: assertionText,
-    });
-  });
-};
-
-QUnit.assert.watchedPropertyCount = function assertWatchedPropertyCount(
-  watcher,
-  expectedCount,
-  label
-) {
-  let counter;
-  if (!watcher) {
-    throw new Error(`Expected to receive a watcher`);
-  }
-
-  // this allows us to handle watchers passed in from a watchProperties return hash
-  if (!watcher.counter && watcher.count !== undefined) {
-    counter = watcher;
-  } else {
-    counter = watcher.counter;
-  }
-
-  this.pushResult({
-    result: counter.count === expectedCount,
-    actual: counter.count,
-    expected: expectedCount,
-    message: label,
-  });
-};
 
 QUnit.assert.dirties = function assertDirties(options, updateMethodCallback, label) {
   let { object: obj, property, count } = options;
   count = typeof count === 'number' ? count : 1;
-  let { counter, unwatch } = watchProperty(obj, property);
+  let watcher = watchProperty(obj, property);
   updateMethodCallback();
   this.pushResult({
-    result: counter.count === count,
-    actual: counter.count,
+    result: watcher.count === count,
+    actual: watcher.count,
     expected: count,
     message: label,
   });
-  unwatch();
+  watcher.unwatch();
 };

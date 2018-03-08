@@ -544,20 +544,20 @@ module('unit/projection', function(hooks) {
       assert.equal(get(projectedExcerpt, 'year'), BOOK_YEAR, 'excerpt has the correct year');
       assert.equal(get(projectedPreview, 'year'), BOOK_YEAR, 'preview has the correct year');
 
-      assert.watchedPropertyCounts(
-        baseRecordWatcher,
+      assert.deepEqual(
+        baseRecordWatcher.counts,
         { title: 0, description: 0, 'chapter-1': 0, year: 0 },
         'Initial baseRecord state'
       );
 
-      assert.watchedPropertyCounts(
-        excerptWatcher,
+      assert.deepEqual(
+        excerptWatcher.counts,
         { title: 0, description: 0, 'chapter-1': 0, year: 0 },
         'Initial excerpt state'
       );
 
-      assert.watchedPropertyCounts(
-        previewWatcher,
+      assert.deepEqual(
+        previewWatcher.counts,
         { title: 0, description: 0, 'chapter-1': 0, year: 0 },
         'Initial preview state'
       );
@@ -568,20 +568,20 @@ module('unit/projection', function(hooks) {
 
       let { baseRecord, projectedExcerpt, projectedPreview } = this.records;
 
-      assert.watchedPropertyCounts(
-        baseRecordWatcher,
+      assert.deepEqual(
+        baseRecordWatcher.counts,
         { title: 1, 'chapter-1': 1, year: 0 },
         'Final baseRecord state'
       );
 
-      assert.watchedPropertyCounts(
-        excerptWatcher,
+      assert.deepEqual(
+        excerptWatcher.counts,
         { title: 1, description: 0, 'chapter-1': 0, year: 0 },
         'Final excerpt state'
       );
 
-      assert.watchedPropertyCounts(
-        previewWatcher,
+      assert.deepEqual(
+        previewWatcher.counts,
         { title: 1, description: 0, 'chapter-1': 1, year: 0 },
         'Final preview state'
       );
@@ -644,13 +644,9 @@ module('unit/projection', function(hooks) {
 
       let { baseRecordWatcher } = this.watchers;
 
-      let baseCounters = baseRecordWatcher.counters;
+      let baseCounts = baseRecordWatcher.counts;
 
-      assert.watchedPropertyCount(
-        baseCounters.description,
-        1,
-        'Afterwards we have dirtied baseRecord.description'
-      );
+      assert.equal(baseCounts.description, 1, 'Afterwards we have dirtied baseRecord.description');
       assert.equal(
         get(baseRecord, 'description'),
         NEW_DESCRIPTION,
@@ -678,13 +674,9 @@ module('unit/projection', function(hooks) {
 
       let { baseRecordWatcher } = this.watchers;
 
-      let baseCounters = baseRecordWatcher.counters;
+      let baseCounts = baseRecordWatcher.counts;
 
-      assert.watchedPropertyCount(
-        baseCounters.description,
-        1,
-        'Afterwards we have dirtied baseRecord.description'
-      );
+      assert.equal(baseCounts.description, 1, 'Afterwards we have dirtied baseRecord.description');
       assert.equal(
         get(baseRecord, 'description'),
         NEW_DESCRIPTION,
@@ -710,8 +702,8 @@ module('unit/projection', function(hooks) {
         /whitelist/gi,
         'Setting a non-whitelisted property throws an error'
       );
-      assert.watchedPropertyCount(
-        this.watchers.baseRecordWatcher.counters.description,
+      assert.equal(
+        this.watchers.baseRecordWatcher.counts.description,
         0,
         'Afterwards we have not dirtied baseRecord.description'
       );
@@ -739,8 +731,8 @@ module('unit/projection', function(hooks) {
         });
       });
 
-      assert.watchedPropertyCount(
-        this.watchers.baseRecordWatcher.counters.description,
+      assert.equal(
+        this.watchers.baseRecordWatcher.counts.description,
         0,
         'Afterwards we have not dirtied baseRecord.description'
       );
@@ -891,20 +883,20 @@ module('unit/projection', function(hooks) {
         'preview has the correct author.name'
       );
 
-      assert.watchedPropertyCounts(
-        baseRecordWatcher,
+      assert.deepEqual(
+        baseRecordWatcher.counts,
         { author: 0, 'author.name': 0, 'author.location': 0, 'author.age': 0 },
         'Initial baseRecord state'
       );
 
-      assert.watchedPropertyCounts(
-        excerptWatcher,
+      assert.deepEqual(
+        excerptWatcher.counts,
         { author: 0, 'author.name': 0, 'author.location': 0, 'author.age': 0 },
         'Initial excerpt state'
       );
 
-      assert.watchedPropertyCounts(
-        previewWatcher,
+      assert.deepEqual(
+        previewWatcher.counts,
         { author: 0, 'author.name': 0, 'author.location': 0, 'author.age': 0 },
         'Initial preview state'
       );
@@ -915,20 +907,20 @@ module('unit/projection', function(hooks) {
 
       let { baseRecord, projectedExcerpt, projectedPreview } = this.records;
 
-      assert.watchedPropertyCounts(
-        baseRecordWatcher,
+      assert.deepEqual(
+        baseRecordWatcher.counts,
         { author: 0, 'author.name': 0, 'author.location': 1 },
         'Final baseRecord state'
       );
 
-      assert.watchedPropertyCounts(
-        excerptWatcher,
+      assert.deepEqual(
+        excerptWatcher.counts,
         { author: 0, 'author.name': 0, 'author.location': 1 },
         'Final excerpt state'
       );
 
-      assert.watchedPropertyCounts(
-        previewWatcher,
+      assert.deepEqual(
+        previewWatcher.counts,
         { author: 0, 'author.name': 0, 'author.location': 1, 'author.age': 0 },
         'Final preview state'
       );
@@ -994,16 +986,12 @@ module('unit/projection', function(hooks) {
 
         let { baseRecordWatcher, excerptWatcher } = this.watchers;
 
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
+        let baseCounts = baseRecordWatcher.counts;
+        let excerptCounts = excerptWatcher.counts;
 
-        assert.watchedPropertyCount(
-          baseCounters['author.age'],
-          1,
-          'Afterwards we have dirtied excerpt.author.age'
-        );
-        assert.watchedPropertyCount(
-          excerptCounters['author.age'],
+        assert.equal(baseCounts['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
+        assert.equal(
+          excerptCounts['author.age'],
           1,
           'Afterwards we have dirtied excerpt.author.age'
         );
@@ -1043,16 +1031,12 @@ module('unit/projection', function(hooks) {
 
         let { baseRecordWatcher, excerptWatcher } = this.watchers;
 
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
+        let baseCounts = baseRecordWatcher.counts;
+        let excerptCounts = excerptWatcher.counts;
 
-        assert.watchedPropertyCount(
-          baseCounters['author.age'],
-          1,
-          'Afterwards we have dirtied excerpt.author.age'
-        );
-        assert.watchedPropertyCount(
-          excerptCounters['author.age'],
+        assert.equal(baseCounts['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
+        assert.equal(
+          excerptCounts['author.age'],
           1,
           'Afterwards we have dirtied excerpt.author.age'
         );
@@ -1074,21 +1058,17 @@ module('unit/projection', function(hooks) {
       function(assert) {
         let { baseRecord, projectedExcerpt } = this.records;
         let { baseRecordWatcher, excerptWatcher } = this.watchers;
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
+        let baseCounts = baseRecordWatcher.counts;
+        let excerptCounts = excerptWatcher.counts;
 
         run(() => {
           set(projectedExcerpt, 'author.location', NEW_AUTHOR_LOCATION);
           set(projectedExcerpt, 'author.age', NEW_AUTHOR_AGE);
         });
 
-        assert.watchedPropertyCount(
-          baseCounters['author.age'],
-          1,
-          'Afterwards we have dirtied excerpt.author.age'
-        );
-        assert.watchedPropertyCount(
-          excerptCounters['author.age'],
+        assert.equal(baseCounts['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
+        assert.equal(
+          excerptCounts['author.age'],
           1,
           'Afterwards we have dirtied excerpt.author.age'
         );
@@ -1125,16 +1105,16 @@ module('unit/projection', function(hooks) {
         );
 
         let { baseRecordWatcher, excerptWatcher } = this.watchers;
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
+        let baseCounts = baseRecordWatcher.counts;
+        let excerptCounts = excerptWatcher.counts;
 
-        assert.watchedPropertyCount(
-          baseCounters['author.age'],
+        assert.equal(
+          baseCounts['author.age'],
           0,
           'Afterwards we have not dirtied excerpt.author.age'
         );
-        assert.watchedPropertyCount(
-          excerptCounters['author.age'],
+        assert.equal(
+          excerptCounts['author.age'],
           0,
           'Afterwards we have not dirtied excerpt.author.age'
         );
@@ -1173,16 +1153,12 @@ module('unit/projection', function(hooks) {
         });
 
         let { baseRecordWatcher, excerptWatcher } = this.watchers;
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
+        let baseCounts = baseRecordWatcher.counts;
+        let excerptCounts = excerptWatcher.counts;
 
-        assert.watchedPropertyCount(
-          baseCounters['author.age'],
-          1,
-          'Afterwards we have dirtied excerpt.author.age'
-        );
-        assert.watchedPropertyCount(
-          excerptCounters['author.age'],
+        assert.equal(baseCounts['author.age'], 1, 'Afterwards we have dirtied excerpt.author.age');
+        assert.equal(
+          excerptCounts['author.age'],
           1,
           'Afterwards we have dirtied excerpt.author.age'
         );
@@ -1220,16 +1196,16 @@ module('unit/projection', function(hooks) {
         });
 
         let { baseRecordWatcher, excerptWatcher } = this.watchers;
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
+        let baseCounts = baseRecordWatcher.counts;
+        let excerptCounts = excerptWatcher.counts;
 
-        assert.watchedPropertyCount(
-          baseCounters['author.age'],
+        assert.equal(
+          baseCounts['author.age'],
           0,
           'Afterwards we have not dirtied excerpt.author.age'
         );
-        assert.watchedPropertyCount(
-          excerptCounters['author.age'],
+        assert.equal(
+          excerptCounts['author.age'],
           0,
           'Afterwards we have not dirtied excerpt.author.age'
         );
@@ -1398,20 +1374,20 @@ module('unit/projection', function(hooks) {
         'preview has the correct publisher.owner'
       );
 
-      assert.watchedPropertyCounts(
-        baseRecordWatcher,
+      assert.deepEqual(
+        baseRecordWatcher.counts,
         { publisher: 0, 'publisher.name': 0, 'publisher.owner': 0, 'publisher.location': 0 },
         'Initial baseRecord state'
       );
 
-      assert.watchedPropertyCounts(
-        excerptWatcher,
+      assert.deepEqual(
+        excerptWatcher.counts,
         { publisher: 0, 'publisher.name': 0, 'publisher.owner': 0, 'publisher.location': 0 },
         'Initial excerpt state'
       );
 
-      assert.watchedPropertyCounts(
-        previewWatcher,
+      assert.deepEqual(
+        previewWatcher.counts,
         { publisher: 0, 'publisher.name': 0, 'publisher.owner': 0, 'publisher.location': 0 },
         'Initial preview state'
       );
@@ -1422,20 +1398,20 @@ module('unit/projection', function(hooks) {
 
       let { baseRecord, projectedExcerpt, projectedPreview } = this.records;
 
-      assert.watchedPropertyCounts(
-        baseRecordWatcher,
+      assert.deepEqual(
+        baseRecordWatcher.counts,
         { publisher: 0, 'publisher.name': 0, 'publisher.location': 1 },
         'Final baseRecord state'
       );
 
-      assert.watchedPropertyCounts(
-        excerptWatcher,
+      assert.deepEqual(
+        excerptWatcher.counts,
         { publisher: 0, 'publisher.name': 0, 'publisher.location': 1 },
         'Final excerpt state'
       );
 
-      assert.watchedPropertyCounts(
-        previewWatcher,
+      assert.deepEqual(
+        previewWatcher.counts,
         { publisher: 0, 'publisher.name': 0, 'publisher.owner': 0, 'publisher.location': 1 },
         'Final preview state'
       );
@@ -1501,16 +1477,16 @@ module('unit/projection', function(hooks) {
 
         let { baseRecordWatcher, excerptWatcher } = this.watchers;
 
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
+        let baseCounts = baseRecordWatcher.counts;
+        let excerptCounts = excerptWatcher.counts;
 
-        assert.watchedPropertyCount(
-          baseCounters['publisher.owner'],
+        assert.equal(
+          baseCounts['publisher.owner'],
           1,
           'Afterwards we have dirtied baseRecord.description'
         );
-        assert.watchedPropertyCount(
-          excerptCounters['publisher.owner'],
+        assert.equal(
+          excerptCounts['publisher.owner'],
           1,
           'Afterwards we have dirtied baseRecord.description'
         );
@@ -1555,16 +1531,16 @@ module('unit/projection', function(hooks) {
 
         let { baseRecordWatcher, excerptWatcher } = this.watchers;
 
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
+        let baseCounts = baseRecordWatcher.counts;
+        let excerptCounts = excerptWatcher.counts;
 
-        assert.watchedPropertyCount(
-          baseCounters['publisher.owner'],
+        assert.equal(
+          baseCounts['publisher.owner'],
           1,
           'Afterwards we have dirtied baseRecord.description'
         );
-        assert.watchedPropertyCount(
-          excerptCounters['publisher.owner'],
+        assert.equal(
+          excerptCounts['publisher.owner'],
           1,
           'Afterwards we have dirtied baseRecord.description'
         );
@@ -1593,16 +1569,16 @@ module('unit/projection', function(hooks) {
 
         let { baseRecordWatcher, excerptWatcher } = this.watchers;
 
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
+        let baseCounts = baseRecordWatcher.counts;
+        let excerptCounts = excerptWatcher.counts;
 
-        assert.watchedPropertyCount(
-          baseCounters['publisher.owner'],
+        assert.equal(
+          baseCounts['publisher.owner'],
           1,
           'Afterwards we have dirtied baseRecord.publisher.owner'
         );
-        assert.watchedPropertyCount(
-          excerptCounters['publisher.owner'],
+        assert.equal(
+          excerptCounts['publisher.owner'],
           1,
           'Afterwards we have dirtied baseRecord.publisher.owner'
         );
@@ -1640,16 +1616,16 @@ module('unit/projection', function(hooks) {
 
         let { baseRecordWatcher, excerptWatcher } = this.watchers;
 
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
+        let baseCounts = baseRecordWatcher.counts;
+        let excerptCounts = excerptWatcher.counts;
 
-        assert.watchedPropertyCount(
-          baseCounters['publisher.owner'],
+        assert.equal(
+          baseCounts['publisher.owner'],
           0,
           'Afterwards we have not dirtied baseRecord.publisher.owner'
         );
-        assert.watchedPropertyCount(
-          excerptCounters['publisher.owner'],
+        assert.equal(
+          excerptCounts['publisher.owner'],
           0,
           'Afterwards we have not  dirtied baseRecord.publisher.owner'
         );
@@ -1688,16 +1664,16 @@ module('unit/projection', function(hooks) {
 
         let { baseRecordWatcher, excerptWatcher } = this.watchers;
 
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
+        let baseCounts = baseRecordWatcher.counts;
+        let excerptCounts = excerptWatcher.counts;
 
-        assert.watchedPropertyCount(
-          baseCounters['publisher.owner'],
+        assert.equal(
+          baseCounts['publisher.owner'],
           1,
           'Afterwards we have dirtied baseRecord.description'
         );
-        assert.watchedPropertyCount(
-          excerptCounters['publisher.owner'],
+        assert.equal(
+          excerptCounts['publisher.owner'],
           1,
           'Afterwards we have dirtied baseRecord.description'
         );
@@ -1743,16 +1719,16 @@ module('unit/projection', function(hooks) {
 
         let { baseRecordWatcher, excerptWatcher } = this.watchers;
 
-        let baseCounters = baseRecordWatcher.counters;
-        let excerptCounters = excerptWatcher.counters;
+        let baseCounts = baseRecordWatcher.counts;
+        let excerptCounts = excerptWatcher.counts;
 
-        assert.watchedPropertyCount(
-          baseCounters['publisher.owner'],
+        assert.equal(
+          baseCounts['publisher.owner'],
           0,
           'Afterwards we have not dirtied baseRecord.publisher.owner'
         );
-        assert.watchedPropertyCount(
-          excerptCounters['publisher.owner'],
+        assert.equal(
+          excerptCounts['publisher.owner'],
           0,
           'Afterwards we have not  dirtied baseRecord.publisher.owner'
         );
