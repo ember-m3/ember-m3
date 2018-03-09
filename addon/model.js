@@ -8,6 +8,7 @@ import EmberObject, { computed, get, set, defineProperty } from '@ember/object';
 import { A } from '@ember/array';
 import { warn } from '@ember/debug';
 import { alias } from '@ember/object/computed';
+import Map from '@ember/map';
 
 import M3ModelData from './model-data';
 import SchemaManager from './schema-manager';
