@@ -38,6 +38,8 @@ module('unit/model', function(hooks) {
         return /^com.example.bookstore\./i.test(modelName);
       },
 
+      computeBaseModelName() {},
+
       // TODO: split this up to different tests
       computeAttributeReference(key, value, modelName, schemaInterface) {
         if (this.isAttributeArrayReference(key) && Array.isArray(value)) {

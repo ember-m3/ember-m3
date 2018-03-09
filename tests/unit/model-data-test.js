@@ -1,21 +1,55 @@
 import { module, test } from 'qunit';
+import { assert } from '@ember/debug';
 import M3ModelData from 'ember-m3/model-data';
 import SchemaManager from 'ember-m3/schema-manager';
 import sinon from 'sinon';
 import { zip } from 'lodash';
 
+const modelDataKey = ({ modelName, id }) => `${modelName}:${id}`;
+
 module('unit/model-data', function(hooks) {
   hooks.beforeEach(function() {
     this.sinon = sinon.sandbox.create();
-    this.storeWrapper = null;
+    let storeWrapper = (this.storeWrapper = {
+      modelDatas: {},
+      disconnectedModelDatas: {},
+
+      modelDataFor(modelName, id) {
+        let key = modelDataKey({ modelName, id });
+        return (
+          this.modelDatas[key] ||
+          (this.modelDatas[key] = new M3ModelData(modelName, id, null, storeWrapper))
+        );
+      },
+
+      disconnectRecord(modelName, id) {
+        let key = modelDataKey({ modelName, id });
+        assert(`Disconnect record called for missing model data ${key}`, this.modelDatas[key]);
+        this.disconnectedModelDatas[key] = this.modelDatas[key];
+        delete this.modelDatas[key];
+      },
+    });
 
     this.mockModelData = function() {
-      return new M3ModelData('com.exmaple.bookstore.book', '1', this.storeWrapper, null);
+      return this.storeWrapper.modelDataFor('com.bookstore.book', '1');
     };
+
+    SchemaManager.registerSchema({
+      computeNestedModel(key, value) {
+        if (value !== null && typeof value === 'object') {
+          return { id: key, type: 'com.exmaple.bookstore.book', attributes: value };
+        }
+      },
+
+      computeBaseModelName(modelName) {
+        return modelName === 'com.bookstore.projected-book' ? 'com.bookstore.book' : null;
+      },
+    });
   });
 
   hooks.afterEach(function() {
     this.sinon.restore();
+    SchemaManager.registerSchema(null);
   });
 
   test(`.eachAttribute iterates attributes, in-flight attrs and data`, function(assert) {
@@ -161,6 +195,37 @@ module('unit/model-data', function(hooks) {
     );
   });
 
+  test('`.unloadRecord` disconnects the model data from the store', function(assert) {
+    let modelData = this.mockModelData();
+
+    // unload
+    modelData.unloadRecord();
+
+    assert.strictEqual(
+      this.storeWrapper.disconnectedModelDatas[modelDataKey(modelData)],
+      modelData,
+      'Expected the model data to have been disconnected'
+    );
+  });
+
+  test('projection model data initializes and register in base model data', function(assert) {
+    let projectedModelData = this.storeWrapper.modelDataFor('com.bookstore.projected-book', '1');
+
+    let baseModelData = this.storeWrapper.modelDatas[
+      modelDataKey({
+        modelName: 'com.bookstore.book',
+        id: '1',
+      })
+    ];
+
+    assert.notEqual(baseModelData, null, 'Expected base model data to be initialized');
+    assert.deepEqual(
+      baseModelData._projections,
+      [baseModelData, projectedModelData],
+      'Expected projected model data to be in the projections list'
+    );
+  });
+
   module('with nested models', function(hooks) {
     hooks.beforeEach(function() {
       this.topModelData = new M3ModelData(
@@ -231,18 +296,6 @@ module('unit/model-data', function(hooks) {
         false,
         { record: this.child11Model }
       );
-
-      SchemaManager.registerSchema({
-        computeNestedModel(key, value) {
-          if (value !== null && typeof value === 'object') {
-            return { id: key, type: 'com.exmaple.bookstore.book', attributes: value };
-          }
-        },
-      });
-    });
-
-    hooks.afterEach(function() {
-      SchemaManager.registerSchema(null);
     });
 
     test('.pushData calls reified child model datas recursively', function(assert) {
