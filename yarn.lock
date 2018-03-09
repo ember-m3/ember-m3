@@ -4597,8 +4597,8 @@ pretender@^1.4.2:
     route-recognizer "^0.3.3"
 
 prettier@^1.9.1:
-  version "1.10.2"
-  resolved "http://artifactory.corp.linkedin.com:8081/artifactory/api/npm/npm-external/prettier/-/prettier-1.10.2.tgz#1af8356d1842276a99a5b5529c82dd9e9ad3cc93"
+  version "1.11.1"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-1.11.1.tgz#61e43fc4cd44e68f2b0dfc2c38cd4bb0fccdcc75"
 
 printf@^0.2.3:
   version "0.2.5"
