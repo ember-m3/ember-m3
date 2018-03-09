@@ -2,6 +2,11 @@
 
 ## master
 
+## 0.4.2
+
+* fix phantomjs regression (use of native Map).
+* calls to `queryURL` for the same `cacheKey` are now batched (thanks @dnalagatla)
+
 ## 0.4.1
 
 * fix ember 3.1 regression from unusual CP definition
