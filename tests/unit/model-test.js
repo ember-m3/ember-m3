@@ -1252,7 +1252,7 @@ module('unit/model', function(hooks) {
     ]);
   });
 
-  test('omitted attributes are treated as deletes', function(assert) {
+  test('omitted attributes do not trigger changes', function(assert) {
     let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
     let model = run(() => {
@@ -1284,14 +1284,14 @@ module('unit/model', function(hooks) {
 
     assert.strictEqual(
       get(model, 'name'),
-      undefined,
-      'omitted name treated as deleting the property'
+      `Harry Potter and the Sorcerer's Stone`,
+      'omitted name is not treated as delete'
     );
 
     assert.deepEqual(
       zip(propChange.thisValues.map(x => x + ''), propChange.args),
-      [[model + '', ['name']]],
-      'omitted attributes are treated as deletes'
+      [],
+      'omitted attributes do not trigger changes'
     );
   });
 
@@ -1407,7 +1407,7 @@ module('unit/model', function(hooks) {
     assert.equal(get(doubleNested, 'name'), null);
   });
 
-  test('omitted attributes in nested models are treated as deletes', function(assert) {
+  test('omitted attributes in nested models are not detected as changed', function(assert) {
     let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
     let model = run(() => {
@@ -1459,14 +1459,14 @@ module('unit/model', function(hooks) {
 
     assert.deepEqual(
       zip(propChange.thisValues.map(x => x + ''), propChange.args),
-      [[doubleNested + '', ['name']], [nested + '', ['name']]],
-      'omitted attributes in nested models are treated as deletes'
+      [],
+      'nulled attributes in nested models are detected as changed'
     );
 
     assert.equal(get(nested, 'number'), 0);
-    assert.equal(get(nested, 'name'), null);
+    assert.equal(get(nested, 'name'), 'The Boy Who Lived');
     assert.equal(get(doubleNested, 'number'), 1);
-    assert.equal(get(doubleNested, 'name'), null);
+    assert.equal(get(doubleNested, 'name'), 'The Vanishing Glass');
   });
 
   test('new attributes are treated as changed', function(assert) {
@@ -1743,6 +1743,7 @@ module('unit/model', function(hooks) {
           type: 'com.example.bookstore.Book',
           attributes: {
             name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: null,
           },
         },
       });
@@ -1831,6 +1832,7 @@ module('unit/model', function(hooks) {
           type: 'com.example.bookstore.Book',
           attributes: {
             name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: null,
           },
         },
       });
@@ -1847,7 +1849,162 @@ module('unit/model', function(hooks) {
     assert.equal(init.callCount, 1, 'no additional models created');
   });
 
-  test('nested model updates (model -> model) no changes', function(assert) {
+  test('nested model updates with no changes except changed type (reified)', function(assert) {
+    let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextPart: {
+              name: 'The Boy Who Lived',
+              number: 1,
+              type: 'com.example.bookstore.Chapter',
+            },
+          },
+        },
+      });
+    });
+
+    get(model, 'nextPart');
+
+    assert.equal(init.callCount, 2, 'two models are created initially');
+
+    run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextPart: {
+              name: 'The Boy Who Lived',
+              number: 1,
+              type: 'com.example.bookstore.Prologue',
+            },
+          },
+        },
+      });
+    });
+
+    get(model, 'nextPart');
+
+    assert.equal(init.callCount, 3, 'new model has been created for the update');
+    assert.deepEqual(
+      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      [[model + '', ['nextPart']]],
+      'nested model change has been triggered if type has changed'
+    );
+  });
+
+  test('nested model updates with no changes except id (reified)', function(assert) {
+    let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: {
+              id: 1,
+              name: 'The Boy Who Lived',
+              type: 'com.example.bookstore.Chapter',
+            },
+          },
+        },
+      });
+    });
+
+    get(model, 'nextChapter');
+
+    assert.equal(init.callCount, 2, 'two models are created initially');
+
+    run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: {
+              id: 2,
+              name: 'The Boy Who Lived',
+              type: 'com.example.bookstore.Chapter',
+            },
+          },
+        },
+      });
+    });
+
+    get(model, 'nextChapter');
+
+    assert.equal(init.callCount, 3, 'new model has been created for the update');
+    assert.deepEqual(
+      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      [[model + '', ['nextChapter']]],
+      'nested model change has been triggered if id has changed'
+    );
+  });
+
+  test('nested model updates with no changes and id = null (reified)', function(assert) {
+    let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: {
+              id: null,
+              name: 'The Boy Who Lived',
+              type: 'com.example.bookstore.Chapter',
+            },
+          },
+        },
+      });
+    });
+
+    get(model, 'nextChapter');
+
+    assert.equal(init.callCount, 2, 'two models are created initially');
+
+    run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: {
+              id: null,
+              name: 'The Boy Who Lived',
+              type: 'com.example.bookstore.Chapter',
+            },
+          },
+        },
+      });
+    });
+
+    get(model, 'nextChapter');
+
+    assert.equal(init.callCount, 2, 'no new models should be created');
+    assert.deepEqual(
+      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      [],
+      'no property change should be triggered'
+    );
+  });
+  test('nested model updates with no changes (model inert)', function(assert) {
     let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
     let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
@@ -1889,7 +2046,56 @@ module('unit/model', function(hooks) {
     assert.deepEqual(
       zip(propChange.thisValues.map(x => x + ''), propChange.args),
       [[model + '', ['nextChapter']]],
-      'nested pojo -> pojo change even if hte values are deep equal'
+      'nested pojo -> pojo change is not triggered if the values are the same'
+    );
+  });
+
+  test('nested model updates with no changes (model reifed)', function(assert) {
+    let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
+    let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: {
+              name: 'The Boy Who Lived',
+              number: 1,
+            },
+          },
+        },
+      });
+    });
+
+    // trigger nested model creation
+    get(model, 'nextChapter.name');
+
+    assert.equal(init.callCount, 2, 'one nested model initially created');
+
+    run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: {
+              name: 'The Boy Who Lived',
+              number: 1,
+            },
+          },
+        },
+      });
+    });
+
+    assert.equal(init.callCount, 2, 'no additional models created');
+    assert.deepEqual(
+      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      [],
+      'nested pojo -> pojo change is not triggered if the values are the same and the nested model is reified'
     );
   });
 
@@ -2046,7 +2252,7 @@ module('unit/model', function(hooks) {
           {
             name: 'The Winds of Winter',
             estimatedRating: '11/10',
-            // estimatedPubDate omitted in response
+            estimatedPubDate: '2231?',
           },
           'data post save resolve'
         );

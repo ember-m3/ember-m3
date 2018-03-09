@@ -1,5 +1,6 @@
 import { module, test } from 'qunit';
 import M3ModelData from 'ember-m3/model-data';
+import SchemaManager from 'ember-m3/schema-manager';
 import sinon from 'sinon';
 import { zip } from 'lodash';
 
@@ -179,19 +180,31 @@ module('unit/model-data', function(hooks) {
         { record: this.child2Model }
       );
 
-      this.grandchild1Model = {
+      this.child11Model = {
         _notifyProperties: this.sinon.spy(),
       };
-      this.grandchild1ModelData = new M3ModelData(
+      this.child11ModelData = new M3ModelData(
         'com.exmaple.bookstore.book',
-        'grandchild1_1',
+        'child1_1',
         null,
         this.storeWrapper,
         this.child1ModelData,
         'child1_1',
         false,
-        { record: this.grandchild1Model }
+        { record: this.child11Model }
       );
+
+      SchemaManager.registerSchema({
+        computeNestedModel(key, value) {
+          if (value !== null && typeof value === 'object') {
+            return { id: key, type: 'com.exmaple.bookstore.book', attributes: value };
+          }
+        },
+      });
+    });
+
+    hooks.afterEach(function() {
+      SchemaManager.registerSchema(null);
     });
 
     test('.pushData calls reified child model datas recursively', function(assert) {
@@ -214,7 +227,7 @@ module('unit/model-data', function(hooks) {
 
       assert.deepEqual(
         changedKeys.sort(),
-        ['name', 'child1', 'child2', 'child3'].sort(),
+        ['name', 'child3'].sort(),
         'changed attributes are returned'
       );
       assert.deepEqual(
@@ -236,7 +249,7 @@ module('unit/model-data', function(hooks) {
             ],
           ],
           [
-            this.grandchild1ModelData + '',
+            this.child11ModelData + '',
             [
               {
                 attributes: {
@@ -274,16 +287,16 @@ module('unit/model-data', function(hooks) {
           this.child1Model._notifyProperties.thisValues.map(x => x + ''),
           this.child1Model._notifyProperties.args
         ),
-        [[this.child1Model + '', [['name', 'child1_1']]]],
+        [[this.child1Model + '', [['name']]]],
         'child1._notifyProperties called'
       );
 
       assert.deepEqual(
         zip(
-          this.grandchild1Model._notifyProperties.thisValues.map(x => x + ''),
-          this.grandchild1Model._notifyProperties.args
+          this.child11Model._notifyProperties.thisValues.map(x => x + ''),
+          this.child11Model._notifyProperties.args
         ),
-        [[this.grandchild1Model + '', [['name']]]],
+        [[this.child11Model + '', [['name']]]],
         'grandchild1_1._notifyProperties called'
       );
 
@@ -311,7 +324,7 @@ module('unit/model-data', function(hooks) {
 
       assert.deepEqual(
         changedKeys.sort(),
-        ['name', 'child1', 'child2', 'child3'].sort(),
+        ['name', 'child3'].sort(),
         'changed attributes are returned'
       );
       assert.deepEqual(
@@ -332,7 +345,7 @@ module('unit/model-data', function(hooks) {
             ],
           ],
           [
-            this.grandchild1ModelData + '',
+            this.child11ModelData + '',
             [
               {
                 attributes: {
@@ -366,16 +379,16 @@ module('unit/model-data', function(hooks) {
           this.child1Model._notifyProperties.thisValues.map(x => x + ''),
           this.child1Model._notifyProperties.args
         ),
-        [[this.child1Model + '', [['name', 'child1_1']]]],
+        [[this.child1Model + '', [['name']]]],
         'child1._notifyProperties called'
       );
 
       assert.deepEqual(
         zip(
-          this.grandchild1Model._notifyProperties.thisValues.map(x => x + ''),
-          this.grandchild1Model._notifyProperties.args
+          this.child11Model._notifyProperties.thisValues.map(x => x + ''),
+          this.child11Model._notifyProperties.args
         ),
-        [[this.grandchild1Model + '', [['name']]]],
+        [[this.child11Model + '', [['name']]]],
         'grandchild1_1._notifyProperties called'
       );
 
@@ -398,7 +411,7 @@ module('unit/model-data', function(hooks) {
         ),
         [
           [this.child1ModelData + '', []],
-          [this.grandchild1ModelData + '', []],
+          [this.child11ModelData + '', []],
           [this.child2ModelData + '', []],
         ],
         'commitWasRejected called recursively on children'
@@ -416,7 +429,7 @@ module('unit/model-data', function(hooks) {
         ),
         [
           [this.child1ModelData + '', [true]],
-          [this.grandchild1ModelData + '', [true]],
+          [this.child11ModelData + '', [true]],
           [this.child2ModelData + '', [true]],
         ],
         'rollbackAttributes called recursively on children'
