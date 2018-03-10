@@ -625,7 +625,7 @@ module('unit/projection', function(hooks) {
       this.records = null;
     });
 
-    skip('Setting on the base-record updates projections', function(assert) {
+    test('Setting on the base-record updates projections', function(assert) {
       let { baseRecord } = this.records;
 
       run(() => {
@@ -676,7 +676,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Setting a projection updates the base-record and other projections', function(assert) {
+    test('Setting a projection updates the base-record and other projections', function(assert) {
       let preview = this.records.projectedPreview;
       let baseRecord = this.records.baseRecord;
 
@@ -1433,7 +1433,7 @@ module('unit/projection', function(hooks) {
       this.records = null;
     });
 
-    skip('Setting a resolution property via the base-record updates projections and nested projections', function(assert) {
+    test('Setting a resolution property via the base-record updates projections and nested projections', function(assert) {
       let { baseRecord, projectedExcerpt } = this.records;
 
       run(() => {
@@ -1519,7 +1519,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Setting a resolution property via a projection updates the base-record, other projections and nested projections', function(assert) {
+    test('Setting a resolution property via a projection updates the base-record, other projections and nested projections', function(assert) {
       let { baseRecord, projectedExcerpt } = this.records;
 
       run(() => {
@@ -1554,7 +1554,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Setting a resolution property via a nested projection updates the base-record and other projections', function(assert) {
+    test('Setting a resolution property via a nested projection updates the base-record and other projections', function(assert) {
       let { baseRecord, projectedExcerpt, projectedPreview } = this.records;
 
       run(() => {

@@ -286,6 +286,10 @@ export default class M3ModelData {
       // Add the new value to the changed attributes hash
       this._attributes[key] = value;
     }
+
+    if (!this._notifyProjectionProperties([key])) {
+      this._notifyRecordProperties([key]);
+    }
   }
 
   getAttr(key) {

@@ -580,7 +580,9 @@ module('unit/model', function(hooks) {
       'isbn:9780439064873'
     );
     let gobletOfFire = this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439139601');
-    model.set('otherBooksInSeries', [chamberOfSecrets, gobletOfFire]);
+    run(() => {
+      model.set('otherBooksInSeries', [chamberOfSecrets, gobletOfFire]);
+    });
     assert.deepEqual(
       get(model, 'otherBooksInSeries').mapBy('id'),
       ['isbn:9780439064873', 'isbn:9780439139601'],
@@ -792,7 +794,10 @@ module('unit/model', function(hooks) {
     assert.equal(get(model, 'cost'), undefined, 'alias to missing');
     assert.equal(get(model, 'hb'), true, 'alias to missing with default');
 
-    set(model, 'name', 'Harry Potter and the different title');
+    run(() => {
+      set(model, 'name', 'Harry Potter and the different title');
+    });
+
     assert.equal(
       get(model, 'title'),
       `Harry Potter and the different title`,
@@ -888,9 +893,12 @@ module('unit/model', function(hooks) {
       'attr array ref is array-like'
     );
 
-    set(model, 'otherBooksInSeries', [
-      this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439064873'),
-    ]);
+    run(() => {
+      set(model, 'otherBooksInSeries', [
+        this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439064873'),
+      ]);
+    });
+
     // This is part of the special sauce of record arrays
     assert.deepEqual(
       otherBooks.map(b => get(b, 'name')),
@@ -1131,7 +1139,9 @@ module('unit/model', function(hooks) {
     assert.equal(get(model, 'title'), 'The Birth of Britain', 'initial - alias');
     assert.equal(get(model, 'name'), 'The Birth of Britain', 'initial - prop');
 
-    set(model, 'name', 'Vol. I');
+    run(() => {
+      set(model, 'name', 'Vol. I');
+    });
 
     assert.equal(get(model, 'title'), 'Vol. I', 'set prop - cached alias');
     assert.equal(get(model, 'name'), 'Vol. I', 'set prop - prop');
@@ -1160,24 +1170,31 @@ module('unit/model', function(hooks) {
     });
 
     let propChanges = [];
+    // TODO Convert this to use watch-property helper
     model.addObserver('fans', (model, key) => {
       propChanges.push([model + '', key]);
     });
 
     // observe alias
+    // TODO Convert this to use watch-property helper
     model.addObserver('title', (model, key) => {
       propChanges.push([model + '', key]);
     });
 
-    set(model, 'fans', 'millions');
-    // check that alias doesn't get prop changes when not requested
-    set(model, 'name', 'First Book');
+    run(() => {
+      set(model, 'fans', 'millions');
+      // check that alias doesn't get prop changes when not requested
+      set(model, 'name', 'First Book');
+    });
 
     assert.deepEqual(propChanges, [[model + '', 'fans']], 'change events trigger for direct props');
 
     propChanges.splice(0, propChanges.length);
     assert.equal(get(model, 'title'), `First Book`, 'initialize alias');
-    set(model, 'name', 'Book 1');
+
+    run(() => {
+      set(model, 'name', 'Book 1');
+    });
 
     assert.deepEqual(propChanges, [[model + '', 'title']], 'change events trigger for aliases');
   });
@@ -2309,7 +2326,9 @@ module('unit/model', function(hooks) {
       });
     });
 
-    set(model, 'newAttr', 'newAttrValue');
+    run(() => {
+      set(model, 'newAttr', 'newAttrValue');
+    });
 
     return model.serialize({ some: 'options' });
   });
@@ -2350,10 +2369,11 @@ module('unit/model', function(hooks) {
     });
 
     assert.equal(model.get('isSaving'), false, 'initially model not saving');
-    model.set('estimatedPubDate', '2231?');
 
-    return run(() =>
-      model.save().then(() => {
+    return run(() => {
+      model.set('estimatedPubDate', '2231?');
+
+      return model.save().then(() => {
         assert.equal(model.get('isSaving'), false, 'model done saving');
         assert.deepEqual(
           model._internalModel._modelData._data,
@@ -2364,8 +2384,8 @@ module('unit/model', function(hooks) {
           },
           'data post save resolve'
         );
-      })
-    );
+      });
+    });
   });
 
   test('.reload calls findRecord with reload: true and passes adapterOptions', function(assert) {
@@ -2590,9 +2610,11 @@ module('unit/model', function(hooks) {
       });
     });
 
-    model.set('name', 'Alice in Wonderland');
-    model.set('rating', null);
-    model.set('expectedPubDate', undefined);
+    run(() => {
+      model.set('name', 'Alice in Wonderland');
+      model.set('rating', null);
+      model.set('expectedPubDate', undefined);
+    });
 
     assert.deepEqual(
       model.changedAttributes(),
@@ -2635,8 +2657,10 @@ module('unit/model', function(hooks) {
 
     assert.deepEqual(model.changedAttributes(), {}, 'initially no attributes are changed');
 
-    set(model, 'name', 'secret book name');
-    set(model, 'newAttr', 'a wild attribute appears!');
+    run(() => {
+      set(model, 'name', 'secret book name');
+      set(model, 'newAttr', 'a wild attribute appears!');
+    });
 
     assert.deepEqual(
       model.changedAttributes(),
@@ -2647,11 +2671,13 @@ module('unit/model', function(hooks) {
       'initially no attributes are changed'
     );
 
-    set(nested, 'name', 'a new chapter name');
-    set(nested, 'newAttr', 'first chapter; new attr!');
-    set(doubleNested, 'number', 24601);
-    set(doubleNested, 'anotherNewAttr', 'another new attr!');
-    set(model, 'authorNotes', { text: 'this book will definitely sell well' });
+    run(() => {
+      set(nested, 'name', 'a new chapter name');
+      set(nested, 'newAttr', 'first chapter; new attr!');
+      set(doubleNested, 'number', 24601);
+      set(doubleNested, 'anotherNewAttr', 'another new attr!');
+      set(model, 'authorNotes', { text: 'this book will definitely sell well' });
+    });
 
     assert.deepEqual(
       model.changedAttributes(),
@@ -2690,7 +2716,9 @@ module('unit/model', function(hooks) {
       });
     });
 
-    set(model, 'chapters', ['so windy', 'winter winter']);
+    run(() => {
+      set(model, 'chapters', ['so windy', 'winter winter']);
+    });
 
     assert.deepEqual(
       model.changedAttributes(),
@@ -2759,8 +2787,10 @@ module('unit/model', function(hooks) {
       });
     });
 
-    model.set('name', 'Some other book');
-    model.rollbackAttributes();
+    run(() => {
+      model.set('name', 'Some other book');
+      model.rollbackAttributes();
+    });
 
     assert.equal(
       get(model, 'currentState.stateName'),
@@ -2787,11 +2817,13 @@ module('unit/model', function(hooks) {
       });
     });
 
-    model.set('name', 'Some other book');
-    // cache new value in resolution cache
-    assert.equal(get(model, 'name'), 'Some other book', 'value is set correctly (and cached)');
+    run(() => {
+      model.set('name', 'Some other book');
+      // cache new value in resolution cache
+      assert.equal(get(model, 'name'), 'Some other book', 'value is set correctly (and cached)');
 
-    model.rollbackAttributes();
+      model.rollbackAttributes();
+    });
 
     assert.equal(
       get(model, 'currentState.stateName'),
@@ -2937,9 +2969,11 @@ module('unit/model', function(hooks) {
     let nestedModel = get(model, 'nextChapter');
     let doubleNested = get(model, 'nextChapter.nextChapter');
 
-    set(model, 'name', 'Alice in Wonderland');
-    set(nestedModel, 'name', 'There must be some first chapter');
-    set(doubleNested, 'name', 'Likely there is a second chapter as well');
+    run(() => {
+      set(model, 'name', 'Alice in Wonderland');
+      set(nestedModel, 'name', 'There must be some first chapter');
+      set(doubleNested, 'name', 'Likely there is a second chapter as well');
+    });
 
     return run(() => {
       let savePromise = model.save();

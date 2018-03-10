@@ -28,6 +28,8 @@ module('unit/model-data', function(hooks) {
         this.disconnectedModelDatas[key] = this.modelDatas[key];
         delete this.modelDatas[key];
       },
+
+      notifyPropertyChange() {},
     });
 
     this.mockModelData = function() {
