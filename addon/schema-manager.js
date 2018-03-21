@@ -42,6 +42,14 @@ export class SchemaManager {
     return aliases[attrName];
   }
 
+  computeAttributes(keys) {
+    if (this.schema.computeAttributes && typeof this.schema.computeAttributes === 'function') {
+      return this.schema.computeAttributes(keys);
+    }
+
+    return keys;
+  }
+
   transformValue(modelName, attrName, value) {
     let transforms = this._modelSchemaProperty(modelName, 'transforms');
     let transform = transforms && transforms[attrName];
