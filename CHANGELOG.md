@@ -2,6 +2,12 @@
 
 ## master
 
+## 0.5.0
+
+* bugfix: prevent `notifyProperties(undefined)` from nested models with no changed attributes (thanks @sangm)
+* nested models that specify type, id are not re-used when these change.  `null` id is fine for indicating a uniform type that should always be reused when new properties come in (thanks @dnachev)
+* attribute semantics now merge (so missing attributes are not treated as deletes thanks @dnachev)
+
 ## 0.4.2
 
 * fix phantomjs regression (use of native Map).
