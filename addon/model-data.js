@@ -318,7 +318,7 @@ export default class M3ModelData {
       }
     }
 
-    if (notifyRecord) {
+    if (dirtyKeys && dirtyKeys.length && notifyRecord) {
       this._embeddedInternalModel.record._notifyProperties(dirtyKeys);
     }
 

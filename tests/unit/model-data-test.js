@@ -123,6 +123,23 @@ module('unit/model-data', function(hooks) {
     );
   });
 
+  test('.rollbackAttributes does not call notifyPropertyChange with undefined without hasChangedAttributes', function(assert) {
+    assert.expect(1);
+    const rollbackAttributesSpy = this.sinon.spy();
+    let modelData = new M3ModelData(
+      'com.exmaple.bookstore.book',
+      '1',
+      null,
+      this.storeWrapper,
+      null,
+      null,
+      null,
+      { record: { _notifyProperties: rollbackAttributesSpy } }
+    );
+    modelData.rollbackAttributes(true);
+    assert.equal(rollbackAttributesSpy.getCalls().length, 0, 'rollbackAttributes was not called');
+  });
+
   module('with nested models', function(hooks) {
     hooks.beforeEach(function() {
       this.topModelData = new M3ModelData(
