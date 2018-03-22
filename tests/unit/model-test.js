@@ -2514,6 +2514,9 @@ module('unit/model', function(hooks) {
                 number: 2,
               },
             },
+            authorNotes: {
+              value: 'this book should sell well',
+            },
           },
         },
       });
@@ -2540,6 +2543,7 @@ module('unit/model', function(hooks) {
     set(nested, 'newAttr', 'first chapter; new attr!');
     set(doubleNested, 'number', 24601);
     set(doubleNested, 'anotherNewAttr', 'another new attr!');
+    set(model, 'authorNotes', { text: 'this book will definitely sell well' });
 
     assert.deepEqual(
       model.changedAttributes(),
@@ -2554,6 +2558,10 @@ module('unit/model', function(hooks) {
             anotherNewAttr: [undefined, 'another new attr!'],
           },
         },
+        authorNotes: [
+          { value: 'this book should sell well' },
+          { text: 'this book will definitely sell well' },
+        ],
       },
       'only changed attributes in nested models are included'
     );
