@@ -75,6 +75,13 @@ class EmbeddedInternalModel {
   }
 }
 
+function _computeAttributeReference(key, value, modelName, schemaInterface, schema) {
+  schemaInterface._beginDependentKeyResolution(key);
+  let reference = schema.computeAttributeReference(key, value, modelName, schemaInterface);
+  schemaInterface._endDependentKeyResolution(key);
+  return reference;
+}
+
 function resolveReference(reference, store) {
   if (reference.type === null) {
     // for schemas with a global id-space but multiple types, schemas may
@@ -100,8 +107,7 @@ function resolveValue(key, value, modelName, store, schema, model, valueInArray 
     return resolvePlainArray(key, value, modelName, store, schema, model);
   }
 
-  let reference = schema.computeAttributeReference(key, value, modelName, schemaInterface);
-
+  let reference = _computeAttributeReference(key, value, modelName, schemaInterface, schema);
   if (reference !== undefined && reference !== null) {
     if (Array.isArray(reference)) {
       return reference.map(singleRef => resolveReference(singleRef, store));
@@ -178,7 +184,7 @@ function resolveRecordArray(key, value, modelName, store, schema, schemaInterfac
 
 function resolveRecordArrayInternalModels(key, value, modelName, store, schema, schemaInterface) {
   // TODO: mention in UPGRADING.md
-  let reference = schema.computeAttributeReference(key, value, modelName, schemaInterface);
+  let reference = _computeAttributeReference(key, value, modelName, schemaInterface, schema);
   if (reference === undefined || reference === null) {
     reference = [];
   }
@@ -289,8 +295,17 @@ export default class MegamorphicModel extends EmberObject {
   _notifyProperties(keys) {
     Ember.beginPropertyChanges();
     let key;
+    let resolvedKeysInCache;
+    const schemaInterface = this._internalModel._modelData.schemaInterface;
+
     for (let i = 0, length = keys.length; i < length; i++) {
       key = keys[i];
+      resolvedKeysInCache = schemaInterface._getDependentResolvedKeys(key);
+
+      if (resolvedKeysInCache) {
+        this._notifyProperties(resolvedKeysInCache);
+      }
+
       let oldValue = this._cache[key];
       let newValue = this._internalModel._modelData.getAttr(key);
 
@@ -303,7 +318,8 @@ export default class MegamorphicModel extends EmberObject {
           newValue,
           this._modelName,
           this._store,
-          this._schema
+          this._schema,
+          schemaInterface
         );
         oldValue._setInternalModels(internalModels);
       } else {

@@ -3,6 +3,7 @@ import { dasherize } from '@ember/string';
 import { assign, merge } from '@ember/polyfills';
 import { copy } from '@ember/object/internals';
 import SchemaManager from 'ember-m3/schema-manager';
+import { assert } from '@ember/debug';
 
 const emberAssign = assign || merge;
 
@@ -17,10 +18,47 @@ function commitDataAndNotify(modelData, updates) {
 class M3SchemaInterface {
   constructor(modelData) {
     this.modelData = modelData;
+    this._keyBeingResolved = null;
+    this._refKeyDepkeyMap = {};
+  }
+
+  _beginDependentKeyResolution(key) {
+    assert(
+      'Do not invoke `SchemaInterface` method `_beginDependentKeyResolution` without ending the resolution of previous key.',
+      this._keyBeingResolved === null
+    );
+    this._keyBeingResolved = key;
+  }
+
+  _endDependentKeyResolution(key) {
+    assert(
+      'Do not invoke `SchemaInterface` method `_endDependentKeyResolution` without begining the resolution of the key.',
+      key && this._keyBeingResolved === key
+    );
+    this._keyBeingResolved = null;
+  }
+
+  _getDependentResolvedKeys(refKey) {
+    return this._refKeyDepkeyMap[refKey];
   }
 
   getAttr(name) {
-    return this.modelData.getAttr(name);
+    let value = this.modelData.getAttr(name);
+    const keyBeingResolved = this._keyBeingResolved;
+    assert(
+      'Do not manually call methods on `schemaInterface` outside of schema resolution hooks such as `computeAttributeReference`',
+      keyBeingResolved
+    );
+
+    if (name && typeof value !== 'undefined') {
+      this._refKeyDepkeyMap[name] = this._refKeyDepkeyMap[name] || [];
+      let refKeyMap = this._refKeyDepkeyMap[name];
+      if (refKeyMap.indexOf(keyBeingResolved) < 0) {
+        refKeyMap.push(this._keyBeingResolved);
+      }
+    }
+
+    return value;
   }
 }
 
@@ -238,7 +276,7 @@ export default class M3ModelData {
     }
 
     if (this.__data !== null) {
-      Object.keys(this._data).forEach(callback, binding);
+      this._schema.computeAttributes(Object.keys(this._data)).forEach(callback, binding);
     }
   }
 

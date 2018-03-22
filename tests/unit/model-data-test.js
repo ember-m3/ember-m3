@@ -104,7 +104,7 @@ module('unit/model-data', function(hooks) {
         bar: 'barVal',
       },
     });
-
+    schemaInterface._keyBeingResolved = 'testKey';
     assert.equal(modelData.getAttr('foo'), 'fooVal', 'modeldata has foo=fooVal');
     assert.equal(schemaInterface.getAttr('foo'), 'fooVal', 'schemaInterface can read attr');
   });
@@ -138,6 +138,27 @@ module('unit/model-data', function(hooks) {
     );
     modelData.rollbackAttributes(true);
     assert.equal(rollbackAttributesSpy.getCalls().length, 0, 'rollbackAttributes was not called');
+  });
+
+  test('.schemaInterface track dependent keys resolved by ref key', function(assert) {
+    let modelData = this.mockModelData();
+    let schemaInterface = modelData.schemaInterface;
+    modelData.pushData({
+      attributes: {
+        '*foo': 'fooVal',
+        bar: 'barVal',
+      },
+    });
+
+    schemaInterface._beginDependentKeyResolution('foo');
+    assert.equal(schemaInterface.getAttr('*foo'), 'fooVal', 'schemaInterface can read attr');
+    schemaInterface._endDependentKeyResolution('foo');
+
+    assert.equal(
+      schemaInterface._getDependentResolvedKeys('*foo')[0],
+      'foo',
+      'schemaInterface tracks dependent property computed using ref key'
+    );
   });
 
   module('with nested models', function(hooks) {
