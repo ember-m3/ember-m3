@@ -625,7 +625,7 @@ module('unit/projection', function(hooks) {
       this.records = null;
     });
 
-    skip('Setting on the base-record updates projections', function(assert) {
+    test('Setting on the base-record updates projections', function(assert) {
       let { baseRecord } = this.records;
 
       run(() => {
@@ -676,7 +676,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Setting a projection updates the base-record and other projections', function(assert) {
+    test('Setting a projection updates the base-record and other projections', function(assert) {
       let preview = this.records.projectedPreview;
       let baseRecord = this.records.baseRecord;
 
@@ -685,15 +685,15 @@ module('unit/projection', function(hooks) {
         set(preview, 'title', NEW_TITLE);
       });
 
-      assert.throws(
-        () => {
-          run(() => {
+      run(() => {
+        assert.throws(
+          () => {
             set(preview, 'description', NEW_DESCRIPTION);
-          });
-        },
-        /whitelist/gi,
-        'Setting a non-whitelisted property throws an error'
-      );
+          },
+          /whitelist/gi,
+          'Setting a non-whitelisted property throws an error'
+        );
+      });
       assert.equal(
         this.watchers.baseRecordWatcher.counts.description,
         0,
@@ -1063,15 +1063,15 @@ module('unit/projection', function(hooks) {
         set(projectedPreview, 'author.location', NEW_AUTHOR_LOCATION);
       });
 
-      assert.throws(
-        () => {
-          run(() => {
+      run(() => {
+        assert.throws(
+          () => {
             set(projectedPreview, 'author.age', NEW_AUTHOR_AGE);
-          });
-        },
-        /whitelist/gi,
-        'Setting a non-whitelisted property on a projection over an embedded object throws an error'
-      );
+          },
+          /whitelist/gi,
+          'Setting a non-whitelisted property on a projection over an embedded object throws an error'
+        );
+      });
 
       let { baseRecordWatcher, excerptWatcher } = this.watchers;
       let baseCounts = baseRecordWatcher.counts;
@@ -1433,7 +1433,7 @@ module('unit/projection', function(hooks) {
       this.records = null;
     });
 
-    skip('Setting a resolution property via the base-record updates projections and nested projections', function(assert) {
+    test('Setting a resolution property via the base-record updates projections and nested projections', function(assert) {
       let { baseRecord, projectedExcerpt } = this.records;
 
       run(() => {
@@ -1519,7 +1519,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Setting a resolution property via a projection updates the base-record, other projections and nested projections', function(assert) {
+    test('Setting a resolution property via a projection updates the base-record, other projections and nested projections', function(assert) {
       let { baseRecord, projectedExcerpt } = this.records;
 
       run(() => {
@@ -1554,22 +1554,22 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Setting a resolution property via a nested projection updates the base-record and other projections', function(assert) {
+    test('Setting a resolution property via a nested projection updates the base-record and other projections', function(assert) {
       let { baseRecord, projectedExcerpt, projectedPreview } = this.records;
 
       run(() => {
         set(projectedPreview, 'publisher.location', NEW_PUBLISHER_LOCATION);
       });
 
-      assert.throws(
-        () => {
-          run(() => {
+      run(() => {
+        assert.throws(
+          () => {
             set(projectedPreview, 'publisher.owner', NEW_PUBLISHER_OWNER);
-          });
-        },
-        /whitelist/gi,
-        'Setting a non-whitelisted property on a projection over a resolved record throws an error'
-      );
+          },
+          /whitelist/gi,
+          'Setting a non-whitelisted property on a projection over a resolved record throws an error'
+        );
+      });
 
       let { baseRecordWatcher, excerptWatcher } = this.watchers;
 

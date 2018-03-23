@@ -506,8 +506,6 @@ export default class MegamorphicModel extends EmberObject {
       this._internalModel._modelData.setAttr(key, value);
       delete this._cache[key];
     }
-
-    notifyPropertyChange(this, key);
   }
 
   _setRecordArray(key, models) {
