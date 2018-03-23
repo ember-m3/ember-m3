@@ -498,12 +498,12 @@ export default class M3ModelData {
     // TODO Recursively init any existing nested model datas as well
     let projectionData = this._data;
     this._initBaseModelData(modelName, id);
-    // TODO We only do this because there might be inflight attributes, which the server
-    // didn't include in the response
     // TODO After the merge, we need to notify records, which may have been created
     // prior to invoking didCommit
-    this._baseModelData._inverseMergeUpdates(projectionData);
-    // we need to reset the __data to reread it from the base model data
+    this._baseModelData.pushData({
+      attributes: projectionData,
+    });
+    // we need to reset the __data as it will no longer be used
     this.__data = null;
   }
 
@@ -649,24 +649,6 @@ export default class M3ModelData {
     // if this model data is the last one in the projections list, then all of the others have been destroyed
     // note: should not be possible to get into state of no projections (projections.length === 0)
     return this._projections.length === 1 && this._projections[0] === this;
-  }
-
-  _inverseMergeUpdates(updates) {
-    // TODO Add support for nested objects
-    if (!updates) {
-      return;
-    }
-    let data = this._data;
-
-    let updatedKeys = Object.keys(updates);
-    for (let i = 0; i < updatedKeys.length; i++) {
-      let key = updatedKeys[i];
-
-      if (key in data) {
-        continue;
-      }
-      data[key] = updates[key];
-    }
   }
 
   /*
