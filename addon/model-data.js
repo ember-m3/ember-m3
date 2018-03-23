@@ -495,16 +495,16 @@ export default class M3ModelData {
   }
 
   _initBaseModelDataOnCommit(modelName, id) {
-    // TODO Recursively init any existing nested model datas as well
     let projectionData = this._data;
+    // TODO Recursively init any existing nested model datas as well
     this._initBaseModelData(modelName, id);
-    // TODO After the merge, we need to notify records, which may have been created
-    // prior to invoking didCommit
+    // Push the data stored in the projection to the base model as well
+    // TODO Push the attributes hash as well
     this._baseModelData.pushData({
       attributes: projectionData,
     });
     // we need to reset the __data as it will no longer be used
-    this.__data = null;
+    this._data = null;
   }
 
   _addChildModelData(key, isArray, modelData) {
