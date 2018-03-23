@@ -685,15 +685,15 @@ module('unit/projection', function(hooks) {
         set(preview, 'title', NEW_TITLE);
       });
 
-      assert.throws(
-        () => {
-          run(() => {
+      run(() => {
+        assert.throws(
+          () => {
             set(preview, 'description', NEW_DESCRIPTION);
-          });
-        },
-        /whitelist/gi,
-        'Setting a non-whitelisted property throws an error'
-      );
+          },
+          /whitelist/gi,
+          'Setting a non-whitelisted property throws an error'
+        );
+      });
       assert.equal(
         this.watchers.baseRecordWatcher.counts.description,
         0,
@@ -1063,15 +1063,15 @@ module('unit/projection', function(hooks) {
         set(projectedPreview, 'author.location', NEW_AUTHOR_LOCATION);
       });
 
-      assert.throws(
-        () => {
-          run(() => {
+      run(() => {
+        assert.throws(
+          () => {
             set(projectedPreview, 'author.age', NEW_AUTHOR_AGE);
-          });
-        },
-        /whitelist/gi,
-        'Setting a non-whitelisted property on a projection over an embedded object throws an error'
-      );
+          },
+          /whitelist/gi,
+          'Setting a non-whitelisted property on a projection over an embedded object throws an error'
+        );
+      });
 
       let { baseRecordWatcher, excerptWatcher } = this.watchers;
       let baseCounts = baseRecordWatcher.counts;
@@ -1561,15 +1561,15 @@ module('unit/projection', function(hooks) {
         set(projectedPreview, 'publisher.location', NEW_PUBLISHER_LOCATION);
       });
 
-      assert.throws(
-        () => {
-          run(() => {
+      run(() => {
+        assert.throws(
+          () => {
             set(projectedPreview, 'publisher.owner', NEW_PUBLISHER_OWNER);
-          });
-        },
-        /whitelist/gi,
-        'Setting a non-whitelisted property on a projection over a resolved record throws an error'
-      );
+          },
+          /whitelist/gi,
+          'Setting a non-whitelisted property on a projection over a resolved record throws an error'
+        );
+      });
 
       let { baseRecordWatcher, excerptWatcher } = this.watchers;
 
