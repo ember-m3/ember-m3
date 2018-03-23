@@ -50,7 +50,7 @@
     "ember-cli-shims": "^1.1.0",
     "ember-cli-sri": "^2.1.0",
     "ember-cli-uglify": "^2.0.2",
-    "ember-data": "emberjs/data#60ea116ac9ccf3868a62a3cfd05c4e23ec406763",
+    "ember-data": "dnachev/data#e8dd3301735dc103b8b4dd7c2f22453d22f2e3a4",
     "ember-disable-prototype-extensions": "^1.1.2",
     "ember-export-application-global": "^2.0.0",
     "ember-load-initializers": "^1.0.0",
