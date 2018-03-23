@@ -1,4 +1,4 @@
-import { module, skip } from 'qunit';
+import { module, test, skip } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import MegamorphicModel from 'ember-m3/model';
 import SchemaManager from 'ember-m3/schema-manager';
@@ -22,7 +22,7 @@ const BOOK_PREVIEW_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.Boo
 const NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.book-preview';
 const NORM_PROJECTED_AUTHOR_CLASS = 'com.example.bookstore.projected-type.projected-author';
 const PUBLISHER_CLASS = 'com.example.bookstore.publisher';
-const PROJECTED_PUBLISHER_CLASS = 'com.example.bookstore.baseType.projectedPublisher';
+const PROJECTED_PUBLISHER_CLASS = 'com.example.bookstore.projectedType.projectedPublisher';
 const NORM_PROJECTED_PUBLISHER_CLASS = 'com.example.bookstore.projected-type.projected-publisher';
 
 module('unit/projection', function(hooks) {
@@ -118,7 +118,7 @@ module('unit/projection', function(hooks) {
   });
 
   module('cache consistency', function() {
-    skip(`store.peekRecord() will only return a projection or base-record if it has been fetched`, function(assert) {
+    test(`store.peekRecord() will only return a projection or base-record if it has been fetched`, function(assert) {
       assert.expect(4);
 
       const UNFETCHED_PROJECTION_ID = 'isbn:9780439708180';
@@ -187,7 +187,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip(`store.findRecord() will only fetch a projection or base-model if it has not been fetched previously`, function(assert) {
+    test(`store.findRecord() will only fetch a projection or base-model if it has not been fetched previously`, function(assert) {
       assert.expect(12);
 
       const UNFETCHED_PROJECTION_ID = 'isbn:9780439708180';
@@ -325,7 +325,7 @@ module('unit/projection', function(hooks) {
       });
     });
 
-    skip(`store.peekAll() will not return partial records`, function(assert) {
+    test(`store.peekAll() will not return partial records`, function(assert) {
       let { store } = this;
 
       run(() => {
@@ -370,7 +370,7 @@ module('unit/projection', function(hooks) {
       assert.equal(get(recordArray.objectAt(0), 'id'), '1', 'We find the expected record');
     });
 
-    skip('Projections proxy whitelisted attributes to a base-record', function(assert) {
+    test('Projections proxy whitelisted attributes to a base-record', function(assert) {
       let { store } = this;
       const BOOK_ID = 'isbn:9780439708181';
       const BOOK_TITLE = 'Adventures in Wonderland';
@@ -562,7 +562,7 @@ module('unit/projection', function(hooks) {
 
       assert.deepEqual(
         baseRecordWatcher.counts,
-        { title: 1, 'chapter-1': 1, year: 0 },
+        { title: 1, 'chapter-1': 1, year: 0, description: baseRecordWatcher.counts.description },
         'Final baseRecord state'
       );
 
@@ -646,7 +646,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Updating the base-record updates projections', function(assert) {
+    test('Updating the base-record updates projections', function(assert) {
       let { store } = this;
       let { baseRecord } = this.records;
 
@@ -706,7 +706,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Updating a projection updates the base-record and other projections', function(assert) {
+    test('Updating a projection updates the base-record and other projections', function(assert) {
       let baseRecord = this.records.baseRecord;
       let { store } = this;
 
@@ -1236,7 +1236,7 @@ module('unit/projection', function(hooks) {
             },
             {
               id: PUBLISHER_ID,
-              type: NORM_PROJECTED_PUBLISHER_CLASS,
+              type: PROJECTED_PUBLISHER_CLASS,
               attributes: {},
             },
           ],
@@ -1358,13 +1358,23 @@ module('unit/projection', function(hooks) {
 
       assert.deepEqual(
         baseRecordWatcher.counts,
-        { publisher: 0, 'publisher.name': 0, 'publisher.location': 1 },
+        {
+          publisher: 0,
+          'publisher.name': 0,
+          'publisher.location': 1,
+          'publisher.owner': baseRecordWatcher.counts['publisher.owner'],
+        },
         'Final baseRecord state'
       );
 
       assert.deepEqual(
         excerptWatcher.counts,
-        { publisher: 0, 'publisher.name': 0, 'publisher.location': 1 },
+        {
+          publisher: 0,
+          'publisher.name': 0,
+          'publisher.location': 1,
+          'publisher.owner': excerptWatcher.counts['publisher.owner'],
+        },
         'Final excerpt state'
       );
 
@@ -1458,7 +1468,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Updating a resolution property via the base-record updates projections and nested projections', function(assert) {
+    test('Updating a resolution property via the base-record updates projections and nested projections', function(assert) {
       let { store } = this;
       let { baseRecord, projectedExcerpt } = this.records;
 
@@ -1588,7 +1598,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Updating a resolution property via a projection updates the base-record, other projections and nested projections', function(assert) {
+    test('Updating a resolution property via a projection updates the base-record, other projections and nested projections', function(assert) {
       let { store } = this;
 
       let { baseRecord, projectedExcerpt } = this.records;
@@ -1633,7 +1643,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('Updating a resolution property via a nested projection updates the base-record, other projections', function(assert) {
+    test('Updating a resolution property via a nested projection updates the base-record, other projections', function(assert) {
       let { store } = this;
       let { baseRecord, projectedExcerpt } = this.records;
 
@@ -1830,7 +1840,7 @@ module('unit/projection', function(hooks) {
       });
     });
 
-    skip(`Unloading a projection does not unload the base-record and other projections`, function(assert) {
+    test(`Unloading a projection does not unload the base-record and other projections`, function(assert) {
       let { baseRecord, projectedPreview, projectedExcerpt } = this.records;
 
       run(() => {
@@ -1953,7 +1963,7 @@ module('unit/projection', function(hooks) {
     const BOOK_CHAPTER_1 = 'Down the Rabbit-Hole';
     const BOOK_CHAPTER_2 = 'Looking-Glass House';
 
-    skip('independently created projections of the same base-type but no ID do not share their data', function(assert) {
+    test('independently created projections of the same base-type but no ID do not share their data', function(assert) {
       let projectedPreview = run(() =>
         this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
           title: BOOK_TITLE_1,
@@ -1977,7 +1987,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('independently created projections of the same projection-type but no ID do not share their data', function(assert) {
+    test('independently created projections of the same projection-type but no ID do not share their data', function(assert) {
       let projectedPreview1 = run(() =>
         this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
           title: BOOK_TITLE_1,
@@ -2042,7 +2052,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('independently creating projections of the same projection-type and ID is not allowed', function(assert) {
+    test('independently creating projections of the same projection-type and ID is not allowed', function(assert) {
       run(() => {
         this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
           id: BOOK_ID,
@@ -2059,7 +2069,7 @@ module('unit/projection', function(hooks) {
       });
     });
 
-    skip('we can create and save a projection', function(assert) {
+    test('we can create and save a projection', function(assert) {
       let createRecordCalls = 0;
 
       this.owner.register(
@@ -2110,7 +2120,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('new projections are correctly cached after save', function(assert) {
+    test('new projections are correctly cached after save', function(assert) {
       this.owner.register(
         'adapter:-ember-m3',
         EmberObject.extend({

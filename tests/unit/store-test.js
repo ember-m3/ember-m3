@@ -25,6 +25,7 @@ module('unit/store', function(hooks) {
       includesModel(modelName) {
         return /^com.example.bookstore\./i.test(modelName);
       },
+      computeBaseModelName() {},
     });
 
     this.store = this.owner.lookup('service:store');

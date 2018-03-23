@@ -53,6 +53,13 @@ export function initialize(/* application */) {
       return false;
     },
 
+    computeBaseModelName(/* modelName */) {
+      // If the `modelName` represents a projection over some base type,
+      // return the model name of the base type to maintain shared data
+      // between all projections of the same type
+      return null;
+    },
+
     /*
     models: {
       'my-model-name': {

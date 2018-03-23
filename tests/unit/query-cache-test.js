@@ -38,6 +38,8 @@ module('unit/query-cache', function(hooks) {
 
       computeNestedModel(/* key, value */) {},
 
+      computeBaseModelName() {},
+
       models: {},
     });
 

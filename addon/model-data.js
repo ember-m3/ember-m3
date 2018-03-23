@@ -4,6 +4,7 @@ import { assign, merge } from '@ember/polyfills';
 import { copy } from '@ember/object/internals';
 import SchemaManager from 'ember-m3/schema-manager';
 import { assert } from '@ember/debug';
+import Ember from 'ember';
 
 const emberAssign = assign || merge;
 
@@ -13,6 +14,14 @@ function pushDataAndNotify(modelData, updates) {
 
 function commitDataAndNotify(modelData, updates) {
   modelData.didCommit({ attributes: updates }, true);
+}
+
+function notifyProperties(storeWrapper, modelName, id, clientId, changedKeys) {
+  Ember.beginPropertyChanges();
+  for (let i = 0; i < changedKeys.length; i++) {
+    storeWrapper.notifyPropertyChange(modelName, id, clientId, changedKeys[i]);
+  }
+  Ember.endPropertyChanges();
 }
 
 class M3SchemaInterface {
@@ -82,6 +91,7 @@ export default class M3ModelData {
     this._attributes = null;
     this.__inFlightAttributes = null;
 
+    // Properties related to child model datas
     this._parentModelData = parentModelData;
     this._embeddedInternalModel = embeddedInternalModel;
     this.__childModelDatas = null;
@@ -89,8 +99,17 @@ export default class M3ModelData {
 
     this.schemaInterface = new M3SchemaInterface(this);
 
+    // Properties related to projections
+    this._baseModelName = this._schema.computeBaseModelName(this.modelName);
+    this._baseModelData = null;
+    this._projections = null;
+
     if (parentKey !== undefined && parentKey !== null) {
       this._parentModelData._addChildModelData(parentKey, parentValueIsArray, this);
+    }
+    // TODO we may not have ID yet?
+    if (this._baseModelName) {
+      this._initBaseModelData(this._baseModelName, id);
     }
   }
 
@@ -105,13 +124,19 @@ export default class M3ModelData {
   }
 
   pushData(jsonApiResource, calculateChange, notifyRecord = false) {
+    if (this._baseModelData) {
+      this._baseModelData.pushData(jsonApiResource, calculateChange, notifyRecord);
+      // we don't need to return any changed keys, because properties will be invalidated
+      // as part of notifying all projections
+      return [];
+    }
     let changedKeys;
     if (jsonApiResource.attributes) {
       changedKeys = this._mergeUpdates(
         jsonApiResource.attributes,
         pushDataAndNotify,
         // if we need to notify the record, we must calculate the changes
-        calculateChange || notifyRecord
+        calculateChange || notifyRecord || !!this._projections
       );
       changedKeys = this._filterChangedKeys(changedKeys);
     }
@@ -125,14 +150,21 @@ export default class M3ModelData {
       this.id = jsonApiResource.id + '';
     }
 
+    if (this._notifyProjectionProperties(changedKeys)) {
+      return [];
+    }
+
     if (notifyRecord) {
-      this._embeddedInternalModel.record._notifyProperties(changedKeys);
+      this._notifyRecordProperties(changedKeys);
     }
 
     return changedKeys || [];
   }
 
   willCommit() {
+    if (this._baseModelData) {
+      return this._baseModelData.willCommit();
+    }
     this._inFlightAttributes = this._attributes;
     this._attributes = null;
 
@@ -151,7 +183,11 @@ export default class M3ModelData {
   }
 
   hasChangedAttributes() {
-    return this.__attributes !== null && Object.keys(this.__attributes).length > 0;
+    if (this._baseModelData) {
+      return this._baseModelData.hasChangedAttributes();
+    } else {
+      return this.__attributes !== null && Object.keys(this.__attributes).length > 0;
+    }
   }
 
   addToHasMany() {}
@@ -159,6 +195,12 @@ export default class M3ModelData {
   removeFromHasMany() {}
 
   didCommit(jsonApiResource, notifyRecord = false) {
+    if (this._baseModelData) {
+      this._baseModelData.didCommit(jsonApiResource, notifyRecord);
+      // we don't need to return any changed keys, because properties will be invalidated
+      // as part of notifying all projections
+      return [];
+    }
     let attributes;
     if (jsonApiResource) {
       attributes = jsonApiResource.attributes;
@@ -175,8 +217,12 @@ export default class M3ModelData {
 
     this._updateChangedAttributes();
 
+    if (this._notifyProjectionProperties(changedKeys)) {
+      return [];
+    }
+
     if (notifyRecord) {
-      this._embeddedInternalModel.record._notifyProperties(changedKeys);
+      this._notifyRecordProperties(changedKeys);
     }
 
     return changedKeys || [];
@@ -187,6 +233,9 @@ export default class M3ModelData {
   setHasMany() {}
 
   commitWasRejected() {
+    if (this._baseModelData) {
+      return this._baseModelData.commitWasRejected();
+    }
     let keys = Object.keys(this._inFlightAttributes);
     if (keys.length > 0) {
       let attrs = this._attributes;
@@ -219,6 +268,10 @@ export default class M3ModelData {
   setBelongsTo() {}
 
   setAttr(key, value) {
+    if (this._baseModelData) {
+      return this._baseModelData.setAttr(key, value);
+    }
+
     let originalValue;
 
     if (key in this._inFlightAttributes) {
@@ -236,7 +289,9 @@ export default class M3ModelData {
   }
 
   getAttr(key) {
-    if (key in this._attributes) {
+    if (this._baseModelData) {
+      return this._baseModelData.getAttr(key);
+    } else if (key in this._attributes) {
       return this._attributes[key];
     } else if (key in this._inFlightAttributes) {
       return this._inFlightAttributes[key];
@@ -246,7 +301,11 @@ export default class M3ModelData {
   }
 
   hasAttr(key) {
-    return key in this._attributes || key in this._inFlightAttributes || key in this._data;
+    if (this._baseModelData) {
+      return this._baseModelData.hasAttr(key);
+    } else {
+      return key in this._attributes || key in this._inFlightAttributes || key in this._data;
+    }
   }
 
   unloadRecord() {
@@ -356,8 +415,18 @@ export default class M3ModelData {
       }
     }
 
-    if (dirtyKeys && dirtyKeys.length && notifyRecord) {
-      this._embeddedInternalModel.record._notifyProperties(dirtyKeys);
+    if (!(dirtyKeys && dirtyKeys.length > 0)) {
+      // nothing dirty on this record and we've already handled nested records
+      return;
+    }
+
+    if (this._notifyProjectionProperties(dirtyKeys)) {
+      // notifyProjectionProperties already invalidated all relevant records' properties
+      return [];
+    }
+
+    if (notifyRecord) {
+      this._notifyRecordProperties(dirtyKeys);
     }
 
     return dirtyKeys;
@@ -401,6 +470,11 @@ export default class M3ModelData {
 
   set _inFlightAttributes(v) {
     this.__inFlightAttributes = v;
+  }
+
+  _initBaseModelData(modelName, id) {
+    this._baseModelData = this.storeWrapper.modelDataFor(modelName, id);
+    this._baseModelData._registerProjection(this);
   }
 
   _addChildModelData(key, isArray, modelData) {
@@ -456,6 +530,15 @@ export default class M3ModelData {
     let isSameId = newId === nested.id || (isNone(newId) && isNone(nested.id));
 
     return newNestedDef && isSameType && isSameId ? nested : null;
+  }
+
+  _registerProjection(modelData) {
+    if (!this._projections) {
+      // we ensure projections contains the base as well
+      // so we have complete list of all related model datas
+      this._projections = [this];
+    }
+    this._projections.push(modelData);
   }
 
   _destroy() {
@@ -560,6 +643,28 @@ export default class M3ModelData {
     }
 
     return changedKeys;
+  }
+
+  _notifyRecordProperties(changedKeys) {
+    if (this._embeddedInternalModel) {
+      this._embeddedInternalModel.record._notifyProperties(changedKeys);
+    } else {
+      notifyProperties(this.storeWrapper, this.modelName, this.id, this.clientId, changedKeys);
+    }
+  }
+
+  _notifyProjectionProperties(changedKeys) {
+    if (!changedKeys || !changedKeys.length) {
+      return false;
+    }
+    let projections = this._projections;
+    if (!projections) {
+      return false;
+    }
+    for (let i = 0; i < projections.length; i++) {
+      projections[i]._notifyRecordProperties(changedKeys);
+    }
+    return true;
   }
 
   toString() {

@@ -19,6 +19,10 @@ export class SchemaManager {
     return this.schema.includesModel(key, value, modelName);
   }
 
+  computeBaseModelName(projectionModelName) {
+    return this.schema.computeBaseModelName(projectionModelName);
+  }
+
   isAttributeIncluded(modelName, attrName) {
     let whitelist = this._modelSchemaProperty(modelName, 'attributes');
     return !whitelist || whitelist.includes(attrName);

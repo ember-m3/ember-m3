@@ -294,42 +294,44 @@ export default class MegamorphicModel extends EmberObject {
 
   _notifyProperties(keys) {
     Ember.beginPropertyChanges();
-    let key;
-    let resolvedKeysInCache;
-    const schemaInterface = this._internalModel._modelData.schemaInterface;
-
     for (let i = 0, length = keys.length; i < length; i++) {
-      key = keys[i];
-      resolvedKeysInCache = schemaInterface._getDependentResolvedKeys(key);
-
-      if (resolvedKeysInCache) {
-        this._notifyProperties(resolvedKeysInCache);
-      }
-
-      let oldValue = this._cache[key];
-      let newValue = this._internalModel._modelData.getAttr(key);
-
-      let oldIsRecordArray = oldValue && oldValue instanceof M3RecordArray;
-
-      if (oldIsRecordArray) {
-        // TODO: do this lazily
-        let internalModels = resolveRecordArrayInternalModels(
-          key,
-          newValue,
-          this._modelName,
-          this._store,
-          this._schema,
-          schemaInterface
-        );
-        oldValue._setInternalModels(internalModels);
-      } else {
-        // TODO: disconnect modeldata -> childModeldata in the case of nested model -> primitive
-        // anything -> undefined | primitive
-        delete this._cache[key];
-        this.notifyPropertyChange(key);
-      }
+      this.notifyPropertyChange(keys[i]);
     }
     Ember.endPropertyChanges();
+  }
+
+  notifyPropertyChange(key) {
+    if (!this._schema.isAttributeIncluded(this._modelName, key)) {
+      return;
+    }
+    const schemaInterface = this._internalModel._modelData.schemaInterface;
+    let resolvedKeysInCache = schemaInterface._getDependentResolvedKeys(key);
+    if (resolvedKeysInCache) {
+      this._notifyProperties(resolvedKeysInCache);
+    }
+
+    let oldValue = this._cache[key];
+    let newValue = this._internalModel._modelData.getAttr(key);
+
+    let oldIsRecordArray = oldValue && oldValue instanceof M3RecordArray;
+
+    if (oldIsRecordArray) {
+      // TODO: do this lazily
+      let internalModels = resolveRecordArrayInternalModels(
+        key,
+        newValue,
+        this._modelName,
+        this._store,
+        this._schema,
+        schemaInterface
+      );
+      oldValue._setInternalModels(internalModels);
+    } else {
+      // TODO: disconnect modeldata -> childModeldata in the case of nested model -> primitive
+      // anything -> undefined | primitive
+      delete this._cache[key];
+      super.notifyPropertyChange(key);
+    }
   }
 
   changedAttributes() {
@@ -470,6 +472,10 @@ export default class MegamorphicModel extends EmberObject {
     if (!this._init) {
       initProperites[key] = value;
       return;
+    }
+
+    if (!this._schema.isAttributeIncluded(this._modelName, key)) {
+      throw new Error(`Cannot set a non-whitelisted property ${key} on type ${this._modelName}`);
     }
 
     if (this._schema.getAttributeAlias(this._modelName, key)) {

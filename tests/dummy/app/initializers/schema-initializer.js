@@ -26,6 +26,8 @@ export function initialize(/* application */) {
       return BookStoreRegExp.test(modelName);
     },
 
+    computeBaseModelName() {},
+
     computeNestedModel(key, value) {
       if (typeof value === 'object' && value !== null && typeof value.$type === 'string') {
         return {
