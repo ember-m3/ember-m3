@@ -19,8 +19,6 @@ module('unit/initializers/m3-store', {
 
       computeAttributeReference() {},
 
-      isAttributeArrayReference() {},
-
       computeNestedModel() {},
 
       models: {},

@@ -10,13 +10,6 @@ export function initialize(/* application */) {
       return null;
     },
 
-    isAttributeArrayReference(/* key, value, modelName, schemaInterface */) {
-      // If the attribute with value `value` under key `key` of `modelName` is
-      // an array of references to models (eg a has-many) return `true` and
-      // `false` otherwise.
-      return false;
-    },
-
     computeNestedModel(/* key, value, modelName, schemaInterface */) {
       // If the attribute with value `value` under key `key` of `modelName`
       // should be treated as a nested model instead of a plain POJO, then

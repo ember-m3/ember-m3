@@ -1,7 +1,7 @@
 import { RecordArray } from 'ember-data/-private';
 
 export default RecordArray.extend({
-  // TODO: implement more of recorarray but make this not an arrayproxy
+  // TODO: implement more of RecordArray but make this not an arrayproxy
 
   replace(idx, removeAmt, newModels) {
     this.replaceContent(idx, removeAmt, newModels);

@@ -30,10 +30,6 @@ module('unit/query-cache', function(hooks) {
         return modelName !== 'application';
       },
 
-      isAttributeArrayReference() {
-        return false;
-      },
-
       computeAttributeReference(/* key, value */) {},
 
       computeNestedModel(/* key, value */) {},

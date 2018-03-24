@@ -18,10 +18,6 @@ export function initialize(/* application */) {
       }
     },
 
-    isAttributeArrayReference(/* key, value, modelName */) {
-      return false;
-    },
-
     includesModel(modelName) {
       return BookStoreRegExp.test(modelName);
     },
