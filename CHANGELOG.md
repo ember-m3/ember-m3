@@ -2,6 +2,12 @@
 
 ## master
 
+## 0.5.1
+
+* bugfix: when using `schemaInterface` to compute attribute references from
+  data other than `key`, dependencies are now tracked and `key` is invalidated
+  correctly when those dependencies are invalidated. (thanks @dnalagatla)
+
 ## 0.5.0
 
 * bugfix: prevent `notifyProperties(undefined)` from nested models with no changed attributes (thanks @sangm)
