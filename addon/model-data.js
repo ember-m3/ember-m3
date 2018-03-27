@@ -107,9 +107,11 @@ export default class M3ModelData {
     if (parentKey !== undefined && parentKey !== null) {
       this._parentModelData._addChildModelData(parentKey, parentValueIsArray, this);
     }
-    // TODO we may not have ID yet?
-    if (this._baseModelName) {
+
+    if (this._baseModelName && this.id) {
       this._initBaseModelData(this._baseModelName, id);
+    } else {
+      this._baseModelData = null;
     }
   }
 
@@ -215,6 +217,15 @@ export default class M3ModelData {
       changedKeys = this._filterChangedKeys(changedKeys);
     }
 
+    let hasReceivedId = !this.id && jsonApiResource && jsonApiResource.id;
+    if (hasReceivedId) {
+      this.id = '' + jsonApiResource.id;
+      if (this._baseModelName) {
+        // Fresh projection was saved, we need to connect it with the base model data
+        this._initBaseModelDataOnCommit(this._baseModelName, this.id);
+      }
+    }
+
     this._updateChangedAttributes();
 
     if (this._notifyProjectionProperties(changedKeys)) {
@@ -316,7 +327,9 @@ export default class M3ModelData {
     if (this.isDestroyed) {
       return;
     }
-    this._destroy();
+    if (this._baseModelData || this._areAllProjectionsDestroyed()) {
+      this._destroy();
+    }
   }
 
   isRecordInUse() {
@@ -481,6 +494,19 @@ export default class M3ModelData {
     this._baseModelData._registerProjection(this);
   }
 
+  _initBaseModelDataOnCommit(modelName, id) {
+    let projectionData = this._data;
+    // TODO Recursively init any existing nested model datas as well
+    this._initBaseModelData(modelName, id);
+    // Push the data stored in the projection to the base model as well
+    // TODO Push the attributes hash as well
+    this._baseModelData.pushData({
+      attributes: projectionData,
+    });
+    // we need to reset the __data as it will no longer be used
+    this._data = null;
+  }
+
   _addChildModelData(key, isArray, modelData) {
     let childModelDatas = this._childModelDatas;
     if (isArray) {
@@ -545,9 +571,28 @@ export default class M3ModelData {
     this._projections.push(modelData);
   }
 
+  _unregisterProjection(modelData) {
+    if (!this._projections) {
+      return;
+    }
+    let idx = this._projections.indexOf(modelData);
+    if (idx === -1) {
+      return;
+    }
+    this._projections.splice(idx, 1);
+
+    // if all projetions have been destroyed and the record is not use, destroy as well
+    if (this._areAllProjectionsDestroyed() && !this.isRecordInUse()) {
+      this._destroy();
+    }
+  }
+
   _destroy() {
     this.isDestroyed = true;
     this.storeWrapper.disconnectRecord(this.modelName, this.id, this.clientId);
+    if (this._baseModelData) {
+      this._baseModelData._unregisterProjection(this);
+    }
   }
 
   /*
@@ -594,6 +639,16 @@ export default class M3ModelData {
     let attrs = this._attributes;
 
     return changedKeys.filter(key => attrs[key] === undefined);
+  }
+
+  _areAllProjectionsDestroyed() {
+    if (!this._projections) {
+      // no projections were ever registered
+      return true;
+    }
+    // if this model data is the last one in the projections list, then all of the others have been destroyed
+    // note: should not be possible to get into state of no projections (projections.length === 0)
+    return this._projections.length === 1 && this._projections[0] === this;
   }
 
   /*

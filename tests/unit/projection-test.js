@@ -1866,7 +1866,7 @@ module('unit/projection', function(hooks) {
       assert.equal(get(projectedExcerpt, 'title'), BOOK_TITLE);
     });
 
-    skip(`Unloading the base-record does not unload the projection`, function(assert) {
+    test(`Unloading the base-record does not unload the projection`, function(assert) {
       let { baseRecord, projectedPreview } = this.records;
 
       run(() => {
@@ -1962,6 +1962,8 @@ module('unit/projection', function(hooks) {
     const BOOK_TITLE_2 = 'Alice Through the Looking Glass';
     const BOOK_CHAPTER_1 = 'Down the Rabbit-Hole';
     const BOOK_CHAPTER_2 = 'Looking-Glass House';
+    const BOOK_AUTHOR_NAME_1 = 'Lewis Carol';
+    const BOOK_AUTHOR_NAME_2 = 'J.K. Rowling';
 
     test('independently created projections of the same base-type but no ID do not share their data', function(assert) {
       let projectedPreview = run(() =>
@@ -2069,7 +2071,7 @@ module('unit/projection', function(hooks) {
       });
     });
 
-    test('we can create and save a projection', function(assert) {
+    test('can create and save a projection', function(assert) {
       let createRecordCalls = 0;
 
       this.owner.register(
@@ -2159,7 +2161,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('newly created and saved projections can receive updates', function(assert) {
+    test('newly created and saved projections can receive updates', function(assert) {
       this.owner.register(
         'adapter:-ember-m3',
         EmberObject.extend({
@@ -2178,7 +2180,13 @@ module('unit/projection', function(hooks) {
       let projectedPreview = run(() => {
         let record = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
           title: BOOK_TITLE_1,
+          author: {
+            name: BOOK_AUTHOR_NAME_1,
+          },
         });
+
+        // reify the nested model
+        get(record, 'author.name');
 
         record.save();
         return record;
@@ -2192,6 +2200,9 @@ module('unit/projection', function(hooks) {
             type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
             attributes: {
               title: BOOK_TITLE_2,
+              author: {
+                name: BOOK_AUTHOR_NAME_2,
+              },
             },
           },
         });
@@ -2201,6 +2212,11 @@ module('unit/projection', function(hooks) {
         get(projectedPreview, 'title'),
         BOOK_TITLE_2,
         'Expected preview projection to have received updated title'
+      );
+      assert.equal(
+        get(projectedPreview, 'author.name'),
+        BOOK_AUTHOR_NAME_2,
+        'Expected preview projection to have received updated author.name'
       );
     });
 
