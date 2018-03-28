@@ -2278,9 +2278,9 @@ ember-cli@~3.0.2:
     watch-detector "^0.1.0"
     yam "0.0.22"
 
-ember-data@emberjs/data#60ea116ac9ccf3868a62a3cfd05c4e23ec406763:
+ember-data@dnachev/data#e8dd3301735dc103b8b4dd7c2f22453d22f2e3a4:
   version "3.1.0-canary"
-  resolved "https://codeload.github.com/emberjs/data/tar.gz/60ea116ac9ccf3868a62a3cfd05c4e23ec406763"
+  resolved "https://codeload.github.com/dnachev/data/tar.gz/e8dd3301735dc103b8b4dd7c2f22453d22f2e3a4"
   dependencies:
     amd-name-resolver "0.0.7"
     babel-plugin-ember-modules-api-polyfill "^1.4.2"

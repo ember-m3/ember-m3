@@ -14,11 +14,11 @@ module('unit/model-data', function(hooks) {
       modelDatas: {},
       disconnectedModelDatas: {},
 
-      modelDataFor(modelName, id) {
+      modelDataFor(modelName, id, clientId) {
         let key = modelDataKey({ modelName, id });
         return (
           this.modelDatas[key] ||
-          (this.modelDatas[key] = new M3ModelData(modelName, id, null, storeWrapper))
+          (this.modelDatas[key] = new M3ModelData(modelName, id, clientId, storeWrapper))
         );
       },
 
@@ -28,6 +28,8 @@ module('unit/model-data', function(hooks) {
         this.disconnectedModelDatas[key] = this.modelDatas[key];
         delete this.modelDatas[key];
       },
+
+      setRecordId() {},
 
       isRecordInUse() {
         return false;
@@ -203,6 +205,23 @@ module('unit/model-data', function(hooks) {
     );
   });
 
+  test('`.didCommit` sets the ID of the record in the store', function(assert) {
+    let setRecordId = this.sinon.spy(this.storeWrapper, 'setRecordId');
+
+    let modelData = this.mockModelData();
+
+    modelData.didCommit({
+      id: 'newId',
+      attributes: {},
+    });
+
+    assert.deepEqual(
+      setRecordId.args,
+      [['com.bookstore.book', 'newId', modelData.clientId]],
+      'Expected setRecodId to have been called'
+    );
+  });
+
   test('`.unloadRecord` disconnects the model data from the store', function(assert) {
     let modelData = this.mockModelData();
 
@@ -299,12 +318,23 @@ module('unit/model-data', function(hooks) {
   });
 
   test('projection model data connects with base model data when committed with id', function(assert) {
-    let projectionModelData = this.storeWrapper.modelDataFor('com.bookstore.projected-book', null);
-
-    assert.equal(
-      this.storeWrapper.modelDatas[modelDataKey({ modelName: 'com.bookstore.book', id: null })],
+    let projectionModelData = this.storeWrapper.modelDataFor(
+      'com.bookstore.projected-book',
       null,
-      'Expected base model data to not have been created'
+      1
+    );
+    let baseModelData = this.storeWrapper.modelDatas[
+      modelDataKey({ modelName: 'com.bookstore.book', id: null })
+    ];
+    assert.notEqual(baseModelData, null, 'Expected base model data to have been created as well');
+    assert.ok(
+      baseModelData._projections.find(x => x === projectionModelData),
+      'Expected projection model data to have been registered'
+    );
+    assert.equal(
+      baseModelData.clientId,
+      projectionModelData.clientId,
+      'Expected the base model data to have the same clientId as the projection'
     );
 
     // actually set to be saved
@@ -313,6 +343,8 @@ module('unit/model-data', function(hooks) {
       text: "Harry Potter's preface",
     });
 
+    let setRecordIdSpy = this.sinon.spy(this.storeWrapper, 'setRecordId');
+
     projectionModelData.willCommit();
 
     projectionModelData.didCommit({
@@ -320,15 +352,21 @@ module('unit/model-data', function(hooks) {
       attributes: {},
     });
 
-    let baseModelData = this.storeWrapper.modelDatas[
-      modelDataKey({ modelName: 'com.bookstore.book', id: '1' })
-    ];
-
-    assert.notEqual(baseModelData, null, 'Expected base model data to have been created');
-    assert.ok(
-      baseModelData._projections.find(x => x === projectionModelData),
-      'Expected projection model data to have been registered'
+    assert.deepEqual(
+      setRecordIdSpy.args,
+      [
+        ['com.bookstore.projected-book', '1', projectionModelData.clientId],
+        ['com.bookstore.book', '1', baseModelData.clientId],
+      ],
+      'Expected server-side ID to be set for the committed records'
     );
+    assert.equal(
+      projectionModelData.id,
+      '1',
+      'Expected projection model data to have picked up the new ID'
+    );
+    assert.equal(baseModelData.id, '1', 'Expected base model data to have picked up the new ID');
+
     assert.equal(
       projectionModelData.getAttr('name'),
       'Harry Potter',

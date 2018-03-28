@@ -108,8 +108,8 @@ export default class M3ModelData {
       this._parentModelData._addChildModelData(parentKey, parentValueIsArray, this);
     }
 
-    if (this._baseModelName && this.id) {
-      this._initBaseModelData(this._baseModelName, id);
+    if (this._baseModelName) {
+      this._initBaseModelData();
     } else {
       this._baseModelData = null;
     }
@@ -149,6 +149,7 @@ export default class M3ModelData {
     }
 
     if (jsonApiResource.id) {
+      // TODO Which cases do we need to initialize the id here?
       this.id = jsonApiResource.id + '';
     }
 
@@ -197,6 +198,14 @@ export default class M3ModelData {
   removeFromHasMany() {}
 
   didCommit(jsonApiResource, notifyRecord = false) {
+    if (jsonApiResource && jsonApiResource.id) {
+      this.id = '' + jsonApiResource.id;
+    }
+    if (!this._parentModelData) {
+      // only set the record ID if it is a top-level model data
+      this.storeWrapper.setRecordId(this.modelName, this.id, this.clientId);
+    }
+
     if (this._baseModelData) {
       this._baseModelData.didCommit(jsonApiResource, notifyRecord);
       // we don't need to return any changed keys, because properties will be invalidated
@@ -215,15 +224,6 @@ export default class M3ModelData {
     if (attributes !== undefined) {
       changedKeys = this._mergeUpdates(attributes, commitDataAndNotify, true);
       changedKeys = this._filterChangedKeys(changedKeys);
-    }
-
-    let hasReceivedId = !this.id && jsonApiResource && jsonApiResource.id;
-    if (hasReceivedId) {
-      this.id = '' + jsonApiResource.id;
-      if (this._baseModelName) {
-        // Fresh projection was saved, we need to connect it with the base model data
-        this._initBaseModelDataOnCommit(this._baseModelName, this.id);
-      }
     }
 
     this._updateChangedAttributes();
@@ -489,22 +489,13 @@ export default class M3ModelData {
     this.__inFlightAttributes = v;
   }
 
-  _initBaseModelData(modelName, id) {
-    this._baseModelData = this.storeWrapper.modelDataFor(modelName, id);
+  _initBaseModelData() {
+    this._baseModelData = this.storeWrapper.modelDataFor(
+      this._baseModelName,
+      this.id,
+      this.clientId
+    );
     this._baseModelData._registerProjection(this);
-  }
-
-  _initBaseModelDataOnCommit(modelName, id) {
-    let projectionData = this._data;
-    // TODO Recursively init any existing nested model datas as well
-    this._initBaseModelData(modelName, id);
-    // Push the data stored in the projection to the base model as well
-    // TODO Push the attributes hash as well
-    this._baseModelData.pushData({
-      attributes: projectionData,
-    });
-    // we need to reset the __data as it will no longer be used
-    this._data = null;
   }
 
   _addChildModelData(key, isArray, modelData) {
