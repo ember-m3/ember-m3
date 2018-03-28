@@ -82,7 +82,7 @@ function _computeAttributeReference(key, value, modelName, schemaInterface, sche
   return reference;
 }
 
-function resolveReference(reference, store) {
+function resolveReference(store, reference) {
   if (reference.type === null) {
     // for schemas with a global id-space but multiple types, schemas may
     // report a type of null
@@ -94,28 +94,37 @@ function resolveReference(reference, store) {
   }
 }
 
+function resolveReferenceOrReferences(store, value, reference) {
+  if (Array.isArray(value) || Array.isArray(reference)) {
+    return resolveRecordArray(store, reference);
+  }
+
+  return resolveReference(store, reference);
+}
+
+/**
+ * There are two different type of values we have to worry about:
+ * 1. References
+ * 2. Nested Models
+ *
+ * Here is a mapping of input -> output:
+ * 1. Single reference -> resolved reference
+ * 2. Array of references -> RecordArray of resolved references
+ * 3. Single nested model -> EmbeddedMegaMorphicModel
+ * 4. Array of nested models -> array of EmbeddedMegaMorphicModel
+ */
 function resolveValue(key, value, modelName, store, schema, model, valueInArray = false) {
   const schemaInterface = model._internalModel._modelData.schemaInterface;
 
-  // TODO: remove this in favour of computeAttributeReference returning arrays
-  if (schema.isAttributeArrayReference(key, value, modelName, schemaInterface)) {
-    return resolveRecordArray(key, value, modelName, store, schema, schemaInterface);
+  // First check to see if given value is either a reference or an array of references
+  let reference = _computeAttributeReference(key, value, modelName, schemaInterface, schema);
+  if (reference !== undefined && reference !== null) {
+    return resolveReferenceOrReferences(store, value, reference);
   }
 
-  // TODO: have computeNestedModel return arrays instead
   if (Array.isArray(value)) {
     return resolvePlainArray(key, value, modelName, store, schema, model);
   }
-
-  let reference = _computeAttributeReference(key, value, modelName, schemaInterface, schema);
-  if (reference !== undefined && reference !== null) {
-    if (Array.isArray(reference)) {
-      return reference.map(singleRef => resolveReference(singleRef, store));
-    } else {
-      return resolveReference(reference, store);
-    }
-  }
-
   let nested = schema.computeNestedModel(key, value, modelName, schemaInterface);
   if (nested) {
     let internalModel = new EmbeddedInternalModel({
@@ -149,16 +158,10 @@ function resolvePlainArray(key, value, modelName, store, schema, model) {
     return new Array(0);
   }
 
-  let result = new Array(value.length);
-
-  for (let i = 0; i < value.length; ++i) {
-    result[i] = resolveValue(key, value[i], modelName, store, schema, model, true);
-  }
-
-  return result;
+  return value.map(value => resolveValue(key, value, modelName, store, schema, model, true));
 }
 
-function resolveRecordArray(key, value, modelName, store, schema, schemaInterface) {
+function resolveRecordArray(store, references) {
   let recordArrayManager = store._recordArrayManager;
 
   let array = M3RecordArray.create({
@@ -168,40 +171,20 @@ function resolveRecordArray(key, value, modelName, store, schema, schemaInterfac
     manager: recordArrayManager,
   });
 
-  let internalModels = resolveRecordArrayInternalModels(
-    key,
-    value,
-    modelName,
-    store,
-    schema,
-    schemaInterface
-  );
+  let internalModels = resolveReferencesWithInternalModels(store, references);
 
   array._setInternalModels(internalModels);
-
   return array;
 }
 
-function resolveRecordArrayInternalModels(key, value, modelName, store, schema, schemaInterface) {
+function resolveReferencesWithInternalModels(store, references) {
   // TODO: mention in UPGRADING.md
-  let reference = _computeAttributeReference(key, value, modelName, schemaInterface, schema);
-  if (reference === undefined || reference === null) {
-    reference = [];
-  }
-  let internalModels = new Array(reference.length);
-
-  for (let i = 0; i < internalModels.length; ++i) {
-    let singleRef = reference[i];
-    if (singleRef.type) {
-      // for schemas with a global id-space but multiple types, schemas may
-      // report a type of null
-      internalModels[i] = store._internalModelForId(singleRef.type, singleRef.id);
-    } else {
-      internalModels[i] = store._globalM3Cache[singleRef.id];
-    }
-  }
-
-  return internalModels;
+  return references.map(
+    reference =>
+      reference.type
+        ? store._internalModelForId(reference.type, reference.id)
+        : store._globalM3Cache[reference.id]
+  );
 }
 
 function disallowAliasSet(object, key, value) {
@@ -317,14 +300,14 @@ export default class MegamorphicModel extends EmberObject {
 
     if (oldIsRecordArray) {
       // TODO: do this lazily
-      let internalModels = resolveRecordArrayInternalModels(
+      let references = _computeAttributeReference(
         key,
         newValue,
         this._modelName,
-        this._store,
-        this._schema,
-        schemaInterface
+        schemaInterface,
+        this._schema
       );
+      let internalModels = resolveReferencesWithInternalModels(this._store, references);
       oldValue._setInternalModels(internalModels);
     } else {
       // TODO: disconnect modeldata -> childModeldata in the case of nested model -> primitive
@@ -486,26 +469,37 @@ export default class MegamorphicModel extends EmberObject {
       );
     }
 
+    const schemaInterface = this._internalModel._modelData.schemaInterface;
+    const modelName = this._internalModel.modelName;
+    // If value is an array, we know value is either
+    // 1. An array of references
+    // 2. An array of nested models
     // TODO: need to be able to update relationships
     // TODO: also on set(x) ask schema if this should be a ref (eg if it has an
     // entityUrn)
     // TODO: similarly this.get('arr').pushObject doesn't update the underlying
     // _data
-    if (
-      // TODO: check if we have a new value here
-      // TODO: maybe we can computeAttributeArrayRef here
-      this._schema.isAttributeArrayReference(
+    // TODO: check if we have a new value here
+    // TODO: maybe we can computeAttributeArrayRef here
+    if (Array.isArray(value)) {
+      const referenceOrReferences = _computeAttributeReference(
         key,
         value,
-        this._modelName,
-        this._internalModel._modelData.schemaInterface
-      )
-    ) {
-      this._setRecordArray(key, value);
-    } else {
-      this._internalModel._modelData.setAttr(key, value);
-      delete this._cache[key];
+        modelName,
+        schemaInterface,
+        this._schema
+      );
+
+      if (referenceOrReferences) {
+        this._setRecordArray(key, value);
+        notifyPropertyChange(this, key);
+        return;
+      }
     }
+
+    this._internalModel._modelData.setAttr(key, value);
+    delete this._cache[key];
+    return;
   }
 
   _setRecordArray(key, models) {

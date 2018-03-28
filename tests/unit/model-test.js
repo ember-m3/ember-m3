@@ -42,11 +42,32 @@ module('unit/model', function(hooks) {
 
       // TODO: split this up to different tests
       computeAttributeReference(key, value, modelName, schemaInterface) {
-        if (this.isAttributeArrayReference(key) && Array.isArray(value)) {
-          return value.map(id => ({
+        if (value === undefined) {
+          let refValue = schemaInterface.getAttr(`*${key}`);
+          if (typeof refValue === 'string') {
+            return {
+              type: null,
+              id: refValue,
+            };
+          } else if (Array.isArray(refValue)) {
+            return refValue.map(x => ({
+              type: null,
+              id: x,
+            }));
+          }
+          return null;
+        } else if (key === 'otherBooksInSeries') {
+          return (value || []).map(id => ({
             type: null,
             id,
           }));
+        } else if (Array.isArray(value)) {
+          return value.every(v => v.id)
+            ? value.map(id => ({
+                type: null,
+                id,
+              }))
+            : undefined;
         } else if (/^isbn:/.test(value)) {
           return {
             id: value,
@@ -63,25 +84,7 @@ module('unit/model', function(hooks) {
             type: null,
             id: value,
           };
-        } else if (value === undefined) {
-          let refValue = schemaInterface.getAttr(`*${key}`);
-          if (typeof refValue === 'string') {
-            return {
-              type: null,
-              id: refValue,
-            };
-          } else if (Array.isArray(refValue)) {
-            return refValue.map(x => ({
-              type: null,
-              id: x,
-            }));
-          }
-          return null;
         }
-      },
-
-      isAttributeArrayReference(key) {
-        return key === 'otherBooksInSeries';
       },
 
       computeNestedModel(key, value) {

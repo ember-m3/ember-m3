@@ -7,10 +7,6 @@ export class SchemaManager {
     return this.schema.computeAttributeReference(key, value, modelname, schemaInterface);
   }
 
-  isAttributeArrayReference(key, value, modelname, schemaInterface) {
-    return this.schema.isAttributeArrayReference(key, value, modelname, schemaInterface);
-  }
-
   computeNestedModel(key, value, modelname, schemaInterface) {
     return this.schema.computeNestedModel(key, value, modelname, schemaInterface);
   }

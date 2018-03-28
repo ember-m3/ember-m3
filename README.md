@@ -316,12 +316,6 @@ The `schema` you pass in is an object with the following properties.
   Note that attribute references are all treated as synchronous.  There is no
   ember-m3 analogue to `DS.Model` async relationships.
 
--  `isAttributeArrayReference(key, value, modelName, data)` Whether the attribute
-   should be treated as an array reference.  If `false` array values whose members are
-   attribute references will still be resolved as an array of models.  If `true`
-   they will be resoled as a `RecordArray` of models; additionally a
-   `RecordArray` will be returned even for `null` values.
-
 - `computeNestedModel(key, value, modelName, data)` Whether `value` should be treated
   as a nested model.  Useful for deeply nested references, eg with the following
   data:
@@ -421,7 +415,7 @@ serializer.
 
 ember-m3 provides neither an adapter nor a serializer.  If your app does not
 define an `-ember-m3` adapter, the normal lookup rules are followed and your
-`application` adapter is used instead 
+`application` adapter is used instead
 
 It is perfectly fine to use your `application` adapter and serializer.  However,
 if you have an app that uses both m3 models as well as `DS.Model`s you may

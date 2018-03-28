@@ -59,10 +59,6 @@ module('unit/projection', function(hooks) {
         }
       },
 
-      isAttributeArrayReference(key) {
-        return key === 'otherBooksInSeries';
-      },
-
       computeNestedModel(key, value, modelName) {
         if (!value || typeof value !== 'object' || value.constructor === Date) {
           return null;
