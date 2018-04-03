@@ -1,6 +1,10 @@
 # ember-m3 changelog
 
-## master
+## 0.6.0 (unreleased)
+
+* breaking: To be consistent with the request types used in ember-data,
+  `queryURL` will pass a `requestType` of `queryURL`.  Previously `query-url`
+  was passed.
 
 ## 0.5.1
 
