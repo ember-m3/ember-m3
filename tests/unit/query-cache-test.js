@@ -229,6 +229,36 @@ module('unit/query-cache', function(hooks) {
     });
   });
 
+  test('a custom -ember-m3 serializer can be registered', function(assert) {
+    assert.expect(4);
+
+    let payload = {
+      data: {
+        id: 1,
+        type: 'my-type',
+      },
+    };
+    let customSerializer = EmberObject.create({
+      normalizeResponse(store, modelClass, rawPayload, cacheKey, requestType) {
+        assert.equal(modelClass, MegamorphicModel, 'model is passed to normalizeResponse');
+        assert.deepEqual(rawPayload, payload, 'payload is passed to normalizeResponse');
+        assert.strictEqual(cacheKey, null, 'cacheKey is passed to normalizeResponse');
+        assert.equal(requestType, 'queryURL', 'requestTypis passss normalizeResponse');
+
+        return payload;
+      },
+    });
+
+    this.owner.register('serializer:-ember-m3', customSerializer, {
+      singleton: true,
+      instantiate: false,
+    });
+
+    this.adapterAjax.returns(resolve(payload));
+
+    return this.queryCache.queryURL('/uwot');
+  });
+
   test('.queryURL can resolve with individual models', function(assert) {
     let payload = {
       data: {
