@@ -17,6 +17,7 @@ export default class QueryCache {
     this._queryCache = new Object(null);
     this._reverseQueryCache = new Object(null);
     this.__adapter = null;
+    this.__serializer = null;
   }
 
   queryURL(
@@ -41,13 +42,12 @@ export default class QueryCache {
 
     if (backgroundReload || reload || cachedPromise === undefined) {
       loadPromise = this._adapter.ajax(adapterUrl, method, options).then(rawPayload => {
-        let serializer = this._store.serializerFor('-ember-m3');
-        let payload = serializer.normalizeResponse(
+        let payload = this._serializer.normalizeResponse(
           this._store,
           MegamorphicModel,
           rawPayload,
           cacheKey,
-          'query-url'
+          'queryURL'
         );
         let result = this._createResult(payload, { url, params, method, cacheKey }, array);
         //Add result to reverseCache.
@@ -200,6 +200,10 @@ export default class QueryCache {
     this._recordArrayManager._adapterPopulatedRecordArrays.push(array);
 
     return array;
+  }
+
+  get _serializer() {
+    return this.__serializer || (this.__serializer = this._store.serializerFor('-ember-m3'));
   }
 
   get _adapter() {
