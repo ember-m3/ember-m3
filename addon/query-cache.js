@@ -47,7 +47,7 @@ export default class QueryCache {
           MegamorphicModel,
           rawPayload,
           cacheKey,
-          'query-url'
+          'queryURL'
         );
         let result = this._createResult(payload, { url, params, method, cacheKey }, array);
         //Add result to reverseCache.
