@@ -6,6 +6,14 @@
   `queryURL` will pass a `requestType` of `queryURL`.  Previously `query-url`
   was passed.
 
+* breaking: All arrays of references are now returned as `RecordArray`s.
+  `schema.isAttributeArrayRef` is therefore deprecated.
+
+* `store.queryURL` will now call `adapter.queryURL` if it exists, instead of
+  `adapter.ajax`.  This is intended to be a hook for doing app-wide url
+  conversion for `store.queryURL` calls beyond prepending the adapter
+  namespace.
+
 ## 0.5.1
 
 * bugfix: when using `schemaInterface` to compute attribute references from
