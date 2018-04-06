@@ -1,6 +1,6 @@
 # ember-m3 changelog
 
-## 0.7.0 (unreleased)
+## 0.7.0
 
 * breaking: Properties manually set, including those set in initial record
   creation, are treated as resolved.  This means that
