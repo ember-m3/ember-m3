@@ -1,6 +1,15 @@
 # ember-m3 changelog
 
-## 0.6.0 (unreleased)
+## 0.7.0 (unreleased)
+
+* breaking: Properties manually set, including those set in initial record
+  creation, are treated as resolved.  This means that
+  `createRecord({ myprop })` will not use transforms for `myprop`.
+
+* bugfix: now able to set `RecordArray` properties with `RecordArray` values.
+  Semantics are still update in-place, as when setting to arrays of models.
+
+## 0.6.0
 
 * breaking: To be consistent with the request types used in ember-data,
   `queryURL` will pass a `requestType` of `queryURL`.  Previously `query-url`

@@ -305,6 +305,10 @@ export default class M3ModelData {
     }
   }
 
+  hasLocalAttr(key) {
+    return key in this._attributes;
+  }
+
   unloadRecord() {
     if (this.isDestroyed) {
       return;

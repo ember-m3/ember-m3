@@ -1119,11 +1119,7 @@ module('unit/model', function(hooks) {
 
     assert.equal(get(model, 'name'), 'Marlborough: His Life and Times', 'init property set');
     assert.equal(get(model, 'isbn'), '978-0226106335', 'init property set');
-    assert.equal(
-      get(model, 'publisher'),
-      'University Of Chicago Press, of course',
-      'init property set'
-    );
+    assert.equal(get(model, 'publisher'), 'University Of Chicago Press', 'init property set');
   });
 
   test('.setUnknownProperty updates data and clears simple attribute cache', function(assert) {
@@ -1202,7 +1198,142 @@ module('unit/model', function(hooks) {
     assert.deepEqual(propChanges, [[model + '', 'title']], 'change events trigger for aliases');
   });
 
-  // TODO: '.setUnknownProperty can update belongs-to relationships'
+  test('.setUnknownProperty sets attributes to given value for uncached values', function(assert) {
+    let model = run(() =>
+      this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            '*relatedBooks': ['isbn:9780439064873', 'isbn:9780439136365'],
+            '*otherArray': [],
+          },
+        },
+        included: [
+          {
+            id: 'isbn:9780439064873',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Chamber of Secrets`,
+            },
+          },
+          {
+            id: 'isbn:9780439136365',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Prisoner of Azkaban`,
+            },
+          },
+        ],
+      })
+    );
+
+    let relatedBooksRecordArray = get(model, 'relatedBooks');
+    let relatedBooksPlainArray = relatedBooksRecordArray
+      .map(b => get(b, 'id'))
+      .map(isbn => this.store.peekRecord('com.example.bookstore.Book', isbn));
+
+    run(() => set(model, 'newPropRA', relatedBooksRecordArray));
+    run(() => set(model, 'newPropPA', relatedBooksPlainArray));
+
+    // it's up to the user to serialize these correctly for eg new records
+    assert.equal(
+      get(model, 'newPropRA'),
+      relatedBooksRecordArray,
+      'record array of refs have no special handling for uncached attributes'
+    );
+    // TODO: assert this does not go through compute attr ref but just uses the cached value
+    assert.equal(
+      get(model, 'newPropPA'),
+      relatedBooksPlainArray,
+      'array of refs have no special handling for uncached attributes'
+    );
+  });
+
+  test('.setUnknownProperty updates cached RecordArrays in-place for given arrays and RecordArrays', function(assert) {
+    let model = run(() =>
+      this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            '*relatedBooks': ['isbn:9780439064873', 'isbn:9780439136365'],
+            '*otherRecordArray': [],
+          },
+        },
+        included: [
+          {
+            id: 'isbn:9780439064873',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Chamber of Secrets`,
+            },
+          },
+          {
+            id: 'isbn:9780439136365',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Prisoner of Azkaban`,
+            },
+          },
+        ],
+      })
+    );
+
+    let relatedBooksRecordArray = get(model, 'relatedBooks');
+    let otherRecordArray = get(model, 'otherRecordArray');
+    let relatedBooksPlainArray = [
+      this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439136365'),
+    ];
+
+    assert.deepEqual(
+      relatedBooksRecordArray.map(b => get(b, 'id')),
+      ['isbn:9780439064873', 'isbn:9780439136365'],
+      'initially record array has the server-provided values'
+    );
+
+    run(() => set(model, 'relatedBooks', relatedBooksPlainArray));
+    assert.deepEqual(
+      get(model, 'relatedBooks').map(b => get(b, 'id')),
+      ['isbn:9780439136365'],
+      'existing attr record array is updated in-place from plain array'
+    );
+    assert.strictEqual(
+      get(model, 'relatedBooks'),
+      relatedBooksRecordArray,
+      'initial record array is re-used from plain array'
+    );
+
+    run(() => set(model, 'relatedBooks', otherRecordArray));
+    assert.deepEqual(
+      get(model, 'relatedBooks').map(b => get(b, 'id')),
+      [],
+      'existing attr record array is updated in-place from record array'
+    );
+    assert.strictEqual(
+      get(model, 'relatedBooks'),
+      relatedBooksRecordArray,
+      'initial record array is re-used from record array'
+    );
+
+    run(() => set(model, 'newRecordArray', relatedBooksRecordArray));
+    otherRecordArray.pushObject(
+      this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439064873')
+    );
+    run(() => set(model, 'newRecordArray', otherRecordArray));
+    assert.deepEqual(
+      get(model, 'newRecordArray').map(b => get(b, 'id')),
+      ['isbn:9780439064873'],
+      'new attr record array is updated in place once cached'
+    );
+    assert.strictEqual(
+      get(model, 'newRecordArray'),
+      relatedBooksRecordArray,
+      'new attr record array is re-used once cached'
+    );
+  });
 
   skip('DS.Models can have relationships into m3 models', function(assert) {
     let model = run(() => {
