@@ -1,4 +1,6 @@
+import { get } from '@ember/object';
 import { RecordArray } from 'ember-data/-private';
+import { A } from '@ember/array';
 
 export default RecordArray.extend({
   // TODO: implement more of RecordArray but make this not an arrayproxy
@@ -8,11 +10,12 @@ export default RecordArray.extend({
   },
 
   replaceContent(idx, removeAmt, newModels) {
-    let addAmt = newModels.length;
+    let _newModels = A(newModels);
+    let addAmt = get(_newModels, 'length');
 
     let newInternalModels = new Array(addAmt);
     for (let i = 0; i < newInternalModels.length; ++i) {
-      newInternalModels[i] = newModels.objectAt(i)._internalModel;
+      newInternalModels[i] = _newModels.objectAt(i)._internalModel;
     }
     this.content.replace(idx, removeAmt, newInternalModels);
     // TODO: update the backing m3's internalModel._data

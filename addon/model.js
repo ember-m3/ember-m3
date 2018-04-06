@@ -5,7 +5,7 @@ import Ember from 'ember';
 import { RootState } from 'ember-data/-private';
 import { dasherize } from '@ember/string';
 import EmberObject, { computed, get, set, defineProperty } from '@ember/object';
-import { A } from '@ember/array';
+import { A, isArray } from '@ember/array';
 import { warn } from '@ember/debug';
 import { alias } from '@ember/object/computed';
 import Map from '@ember/map';
@@ -296,6 +296,11 @@ export default class MegamorphicModel extends EmberObject {
     let oldIsRecordArray = oldValue && oldValue instanceof M3RecordArray;
 
     if (oldIsRecordArray) {
+      if (this._internalModel._modelData.hasLocalAttr(key)) {
+        // This is a change notification from a `set` on this model, for a
+        // resolved record array.  The record array is already updated in-place.
+        return;
+      }
       // TODO: do this lazily
       let references = _computeAttributeReference(
         key,
@@ -466,28 +471,11 @@ export default class MegamorphicModel extends EmberObject {
       );
     }
 
-    const schemaInterface = this._internalModel._modelData.schemaInterface;
-    const modelName = this._internalModel.modelName;
-    // If value is an array, we know value is either
-    // 1. An array of references
-    // 2. An array of nested models
-    // TODO: need to be able to update relationships
-    // TODO: also on set(x) ask schema if this should be a ref (eg if it has an
-    // entityUrn)
-    // TODO: similarly this.get('arr').pushObject doesn't update the underlying
-    // _data
-    // TODO: check if we have a new value here
-    // TODO: maybe we can computeAttributeArrayRef here
-    if (Array.isArray(value)) {
-      const referenceOrReferences = _computeAttributeReference(
-        key,
-        value,
-        modelName,
-        schemaInterface,
-        this._schema
-      );
-
-      if (referenceOrReferences) {
+    if (isArray(value)) {
+      const cachedValue = this._cache[key];
+      if (cachedValue instanceof M3RecordArray) {
+        // We update record arrays in-place to match the semantics of setting a
+        // `hasMany` attribute on a `DS.Model`.
         this._setRecordArray(key, value);
         notifyPropertyChange(this, key);
         return;
@@ -495,18 +483,20 @@ export default class MegamorphicModel extends EmberObject {
     }
 
     this._internalModel._modelData.setAttr(key, value);
-    delete this._cache[key];
+    this._cache[key] = value;
     return;
   }
 
   _setRecordArray(key, models) {
-    // TODO Should we add support for array proxy as well
-    let ids = new Array(models.length);
+    let ids = new Array(get(models, 'length'));
     models = A(models);
     for (let i = 0; i < ids.length; ++i) {
-      // TODO: should have a schema hook for this
+      // TODO: should have a schema hook if we keep this
       ids[i] = get(models.objectAt(i), 'id');
     }
+    // TODO: kind of want to drop this but it's important for projections since
+    // you can't rely on one projection's resolution for another projection (as
+    // they are not subsets)
     this._internalModel._modelData.setAttr(key, ids);
 
     if (key in this._cache) {
