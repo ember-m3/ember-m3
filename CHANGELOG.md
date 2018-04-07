@@ -1,5 +1,9 @@
 # ember-m3 changelog
 
+## 0.7.1
+
+* bugfix: Now able to get `length` of `M3RecordArray` as property.
+
 ## 0.7.0
 
 * breaking: Properties manually set, including those set in initial record
