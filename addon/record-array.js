@@ -2,12 +2,12 @@ import { get } from '@ember/object';
 import { RecordArray } from 'ember-data/-private';
 import { A } from '@ember/array';
 
-export default RecordArray.extend({
+export default class extends RecordArray {
   // TODO: implement more of RecordArray but make this not an arrayproxy
 
   replace(idx, removeAmt, newModels) {
     this.replaceContent(idx, removeAmt, newModels);
-  },
+  }
 
   replaceContent(idx, removeAmt, newModels) {
     let _newModels = A(newModels);
@@ -19,7 +19,7 @@ export default RecordArray.extend({
     }
     this.content.replace(idx, removeAmt, newInternalModels);
     // TODO: update the backing m3's internalModel._data
-  },
+  }
 
   _update() {
     if (!this.query) {
@@ -29,7 +29,7 @@ export default RecordArray.extend({
     let { url, params, method, cacheKey } = this.query;
 
     return this.queryCache.queryURL(url, { params, method, cacheKey }, this);
-  },
+  }
 
   _setInternalModels(internalModels /*, payload */) {
     this.content.setObjects(internalModels);
@@ -44,5 +44,9 @@ export default RecordArray.extend({
 
       internalModel._recordArrays.add(this);
     }
-  },
-});
+  }
+
+  get length() {
+    return this.content && this.content.length !== undefined ? this.content.length : 0;
+  }
+}
