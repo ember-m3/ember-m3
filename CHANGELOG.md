@@ -1,5 +1,9 @@
 # ember-m3 changelog
 
+## 0.7.3
+
+* bugfix: `setUnknownProperty` remove cache after setting a new value and only update cache when value is resolved.
+
 ## 0.7.2
 
 * bugfix: `setUnknownProperty` only update cache when value is resolved.
