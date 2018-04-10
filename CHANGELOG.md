@@ -1,5 +1,9 @@
 # ember-m3 changelog
 
+## 0.7.2
+
+* bugfix: `setUnknownProperty` only update cache when value is resolved.
+
 ## 0.7.1
 
 * bugfix: Now able to get `length` of `M3RecordArray` as property.
