@@ -1383,6 +1383,40 @@ module('unit/model', function(hooks) {
     );
   });
 
+  test('.setUnknownProperty cache is removed upon setting a new value', function(assert) {
+    let model = run(() =>
+      this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+          },
+        },
+        included: [],
+      })
+    );
+
+    run(() =>
+      set(model, 'nextChapter', {
+        name: 'The Boy Who Lived',
+        nextChapter: {
+          name: 'The Vanishing Glass',
+        },
+      })
+    );
+
+    // Testing if cache is removed upon setting new value
+    let name = get(model, 'name');
+    assert.equal(model._cache['name'], name, `cache is updated for key 'name'`);
+    // cache is removed upon set
+    run(() => set(model, 'name', 'Harry Potter and the Chamber of Secrets'));
+    assert.ok(
+      model._cache['name'] === undefined,
+      `cache is removed upon setting new value for key 'name'`
+    );
+  });
+
   test('.setUnknownProperty cache is not updated if the value is an array of elements which are not resolved as models', function(assert) {
     let model = run(() =>
       this.store.push({
@@ -1414,7 +1448,8 @@ module('unit/model', function(hooks) {
     );
 
     run(() => set(model, 'relatedBooks', ['isbn:9780439064873', 'isbn:9780439136365']));
-    // cache is not updated upon set with the value is not resolved.
+    // value in cache is removed
+    // and not updated upon set with the value that is not resolved.
     assert.equal(
       model._cache['relatedBooks'],
       undefined,
