@@ -12,6 +12,7 @@ import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
 import EmberObject, { get, set } from '@ember/object';
 import { Promise, resolve } from 'rsvp';
 import { run } from '@ember/runloop';
+import { isArray } from '@ember/array';
 
 const UrnWithTypeRegex = /^urn:([a-zA-Z.]+):(.*)/;
 const UrnWithoutTypeRegex = /^urn:(.*)/;
@@ -88,7 +89,7 @@ module('unit/model', function(hooks) {
       },
 
       computeNestedModel(key, value) {
-        if (value && typeof value === 'object' && value.constructor !== Date) {
+        if (value && typeof value === 'object' && value.constructor !== Date && !isArray(value)) {
           return {
             type: value.type,
             id: value.id,
@@ -1119,7 +1120,11 @@ module('unit/model', function(hooks) {
 
     assert.equal(get(model, 'name'), 'Marlborough: His Life and Times', 'init property set');
     assert.equal(get(model, 'isbn'), '978-0226106335', 'init property set');
-    assert.equal(get(model, 'publisher'), 'University Of Chicago Press', 'init property set');
+    assert.equal(
+      get(model, 'publisher'),
+      'University Of Chicago Press, of course',
+      'init property set'
+    );
   });
 
   test('.setUnknownProperty updates data and clears simple attribute cache', function(assert) {
@@ -1332,6 +1337,183 @@ module('unit/model', function(hooks) {
       get(model, 'newRecordArray'),
       relatedBooksRecordArray,
       'new attr record array is re-used once cached'
+    );
+  });
+
+  test('.setUnknownProperty cache is not updated if the value is not resolved to a model', function(assert) {
+    let model = run(() =>
+      this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+          },
+        },
+        included: [],
+      })
+    );
+
+    run(() =>
+      set(model, 'nextChapter', {
+        name: 'The Boy Who Lived',
+        nextChapter: {
+          name: 'The Vanishing Glass',
+        },
+      })
+    );
+
+    // cache is not updated upon set with the value is not resolved.
+    assert.equal(
+      model._cache['nextChapter'],
+      undefined,
+      'cache is not updated when value is not resolved'
+    );
+
+    // value is resolved upon invoking get
+    const nextChapter = get(model, 'nextChapter');
+    assert.ok(
+      model._cache['nextChapter'].constructor.isModel,
+      'cache is updated upon invoking get'
+    );
+    assert.strictEqual(
+      get(model._cache, 'nextChapter'),
+      nextChapter,
+      'cache is updated upon invoking get'
+    );
+  });
+
+  test('.setUnknownProperty cache is not updated if the value is an array of elements which are not resolved as models', function(assert) {
+    let model = run(() =>
+      this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            '*relatedBooks': [],
+          },
+        },
+        included: [
+          {
+            id: 'isbn:9780439064873',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Chamber of Secrets`,
+            },
+          },
+          {
+            id: 'isbn:9780439136365',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Prisoner of Azkaban`,
+            },
+          },
+        ],
+      })
+    );
+
+    run(() => set(model, 'relatedBooks', ['isbn:9780439064873', 'isbn:9780439136365']));
+    // cache is not updated upon set with the value is not resolved.
+    assert.equal(
+      model._cache['relatedBooks'],
+      undefined,
+      'cache is not updated when value is not resolved'
+    );
+
+    //Attribute is updated with unresolved values
+    assert.deepEqual(
+      model._internalModel._modelData.__attributes['relatedBooks'],
+      ['isbn:9780439064873', 'isbn:9780439136365'],
+      'model-data attributes is updated with unresoved array'
+    );
+
+    // value is resolved upon invoking get
+    get(model, 'relatedBooks');
+    assert.ok(model._cache['relatedBooks'] !== undefined, 'cache is updated upon invoking get');
+    assert.equal(
+      get(model._cache['relatedBooks'][0], 'name'),
+      'Harry Potter and the Chamber of Secrets',
+      'cache is updated upon invoking get'
+    );
+  });
+
+  test('.setUnknownProperty update cache if the value is resolved', function(assert) {
+    let model = run(() =>
+      this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            '*relatedBooks': ['isbn:9780439064873', 'isbn:9780439136365'],
+            '*otherRecordArray': [],
+          },
+        },
+        included: [
+          {
+            id: 'isbn:9780439064873',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Chamber of Secrets`,
+            },
+          },
+          {
+            id: 'isbn:9780439136365',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Prisoner of Azkaban`,
+            },
+          },
+        ],
+      })
+    );
+
+    let firstRelatedBook = get(model, 'relatedBooks.firstObject');
+    run(() => set(model, 'firstRelatedBook', firstRelatedBook));
+    assert.strictEqual(
+      get(model._cache, 'firstRelatedBook'),
+      firstRelatedBook,
+      'cahe is updated as soon as resolved value is set'
+    );
+  });
+
+  test('M3RecordArray has length as a property', function(assert) {
+    let model = run(() =>
+      this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            '*relatedBooks': ['isbn:9780439064873', 'isbn:9780439136365'],
+            '*otherRecordArray': [],
+          },
+        },
+        included: [
+          {
+            id: 'isbn:9780439064873',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Chamber of Secrets`,
+            },
+          },
+          {
+            id: 'isbn:9780439136365',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Prisoner of Azkaban`,
+            },
+          },
+        ],
+      })
+    );
+
+    let relatedBooks = get(model, 'relatedBooks');
+    assert.equal(
+      relatedBooks.length,
+      2,
+      'M3RecordArray instance returns array length upon just checking length property'
     );
   });
 
