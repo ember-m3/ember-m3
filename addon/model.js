@@ -487,7 +487,9 @@ export default class MegamorphicModel extends EmberObject {
     }
 
     // Set value in model data
+    // remove value from the cache
     this._internalModel._modelData.setAttr(key, value);
+    delete this._cache[key];
 
     // update cache with the data,
     // If value is resolved to a Model or an Array of Models.
