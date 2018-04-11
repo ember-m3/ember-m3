@@ -1417,6 +1417,51 @@ module('unit/model', function(hooks) {
     );
   });
 
+  test('.setUnknownProperty child model data is removed upon setting a new value', function(assert) {
+    let model = run(() =>
+      this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: {
+              name: 'The Boy Who Lived',
+            },
+          },
+        },
+        included: [],
+      })
+    );
+
+    // Testing if child Model data is removed upon setting new value
+    let nextChapter = get(model, 'nextChapter');
+    assert.equal(
+      model._internalModel._modelData.__childModelDatas['nextChapter'].getAttr('name'),
+      get(nextChapter, 'name'),
+      'child model data is created'
+    );
+
+    // Testing childModelData is removed upon
+    // setting a new value for nested model
+    run(() =>
+      set(model, 'nextChapter', {
+        name: 'The Vanishing Glass',
+      })
+    );
+
+    assert.ok(
+      model._internalModel._modelData.__childModelDatas['nextChapter'] === undefined,
+      'child model data is removed'
+    );
+    nextChapter = get(model, 'nextChapter');
+    assert.equal(
+      model._internalModel._modelData.__childModelDatas['nextChapter'].getAttr('name'),
+      get(nextChapter, 'name'),
+      'child model data is updated with new value'
+    );
+  });
+
   test('.setUnknownProperty cache is not updated if the value is an array of elements which are not resolved as models', function(assert) {
     let model = run(() =>
       this.store.push({
