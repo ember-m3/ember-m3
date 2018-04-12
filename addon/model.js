@@ -2,6 +2,7 @@
 /* eslint-disable ember/no-attrs-in-components */
 
 import Ember from 'ember';
+import DS from 'ember-data';
 import { RootState } from 'ember-data/-private';
 import { dasherize } from '@ember/string';
 import EmberObject, { computed, get, set, defineProperty } from '@ember/object';
@@ -22,7 +23,10 @@ if (!HasNotifyPropertyChange) {
   notifyPropertyChange = propertyDidChange;
 }
 
-const { deleted: { uncommitted: deletedUncommitted }, loaded: { saved: loadedSaved } } = RootState;
+const {
+  deleted: { uncommitted: deletedUncommitted },
+  loaded: { saved: loadedSaved, updated: updatedUncommitted },
+} = RootState;
 
 class EmbeddedSnapshot {
   constructor(record) {
@@ -231,6 +235,7 @@ export default class MegamorphicModel extends EmberObject {
 
     this._topModel = this._topModel || this;
     this._parentModel = this._parentModel || null;
+    this._errors = new DS.Errors();
     this._init = true;
 
     this._flushInitProperties();
@@ -282,6 +287,11 @@ export default class MegamorphicModel extends EmberObject {
       this.notifyPropertyChange(keys[i]);
     }
     Ember.endPropertyChanges();
+  }
+
+  _updateCurrentState(state) {
+    this._internalModel.currentState = state;
+    notifyPropertyChange(this, 'currentState');
   }
 
   notifyPropertyChange(key) {
@@ -373,8 +383,7 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   deleteRecord() {
-    this._internalModel.currentState = deletedUncommitted;
-    notifyPropertyChange(this, 'currentState');
+    this._updateCurrentState(deletedUncommitted);
   }
 
   destroyRecord(options) {
@@ -384,9 +393,7 @@ export default class MegamorphicModel extends EmberObject {
 
   rollbackAttributes() {
     let dirtyKeys = this._internalModel._modelData.rollbackAttributes();
-    this._internalModel.currentState = loadedSaved;
-
-    notifyPropertyChange(this, 'currentState');
+    this._updateCurrentState(loadedSaved);
 
     if (dirtyKeys && dirtyKeys.length > 0) {
       this._notifyProperties(dirtyKeys);
@@ -500,6 +507,9 @@ export default class MegamorphicModel extends EmberObject {
       delete this._cache[key];
       this._internalModel._modelData._destroyChildModelData(key);
     }
+
+    // Remove errors upon setting of new value
+    this._removeError(key);
     return;
   }
 
@@ -519,6 +529,21 @@ export default class MegamorphicModel extends EmberObject {
       let recordArray = this._cache[key];
       recordArray.replaceContent(0, get(recordArray, 'length'), models);
     }
+
+    // Remove errors upon setting
+    this._removeError(key);
+  }
+
+  _removeError(key) {
+    // Remove errors for the property
+    this._errors.remove(key);
+    if (
+      this._internalModel.currentState &&
+      !this._internalModel.currentState.isValid &&
+      get(this._errors, 'length') === 0
+    ) {
+      this._updateCurrentState(updatedUncommitted);
+    }
   }
 
   static toString() {
@@ -528,12 +553,19 @@ export default class MegamorphicModel extends EmberObject {
   toString() {
     return `<MegamorphicModel:${this.id}>`;
   }
+
+  // Errors hash that will get update,
+  // upon validation errors
+  get errors() {
+    return this._errors;
+  }
 }
 
 MegamorphicModel.prototype.store = null;
 MegamorphicModel.prototype._internalModel = null;
 MegamorphicModel.prototype._parentModel = null;
 MegamorphicModel.prototype._topModel = null;
+MegamorphicModel.prototype._errors = null;
 MegamorphicModel.prototype.currentState = null;
 MegamorphicModel.prototype.isError = null;
 MegamorphicModel.prototype.adapterError = null;
