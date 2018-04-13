@@ -4010,4 +4010,113 @@ module('unit/model', function(hooks) {
       true
     );
   });
+
+  test('errors is intialized upon creation of the record', function(assert) {
+    let model = run(() =>
+      this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+          },
+        },
+        included: [],
+      })
+    );
+
+    // Testing errors is getting set and is an instance
+    // of DS.Errors
+    const errors = get(model, 'errors');
+    assert.ok(errors);
+    assert.ok(errors instanceof DS.Errors);
+  });
+
+  test('.save errors getting updated via the store and removed upon setting a new value', function(assert) {
+    assert.expect(10);
+
+    this.owner.register(
+      'adapter:-ember-m3',
+      EmberObject.extend({
+        updateRecord(store, type, snapshot) {
+          assert.equal(snapshot.record.get('isSaving'), true, 'record is saving');
+          return Promise.reject(
+            new DS.InvalidError([
+              {
+                source: 'estimatedPubDate',
+                detail: 'Please enter valid estimated publish date',
+              },
+              {
+                source: 'name',
+                detail: 'Please enter valid name',
+              },
+            ])
+          );
+        },
+      })
+    );
+
+    this.owner.register(
+      'serializer:-ember-m3',
+      EmberObject.extend({
+        extractErrors(store, typeClass, payload, id) {
+          if (payload && typeof payload === 'object' && payload.errors) {
+            const modelName = get(typeClass, 'modelName');
+            const record = store.peekRecord(modelName, id);
+            payload.errors.forEach(error => {
+              if (error.source) {
+                const errorField = error.source;
+                record.get('errors').add(errorField, error.detail);
+              }
+            });
+          }
+        },
+      })
+    );
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+            estimatedPubDate: 'January 2622',
+          },
+        },
+      });
+    });
+
+    assert.equal(model.get('isSaving'), false, 'initially model not saving');
+
+    run(() => {
+      model.set('estimatedPubDate', '_invalidEstimatedPublishDate');
+    });
+
+    // Testing client validation errors getting
+    // set upon getting validation errors from API
+    return run(() => {
+      return model.save().catch(() => {
+        assert.equal(model.get('isSaving'), false, 'model done saving');
+        assert.equal(get(model, 'errors.length'), 2, 'validation errors set');
+
+        let error = get(model, 'errors.estimatedPubDate');
+        assert.ok(get(model, 'isValid') === false, 'model is not valid');
+        assert.equal(
+          get(error, 'firstObject.message'),
+          'Please enter valid estimated publish date',
+          'error is available'
+        );
+
+        //Testing remove errors upon setting a new value
+        run(() => set(model, 'estimatedPubDate', 'January 2621'));
+        assert.equal(get(model, 'errors.length'), 1, 'error is removed upon setting new value');
+        assert.ok(get(model, 'isValid') === false, 'model is still not valid');
+
+        run(() => set(model, 'name', 'valid name'));
+        assert.equal(get(model, 'errors.length'), 0, 'error is removed upon setting new value');
+        assert.ok(get(model, 'isValid') === true, 'model is now valid');
+      });
+    });
+  });
 });
