@@ -1,5 +1,9 @@
 # ember-m3 changelog
 
+## 0.7.5
+
+* Model supports client validation errors. `errors` an instance of DS.Errors provides list of vaidation errors.
+
 ## 0.7.4
 
 * bugfix: `setUnknownProperty` remove cache and child model data if value is not resolved.
