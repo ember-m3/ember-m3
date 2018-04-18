@@ -63,9 +63,9 @@ module('unit/model', function(hooks) {
             id,
           }));
         } else if (Array.isArray(value)) {
-          return value.every(v => v.id)
+          return value.every(v => typeof v === 'string')
             ? value.map(id => ({
-                type: null,
+                type: /^isbn:/.test(id) ? 'com.example.bookstore.Book' : null,
                 id,
               }))
             : undefined;
@@ -1512,7 +1512,7 @@ module('unit/model', function(hooks) {
     get(model, 'relatedBooks');
     assert.ok(model._cache['relatedBooks'] !== undefined, 'cache is updated upon invoking get');
     assert.equal(
-      get(model._cache['relatedBooks'][0], 'name'),
+      get(model._cache['relatedBooks'].objectAt(0), 'name'),
       'Harry Potter and the Chamber of Secrets',
       'cache is updated upon invoking get'
     );
