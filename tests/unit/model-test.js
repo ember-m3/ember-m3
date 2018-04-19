@@ -9,7 +9,7 @@ import { zip } from 'lodash';
 import MegamorphicModel from 'ember-m3/model';
 import SchemaManager from 'ember-m3/schema-manager';
 import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
-import EmberObject, { get, set } from '@ember/object';
+import EmberObject, { get, set, computed } from '@ember/object';
 import { Promise, resolve } from 'rsvp';
 import { run } from '@ember/runloop';
 import { isArray } from '@ember/array';
@@ -144,7 +144,7 @@ module('unit/model', function(hooks) {
     assert.equal(typeof klassAttrsMap.has, 'function', 'M3.attributes.has()');
   });
 
-  test('.unknownProperty returns undefined for attributes not included in the schema', function(assert) {
+  test('.unknownProperty returns undefined for attributes not included in the payload', function(assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -159,6 +159,51 @@ module('unit/model', function(hooks) {
 
     assert.equal(get(model, 'title'), `Harry Potter and the Sorcerer's Stone`);
     assert.equal(get(model, 'pubDate'), undefined);
+  });
+
+  test('.unknownProperty and .setUnknownProperty work with non-schema objects when isModel is true (custom resolved value)', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            title: `Harry Potter and the Sorcerer's Stone`,
+          },
+        },
+      });
+    });
+
+    assert.equal(get(model, 'title'), `Harry Potter and the Sorcerer's Stone`);
+
+    const LocalClass = EmberObject.extend({
+      address: computed('city', 'state', function() {
+        return this.get('city') + ', ' + this.get('state');
+      }),
+    });
+
+    LocalClass.isModel = true;
+
+    let address = LocalClass.create({
+      city: 'Oakland',
+      state: 'CA',
+    });
+
+    run(() => {
+      set(model, 'publisherLocation', address);
+    });
+
+    assert.ok(get(model, 'publisherLocation') === address, 'We can access a non-schema property');
+    assert.equal(
+      get(model, 'publisherLocation.city'),
+      'Oakland',
+      'We can access a nested non-schema property'
+    );
+    assert.equal(
+      get(model, 'publisherLocation.address'),
+      'Oakland, CA',
+      'We can access a nested non-schema computed property'
+    );
   });
 
   test('.unknownProperty returns schema-transformed values', function(assert) {
