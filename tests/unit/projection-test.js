@@ -20,9 +20,11 @@ const BOOK_EXCERPT_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.Boo
 const NORM_BOOK_EXCERPT_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.book-excerpt';
 const BOOK_PREVIEW_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.BookPreview';
 const NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.book-preview';
+const PROJECTED_AUTHOR_CLASS = 'com.example.bookstore.projectedType.ProjectedAuthor';
 const NORM_PROJECTED_AUTHOR_CLASS = 'com.example.bookstore.projected-type.projected-author';
-const PUBLISHER_CLASS = 'com.example.bookstore.publisher';
-const PROJECTED_PUBLISHER_CLASS = 'com.example.bookstore.projectedType.projectedPublisher';
+const PUBLISHER_CLASS = 'com.example.bookstore.Publisher';
+const NORM_PUBLISHER_CLASS = 'com.example.bookstore.publisher';
+const PROJECTED_PUBLISHER_CLASS = 'com.example.bookstore.projectedType.ProjectedPublisher';
 const NORM_PROJECTED_PUBLISHER_CLASS = 'com.example.bookstore.projected-type.projected-publisher';
 
 module('unit/projection', function(hooks) {
@@ -86,21 +88,21 @@ module('unit/projection', function(hooks) {
       models: {
         [NORM_BOOK_CLASS_PATH]: {},
         [NORM_BOOK_EXCERPT_PROJECTION_CLASS_PATH]: {
-          baseType: NORM_BOOK_CLASS_PATH,
+          baseType: BOOK_CLASS_PATH,
           attributes: ['title', 'author', 'year', 'publisher'],
         },
         [NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH]: {
-          baseType: NORM_BOOK_CLASS_PATH,
+          baseType: BOOK_CLASS_PATH,
           attributesTypes: {
-            publisher: NORM_PROJECTED_PUBLISHER_CLASS,
-            author: NORM_PROJECTED_AUTHOR_CLASS,
-            otherBooksInSeries: NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+            publisher: PROJECTED_PUBLISHER_CLASS,
+            author: PROJECTED_AUTHOR_CLASS,
+            otherBooksInSeries: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
           },
           // if you want to project an embedded model then it must have a type
           //  computedEmbeddedType
           attributes: ['title', 'author', 'chapter-1', 'year', 'publisher', 'otherBooksInSeries'],
         },
-        [PUBLISHER_CLASS]: {},
+        [NORM_PUBLISHER_CLASS]: {},
         // this schema must come with the parent schema
         [NORM_PROJECTED_AUTHOR_CLASS]: {
           attributes: ['location', 'name'],

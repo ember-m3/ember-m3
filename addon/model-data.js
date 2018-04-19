@@ -482,7 +482,11 @@ export default class M3ModelData {
         return;
       }
 
-      this._baseModelData = this.storeWrapper.modelDataFor(baseModelName, this.id, this.clientId);
+      this._baseModelData = this.storeWrapper.modelDataFor(
+        dasherize(baseModelName),
+        this.id,
+        this.clientId
+      );
     }
 
     if (this._baseModelData) {
