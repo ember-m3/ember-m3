@@ -544,7 +544,7 @@ you want and very likely will cause "spooky action at a distance" bugs for other
 serialized information about retrofits to the API).
 
 Before saving these records, you would need to carefully scrub it by deleting this and any other local properties off of
-it, or you would need to ensure that the serializer did not serialize this attributes. This will be tedious, annoying and
+it, or you would need to ensure that the serializer did not serialize this attribute. This will be tedious, annoying and
 brittle, but that is the sacrifice paid for such `Bad Things™`.
 
 Ultimately, you should refactor your application away from this `Bad Practice™` to pass these separate objects alongside
