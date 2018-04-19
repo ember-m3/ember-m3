@@ -1,5 +1,10 @@
 # ember-m3 changelog
 
+## 0.7.6
+
+* Fixed handling of model names normalization. The schema no longer needs to normalize when returning
+  references, nested models and base model names.
+
 ## 0.7.5
 
 * Model supports client validation errors. `errors` an instance of DS.Errors provides list of vaidation errors.
