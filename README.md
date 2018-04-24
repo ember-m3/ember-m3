@@ -490,6 +490,74 @@ export DS.Model.extend({
 ```
 
 
+### Random UI State or other non-attr non-relationship properties
+
+Let's say you are converting the following `Museum` model:
+
+```js
+// models/museum.js
+export DS.Model.extend({
+  name: DS.attr(),
+})
+```
+
+And that for `Bad Reasons™` you discover that your team has been stashing a custom
+object on the museum describing some ad-hoc state (maybe for the ui?):
+
+```js
+Ember.set(museum, 'retrofit', retrofitState);
+```
+
+Let's say this state has a formal class:
+
+```js
+const RetrofitState = Ember.Object.extend({
+  statusText: Ember.computed('statusCode', function() {
+    let code = this.get('statusCode');
+    
+    switch (code) {
+      case 0:
+        return 'Not started';
+      case 1:
+        return 'In Progress';
+      case 2:
+        return 'Incomplete, on hold';
+      case 3:
+        return 'Completed';
+      default:
+        return 'Unknown';
+    }
+  })
+});
+```
+
+While you should not store local-state/ui-state (e.g. any state not part of the schema) on records, you can make this
+pattern temporarily work with `M3` by doing a `Bad Thing™` and giving the class constructor a static `isModel` flag:
+
+```js
+RetrofitState.isModel = true; // THIS COMES WITH CONSEQUENCES
+```
+
+This is not without consequences. Setting this flag makes `M3` treat this object as a `resolvedValue`, meaning that **it
+will be included as an attribute when snapshot.eachAttribute is called by a serializer**.  This is very likely not what
+you want and very likely will cause "spooky action at a distance" bugs for others on your team (like suddenly sending
+serialized information about retrofits to the API).
+
+Before saving these records, you would need to carefully scrub it by deleting this and any other local properties off of
+it, or you would need to ensure that the serializer did not serialize this attribute. This will be tedious, annoying and
+brittle, but that is the sacrifice paid for such `Bad Things™`.
+
+Ultimately, you should refactor your application away from this `Bad Practice™` to pass these separate objects alongside
+ each other, for instance by wrapping them in an hash like the following:
+
+```js
+let museumRetrofit = {
+  museum,
+  retrofit
+};
+```
+
+
 ### Other Computed Properties
 
 More involved computed properites can be converted to either utility functions
