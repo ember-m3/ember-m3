@@ -1,5 +1,9 @@
 # ember-m3 changelog
 
+## 0.7.7
+
+* Fixed changedAttributes() on a projection to return all changes.
+
 ## 0.7.6
 
 * Fixed handling of model names normalization. The schema no longer needs to normalize when returning
