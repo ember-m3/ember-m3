@@ -2097,7 +2097,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('independently created projections of the same base-type and ID share their data', function(assert) {
+    test('independently created projections of the same base-type and ID share their data', function(assert) {
       let projectedPreview = run(() =>
         this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
           id: BOOK_ID,
@@ -2328,6 +2328,48 @@ module('unit/projection', function(hooks) {
         },
         /You cannot create a new projection for a pre-existing record/,
         '[TODO UPDATE THIS ASSERT] We throw the right assertion.'
+      );
+    });
+
+    test('.changedAttributes on a projection returns all changed properties', function(assert) {
+      let projectedExcerpt = run(() => {
+        return this.store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {
+              title: BOOK_TITLE_1,
+              author: {
+                name: BOOK_AUTHOR_NAME_1,
+              },
+            },
+          },
+        });
+      });
+      let projectedPreview = run(() => {
+        return this.store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+            attributes: {},
+          },
+        });
+      });
+
+      run(() => {
+        set(projectedPreview, 'title', BOOK_TITLE_2);
+        set(projectedPreview, 'author.name', BOOK_AUTHOR_NAME_2);
+      });
+
+      assert.deepEqual(
+        projectedExcerpt.changedAttributes(),
+        {
+          title: [BOOK_TITLE_1, BOOK_TITLE_2],
+          author: {
+            name: [BOOK_AUTHOR_NAME_1, BOOK_AUTHOR_NAME_2],
+          },
+        },
+        'Expected changed attributes to be correctly returned'
       );
     });
 

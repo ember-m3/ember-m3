@@ -350,6 +350,9 @@ export default class M3ModelData {
     @private
   */
   changedAttributes() {
+    if (this._baseModelData) {
+      return this._baseModelData.changedAttributes();
+    }
     let serverState = this._data;
     let localChanges = this._attributes;
     let inFlightData = this._inFlightAttributes;
