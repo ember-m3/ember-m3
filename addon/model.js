@@ -25,7 +25,10 @@ if (!HasNotifyPropertyChange) {
 
 const {
   deleted: { uncommitted: deletedUncommitted },
-  loaded: { saved: loadedSaved, updated: updatedUncommitted },
+  loaded: {
+    saved: loadedSaved,
+    updated: { uncommitted: updatedUncommitted },
+  },
 } = RootState;
 
 class EmbeddedSnapshot {
@@ -495,6 +498,10 @@ export default class MegamorphicModel extends EmberObject {
 
     // Set value in model data
     this._internalModel._modelData.setAttr(key, value);
+    const isDirty = this._internalModel._modelData.isAttrDirty(key);
+    if (isDirty && !this.get('isDirty')) {
+      this._updateCurrentState(updatedUncommitted);
+    }
 
     // update cache with the data,
     // If value is resolved to a Model or an Array of Models.
@@ -580,6 +587,7 @@ defineProperty(MegamorphicModel.prototype, 'isSaving', retrieveFromCurrentState)
 defineProperty(MegamorphicModel.prototype, 'isDeleted', retrieveFromCurrentState);
 defineProperty(MegamorphicModel.prototype, 'isNew', retrieveFromCurrentState);
 defineProperty(MegamorphicModel.prototype, 'isValid', retrieveFromCurrentState);
+defineProperty(MegamorphicModel.prototype, 'isDirty', retrieveFromCurrentState);
 defineProperty(MegamorphicModel.prototype, 'dirtyType', retrieveFromCurrentState);
 
 class EmbeddedMegamorphicModel extends MegamorphicModel {

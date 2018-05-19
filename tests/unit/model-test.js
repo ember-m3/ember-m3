@@ -3050,13 +3050,23 @@ module('unit/model', function(hooks) {
         },
       });
     });
-
+    assert.ok(!model.get('isDirty'), 'model currently not dirty');
+    assert.equal(
+      model._internalModel.currentState.stateName,
+      'root.loaded.saved',
+      'model.state loaded.saved'
+    );
     run(() => {
       model.set('name', 'Alice in Wonderland');
       model.set('rating', null);
       model.set('expectedPubDate', undefined);
     });
-
+    assert.ok(model.get('isDirty'), 'model is dirty as new values are set on the model');
+    assert.equal(
+      model._internalModel.currentState.stateName,
+      'root.loaded.updated.uncommitted',
+      'model state is updated.uncommitted'
+    );
     assert.deepEqual(
       model.changedAttributes(),
       {
@@ -3097,6 +3107,12 @@ module('unit/model', function(hooks) {
     let doubleNested = get(nested, 'nextChapter');
 
     assert.deepEqual(model.changedAttributes(), {}, 'initially no attributes are changed');
+    assert.ok(!model.get('isDirty'), 'model currently not dirty');
+    assert.equal(
+      model._internalModel.currentState.stateName,
+      'root.loaded.saved',
+      'model.state loaded.saved'
+    );
 
     run(() => {
       set(model, 'name', 'secret book name');
@@ -3140,6 +3156,12 @@ module('unit/model', function(hooks) {
       },
       'only changed attributes in nested models are included'
     );
+    assert.ok(model.get('isDirty'), 'model is dirty as new values are set on the model');
+    assert.equal(
+      model._internalModel.currentState.stateName,
+      'root.loaded.updated.uncommitted',
+      'model state is updated.uncommitted'
+    );
   });
 
   test('.changedAttributes returns dirty attributes for arrays of primitive values', function(assert) {
@@ -3156,6 +3178,12 @@ module('unit/model', function(hooks) {
         },
       });
     });
+    assert.ok(!model.get('isDirty'), 'model currently not dirty');
+    assert.equal(
+      model._internalModel.currentState.stateName,
+      'root.loaded.saved',
+      'model.state loaded.saved'
+    );
 
     run(() => {
       set(model, 'chapters', ['so windy', 'winter winter']);
@@ -3170,6 +3198,12 @@ module('unit/model', function(hooks) {
         ],
       },
       '.changedAttributes returns changed arrays'
+    );
+    assert.ok(model.get('isDirty'), 'model is dirty as new values are set on the model');
+    assert.equal(
+      model._internalModel.currentState.stateName,
+      'root.loaded.updated.uncommitted',
+      'model state is updated.uncommitted'
     );
   });
 
@@ -3230,11 +3264,21 @@ module('unit/model', function(hooks) {
 
     run(() => {
       model.set('name', 'Some other book');
+    });
+    assert.ok(model.get('isDirty'), 'model is dirty as new values are set on the model');
+    assert.equal(
+      model._internalModel.currentState.stateName,
+      'root.loaded.updated.uncommitted',
+      'model state is updated.uncommitted'
+    );
+
+    run(() => {
       model.rollbackAttributes();
     });
 
+    assert.ok(!model.get('isDirty'), 'model currently not dirty');
     assert.equal(
-      get(model, 'currentState.stateName'),
+      model._internalModel.currentState.stateName,
       'root.loaded.saved',
       'after rolling back model.state loaded.saved'
     );

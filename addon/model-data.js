@@ -438,6 +438,20 @@ export default class M3ModelData {
     return dirtyKeys;
   }
 
+  isAttrDirty(key) {
+    if (this._attributes[key] === undefined) {
+      return false;
+    }
+    let originalValue;
+    if (this._inFlightAttributes[key] !== undefined) {
+      originalValue = this._inFlightAttributes[key];
+    } else {
+      originalValue = this._data[key];
+    }
+
+    return originalValue !== this._attributes[key];
+  }
+
   get _childModelDatas() {
     if (this.__childModelDatas === null) {
       this.__childModelDatas = Object.create(null);
