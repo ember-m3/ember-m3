@@ -438,6 +438,35 @@ module('unit/model-data', function(hooks) {
     );
   });
 
+  test(`.isAttrDirty check if key is not in inFlight and data and set locally`, function(assert) {
+    let modelData = new M3ModelData(
+      'com.exmaple.bookstore.book',
+      '1',
+      null,
+      this.storeWrapper,
+      null,
+      null
+    );
+
+    modelData.pushData(
+      {
+        id: '1',
+        attributes: {
+          dataAttr: 'value',
+        },
+      },
+      false
+    );
+
+    modelData.setAttr('inFlightAttr', 'value');
+    modelData.willCommit();
+    modelData.setAttr('localAttr', 'value');
+
+    assert.ok(!modelData.isAttrDirty('dataAttr'), 'data attr is not dirty');
+    assert.ok(!modelData.isAttrDirty('inFlightAttr'), 'inFlight attr is not dirty');
+    assert.ok(modelData.isAttrDirty('localAttr'), 'local attr is not dirty');
+  });
+
   module('with nested models', function(hooks) {
     hooks.beforeEach(function() {
       this.topModelData = new M3ModelData(
