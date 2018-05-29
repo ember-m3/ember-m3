@@ -69,6 +69,10 @@ class M3SchemaInterface {
 
     return value;
   }
+
+  setAttr(key, value) {
+    this.modelData.setAttr(key, value);
+  }
 }
 
 export default class M3ModelData {

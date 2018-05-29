@@ -50,6 +50,15 @@ export class SchemaManager {
     return keys;
   }
 
+  setAttribute(modelName, attrName, value, schemaInterface) {
+    if (this.schema.setAttribute) {
+      this.schema.setAttribute(modelName, attrName, value, schemaInterface);
+      return;
+    }
+
+    schemaInterface.setAttr(attrName, value);
+  }
+
   transformValue(modelName, attrName, value) {
     let transforms = this._modelSchemaProperty(modelName, 'transforms');
     let transform = transforms && transforms[attrName];

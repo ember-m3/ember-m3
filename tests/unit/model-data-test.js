@@ -156,10 +156,7 @@ module('unit/model-data', function(hooks) {
     modelData.setAttr('bar', 'barVal');
     assert.equal(modelData.getAttr('bar'), 'barVal', 'modeldata can write attr');
 
-    assert.notOk(
-      typeof schemaInterface.setAttr === 'function',
-      'schemaInterface cannot write attr'
-    );
+    assert.ok(typeof schemaInterface.setAttr === 'function', 'schemaInterface can write attr');
   });
 
   test('.rollbackAttributes does not call notifyPropertyChange with undefined without hasChangedAttributes', function(assert) {

@@ -1780,6 +1780,257 @@ module('unit/projection', function(hooks) {
     });
   });
 
+  module('Update projection property with resolved value', function(hooks) {
+    // properties for use for initial state
+    const BOOK_ID = 'isbn:9780439708181';
+    // TODO is this valid? we won't have a real ID yeah?
+    const PUBLISHER_ID = 'publisher-abc123';
+    const PUBLISHER_ID_NEW = 'publisher-abc123_new';
+    const PUBLISHER_URN = `urn:${PUBLISHER_CLASS}:${PUBLISHER_ID}`;
+
+    // intial old values
+    const PUBLISHER_NAME = 'MACMILLAN';
+    const PUBLISHER_LOCATION = 'Isle of Arran, Scotland';
+    const PUBLISHER_OWNER = 'Daniel and Alexander Macmillan';
+
+    // properties for use post-patch
+    const NEW_PUBLISHER_NAME = 'MACMILLAN NEW';
+    const NEW_PUBLISHER_LOCATION = 'London, England';
+    const NEW_PUBLISHER_OWNER = 'Holtzbrinck Publishing Group';
+    const NEW_PUBLISHER_URN = `urn:${PUBLISHER_CLASS}:${PUBLISHER_ID_NEW}`;
+
+    hooks.beforeEach(function() {
+      let { store } = this;
+
+      let baseRecord;
+      let projectedExcerpt;
+      let projectedPreview;
+
+      run(() => {
+        baseRecord = store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              publisher: PUBLISHER_URN,
+            },
+          },
+          included: [
+            {
+              id: PUBLISHER_ID,
+              type: PUBLISHER_CLASS,
+              attributes: {
+                name: PUBLISHER_NAME,
+                location: PUBLISHER_LOCATION,
+                owner: PUBLISHER_OWNER,
+              },
+            },
+            {
+              id: PUBLISHER_ID,
+              type: PROJECTED_PUBLISHER_CLASS,
+              attributes: {},
+            },
+          ],
+        });
+
+        projectedExcerpt = store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {},
+          },
+        });
+
+        projectedPreview = store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+            attributes: {},
+          },
+        });
+      });
+
+      this.records = {
+        baseRecord,
+        projectedExcerpt,
+        projectedPreview,
+      };
+
+      //Adding .setAttribute hook in schema
+      SchemaManager.schema.setAttribute = function(modelName, attr, value, schemaInterface) {
+        const baseModelName = this.computeBaseModelName(modelName);
+        if (
+          baseModelName &&
+          attr === 'publisher' &&
+          value &&
+          value.constructor &&
+          value.constructor.isModel
+        ) {
+          schemaInterface.setAttr(attr, NEW_PUBLISHER_URN);
+          return;
+        }
+
+        schemaInterface.setAttr(attr, value);
+      };
+    });
+
+    test('Updating property to another resolved value updates the base-record, other projections with new URN information using schema hook .setAttribute', function(assert) {
+      let { store } = this;
+      let { baseRecord, projectedExcerpt, projectedPreview } = this.records;
+
+      run(() => {
+        store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {
+              publisher: PUBLISHER_URN,
+            },
+          },
+          included: [
+            {
+              id: PUBLISHER_ID,
+              type: PROJECTED_PUBLISHER_CLASS,
+              attributes: {
+                location: PUBLISHER_LOCATION,
+              },
+            },
+          ],
+        });
+
+        store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+            attributes: {
+              publisher: PUBLISHER_URN,
+            },
+          },
+          included: [
+            {
+              id: PUBLISHER_ID,
+              type: PROJECTED_PUBLISHER_CLASS,
+              attributes: {
+                name: PUBLISHER_NAME,
+                loaction: PUBLISHER_LOCATION,
+              },
+            },
+          ],
+        });
+
+        // New publisher record
+        store.push({
+          data: {
+            id: PUBLISHER_ID_NEW,
+            type: PUBLISHER_CLASS,
+            attributes: {
+              name: NEW_PUBLISHER_NAME,
+              location: NEW_PUBLISHER_LOCATION,
+              owner: NEW_PUBLISHER_OWNER,
+            },
+          },
+        });
+      });
+
+      let newProjectedPublisherRecord = run(() =>
+        store.push({
+          data: {
+            id: PUBLISHER_ID_NEW,
+            type: PROJECTED_PUBLISHER_CLASS,
+            attributes: {
+              location: NEW_PUBLISHER_LOCATION,
+            },
+          },
+        })
+      );
+
+      // Value not changed in projection before setting new resolved value
+      assert.equal(
+        projectedPreview.get('publisher.id'),
+        PUBLISHER_ID,
+        'publisher.id is not updated'
+      );
+
+      assert.equal(
+        projectedPreview.get('publisher.location'),
+        PUBLISHER_LOCATION,
+        'publisher location is not updated'
+      );
+
+      assert.equal(
+        projectedPreview.get('publisher.name'),
+        PUBLISHER_NAME,
+        'publisher Name is not updated'
+      );
+
+      // Value not changed in base record before setting new resolved value
+      assert.equal(baseRecord.get('publisher.id'), PUBLISHER_ID, 'publisher.id is not updated');
+
+      assert.equal(
+        baseRecord.get('publisher.location'),
+        PUBLISHER_LOCATION,
+        'publisher location is not updated'
+      );
+
+      assert.equal(
+        baseRecord.get('publisher.owner'),
+        PUBLISHER_OWNER,
+        'publisher Owner is not updated'
+      );
+
+      assert.equal(
+        baseRecord.get('publisher.name'),
+        PUBLISHER_NAME,
+        'publisher Name is not updated'
+      );
+
+      // Set Resolved value
+      run(() => {
+        set(projectedExcerpt, 'publisher', newProjectedPublisherRecord);
+      });
+
+      // Value changed in projection after setting to new resolved value
+      assert.equal(
+        projectedPreview.get('publisher.id'),
+        PUBLISHER_ID_NEW,
+        'publisher.id is updated'
+      );
+
+      assert.equal(
+        projectedPreview.get('publisher.location'),
+        NEW_PUBLISHER_LOCATION,
+        'publisher location is updated'
+      );
+
+      assert.equal(
+        projectedPreview.get('publisher.name'),
+        NEW_PUBLISHER_NAME,
+        'publisher Name is updated'
+      );
+
+      // Value changed in base record after setting to new resolved value
+      assert.equal(baseRecord.get('publisher.id'), PUBLISHER_ID_NEW, 'publisher.id is updated');
+
+      assert.equal(
+        baseRecord.get('publisher.location'),
+        NEW_PUBLISHER_LOCATION,
+        'publisher location is updated'
+      );
+
+      assert.equal(
+        baseRecord.get('publisher.owner'),
+        NEW_PUBLISHER_OWNER,
+        'publisher Owner is updated'
+      );
+
+      assert.equal(
+        baseRecord.get('publisher.name'),
+        NEW_PUBLISHER_NAME,
+        'publisher Name is updated'
+      );
+    });
+  });
+
   skip(`Updates to a projection's non-whitelisted attributes do not cause a projection to be dirtied`, function() {});
 
   module('unloading/deleting records', function(hooks) {
