@@ -75,6 +75,11 @@ class EmbeddedInternalModel {
   }
 }
 
+function _setAttribute(model, attr, value) {
+  const schemaInterface = model._internalModel._modelData.schemaInterface;
+  model._schema.setAttribute(model._modelName, attr, value, schemaInterface);
+}
+
 function _computeAttributeReference(key, value, modelName, schemaInterface, schema) {
   schemaInterface._beginDependentKeyResolution(key);
   let reference = schema.computeAttributeReference(key, value, modelName, schemaInterface);
@@ -497,7 +502,7 @@ export default class MegamorphicModel extends EmberObject {
     }
 
     // Set value in model data
-    this._internalModel._modelData.setAttr(key, value);
+    _setAttribute(this, key, value);
     const isDirty = this._internalModel._modelData.isAttrDirty(key);
     if (isDirty && !this.get('isDirty')) {
       this._updateCurrentState(updatedUncommitted);
@@ -521,16 +526,10 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   _setRecordArray(key, models) {
-    let ids = new Array(get(models, 'length'));
-    models = A(models);
-    for (let i = 0; i < ids.length; ++i) {
-      // TODO: should have a schema hook if we keep this
-      ids[i] = get(models.objectAt(i), 'id');
-    }
-    // TODO: kind of want to drop this but it's important for projections since
-    // you can't rely on one projection's resolution for another projection (as
-    // they are not subsets)
-    this._internalModel._modelData.setAttr(key, ids);
+    // Schema hook handles setting
+    // list of resolved
+    // models to Model data
+    _setAttribute(this, key, models);
 
     if (key in this._cache) {
       let recordArray = this._cache[key];
