@@ -351,6 +351,24 @@ The `schema` you pass in is an object with the following properties.
   }
   ```
 
+- `setAttribute(modelName, key, value, schemaInterface)` A function that can be used 
+  to update the model-data with raw value instead of resolved value. 
+  `schemaInterface.setAttr(key,value)` should be invoked inside the function to set
+  the value. Example:
+  ```js
+  setAttribute(modelName, key, value, schemaInterface) {
+    // Check if the value is resolved as model
+    // update attribute model-data with id information.
+    if (value && value.constructor && value.constructor.isModel) {
+      schemaInterface.setAttr(key, value.get('id'));
+      return;
+    }
+
+    // else set value as is.
+    schemaInterface.setAttr(key, value);
+  }
+  ```
+
 - `models` an object containing type-specific information that cannot be
   inferred from the payload.  The `models` property has the form:
   ```js
