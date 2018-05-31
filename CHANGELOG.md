@@ -1,5 +1,9 @@
 # ember-m3 changelog
 
+## 0.7.9
+
+* Added `setAttribute` schema hook #127
+
 ## 0.7.8
 
 * Fixed updating state of model to `loaded.update.uncommitted` upon invoking `set` in model.
