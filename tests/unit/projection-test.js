@@ -1783,7 +1783,6 @@ module('unit/projection', function(hooks) {
   module('Update projection property with resolved value', function(hooks) {
     // properties for use for initial state
     const BOOK_ID = 'isbn:9780439708181';
-    // TODO is this valid? we won't have a real ID yeah?
     const PUBLISHER_ID = 'publisher-abc123';
     const PUBLISHER_ID_NEW = 'publisher-abc123_new';
     const PUBLISHER_URN = `urn:${PUBLISHER_CLASS}:${PUBLISHER_ID}`;
@@ -1800,6 +1799,23 @@ module('unit/projection', function(hooks) {
     const NEW_PUBLISHER_URN = `urn:${PUBLISHER_CLASS}:${PUBLISHER_ID_NEW}`;
 
     hooks.beforeEach(function() {
+      //Adding .setAttribute hook in schema
+      SchemaManager.schema.setAttribute = function(modelName, attr, value, schemaInterface) {
+        const baseModelName = this.computeBaseModelName(modelName);
+        if (
+          baseModelName &&
+          attr === 'publisher' &&
+          value &&
+          value.constructor &&
+          value.constructor.isModel
+        ) {
+          schemaInterface.setAttr(attr, NEW_PUBLISHER_URN);
+          return;
+        }
+
+        schemaInterface.setAttr(attr, value);
+      };
+
       let { store } = this;
 
       let baseRecord;
@@ -1854,23 +1870,6 @@ module('unit/projection', function(hooks) {
         baseRecord,
         projectedExcerpt,
         projectedPreview,
-      };
-
-      //Adding .setAttribute hook in schema
-      SchemaManager.schema.setAttribute = function(modelName, attr, value, schemaInterface) {
-        const baseModelName = this.computeBaseModelName(modelName);
-        if (
-          baseModelName &&
-          attr === 'publisher' &&
-          value &&
-          value.constructor &&
-          value.constructor.isModel
-        ) {
-          schemaInterface.setAttr(attr, NEW_PUBLISHER_URN);
-          return;
-        }
-
-        schemaInterface.setAttr(attr, value);
       };
     });
 
