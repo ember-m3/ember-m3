@@ -4,9 +4,8 @@
 import Ember from 'ember';
 import DS from 'ember-data';
 import { RootState } from 'ember-data/-private';
-import { dasherize } from '@ember/string';
 import EmberObject, { computed, get, set, defineProperty } from '@ember/object';
-import { A, isArray } from '@ember/array';
+import { isArray } from '@ember/array';
 import { warn } from '@ember/debug';
 import { alias } from '@ember/object/computed';
 import Map from '@ember/map';
@@ -14,6 +13,11 @@ import Map from '@ember/map';
 import SchemaManager from './schema-manager';
 import M3RecordArray from './record-array';
 import { OWNER_KEY } from './util';
+import {
+  resolveValue,
+  resolveReferencesWithInternalModels,
+  computeAttributeReference,
+} from './resolve-attribute-util';
 
 const { propertyDidChange } = Ember;
 let { notifyPropertyChange } = Ember;
@@ -53,7 +57,7 @@ class EmbeddedSnapshot {
 }
 
 // TODO: shouldn't need this anymore; this level of indirection for nested modeldata isn't useful
-class EmbeddedInternalModel {
+export class EmbeddedInternalModel {
   constructor({ id, modelName, parentInternalModel, parentKey, parentIdx }) {
     this.id = id;
     this.modelName = modelName;
@@ -75,136 +79,8 @@ class EmbeddedInternalModel {
   }
 }
 
-function _setAttribute(model, attr, value) {
-  const schemaInterface = model._internalModel._modelData.schemaInterface;
-  model._schema.setAttribute(model._modelName, attr, value, schemaInterface);
-}
-
-function _computeAttributeReference(key, value, modelName, schemaInterface, schema) {
-  schemaInterface._beginDependentKeyResolution(key);
-  let reference = schema.computeAttributeReference(key, value, modelName, schemaInterface);
-  schemaInterface._endDependentKeyResolution(key);
-  return reference;
-}
-
-function _computeNestedModel(key, value, modelName, schemaInterface, schema) {
-  schemaInterface._beginDependentKeyResolution(key);
-  let nestedModel = schema.computeNestedModel(key, value, modelName, schemaInterface);
-  schemaInterface._endDependentKeyResolution(key);
-  return nestedModel;
-}
-
 function _isResolvedValue(value) {
   return value && value.constructor && value.constructor.isModel;
-}
-
-function resolveReference(store, reference) {
-  if (reference.type === null) {
-    // for schemas with a global id-space but multiple types, schemas may
-    // report a type of null
-    let internalModel = store._globalM3Cache[reference.id];
-    return internalModel ? internalModel.getRecord() : null;
-  } else {
-    // respect the user schema's type if provided
-    return store.peekRecord(reference.type, reference.id);
-  }
-}
-
-function resolveReferenceOrReferences(store, value, reference) {
-  if (Array.isArray(value) || Array.isArray(reference)) {
-    return resolveRecordArray(store, reference);
-  }
-
-  return resolveReference(store, reference);
-}
-
-/**
- * There are two different type of values we have to worry about:
- * 1. References
- * 2. Nested Models
- *
- * Here is a mapping of input -> output:
- * 1. Single reference -> resolved reference
- * 2. Array of references -> RecordArray of resolved references
- * 3. Single nested model -> EmbeddedMegaMorphicModel
- * 4. Array of nested models -> array of EmbeddedMegaMorphicModel
- */
-function resolveValue(key, value, modelName, store, schema, model, parentIdx) {
-  const schemaInterface = model._internalModel._modelData.schemaInterface;
-
-  // First check to see if given value is either a reference or an array of references
-  let reference = _computeAttributeReference(key, value, modelName, schemaInterface, schema);
-  if (reference !== undefined && reference !== null) {
-    return resolveReferenceOrReferences(store, value, reference);
-  }
-
-  if (Array.isArray(value)) {
-    return resolvePlainArray(key, value, modelName, store, schema, model);
-  }
-  let nested = _computeNestedModel(key, value, modelName, schemaInterface, schema);
-  if (nested) {
-    let internalModel = new EmbeddedInternalModel({
-      // nested models with ids is pretty misleading; all they really ought to need is type
-      id: nested.id,
-      // maintain consistency with internalmodel.modelName, which is normalized
-      // internally within ember-data
-      modelName: nested.type ? dasherize(nested.type) : null,
-      parentInternalModel: model._internalModel,
-      parentKey: key,
-      parentIdx,
-    });
-
-    let nestedModel = new EmbeddedMegamorphicModel({
-      store,
-      _internalModel: internalModel,
-      _parentModel: model,
-      _topModel: model._topModel,
-    });
-    internalModel.record = nestedModel;
-
-    internalModel._modelData.pushData({
-      attributes: nested.attributes,
-    });
-
-    return nestedModel;
-  }
-
-  return value;
-}
-
-// ie an array of nested models
-function resolvePlainArray(key, value, modelName, store, schema, model) {
-  if (value == null) {
-    return new Array(0);
-  }
-
-  return value.map((value, idx) => resolveValue(key, value, modelName, store, schema, model, idx));
-}
-
-function resolveRecordArray(store, references) {
-  let recordArrayManager = store._recordArrayManager;
-
-  let array = M3RecordArray.create({
-    modelName: '-ember-m3',
-    content: A(),
-    store: store,
-    manager: recordArrayManager,
-  });
-
-  let internalModels = resolveReferencesWithInternalModels(store, references);
-
-  array._setInternalModels(internalModels);
-  return array;
-}
-
-function resolveReferencesWithInternalModels(store, references) {
-  // TODO: mention in UPGRADING.md
-  return references.map(
-    reference =>
-      reference.type
-        ? store._internalModelForId(dasherize(reference.type), reference.id)
-        : store._globalM3Cache[reference.id]
-  );
 }
 
 function disallowAliasSet(object, key, value) {
@@ -331,7 +207,7 @@ export default class MegamorphicModel extends EmberObject {
         return;
       }
       // TODO: do this lazily
-      let references = _computeAttributeReference(
+      let references = computeAttributeReference(
         key,
         newValue,
         this._modelName,
@@ -509,11 +385,7 @@ export default class MegamorphicModel extends EmberObject {
     }
 
     // Set value in model data
-    _setAttribute(this, key, value);
-    const isDirty = this._internalModel._modelData.isAttrDirty(key);
-    if (isDirty && !this.get('isDirty')) {
-      this._updateCurrentState(updatedUncommitted);
-    }
+    this._setAttribute(key, value);
 
     // update cache with the data,
     // If value is resolved to a Model or an Array of Models.
@@ -536,7 +408,7 @@ export default class MegamorphicModel extends EmberObject {
     // Schema hook handles setting
     // list of resolved
     // models to Model data
-    _setAttribute(this, key, models);
+    this._setAttribute(key, models);
 
     if (key in this._cache) {
       let recordArray = this._cache[key];
@@ -545,6 +417,15 @@ export default class MegamorphicModel extends EmberObject {
 
     // Remove errors upon setting
     this._removeError(key);
+  }
+
+  _setAttribute(attr, value) {
+    const schemaInterface = this._internalModel._modelData.schemaInterface;
+    this._schema.setAttribute(this._modelName, attr, value, schemaInterface);
+    const isDirty = this._internalModel._modelData.isAttrDirty(attr);
+    if (isDirty && !this.get('isDirty')) {
+      this._updateCurrentState(updatedUncommitted);
+    }
   }
 
   _removeError(key) {
@@ -596,7 +477,7 @@ defineProperty(MegamorphicModel.prototype, 'isValid', retrieveFromCurrentState);
 defineProperty(MegamorphicModel.prototype, 'isDirty', retrieveFromCurrentState);
 defineProperty(MegamorphicModel.prototype, 'dirtyType', retrieveFromCurrentState);
 
-class EmbeddedMegamorphicModel extends MegamorphicModel {
+export class EmbeddedMegamorphicModel extends MegamorphicModel {
   unloadRecord() {
     warn(
       `Nested models cannot be directly unloaded.  Perhaps you meant to unload the top level model, '${
