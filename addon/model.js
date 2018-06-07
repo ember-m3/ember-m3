@@ -87,6 +87,13 @@ function _computeAttributeReference(key, value, modelName, schemaInterface, sche
   return reference;
 }
 
+function _computeNestedModel(key, value, modelName, schemaInterface, schema) {
+  schemaInterface._beginDependentKeyResolution(key);
+  let nestedModel = schema.computeNestedModel(key, value, modelName, schemaInterface);
+  schemaInterface._endDependentKeyResolution(key);
+  return nestedModel;
+}
+
 function _isResolvedValue(value) {
   return value && value.constructor && value.constructor.isModel;
 }
@@ -134,7 +141,7 @@ function resolveValue(key, value, modelName, store, schema, model, parentIdx) {
   if (Array.isArray(value)) {
     return resolvePlainArray(key, value, modelName, store, schema, model);
   }
-  let nested = schema.computeNestedModel(key, value, modelName, schemaInterface);
+  let nested = _computeNestedModel(key, value, modelName, schemaInterface, schema);
   if (nested) {
     let internalModel = new EmbeddedInternalModel({
       // nested models with ids is pretty misleading; all they really ought to need is type
