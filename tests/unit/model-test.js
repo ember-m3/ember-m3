@@ -88,7 +88,10 @@ module('unit/model', function(hooks) {
         }
       },
 
-      computeNestedModel(key, value) {
+      computeNestedModel(key, value, modelName, data) {
+        if (value === undefined) {
+          value = data.getAttr(`${key}Embedded`);
+        }
         if (value && typeof value === 'object' && value.constructor !== Date && !isArray(value)) {
           return {
             type: value.type,
@@ -905,6 +908,24 @@ module('unit/model', function(hooks) {
     );
   });
 
+  test('schema can access other attributes when computing nested models', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapterEmbedded: {
+              name: 'The Boy Who Lived',
+            },
+          },
+        },
+      });
+    });
+    assert.equal(get(model, 'nextChapter.name'), `The Boy Who Lived`, 'computing nested model');
+  });
+
   test('schema can return a different value for attribute array references', function(assert) {
     let model = run(() => {
       return this.store.push({
@@ -953,6 +974,51 @@ module('unit/model', function(hooks) {
       otherBooks.map(b => get(b, 'name')),
       ['Harry Potter and the Chamber of Secrets'],
       'array ref updated in place on set'
+    );
+  });
+
+  test('upon updating the data in store, attributes referring to keys ending with `Embedded` should update', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapterEmbedded: {
+              name: 'The Boy Who Lived',
+            },
+          },
+        },
+      });
+    });
+
+    let nextChapterName = get(model, 'nextChapter.name');
+    assert.equal(nextChapterName, 'The Boy Who Lived');
+
+    //Update record with new data
+    run(() =>
+      this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapterEmbedded: {
+              name: 'The Vanishing Glass',
+            },
+          },
+        },
+      })
+    );
+
+    model = this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439708180');
+    nextChapterName = get(model, 'nextChapter.name');
+
+    assert.equal(
+      nextChapterName,
+      'The Vanishing Glass',
+      'nested model attributes has been updated'
     );
   });
 
