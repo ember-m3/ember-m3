@@ -1,5 +1,9 @@
 # ember-m3 changelog
 
+## 0.7.11
+
+* Fixed `computeNestedModel` schema hook to be able to call `schemaInterface.getAttr()`
+
 ## 0.7.9
 
 * Added `setAttribute` schema hook #127
