@@ -1,5 +1,38 @@
 # ember-m3 changelog
 
+## 0.7.11
+
+* Fixed `computeNestedModel` schema hook to be able to call `schemaInterface.getAttr()`
+
+## 0.7.9
+
+* Added `setAttribute` schema hook #127
+
+## 0.7.8
+
+* Fixed updating state of model to `loaded.update.uncommitted` upon invoking `set` in model.
+
+## 0.7.7
+
+* Fixed changedAttributes() on a projection to return all changes.
+
+## 0.7.6
+
+* Fixed handling of model names normalization. The schema no longer needs to normalize when returning
+  references, nested models and base model names.
+
+## 0.7.5
+
+* Model supports client validation errors. `errors` an instance of DS.Errors provides list of vaidation errors.
+
+## 0.7.4
+
+* bugfix: `setUnknownProperty` remove cache and child model data if value is not resolved.
+
+## 0.7.3
+
+* bugfix: `setUnknownProperty` remove cache after setting a new value and only update cache when value is resolved.
+
 ## 0.7.2
 
 * bugfix: `setUnknownProperty` only update cache when value is resolved.

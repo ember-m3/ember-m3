@@ -156,10 +156,7 @@ module('unit/model-data', function(hooks) {
     modelData.setAttr('bar', 'barVal');
     assert.equal(modelData.getAttr('bar'), 'barVal', 'modeldata can write attr');
 
-    assert.notOk(
-      typeof schemaInterface.setAttr === 'function',
-      'schemaInterface cannot write attr'
-    );
+    assert.ok(typeof schemaInterface.setAttr === 'function', 'schemaInterface can write attr');
   });
 
   test('.rollbackAttributes does not call notifyPropertyChange with undefined without hasChangedAttributes', function(assert) {
@@ -436,6 +433,35 @@ module('unit/model-data', function(hooks) {
       },
       'Expected complex attribute to have been retained'
     );
+  });
+
+  test(`.isAttrDirty check if key is not in inFlight and data and set locally`, function(assert) {
+    let modelData = new M3ModelData(
+      'com.exmaple.bookstore.book',
+      '1',
+      null,
+      this.storeWrapper,
+      null,
+      null
+    );
+
+    modelData.pushData(
+      {
+        id: '1',
+        attributes: {
+          dataAttr: 'value',
+        },
+      },
+      false
+    );
+
+    modelData.setAttr('inFlightAttr', 'value');
+    modelData.willCommit();
+    modelData.setAttr('localAttr', 'value');
+
+    assert.ok(!modelData.isAttrDirty('dataAttr'), 'data attr is not dirty');
+    assert.ok(!modelData.isAttrDirty('inFlightAttr'), 'inFlight attr is not dirty');
+    assert.ok(modelData.isAttrDirty('localAttr'), 'local attr is not dirty');
   });
 
   module('with nested models', function(hooks) {

@@ -69,6 +69,10 @@ class M3SchemaInterface {
 
     return value;
   }
+
+  setAttr(key, value) {
+    this.modelData.setAttr(key, value);
+  }
 }
 
 export default class M3ModelData {
@@ -350,6 +354,9 @@ export default class M3ModelData {
     @private
   */
   changedAttributes() {
+    if (this._baseModelData) {
+      return this._baseModelData.changedAttributes();
+    }
     let serverState = this._data;
     let localChanges = this._attributes;
     let inFlightData = this._inFlightAttributes;
@@ -435,6 +442,20 @@ export default class M3ModelData {
     return dirtyKeys;
   }
 
+  isAttrDirty(key) {
+    if (this._attributes[key] === undefined) {
+      return false;
+    }
+    let originalValue;
+    if (this._inFlightAttributes[key] !== undefined) {
+      originalValue = this._inFlightAttributes[key];
+    } else {
+      originalValue = this._data[key];
+    }
+
+    return originalValue !== this._attributes[key];
+  }
+
   get _childModelDatas() {
     if (this.__childModelDatas === null) {
       this.__childModelDatas = Object.create(null);
@@ -482,7 +503,11 @@ export default class M3ModelData {
         return;
       }
 
-      this._baseModelData = this.storeWrapper.modelDataFor(baseModelName, this.id, this.clientId);
+      this._baseModelData = this.storeWrapper.modelDataFor(
+        dasherize(baseModelName),
+        this.id,
+        this.clientId
+      );
     }
 
     if (this._baseModelData) {

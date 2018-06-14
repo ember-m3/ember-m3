@@ -2,6 +2,7 @@
 /* eslint-disable ember/no-attrs-in-components */
 
 import Ember from 'ember';
+import DS from 'ember-data';
 import { RootState } from 'ember-data/-private';
 import { dasherize } from '@ember/string';
 import EmberObject, { computed, get, set, defineProperty } from '@ember/object';
@@ -22,7 +23,13 @@ if (!HasNotifyPropertyChange) {
   notifyPropertyChange = propertyDidChange;
 }
 
-const { deleted: { uncommitted: deletedUncommitted }, loaded: { saved: loadedSaved } } = RootState;
+const {
+  deleted: { uncommitted: deletedUncommitted },
+  loaded: {
+    saved: loadedSaved,
+    updated: { uncommitted: updatedUncommitted },
+  },
+} = RootState;
 
 class EmbeddedSnapshot {
   constructor(record) {
@@ -68,11 +75,23 @@ class EmbeddedInternalModel {
   }
 }
 
+function _setAttribute(model, attr, value) {
+  const schemaInterface = model._internalModel._modelData.schemaInterface;
+  model._schema.setAttribute(model._modelName, attr, value, schemaInterface);
+}
+
 function _computeAttributeReference(key, value, modelName, schemaInterface, schema) {
   schemaInterface._beginDependentKeyResolution(key);
   let reference = schema.computeAttributeReference(key, value, modelName, schemaInterface);
   schemaInterface._endDependentKeyResolution(key);
   return reference;
+}
+
+function _computeNestedModel(key, value, modelName, schemaInterface, schema) {
+  schemaInterface._beginDependentKeyResolution(key);
+  let nestedModel = schema.computeNestedModel(key, value, modelName, schemaInterface);
+  schemaInterface._endDependentKeyResolution(key);
+  return nestedModel;
 }
 
 function _isResolvedValue(value) {
@@ -122,7 +141,7 @@ function resolveValue(key, value, modelName, store, schema, model, parentIdx) {
   if (Array.isArray(value)) {
     return resolvePlainArray(key, value, modelName, store, schema, model);
   }
-  let nested = schema.computeNestedModel(key, value, modelName, schemaInterface);
+  let nested = _computeNestedModel(key, value, modelName, schemaInterface, schema);
   if (nested) {
     let internalModel = new EmbeddedInternalModel({
       // nested models with ids is pretty misleading; all they really ought to need is type
@@ -183,7 +202,7 @@ function resolveReferencesWithInternalModels(store, references) {
   return references.map(
     reference =>
       reference.type
-        ? store._internalModelForId(reference.type, reference.id)
+        ? store._internalModelForId(dasherize(reference.type), reference.id)
         : store._globalM3Cache[reference.id]
   );
 }
@@ -231,6 +250,7 @@ export default class MegamorphicModel extends EmberObject {
 
     this._topModel = this._topModel || this;
     this._parentModel = this._parentModel || null;
+    this._errors = new DS.Errors();
     this._init = true;
 
     this._flushInitProperties();
@@ -282,6 +302,11 @@ export default class MegamorphicModel extends EmberObject {
       this.notifyPropertyChange(keys[i]);
     }
     Ember.endPropertyChanges();
+  }
+
+  _updateCurrentState(state) {
+    this._internalModel.currentState = state;
+    notifyPropertyChange(this, 'currentState');
   }
 
   notifyPropertyChange(key) {
@@ -373,8 +398,7 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   deleteRecord() {
-    this._internalModel.currentState = deletedUncommitted;
-    notifyPropertyChange(this, 'currentState');
+    this._updateCurrentState(deletedUncommitted);
   }
 
   destroyRecord(options) {
@@ -384,9 +408,7 @@ export default class MegamorphicModel extends EmberObject {
 
   rollbackAttributes() {
     let dirtyKeys = this._internalModel._modelData.rollbackAttributes();
-    this._internalModel.currentState = loadedSaved;
-
-    notifyPropertyChange(this, 'currentState');
+    this._updateCurrentState(loadedSaved);
 
     if (dirtyKeys && dirtyKeys.length > 0) {
       this._notifyProperties(dirtyKeys);
@@ -487,32 +509,53 @@ export default class MegamorphicModel extends EmberObject {
     }
 
     // Set value in model data
-    this._internalModel._modelData.setAttr(key, value);
+    _setAttribute(this, key, value);
+    const isDirty = this._internalModel._modelData.isAttrDirty(key);
+    if (isDirty && !this.get('isDirty')) {
+      this._updateCurrentState(updatedUncommitted);
+    }
 
     // update cache with the data,
     // If value is resolved to a Model or an Array of Models.
     // TODO: Add a schema hook to check if value is resolved.
     if (_isResolvedValue(value) || (isArray(value) && value.every(v => _isResolvedValue(v)))) {
       this._cache[key] = value;
+    } else {
+      // remove value from the cache
+      // Also, remove child model-data
+      delete this._cache[key];
+      this._internalModel._modelData._destroyChildModelData(key);
     }
+
+    // Remove errors upon setting of new value
+    this._removeError(key);
     return;
   }
 
   _setRecordArray(key, models) {
-    let ids = new Array(get(models, 'length'));
-    models = A(models);
-    for (let i = 0; i < ids.length; ++i) {
-      // TODO: should have a schema hook if we keep this
-      ids[i] = get(models.objectAt(i), 'id');
-    }
-    // TODO: kind of want to drop this but it's important for projections since
-    // you can't rely on one projection's resolution for another projection (as
-    // they are not subsets)
-    this._internalModel._modelData.setAttr(key, ids);
+    // Schema hook handles setting
+    // list of resolved
+    // models to Model data
+    _setAttribute(this, key, models);
 
     if (key in this._cache) {
       let recordArray = this._cache[key];
       recordArray.replaceContent(0, get(recordArray, 'length'), models);
+    }
+
+    // Remove errors upon setting
+    this._removeError(key);
+  }
+
+  _removeError(key) {
+    // Remove errors for the property
+    this._errors.remove(key);
+    if (
+      this._internalModel.currentState &&
+      !this._internalModel.currentState.isValid &&
+      get(this._errors, 'length') === 0
+    ) {
+      this._updateCurrentState(updatedUncommitted);
     }
   }
 
@@ -523,12 +566,19 @@ export default class MegamorphicModel extends EmberObject {
   toString() {
     return `<MegamorphicModel:${this.id}>`;
   }
+
+  // Errors hash that will get update,
+  // upon validation errors
+  get errors() {
+    return this._errors;
+  }
 }
 
 MegamorphicModel.prototype.store = null;
 MegamorphicModel.prototype._internalModel = null;
 MegamorphicModel.prototype._parentModel = null;
 MegamorphicModel.prototype._topModel = null;
+MegamorphicModel.prototype._errors = null;
 MegamorphicModel.prototype.currentState = null;
 MegamorphicModel.prototype.isError = null;
 MegamorphicModel.prototype.adapterError = null;
@@ -543,6 +593,7 @@ defineProperty(MegamorphicModel.prototype, 'isSaving', retrieveFromCurrentState)
 defineProperty(MegamorphicModel.prototype, 'isDeleted', retrieveFromCurrentState);
 defineProperty(MegamorphicModel.prototype, 'isNew', retrieveFromCurrentState);
 defineProperty(MegamorphicModel.prototype, 'isValid', retrieveFromCurrentState);
+defineProperty(MegamorphicModel.prototype, 'isDirty', retrieveFromCurrentState);
 defineProperty(MegamorphicModel.prototype, 'dirtyType', retrieveFromCurrentState);
 
 class EmbeddedMegamorphicModel extends MegamorphicModel {

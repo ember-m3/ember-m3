@@ -9,7 +9,7 @@ import { zip } from 'lodash';
 import MegamorphicModel from 'ember-m3/model';
 import SchemaManager from 'ember-m3/schema-manager';
 import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
-import EmberObject, { get, set } from '@ember/object';
+import EmberObject, { get, set, computed } from '@ember/object';
 import { Promise, resolve } from 'rsvp';
 import { run } from '@ember/runloop';
 import { isArray } from '@ember/array';
@@ -63,9 +63,9 @@ module('unit/model', function(hooks) {
             id,
           }));
         } else if (Array.isArray(value)) {
-          return value.every(v => v.id)
+          return value.every(v => typeof v === 'string')
             ? value.map(id => ({
-                type: null,
+                type: /^isbn:/.test(id) ? 'com.example.bookstore.Book' : null,
                 id,
               }))
             : undefined;
@@ -88,7 +88,10 @@ module('unit/model', function(hooks) {
         }
       },
 
-      computeNestedModel(key, value) {
+      computeNestedModel(key, value, modelName, data) {
+        if (value === undefined) {
+          value = data.getAttr(`${key}Embedded`);
+        }
         if (value && typeof value === 'object' && value.constructor !== Date && !isArray(value)) {
           return {
             type: value.type,
@@ -144,7 +147,7 @@ module('unit/model', function(hooks) {
     assert.equal(typeof klassAttrsMap.has, 'function', 'M3.attributes.has()');
   });
 
-  test('.unknownProperty returns undefined for attributes not included in the schema', function(assert) {
+  test('.unknownProperty returns undefined for attributes not included in the payload', function(assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -159,6 +162,51 @@ module('unit/model', function(hooks) {
 
     assert.equal(get(model, 'title'), `Harry Potter and the Sorcerer's Stone`);
     assert.equal(get(model, 'pubDate'), undefined);
+  });
+
+  test('.unknownProperty and .setUnknownProperty work with non-schema objects when isModel is true (custom resolved value)', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            title: `Harry Potter and the Sorcerer's Stone`,
+          },
+        },
+      });
+    });
+
+    assert.equal(get(model, 'title'), `Harry Potter and the Sorcerer's Stone`);
+
+    const LocalClass = EmberObject.extend({
+      address: computed('city', 'state', function() {
+        return this.get('city') + ', ' + this.get('state');
+      }),
+    });
+
+    LocalClass.isModel = true;
+
+    let address = LocalClass.create({
+      city: 'Oakland',
+      state: 'CA',
+    });
+
+    run(() => {
+      set(model, 'publisherLocation', address);
+    });
+
+    assert.ok(get(model, 'publisherLocation') === address, 'We can access a non-schema property');
+    assert.equal(
+      get(model, 'publisherLocation.city'),
+      'Oakland',
+      'We can access a nested non-schema property'
+    );
+    assert.equal(
+      get(model, 'publisherLocation.address'),
+      'Oakland, CA',
+      'We can access a nested non-schema computed property'
+    );
   });
 
   test('.unknownProperty returns schema-transformed values', function(assert) {
@@ -860,6 +908,24 @@ module('unit/model', function(hooks) {
     );
   });
 
+  test('schema can access other attributes when computing nested models', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapterEmbedded: {
+              name: 'The Boy Who Lived',
+            },
+          },
+        },
+      });
+    });
+    assert.equal(get(model, 'nextChapter.name'), `The Boy Who Lived`, 'computing nested model');
+  });
+
   test('schema can return a different value for attribute array references', function(assert) {
     let model = run(() => {
       return this.store.push({
@@ -908,6 +974,51 @@ module('unit/model', function(hooks) {
       otherBooks.map(b => get(b, 'name')),
       ['Harry Potter and the Chamber of Secrets'],
       'array ref updated in place on set'
+    );
+  });
+
+  test('upon updating the data in store, attributes referring to keys ending with `Embedded` should update', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapterEmbedded: {
+              name: 'The Boy Who Lived',
+            },
+          },
+        },
+      });
+    });
+
+    let nextChapterName = get(model, 'nextChapter.name');
+    assert.equal(nextChapterName, 'The Boy Who Lived');
+
+    //Update record with new data
+    run(() =>
+      this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapterEmbedded: {
+              name: 'The Vanishing Glass',
+            },
+          },
+        },
+      })
+    );
+
+    model = this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439708180');
+    nextChapterName = get(model, 'nextChapter.name');
+
+    assert.equal(
+      nextChapterName,
+      'The Vanishing Glass',
+      'nested model attributes has been updated'
     );
   });
 
@@ -1383,6 +1494,85 @@ module('unit/model', function(hooks) {
     );
   });
 
+  test('.setUnknownProperty cache is removed upon setting a new value', function(assert) {
+    let model = run(() =>
+      this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+          },
+        },
+        included: [],
+      })
+    );
+
+    run(() =>
+      set(model, 'nextChapter', {
+        name: 'The Boy Who Lived',
+        nextChapter: {
+          name: 'The Vanishing Glass',
+        },
+      })
+    );
+
+    // Testing if cache is removed upon setting new value
+    let name = get(model, 'name');
+    assert.equal(model._cache['name'], name, `cache is updated for key 'name'`);
+    // cache is removed upon set
+    run(() => set(model, 'name', 'Harry Potter and the Chamber of Secrets'));
+    assert.ok(
+      model._cache['name'] === undefined,
+      `cache is removed upon setting new value for key 'name'`
+    );
+  });
+
+  test('.setUnknownProperty child model data is removed upon setting a new value', function(assert) {
+    let model = run(() =>
+      this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            nextChapter: {
+              name: 'The Boy Who Lived',
+            },
+          },
+        },
+        included: [],
+      })
+    );
+
+    // Testing if child Model data is removed upon setting new value
+    let nextChapter = get(model, 'nextChapter');
+    assert.equal(
+      model._internalModel._modelData.__childModelDatas['nextChapter'].getAttr('name'),
+      get(nextChapter, 'name'),
+      'child model data is created'
+    );
+
+    // Testing childModelData is removed upon
+    // setting a new value for nested model
+    run(() =>
+      set(model, 'nextChapter', {
+        name: 'The Vanishing Glass',
+      })
+    );
+
+    assert.ok(
+      model._internalModel._modelData.__childModelDatas['nextChapter'] === undefined,
+      'child model data is removed'
+    );
+    nextChapter = get(model, 'nextChapter');
+    assert.equal(
+      model._internalModel._modelData.__childModelDatas['nextChapter'].getAttr('name'),
+      get(nextChapter, 'name'),
+      'child model data is updated with new value'
+    );
+  });
+
   test('.setUnknownProperty cache is not updated if the value is an array of elements which are not resolved as models', function(assert) {
     let model = run(() =>
       this.store.push({
@@ -1414,7 +1604,8 @@ module('unit/model', function(hooks) {
     );
 
     run(() => set(model, 'relatedBooks', ['isbn:9780439064873', 'isbn:9780439136365']));
-    // cache is not updated upon set with the value is not resolved.
+    // value in cache is removed
+    // and not updated upon set with the value that is not resolved.
     assert.equal(
       model._cache['relatedBooks'],
       undefined,
@@ -1432,7 +1623,7 @@ module('unit/model', function(hooks) {
     get(model, 'relatedBooks');
     assert.ok(model._cache['relatedBooks'] !== undefined, 'cache is updated upon invoking get');
     assert.equal(
-      get(model._cache['relatedBooks'][0], 'name'),
+      get(model._cache['relatedBooks'].objectAt(0), 'name'),
       'Harry Potter and the Chamber of Secrets',
       'cache is updated upon invoking get'
     );
@@ -2925,13 +3116,23 @@ module('unit/model', function(hooks) {
         },
       });
     });
-
+    assert.ok(!model.get('isDirty'), 'model currently not dirty');
+    assert.equal(
+      model._internalModel.currentState.stateName,
+      'root.loaded.saved',
+      'model.state loaded.saved'
+    );
     run(() => {
       model.set('name', 'Alice in Wonderland');
       model.set('rating', null);
       model.set('expectedPubDate', undefined);
     });
-
+    assert.ok(model.get('isDirty'), 'model is dirty as new values are set on the model');
+    assert.equal(
+      model._internalModel.currentState.stateName,
+      'root.loaded.updated.uncommitted',
+      'model state is updated.uncommitted'
+    );
     assert.deepEqual(
       model.changedAttributes(),
       {
@@ -2972,6 +3173,12 @@ module('unit/model', function(hooks) {
     let doubleNested = get(nested, 'nextChapter');
 
     assert.deepEqual(model.changedAttributes(), {}, 'initially no attributes are changed');
+    assert.ok(!model.get('isDirty'), 'model currently not dirty');
+    assert.equal(
+      model._internalModel.currentState.stateName,
+      'root.loaded.saved',
+      'model.state loaded.saved'
+    );
 
     run(() => {
       set(model, 'name', 'secret book name');
@@ -3015,6 +3222,12 @@ module('unit/model', function(hooks) {
       },
       'only changed attributes in nested models are included'
     );
+    assert.ok(model.get('isDirty'), 'model is dirty as new values are set on the model');
+    assert.equal(
+      model._internalModel.currentState.stateName,
+      'root.loaded.updated.uncommitted',
+      'model state is updated.uncommitted'
+    );
   });
 
   test('.changedAttributes returns dirty attributes for arrays of primitive values', function(assert) {
@@ -3031,6 +3244,12 @@ module('unit/model', function(hooks) {
         },
       });
     });
+    assert.ok(!model.get('isDirty'), 'model currently not dirty');
+    assert.equal(
+      model._internalModel.currentState.stateName,
+      'root.loaded.saved',
+      'model.state loaded.saved'
+    );
 
     run(() => {
       set(model, 'chapters', ['so windy', 'winter winter']);
@@ -3045,6 +3264,12 @@ module('unit/model', function(hooks) {
         ],
       },
       '.changedAttributes returns changed arrays'
+    );
+    assert.ok(model.get('isDirty'), 'model is dirty as new values are set on the model');
+    assert.equal(
+      model._internalModel.currentState.stateName,
+      'root.loaded.updated.uncommitted',
+      'model state is updated.uncommitted'
     );
   });
 
@@ -3105,11 +3330,21 @@ module('unit/model', function(hooks) {
 
     run(() => {
       model.set('name', 'Some other book');
+    });
+    assert.ok(model.get('isDirty'), 'model is dirty as new values are set on the model');
+    assert.equal(
+      model._internalModel.currentState.stateName,
+      'root.loaded.updated.uncommitted',
+      'model state is updated.uncommitted'
+    );
+
+    run(() => {
       model.rollbackAttributes();
     });
 
+    assert.ok(!model.get('isDirty'), 'model currently not dirty');
     assert.equal(
-      get(model, 'currentState.stateName'),
+      model._internalModel.currentState.stateName,
       'root.loaded.saved',
       'after rolling back model.state loaded.saved'
     );
@@ -3929,5 +4164,114 @@ module('unit/model', function(hooks) {
       this.store.hasRecordForId('com.example.bookstore.Chapter', 'isbn:9780439708180/chapter/2'),
       true
     );
+  });
+
+  test('errors is intialized upon creation of the record', function(assert) {
+    let model = run(() =>
+      this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+          },
+        },
+        included: [],
+      })
+    );
+
+    // Testing errors is getting set and is an instance
+    // of DS.Errors
+    const errors = get(model, 'errors');
+    assert.ok(errors);
+    assert.ok(errors instanceof DS.Errors);
+  });
+
+  test('.save errors getting updated via the store and removed upon setting a new value', function(assert) {
+    assert.expect(10);
+
+    this.owner.register(
+      'adapter:-ember-m3',
+      EmberObject.extend({
+        updateRecord(store, type, snapshot) {
+          assert.equal(snapshot.record.get('isSaving'), true, 'record is saving');
+          return Promise.reject(
+            new DS.InvalidError([
+              {
+                source: 'estimatedPubDate',
+                detail: 'Please enter valid estimated publish date',
+              },
+              {
+                source: 'name',
+                detail: 'Please enter valid name',
+              },
+            ])
+          );
+        },
+      })
+    );
+
+    this.owner.register(
+      'serializer:-ember-m3',
+      EmberObject.extend({
+        extractErrors(store, typeClass, payload, id) {
+          if (payload && typeof payload === 'object' && payload.errors) {
+            const modelName = get(typeClass, 'modelName');
+            const record = store.peekRecord(modelName, id);
+            payload.errors.forEach(error => {
+              if (error.source) {
+                const errorField = error.source;
+                record.get('errors').add(errorField, error.detail);
+              }
+            });
+          }
+        },
+      })
+    );
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+            estimatedPubDate: 'January 2622',
+          },
+        },
+      });
+    });
+
+    assert.equal(model.get('isSaving'), false, 'initially model not saving');
+
+    run(() => {
+      model.set('estimatedPubDate', '_invalidEstimatedPublishDate');
+    });
+
+    // Testing client validation errors getting
+    // set upon getting validation errors from API
+    return run(() => {
+      return model.save().catch(() => {
+        assert.equal(model.get('isSaving'), false, 'model done saving');
+        assert.equal(get(model, 'errors.length'), 2, 'validation errors set');
+
+        let error = get(model, 'errors.estimatedPubDate');
+        assert.ok(get(model, 'isValid') === false, 'model is not valid');
+        assert.equal(
+          get(error, 'firstObject.message'),
+          'Please enter valid estimated publish date',
+          'error is available'
+        );
+
+        //Testing remove errors upon setting a new value
+        run(() => set(model, 'estimatedPubDate', 'January 2621'));
+        assert.equal(get(model, 'errors.length'), 1, 'error is removed upon setting new value');
+        assert.ok(get(model, 'isValid') === false, 'model is still not valid');
+
+        run(() => set(model, 'name', 'valid name'));
+        assert.equal(get(model, 'errors.length'), 0, 'error is removed upon setting new value');
+        assert.ok(get(model, 'isValid') === true, 'model is now valid');
+      });
+    });
   });
 });
