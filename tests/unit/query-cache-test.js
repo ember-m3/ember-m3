@@ -299,6 +299,49 @@ module('unit/query-cache', function(hooks) {
     });
   });
 
+  test('.queryURL resolves with record arrays that have unloaded records removed', function(assert) {
+    let payload = {
+      data: [
+        {
+          id: 1,
+          type: 'something-or-other',
+          attributes: {},
+        },
+        {
+          id: 2,
+          type: 'something-or-other',
+          attributes: {},
+        },
+      ],
+    };
+
+    this.adapterAjax.returns(resolve(payload));
+
+    return this.queryCache
+      .queryURL('/uwot')
+      .then(fulfilledValue => {
+        assert.deepEqual(fulfilledValue.toArray().map(x => x.id), ['1', '2']);
+
+        run(() => fulfilledValue.objectAt(0).unloadRecord());
+        assert.deepEqual(fulfilledValue.toArray().map(x => x.id), ['2']);
+
+        let newRecord = this.store.createRecord('something', { id: '3' });
+        fulfilledValue.pushObject(newRecord);
+
+        assert.deepEqual(fulfilledValue.toArray().map(x => x.id), ['2', '3']);
+
+        run(() => {
+          newRecord.deleteRecord();
+          newRecord.unloadRecord();
+        });
+
+        return fulfilledValue;
+      })
+      .then(fulfilledValue => {
+        assert.deepEqual(fulfilledValue.toArray().map(x => x.id), ['2']);
+      });
+  });
+
   test('.queryURL caches its results when given a cacheKey', function(assert) {
     let firstPayload = {
       data: {

@@ -3044,6 +3044,106 @@ module('unit/model', function(hooks) {
     );
   });
 
+  test('.unloadRecord updates reference record arrays', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            pubDate: 'September 1989',
+            '*relatedBooks': ['isbn:9780439064873', 'isbn:9780439136365'],
+          },
+        },
+        included: [
+          {
+            id: 'isbn:9780439064873',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Chamber of Secrets`,
+            },
+          },
+          {
+            id: 'isbn:9780439136365',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Prisoner of Azkaban`,
+            },
+          },
+          {
+            id: 'isbn:9780439358071',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Order of the Phoenix`,
+            },
+          },
+        ],
+      });
+    });
+
+    let bookAlreadyInArray = this.store.peekRecord(
+      'com.example.bookstore.Book',
+      'isbn:9780439064873'
+    );
+    let existingBookNotInArray = this.store.peekRecord(
+      'com.example.bookstore.Book',
+      'isbn:9780439358071'
+    );
+    let newBook = run(() =>
+      this.store.createRecord('com.example.bookstore.Book', {
+        name: 'Harry Potter and the M3 RecordArray management',
+      })
+    );
+
+    assert.deepEqual(
+      model.get('relatedBooks').mapBy('name'),
+      [`Harry Potter and the Chamber of Secrets`, `Harry Potter and the Prisoner of Azkaban`],
+      'initial state as expected'
+    );
+
+    run(() => bookAlreadyInArray.unloadRecord());
+    assert.deepEqual(
+      model.get('relatedBooks').mapBy('name'),
+      [`Harry Potter and the Prisoner of Azkaban`],
+      'existing record in array unloaded'
+    );
+
+    model.get('relatedBooks').pushObject(existingBookNotInArray);
+    assert.deepEqual(
+      model.get('relatedBooks').mapBy('name'),
+      [`Harry Potter and the Prisoner of Azkaban`, `Harry Potter and the Order of the Phoenix`],
+      'existing record added to array'
+    );
+
+    run(() => existingBookNotInArray.unloadRecord());
+    assert.deepEqual(
+      model.get('relatedBooks').mapBy('name'),
+      [`Harry Potter and the Prisoner of Azkaban`],
+      'existing record not initially in array unloaded'
+    );
+
+    model.get('relatedBooks').pushObject(newBook);
+    assert.deepEqual(
+      model.get('relatedBooks').mapBy('name'),
+      [
+        `Harry Potter and the Prisoner of Azkaban`,
+        `Harry Potter and the M3 RecordArray management`,
+      ],
+      'new record added to array'
+    );
+
+    run(() => {
+      newBook.deleteRecord();
+      newBook.unloadRecord();
+    });
+    assert.deepEqual(
+      model.get('relatedBooks').mapBy('name'),
+      [`Harry Potter and the Prisoner of Azkaban`],
+      'new record destroyed'
+    );
+  });
+
   test('.unloadRecord on a nested model warns and does not error', function(assert) {
     let model = run(() => {
       return this.store.push({
