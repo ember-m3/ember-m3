@@ -18,7 +18,7 @@ export default class extends RecordArray {
       newInternalModels[i] = _newModels.objectAt(i)._internalModel;
     }
     this.content.replace(idx, removeAmt, newInternalModels);
-    // TODO: update the backing m3's internalModel._data
+    this._registerWithInternalModels(newInternalModels);
   }
 
   _update() {
@@ -39,6 +39,10 @@ export default class extends RecordArray {
       isUpdating: false,
     });
 
+    this._registerWithInternalModels(internalModels);
+  }
+
+  _registerWithInternalModels(internalModels) {
     for (let i = 0, l = internalModels.length; i < l; i++) {
       let internalModel = internalModels[i];
 
