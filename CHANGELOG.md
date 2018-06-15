@@ -1,5 +1,11 @@
 # ember-m3 changelog
 
+## 0.7.12
+
+* models added to record arrays are now entangled with those arrays, so they'll
+  be auto-removed when eg destroyed.  Previously only models that started in
+  record arrays were entangled.
+
 ## 0.7.11
 
 * Fixed `computeNestedModel` schema hook to be able to call `schemaInterface.getAttr()`
