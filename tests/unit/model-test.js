@@ -8,6 +8,7 @@ import { zip } from 'lodash';
 
 import MegamorphicModel from 'ember-m3/model';
 import SchemaManager from 'ember-m3/schema-manager';
+import M3RecordArray from 'ember-m3/record-array';
 import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
 import EmberObject, { get, set, computed } from '@ember/object';
 import { Promise, resolve } from 'rsvp';
@@ -63,7 +64,7 @@ module('unit/model', function(hooks) {
             id,
           }));
         } else if (Array.isArray(value)) {
-          return value.every(v => typeof v === 'string')
+          return value.every(v => typeof v === 'string' && /^isbn:/.test(v))
             ? value.map(id => ({
                 type: /^isbn:/.test(id) ? 'com.example.bookstore.Book' : null,
                 id,
@@ -571,7 +572,7 @@ module('unit/model', function(hooks) {
       });
     });
 
-    let relatedItems = get(model, 'relatedItems');
+    let relatedItems = get(model, 'relatedItems').content;
     assert.equal(relatedItems.length, 3, 'array has right length');
     assert.equal(get(relatedItems[0], 'name'), 'Chapter 1: The Boy Who Lived', 'array nested');
     assert.equal(
@@ -1435,9 +1436,11 @@ module('unit/model', function(hooks) {
     );
 
     run(() => set(model, 'newRecordArray', relatedBooksRecordArray));
-    otherRecordArray.pushObject(
-      this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439064873')
-    );
+    run(() => {
+      otherRecordArray.pushObject(
+        this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439064873')
+      );
+    });
     run(() => set(model, 'newRecordArray', otherRecordArray));
     assert.deepEqual(
       get(model, 'newRecordArray').map(b => get(b, 'id')),
@@ -2786,7 +2789,7 @@ module('unit/model', function(hooks) {
     );
 
     assert.notEqual(
-      get(model, 'chapters')[1],
+      get(model, 'chapters').content[1],
       childModel,
       'previous nested models in arrays are not re-used'
     );
@@ -3109,7 +3112,7 @@ module('unit/model', function(hooks) {
       'existing record in array unloaded'
     );
 
-    model.get('relatedBooks').pushObject(existingBookNotInArray);
+    run(() => model.get('relatedBooks').pushObject(existingBookNotInArray));
     assert.deepEqual(
       model.get('relatedBooks').mapBy('name'),
       [`Harry Potter and the Prisoner of Azkaban`, `Harry Potter and the Order of the Phoenix`],
@@ -3123,7 +3126,7 @@ module('unit/model', function(hooks) {
       'existing record not initially in array unloaded'
     );
 
-    model.get('relatedBooks').pushObject(newBook);
+    run(() => model.get('relatedBooks').pushObject(newBook));
     assert.deepEqual(
       model.get('relatedBooks').mapBy('name'),
       [
@@ -3373,6 +3376,135 @@ module('unit/model', function(hooks) {
     );
   });
 
+  test('.changedAttributes returns dirty attributes for arrays of primitive values upon updating the array', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+            author: 'George R. R. Martin',
+            chapters: ['Windy eh', 'I guess winter was coming after all'],
+          },
+        },
+      });
+    });
+    assert.ok(!model.get('isDirty'), 'model currently not dirty');
+    assert.equal(
+      model._internalModel.currentState.stateName,
+      'root.loaded.saved',
+      'model.state loaded.saved'
+    );
+
+    // Pushing simple value to array
+    const chapters = model.get('chapters');
+    run(() => {
+      chapters.pushObject('New Chapter');
+    });
+
+    assert.deepEqual(
+      model.changedAttributes(),
+      {
+        chapters: [
+          ['Windy eh', 'I guess winter was coming after all'],
+          ['Windy eh', 'I guess winter was coming after all', 'New Chapter'],
+        ],
+      },
+      '.changedAttributes returns changed arrays'
+    );
+
+    // Pushing simple value to array
+    run(() => {
+      chapters.pushObject({
+        name: 'Windy eh new',
+        number: 1,
+      });
+    });
+
+    assert.ok(chapters.get('lastObject') instanceof MegamorphicModel);
+    assert.equal(
+      chapters.get('lastObject').get('name'),
+      'Windy eh new',
+      'new embedded model has right attrs'
+    );
+    assert.equal(chapters.get('lastObject').get('number'), 1, 'new embedded model has right attrs');
+
+    // Model is dirty
+    assert.ok(model.get('isDirty'), 'model is dirty as new values are set on the model');
+    assert.equal(
+      model._internalModel.currentState.stateName,
+      'root.loaded.updated.uncommitted',
+      'model state is updated.uncommitted'
+    );
+  });
+
+  test('.changedAttributes returns dirty attributes for record array upon updating the array', function(assert) {
+    let model = run(() =>
+      this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            '*relatedBooks': ['isbn:9780439064873', 'isbn:9780439136365'],
+            '*otherRecordArray': [],
+          },
+        },
+        included: [
+          {
+            id: 'isbn:9780439064873',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Chamber of Secrets`,
+            },
+          },
+          {
+            id: 'isbn:9780439136365',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Prisoner of Azkaban`,
+            },
+          },
+        ],
+      })
+    );
+
+    let otherRecordArray = get(model, 'otherRecordArray');
+
+    assert.ok(!model.get('isDirty'), 'model currently not dirty');
+    assert.equal(
+      model._internalModel.currentState.stateName,
+      'root.loaded.saved',
+      'model.state loaded.saved'
+    );
+
+    // Pushing simple value to array
+    run(() => {
+      otherRecordArray.pushObject(
+        this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439064873')
+      );
+    });
+
+    assert.ok(
+      get(model.changedAttributes(), 'otherRecordArray'),
+      '.changedAttributes returns changed record arrays'
+    );
+
+    assert.ok(
+      get(model.changedAttributes(), 'otherRecordArray')[1] instanceof M3RecordArray,
+      '.changedAttributes returns changed record arrays and data is instance of RecordArray'
+    );
+
+    // Model is dirty
+    assert.ok(model.get('isDirty'), 'model is dirty as new values are set on the model');
+    assert.equal(
+      model._internalModel.currentState.stateName,
+      'root.loaded.updated.uncommitted',
+      'model state is updated.uncommitted'
+    );
+  });
+
   test('.changedAttributes returns nested dirty attributes within arrays of nested models', function(assert) {
     let model = run(() => {
       return this.store.push({
@@ -3399,7 +3531,7 @@ module('unit/model', function(hooks) {
     });
 
     let nestedModels = get(model, 'chapters');
-    set(nestedModels[0], 'name', 'super windy');
+    set(nestedModels.get('firstObject'), 'name', 'super windy');
 
     assert.deepEqual(
       model.changedAttributes(),
@@ -3722,7 +3854,7 @@ module('unit/model', function(hooks) {
     });
 
     let nestedModels = get(model, 'chapters');
-    set(nestedModels[0], 'name', 'super windy');
+    set(nestedModels.get('firstObject'), 'name', 'super windy');
 
     assert.deepEqual(
       get(model, 'chapters').map(m => get(m, 'name')),
@@ -3733,7 +3865,7 @@ module('unit/model', function(hooks) {
     return run(() => {
       let savePromise = model.save();
 
-      set(nestedModels[0], 'name', 'sooooooo super windy');
+      set(nestedModels.get('firstObject'), 'name', 'sooooooo super windy');
 
       return savePromise.then(() => {
         assert.deepEqual(
