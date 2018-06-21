@@ -32,7 +32,7 @@ module('unit/initializers/m3-store', {
     let MockStore = EmberObject.extend({
       adapterFor: this.adapterForStub,
       serializerFor: this.serializerForStub,
-      modelFactoryFor: this.modelFactoryForStub,
+      _modelFactoryFor: this.modelFactoryForStub,
     });
     MockStore.toString = () => 'MockStore';
     extendStore(MockStore);
@@ -123,7 +123,7 @@ test('uses the -ember-m3 serializer for schema-recognized types', function(asser
 });
 
 test('uses the -ember-m3 model factory for schema-recognized types', function(assert) {
-  this.store.modelFactoryFor('non-matching-type');
+  this.store._modelFactoryFor('non-matching-type');
 
   assert.deepEqual(
     zip(this.modelFactoryForStub.thisValues.map(x => x + ''), this.modelFactoryForStub.args),
@@ -132,7 +132,7 @@ test('uses the -ember-m3 model factory for schema-recognized types', function(as
   );
 
   assert.equal(
-    this.store.modelFactoryFor('com.example.bookstore.Book'),
+    this.store._modelFactoryFor('com.example.bookstore.Book'),
     MegamorphicModelFactory,
     'matching types return the M3 model factory'
   );

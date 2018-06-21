@@ -183,6 +183,10 @@ export default class M3ModelData {
 
   removeFromHasMany() {}
 
+  _initRecordCreateOptions(options) {
+    return options !== undefined ? options : {};
+  }
+
   didCommit(jsonApiResource, notifyRecord = false) {
     if (jsonApiResource && jsonApiResource.id) {
       this.id = '' + jsonApiResource.id;

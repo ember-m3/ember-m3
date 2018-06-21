@@ -62,10 +62,11 @@
     "ember-welcome-page": "^3.0.0",
     "eslint-config-prettier": "^2.9.0",
     "eslint-plugin-ember": "^5.0.3",
-    "eslint-plugin-prettier": "^2.3.1",
+    "eslint-plugin-prettier": "2.6.0",
     "loader.js": "^4.2.3",
     "pretender": "^1.4.2",
-    "prettier": "^1.9.1"
+    "prettier": "^1.9.1",
+    "testem": "^1.15.0"
   },
   "engines": {
     "node": "^4.5 || 6.* || >= 7.*"

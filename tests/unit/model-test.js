@@ -1222,11 +1222,19 @@ module('unit/model', function(hooks) {
   // TODO: 'default values are not checked for reference arrays'
 
   test('m3 models can be created with initial properties (init prop buffering)', function(assert) {
+    let childModel = run(() =>
+      this.store.createRecord('com.example.bookstore.Book', {
+        name: 'Fantastic Beasts and Where to Find Them',
+        isbn: '978-0226106334',
+      })
+    );
+
     let model = run(() =>
       this.store.createRecord('com.example.bookstore.Book', {
         name: 'Marlborough: His Life and Times',
         isbn: '978-0226106335',
         publisher: 'University Of Chicago Press',
+        relatedBook: childModel,
       })
     );
 
@@ -1235,6 +1243,12 @@ module('unit/model', function(hooks) {
     assert.equal(
       get(model, 'publisher'),
       'University Of Chicago Press, of course',
+      'init property set'
+    );
+    assert.equal(get(model, 'relatedBook.isbn'), '978-0226106334', 'init property set');
+    assert.equal(
+      get(model, 'relatedBook.name'),
+      'Fantastic Beasts and Where to Find Them',
       'init property set'
     );
   });
@@ -4422,6 +4436,7 @@ module('unit/model', function(hooks) {
   test('.save errors getting updated via the store and removed upon setting a new value', function(assert) {
     assert.expect(10);
 
+    const modelName = 'com.example.bookstore.Book';
     this.owner.register(
       'adapter:-ember-m3',
       EmberObject.extend({
@@ -4448,7 +4463,6 @@ module('unit/model', function(hooks) {
       EmberObject.extend({
         extractErrors(store, typeClass, payload, id) {
           if (payload && typeof payload === 'object' && payload.errors) {
-            const modelName = get(typeClass, 'modelName');
             const record = store.peekRecord(modelName, id);
             payload.errors.forEach(error => {
               if (error.source) {
@@ -4465,7 +4479,7 @@ module('unit/model', function(hooks) {
       return this.store.push({
         data: {
           id: 1,
-          type: 'com.example.bookstore.Book',
+          type: modelName,
           attributes: {
             name: 'The Winds of Winter',
             estimatedPubDate: 'January 2622',

@@ -25,6 +25,10 @@ export function extendStore(Store) {
     },
 
     modelFactoryFor(modelName) {
+      return this._modelFactoryFor(modelName);
+    },
+
+    _modelFactoryFor(modelName) {
       if (SchemaManager.includesModel(modelName)) {
         return MegamorphicModelFactory;
       }
