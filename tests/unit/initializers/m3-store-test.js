@@ -5,14 +5,16 @@ import sinon from 'sinon';
 import { zip } from 'lodash';
 
 import MegamorphicModelFactory from 'ember-m3/factory';
-import SchemaManager from 'ember-m3/schema-manager';
+import SchemaManager from 'ember-m3/services/m3-schema-manager';
 import { extendStore } from 'ember-m3/initializers/m3-store';
 
 module('unit/initializers/m3-store', {
   beforeEach() {
     this.sinon = sinon.sandbox.create();
 
-    SchemaManager.registerSchema({
+    let schemaManager = SchemaManager.create();
+
+    schemaManager.registerSchema({
       includesModel(modelName) {
         return /^com.example.bookstore\./i.test(modelName);
       },
@@ -37,7 +39,10 @@ module('unit/initializers/m3-store', {
     MockStore.toString = () => 'MockStore';
     extendStore(MockStore);
 
-    this.store = MockStore.create();
+    this.store = MockStore.create({
+      // required because it cannot be injected in this case
+      _schemaManager: schemaManager,
+    });
   },
 
   afterEach() {

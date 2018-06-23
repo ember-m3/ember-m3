@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { assert } from '@ember/debug';
 import M3ModelData from 'ember-m3/model-data';
-import SchemaManager from 'ember-m3/schema-manager';
+import SchemaManager from 'ember-m3/services/m3-schema-manager';
 import sinon from 'sinon';
 import { zip } from 'lodash';
 
@@ -10,6 +10,9 @@ const modelDataKey = ({ modelName, id }) => `${modelName}:${id}`;
 module('unit/model-data', function(hooks) {
   hooks.beforeEach(function() {
     this.sinon = sinon.sandbox.create();
+
+    let schemaManager = (this.schemaManager = SchemaManager.create());
+
     let storeWrapper = (this.storeWrapper = {
       modelDatas: {},
       disconnectedModelDatas: {},
@@ -18,7 +21,13 @@ module('unit/model-data', function(hooks) {
         let key = modelDataKey({ modelName, id });
         return (
           this.modelDatas[key] ||
-          (this.modelDatas[key] = new M3ModelData(modelName, id, clientId, storeWrapper))
+          (this.modelDatas[key] = new M3ModelData(
+            modelName,
+            id,
+            clientId,
+            storeWrapper,
+            schemaManager
+          ))
         );
       },
 
@@ -42,7 +51,7 @@ module('unit/model-data', function(hooks) {
       return this.storeWrapper.modelDataFor('com.bookstore.book', '1');
     };
 
-    SchemaManager.registerSchema({
+    schemaManager.registerSchema({
       computeNestedModel(key, value) {
         if (value !== null && typeof value === 'object') {
           return { id: key, type: 'com.exmaple.bookstore.book', attributes: value };
@@ -59,7 +68,6 @@ module('unit/model-data', function(hooks) {
 
   hooks.afterEach(function() {
     this.sinon.restore();
-    SchemaManager.registerSchema(null);
   });
 
   test(`.eachAttribute iterates attributes, in-flight attrs and data`, function(assert) {
@@ -68,6 +76,7 @@ module('unit/model-data', function(hooks) {
       '1',
       null,
       this.storeWrapper,
+      this.schemaManager,
       null,
       null
     );
@@ -98,6 +107,7 @@ module('unit/model-data', function(hooks) {
       '1',
       null,
       this.storeWrapper,
+      this.schemaManager,
       null,
       null
     );
@@ -169,6 +179,7 @@ module('unit/model-data', function(hooks) {
       '1',
       null,
       this.storeWrapper,
+      this.schemaManager,
       null,
       null
     );
@@ -441,6 +452,7 @@ module('unit/model-data', function(hooks) {
       '1',
       null,
       this.storeWrapper,
+      this.schemaManager,
       null,
       null
     );
@@ -471,6 +483,7 @@ module('unit/model-data', function(hooks) {
         'top',
         null,
         this.storeWrapper,
+        this.schemaManager,
         null,
         null
       );
