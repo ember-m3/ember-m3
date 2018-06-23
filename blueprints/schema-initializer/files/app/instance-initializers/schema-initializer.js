@@ -1,7 +1,7 @@
-import SchemaManager from 'ember-m3/schema-manager';
+export function initialize(application) {
+  let schemaManager = application.lookup('service:m3-schema-manager');
 
-export function initialize(/* application */) {
-  SchemaManager.registerSchema({
+  schemaManager.registerSchema({
     computeAttributeReference(/* key, value, modelName, schemaInterface */) {
       // If the attribute with value `value` under key `key` of `modelName` is
       // a reference to another model, return `{ type, id }`.  If it's an array
