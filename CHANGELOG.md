@@ -1,5 +1,9 @@
 # ember-m3 changelog
 
+## 0.7.13
+
+* Added support to track changes in Array #136
+
 ## 0.7.12
 
 * models added to record arrays are now entangled with those arrays, so they'll
