@@ -15,7 +15,7 @@
   "scripts": {
     "build": "ember build",
     "start": "ember server",
-    "test": "ember try:each",
+    "test": "ember test",
     "format": "node_modules/.bin/prettier --write --ignore-path .gitignore 'addon/**/*.js' 'app/**/*.js' 'tests/**/*.js'"
   },
   "files": [
