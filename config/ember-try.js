@@ -6,15 +6,15 @@ module.exports = {
       name: 'ember-lts-2.16',
       npm: {
         devDependencies: {
-          'ember-source': '~2.16.2'
+          'ember-source': '~2.16.4'
         }
       }
     },
     {
-      name: 'ember-lts-2.12',
+      name: 'ember-lts-2.18',
       npm: {
         devDependencies: {
-          'ember-source': '~2.12.2'
+          'ember-source': '~2.18.2'
         }
       }
     },
@@ -48,12 +48,6 @@ module.exports = {
         devDependencies: {
           'ember-source': null
         }
-      }
-    },
-    {
-      name: 'ember-default',
-      npm: {
-        devDependencies: {}
       }
     }
   ]
