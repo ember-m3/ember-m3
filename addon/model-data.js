@@ -59,12 +59,12 @@ class M3SchemaInterface {
       keyBeingResolved
     );
 
-    if (name && typeof value !== 'undefined') {
-      this._refKeyDepkeyMap[name] = this._refKeyDepkeyMap[name] || [];
-      let refKeyMap = this._refKeyDepkeyMap[name];
-      if (refKeyMap.indexOf(keyBeingResolved) < 0) {
-        refKeyMap.push(this._keyBeingResolved);
-      }
+    // it might be nice to avoid doing this if we know that we don't need to
+    // support depkeys from the server changing between requests
+    this._refKeyDepkeyMap[name] = this._refKeyDepkeyMap[name] || [];
+    let refKeyMap = this._refKeyDepkeyMap[name];
+    if (refKeyMap.indexOf(keyBeingResolved) < 0) {
+      refKeyMap.push(this._keyBeingResolved);
     }
 
     return value;
