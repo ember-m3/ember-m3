@@ -1222,6 +1222,20 @@ broccoli-file-creator@^1.0.0, broccoli-file-creator@^1.1.1:
     rsvp "~3.0.6"
     symlink-or-copy "^1.0.1"
 
+broccoli-filter@^1.0.1:
+  version "1.3.0"
+  resolved "https://registry.npmjs.org/broccoli-filter/-/broccoli-filter-1.3.0.tgz#71e3a8e32a17f309e12261919c5b1006d6766de6"
+  dependencies:
+    broccoli-kitchen-sink-helpers "^0.3.1"
+    broccoli-plugin "^1.0.0"
+    copy-dereference "^1.0.0"
+    debug "^2.2.0"
+    mkdirp "^0.5.1"
+    promise-map-series "^0.2.1"
+    rsvp "^3.0.18"
+    symlink-or-copy "^1.0.1"
+    walk-sync "^0.3.1"
+
 broccoli-filter@^1.2.2, broccoli-filter@^1.2.3:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/broccoli-filter/-/broccoli-filter-1.2.4.tgz#409afb94b9a3a6da9fac8134e91e205f40cc7330"
@@ -2508,7 +2522,7 @@ ember-compatibility-helpers@^1.0.0:
 
 ember-data@emberjs/data#master:
   version "3.3.0-canary"
-  resolved "https://codeload.github.com/emberjs/data/tar.gz/d69804ba4793d523d7e46a8bd510add173f37a89"
+  resolved "https://codeload.github.com/emberjs/data/tar.gz/d584076f9e2c24beaf50b6fc006a6b3e49d4705b"
   dependencies:
     "@ember/ordered-set" "^1.0.0"
     amd-name-resolver "0.0.7"
@@ -2574,6 +2588,13 @@ ember-lodash@^4.17.5:
     broccoli-string-replace "^0.1.1"
     ember-cli-babel "^6.10.0"
     lodash-es "^4.17.4"
+
+ember-qunit-assert-helpers@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.npmjs.org/ember-qunit-assert-helpers/-/ember-qunit-assert-helpers-0.2.1.tgz#4a77f8ff252e47cc53db6fa7fb4becb426de8d29"
+  dependencies:
+    broccoli-filter "^1.0.1"
+    ember-cli-babel "^6.9.0"
 
 ember-qunit@^3.3.2:
   version "3.4.1"

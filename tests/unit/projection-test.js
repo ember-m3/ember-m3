@@ -2393,7 +2393,7 @@ module('unit/projection', function(hooks) {
         this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
           id: BOOK_ID,
         });
-        assert.throws(
+        assert.expectAssertion(
           () => {
             this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
               id: BOOK_ID,
