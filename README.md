@@ -58,6 +58,8 @@ You could support it with the following schema:
 
 ```js
 // app/instance-initializers/schema-initializer.js
+import SchemaManager from 'ember-m3/schema-manager';
+
 const BookstoreRegExp = /^com\.example\.bookstore\.*/;
 const ISBNRegExp = /^isbn:.*/;
 const URNRegExp = /^urn:(\w+):(.*)/;
@@ -333,7 +335,7 @@ in is an object with the following properties.
   `modelName`.  It's fine to just `return true` here but this hook allows
   `ember-m3` to work alongside `DS.Model`.
 
-- `computeAttributeReference(key, value, modelName, data)`  A function that determines
+- `computeAttributeReference(key, value, modelName, schemaInterface)`  A function that determines
   whether an attribute is a reference.  If it is not, return `null` or
   `undefined`.
   Otherwise return an object with properties:
@@ -343,7 +345,7 @@ in is an object with the following properties.
   Note that attribute references are all treated as synchronous.  There is no
   ember-m3 analogue to `DS.Model` async relationships.
 
-- `computeNestedModel(key, value, modelName, data)` Whether `value` should be treated
+- `computeNestedModel(key, value, modelName, schemaInterface)` Whether `value` should be treated
   as a nested model.  Useful for deeply nested references, eg with the following
   data:
   ```js
@@ -455,7 +457,7 @@ in is an object with the following properties.
 ## Serializer / Adapter
 
 ember-m3 will use the `-ember-m3` adapter to make queries via `findRecord`,
-`queryRecord, `queryURL` &c.  Responses will be normalized via the `-ember-m3`
+`queryRecord`, `queryURL` &c.  Responses will be normalized via the `-ember-m3`
 serializer.
 
 ember-m3 provides neither an adapter nor a serializer.  If your app does not
@@ -487,7 +489,6 @@ classes.  For example:
 
 ```js
 // app/models/my-model.js
-
 export DS.Model.extend({
   myConstant: 24601,
 });
@@ -514,7 +515,6 @@ often they can be read only.
 
 ```js
 // app/models/my-model.js
-
 export DS.Model.extend({
   name: DS.attr(),
   aliasName: Ember.computed.reads('name'),
@@ -621,11 +621,13 @@ export DS.Model.extend({
   }).readOnly(),
 });
 ```
+
 ```hbs
 {{! some-template.hbs }}
 {{model.sillyName}}
 {{my-component name=model.sillyName}}
 ```
+
 ```js
 // app/routes/index.js
 let sn = model.get('sillyName');
@@ -635,7 +637,6 @@ Coverted to
 
 ```js
 // app/helpers/silly-name.js
-
 export function getSillyName(model) {
   if (!model) { return; }
   return `silly ${model.get('name')}`;
@@ -651,6 +652,7 @@ function sillyNameHelper(positionalArgs) {
 
 export default Ember.Helper.helper(sillyNameHelper);
 ```
+
 ```hbs
 {{! some-template.hbs }}
 {{silly-name model}}

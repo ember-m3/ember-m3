@@ -358,13 +358,13 @@ export default class M3ModelData {
     }
   }
 
-  /*
-    Returns an object, whose keys are changed properties, and value is an
-    [oldProp, newProp] array.
-
-    @method changedAttributes
-    @private
-  */
+  /**
+   * Returns an object, whose keys are changed properties, and value is an
+   * [oldProp, newProp] array.
+   *
+   * @method changedAttributes
+   * @private
+   */
   changedAttributes() {
     if (this._baseModelData) {
       return this._baseModelData.changedAttributes();
@@ -599,13 +599,13 @@ export default class M3ModelData {
     }
   }
 
-  /*
-    Returns an existing child model data, which can be reused for merging updates or undefined if
-    there is no such child model data.
-
-    @param {string} key - The key, which to apply an update to
-    @param {Mixed} newValue - The updates, which needs to be merged
-    @return {M3ModelData} The child model data, which can be reused or undefined if there is none.
+  /**
+   * Returns an existing child model data, which can be reused for merging updates or undefined if
+   * there is no such child model data.
+   *
+   * @param {string} key - The key, which to apply an update to
+   * @param {Mixed} newValue - The updates, which needs to be merged
+   * @return {M3ModelData} The child model data, which can be reused or undefined if there is none.
    */
   _getExistingChildModelData(key, newValue) {
     if (
@@ -666,15 +666,15 @@ export default class M3ModelData {
     }
   }
 
-  /*
-    Checks if the attributes which are considered as changed are still
-    different to the state which is acknowledged by the server.
-
-    This method is needed when data for the internal model is pushed and the
-    pushed data might acknowledge dirty attributes as confirmed.
-
-    @method _updateChangedAttributes
-    @private
+  /**
+   * Checks if the attributes which are considered as changed are still
+   * different to the state which is acknowledged by the server.
+   *
+   * This method is needed when data for the internal model is pushed and the
+   * pushed data might acknowledge dirty attributes as confirmed.
+   *
+   * @method _updateChangedAttributes
+   * @private
    */
   _updateChangedAttributes() {
     let changedAttributes = this.changedAttributes();
@@ -693,12 +693,13 @@ export default class M3ModelData {
     }
   }
 
-  /*
-    Filters keys, which have local changes in _attributes, because even their value on
-    the server has changed, their local value is not and no property notification should
-    be sent for them.
-    @method _filterChangedKeys
-    @private
+  /**
+   * Filters keys, which have local changes in _attributes, because even their value on
+   * the server has changed, their local value is not and no property notification should
+   * be sent for them.
+   *
+   * @method _filterChangedKeys
+   * @private
    */
   _filterChangedKeys(changedKeys) {
     if (!changedKeys || changedKeys.length === 0) {
@@ -722,16 +723,14 @@ export default class M3ModelData {
     return this._projections.length === 1 && this._projections[0] === this;
   }
 
-  /*
-    Merges updates from the server and delegates changes in nested objects to their respective
-    child model data.
-
-    Returns the list of changed keys ignoring any changes in its children.
-
-    @param updates
-    @param nestedCallback a callback for updating the data of a nested model-data instance
-    @returns {Array}
-    @private
+  /**
+   * Merges updates from the server and delegates changes in nested objects to their respective
+   * child model data.
+   *
+   * @param updates
+   * @param nestedCallback a callback for updating the data of a nested model-data instance
+   * @returns {Array} The list of changed keys ignoring any changes in its children.
+   * @private
    */
   _mergeUpdates(updates, nestedCallback, calculateChanges) {
     let data = this._data;
