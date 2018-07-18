@@ -50,7 +50,15 @@ export default class extends RecordArray {
     }
   }
 
+  // The length property can be removed entirely once our ember-source peer dep
+  // is >= 3.1.0.
+  //
+  // It is not safe to override a getter on a superclass that specifies a
+  // setter as a matter of OO + es6 class semantics.
+
   get length() {
     return this.content && this.content.length !== undefined ? this.content.length : 0;
   }
+
+  set length(v) {}
 }
