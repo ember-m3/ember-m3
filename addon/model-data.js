@@ -2,7 +2,6 @@ import { isEqual, isNone } from '@ember/utils';
 import { dasherize } from '@ember/string';
 import { assign, merge } from '@ember/polyfills';
 import { copy } from '@ember/object/internals';
-import SchemaManager from 'ember-m3/schema-manager';
 import { assert } from '@ember/debug';
 import Ember from 'ember';
 
@@ -76,7 +75,15 @@ class M3SchemaInterface {
 }
 
 export default class M3ModelData {
-  constructor(modelName, id, clientId, storeWrapper, parentModelData, baseModelData) {
+  constructor(
+    modelName,
+    id,
+    clientId,
+    storeWrapper,
+    schemaManager,
+    parentModelData,
+    baseModelData
+  ) {
     this.modelName = modelName;
     this.clientId = clientId;
     this.id = id;
@@ -90,7 +97,7 @@ export default class M3ModelData {
     this._parentModelData = parentModelData;
     this._embeddedInternalModel = null;
     this.__childModelDatas = null;
-    this._schema = SchemaManager;
+    this._schema = schemaManager;
 
     this.schemaInterface = new M3SchemaInterface(this);
 
@@ -562,7 +569,15 @@ export default class M3ModelData {
       );
     }
 
-    return new M3ModelData(modelName, id, null, this.storeWrapper, this, baseChildModelData);
+    return new M3ModelData(
+      modelName,
+      id,
+      null,
+      this.storeWrapper,
+      this._schema,
+      this,
+      baseChildModelData
+    );
   }
 
   _destroyChildModelData(key) {

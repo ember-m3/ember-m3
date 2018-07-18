@@ -7,7 +7,6 @@ import DS from 'ember-data';
 import { zip } from 'lodash';
 
 import MegamorphicModel from 'ember-m3/model';
-import SchemaManager from 'ember-m3/schema-manager';
 import M3RecordArray from 'ember-m3/record-array';
 import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
 import EmberObject, { get, set, computed } from '@ember/object';
@@ -25,6 +24,7 @@ module('unit/model', function(hooks) {
     this.sinon = sinon.sandbox.create();
     initializeStore(this);
     this.store = this.owner.lookup('service:store');
+    this.schemaManager = this.owner.lookup('service:m3-schema-manager');
 
     this.Author = DS.Model.extend({
       name: DS.attr('string'),
@@ -35,7 +35,7 @@ module('unit/model', function(hooks) {
     this.Author.toString = () => 'Author';
     this.owner.register('model:author', this.Author);
 
-    SchemaManager.registerSchema({
+    this.schemaManager.registerSchema({
       includesModel(modelName) {
         return /^com.example.bookstore\./i.test(modelName);
       },

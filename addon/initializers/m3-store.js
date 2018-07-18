@@ -1,10 +1,11 @@
 import DS from 'ember-data';
 import DataAdapter from '@ember/debug/data-adapter';
+import { inject } from '@ember/service';
+import { get } from '@ember/object';
 
 import MegamorphicModel from '../model';
 import M3ModelData from '../model-data';
 import MegamorphicModelFactory from '../factory';
-import SchemaManager from '../schema-manager';
 import QueryCache from '../query-cache';
 
 extendStore(DS.Store);
@@ -12,6 +13,8 @@ extendDataAdapter(DataAdapter);
 
 export function extendStore(Store) {
   Store.reopen({
+    _schemaManager: inject('m3-schema-manager'),
+
     init() {
       this._super(...arguments);
       this._queryCache = new QueryCache({ store: this });
@@ -21,7 +24,7 @@ export function extendStore(Store) {
     // Store hooks necessary for using a single model class
 
     _hasModelFor(modelName) {
-      return SchemaManager.includesModel(modelName) || this._super(modelName);
+      return get(this, '_schemaManager').includesModel(modelName) || this._super(modelName);
     },
 
     modelFactoryFor(modelName) {
@@ -29,29 +32,30 @@ export function extendStore(Store) {
     },
 
     _modelFactoryFor(modelName) {
-      if (SchemaManager.includesModel(modelName)) {
+      if (get(this, '_schemaManager').includesModel(modelName)) {
         return MegamorphicModelFactory;
       }
       return this._super(modelName);
     },
 
     adapterFor(modelName) {
-      if (SchemaManager.includesModel(modelName)) {
+      if (get(this, '_schemaManager').includesModel(modelName)) {
         return this._super('-ember-m3');
       }
       return this._super(modelName);
     },
 
     serializerFor(modelName) {
-      if (SchemaManager.includesModel(modelName)) {
+      if (get(this, '_schemaManager').includesModel(modelName)) {
         return this._super('-ember-m3');
       }
       return this._super(modelName);
     },
 
     createModelDataFor(modelName, id, clientId, storeWrapper) {
-      if (SchemaManager.includesModel(modelName)) {
-        return new M3ModelData(modelName, id, clientId, storeWrapper, null, null, false, null);
+      let schemaManager = get(this, '_schemaManager');
+      if (schemaManager.includesModel(modelName)) {
+        return new M3ModelData(modelName, id, clientId, storeWrapper, schemaManager, null, null);
       }
       return this._super(modelName, id, clientId, storeWrapper);
     },
@@ -75,7 +79,7 @@ export function extendStore(Store) {
 
     _pushInternalModel(jsonAPIResource) {
       let internalModel = this._super(jsonAPIResource);
-      if (SchemaManager.includesModel(jsonAPIResource.type)) {
+      if (get(this, '_schemaManager').includesModel(jsonAPIResource.type)) {
         this._globalM3Cache[internalModel.id] = internalModel;
       }
       return internalModel;
@@ -90,6 +94,8 @@ export function extendStore(Store) {
 
 export function extendDataAdapter(DataAdapter) {
   DataAdapter.reopen({
+    _schemaManager: inject('m3-schema-manager'),
+
     getModelTypes() {
       return this._super(...arguments).concat({
         klass: MegamorphicModel,
@@ -98,7 +104,7 @@ export function extendDataAdapter(DataAdapter) {
     },
 
     _nameToClass(modelName) {
-      if (SchemaManager.includesModel(modelName)) {
+      if (get(this, '_schemaManager').includesModel(modelName)) {
         return MegamorphicModel;
       }
       return this._super(...arguments);
@@ -111,5 +117,4 @@ export function initialize() {}
 export default {
   name: 'm3-store',
   initialize,
-  after: 'm3-schema-initializer',
 };

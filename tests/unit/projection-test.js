@@ -1,7 +1,6 @@
 import { module, test, skip } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import MegamorphicModel from 'ember-m3/model';
-import SchemaManager from 'ember-m3/schema-manager';
 import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
 import { watchProperties } from '../helpers/watch-property';
 import { get, set } from '@ember/object';
@@ -34,8 +33,9 @@ module('unit/projection', function(hooks) {
     initializeStore(this);
 
     this.store = this.owner.lookup('service:store');
+    this.schemaManager = this.owner.lookup('service:m3-schema-manager');
 
-    SchemaManager.registerSchema({
+    this.schemaManager.registerSchema({
       includesModel(modelName) {
         return /^com\.example\.bookstore\./i.test(modelName);
       },
@@ -1800,7 +1800,7 @@ module('unit/projection', function(hooks) {
 
     hooks.beforeEach(function() {
       //Adding .setAttribute hook in schema
-      SchemaManager.schema.setAttribute = function(modelName, attr, value, schemaInterface) {
+      this.schemaManager.schema.setAttribute = function(modelName, attr, value, schemaInterface) {
         const baseModelName = this.computeBaseModelName(modelName);
         if (
           baseModelName &&

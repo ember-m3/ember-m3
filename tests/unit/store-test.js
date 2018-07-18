@@ -5,7 +5,6 @@ import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
 
-import SchemaManager from 'ember-m3/schema-manager';
 import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
 
 module('unit/store', function(hooks) {
@@ -21,7 +20,8 @@ module('unit/store', function(hooks) {
     this.Author.toString = () => 'Author';
     this.owner.register('model:author', this.Author);
 
-    SchemaManager.registerSchema({
+    let schemaManager = this.owner.lookup('service:m3-schema-manager');
+    schemaManager.registerSchema({
       includesModel(modelName) {
         return /^com.example.bookstore\./i.test(modelName);
       },

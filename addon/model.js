@@ -10,7 +10,6 @@ import { warn } from '@ember/debug';
 import { alias } from '@ember/object/computed';
 import Map from '@ember/map';
 
-import SchemaManager from './schema-manager';
 import M3RecordArray from './record-array';
 import { OWNER_KEY } from './util';
 import {
@@ -122,7 +121,7 @@ export default class MegamorphicModel extends EmberObject {
     this._store = properties.store;
     this._internalModel = properties._internalModel;
     this._cache = Object.create(null);
-    this._schema = SchemaManager;
+    this._schema = get(properties.store, '_schemaManager');
 
     this._topModel = this._topModel || this;
     this._parentModel = this._parentModel || null;

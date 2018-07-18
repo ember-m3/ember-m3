@@ -1,5 +1,3 @@
-import SchemaManager from 'ember-m3/schema-manager';
-
 function dateTransform(value) {
   return new Date(Date.parse(value));
 }
@@ -7,8 +5,10 @@ const BookStoreRegExp = /^com\.example\.bookstore\./;
 const ISBNRegExp = /^isbn:/;
 const URNRegExp = /^urn:/;
 
-export function initialize(/* application */) {
-  SchemaManager.registerSchema({
+export function initialize(application) {
+  let schemaManager = application.lookup('service:m3-schema-manager');
+
+  schemaManager.registerSchema({
     computeAttributeReference(key, value) {
       if (typeof value === 'string' && (ISBNRegExp.test(value) || URNRegExp.test(value))) {
         return {

@@ -57,13 +57,14 @@ For example, if your API returns responses like the following:
 You could support it with the following schema:
 
 ```js
-// app/initializers/schema-initializer.js
+// app/instance-initializers/schema-initializer.js
 const BookstoreRegExp = /^com\.example\.bookstore\.*/;
 const ISBNRegExp = /^isbn:.*/;
 const URNRegExp = /^urn:(\w+):(.*)/;
 
-export function initialize() {
-  SchemaManager.registerSchema({
+export function initialize(application) {
+  let schemaManager = application.lookup('service:m3-schema-manager');
+  schemaManager.registerSchema({
     includesModel(modelName) {
       return BookstoreRegExp.test(modelName);
     },
@@ -299,8 +300,9 @@ the runtime cost of relationships.
 
 ### API
 
-You register your schema with a call to `SchemaManager.registerSchema(schema)`.
-The `schema` you pass in is an object with the following properties.
+You register your schema with a call to `m3SchemaManager.registerSchema(schema)`,
+where `m3SchemaManager` is the `m3-schema-manager` service. The `schema` you pass
+in is an object with the following properties.
 
 - `includesModel(modelName)` Whether or not ember-m3 should handle this
   `modelName`.  It's fine to just `return true` here but this hook allows
