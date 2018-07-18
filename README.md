@@ -63,7 +63,7 @@ const ISBNRegExp = /^isbn:.*/;
 const URNRegExp = /^urn:(\w+):(.*)/;
 
 export function initialize(application) {
-  let schemaManager = application.lookup('m3-schema-manager');
+  let schemaManager = application.lookup('service:m3-schema-manager');
   schemaManager.registerSchema({
     includesModel(modelName) {
       return BookstoreRegExp.test(modelName);
