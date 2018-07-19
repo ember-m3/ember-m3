@@ -28,6 +28,7 @@ class M3SchemaInterface {
     this.modelData = modelData;
     this._keyBeingResolved = null;
     this._refKeyDepkeyMap = {};
+    this._suppressNotifications = false;
   }
 
   _beginDependentKeyResolution(key) {
@@ -70,7 +71,7 @@ class M3SchemaInterface {
   }
 
   setAttr(key, value) {
-    this.modelData.setAttr(key, value);
+    this.modelData.setAttr(key, value, this._suppressNotifications);
   }
 }
 
@@ -275,7 +276,7 @@ export default class M3ModelData {
 
   setBelongsTo() {}
 
-  setAttr(key, value) {
+  setAttr(key, value, _suppressNotifications) {
     if (this._baseModelData) {
       return this._baseModelData.setAttr(key, value);
     }
@@ -295,7 +296,7 @@ export default class M3ModelData {
       this._attributes[key] = value;
     }
 
-    if (!this._notifyProjectionProperties([key])) {
+    if (!_suppressNotifications && !this._notifyProjectionProperties([key])) {
       this._notifyRecordProperties([key]);
     }
   }
