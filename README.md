@@ -272,6 +272,31 @@ automatically when the models are unloaded.  In the case of `RecordArray`s of
 models, the entire cache entry is evicted if *any* of the member models is
 unloaded.
 
+##### Manual Cache Insertion
+
+In cases where we need to manually insert into the cache, we can use `cacheURL`.
+As an example, we may need to compute a secondary cache key once we receive
+response from our API.
+
+```js
+store.queryURL('/foo', { cacheKey }).then(result => {
+  const secondaryCacheKey = computeSecondaryCacheKey(result);
+  store.cacheURL(secondaryCacheKey, result);
+})
+```
+
+When we unload the model, we will evict _both_ the initial `cacheKey` as well as
+`secondaryCacheKey`.
+
+```js
+store.queryURL('/foo', { cacheKey: 'foo' }).then(result => {
+  store.cacheURL('bar', result);
+
+  // Cache conceptually looks like: { foo: ..., bar: ...' }
+  result.unloadRecord();
+  // Cache is now empty
+})
+```
 
 ## Schema
 
@@ -353,8 +378,8 @@ in is an object with the following properties.
   }
   ```
 
-- `setAttribute(modelName, key, value, schemaInterface)` A function that can be used 
-  to update the model-data with raw value instead of resolved value. 
+- `setAttribute(modelName, key, value, schemaInterface)` A function that can be used
+  to update the model-data with raw value instead of resolved value.
   `schemaInterface.setAttr(key,value)` should be invoked inside the function to set
   the value. Example:
   ```js
@@ -534,7 +559,7 @@ Let's say this state has a formal class:
 const RetrofitState = Ember.Object.extend({
   statusText: Ember.computed('statusCode', function() {
     let code = this.get('statusCode');
-    
+
     switch (code) {
       case 0:
         return 'Not started';
