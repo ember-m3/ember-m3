@@ -1,3 +1,5 @@
+import { Promise as RSVPPromise } from 'rsvp';
+import { assert } from '@ember/debug';
 import { get } from '@ember/object';
 import { A } from '@ember/array';
 
@@ -68,6 +70,16 @@ export default class QueryCache {
     } else {
       return cachedPromise;
     }
+  }
+
+  cacheURL(cacheKey, result) {
+    assert(
+      'cacheKey must be a non-empty string',
+      typeof cacheKey === 'string' && cacheKey.length > 0
+    );
+    // We will wrap `result` as a promise to be type consistent.
+    this._queryCache[cacheKey] = RSVPPromise.resolve(result);
+    this._addResultToReverseCache(result, cacheKey);
   }
 
   unloadRecord(record) {

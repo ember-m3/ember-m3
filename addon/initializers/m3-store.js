@@ -60,10 +60,12 @@ export function extendStore(Store) {
       return this._super(modelName, id, clientId, storeWrapper);
     },
 
-    // queryURL store API
-
     queryURL(url, options) {
       return this._queryCache.queryURL(url, options);
+    },
+
+    cacheURL(cacheKey, result) {
+      return this._queryCache.cacheURL(cacheKey, result);
     },
 
     unloadURL(cacheKey) {

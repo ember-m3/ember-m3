@@ -922,4 +922,54 @@ module('unit/query-cache', function(hooks) {
       assert.equal(this.adapterAjax.called, false, '`adapter.ajax` is not called');
     });
   });
+
+  test('.cacheURL inserts consistently inserts a promise into cache', function(assert) {
+    assert.expect(3);
+    const mockResult = { id: 1, foo: 'bar' };
+
+    this.queryCache.cacheURL('foo-bar', mockResult);
+    const cachedResult = this.queryCache.queryURL('/foo-bar', { cacheKey: 'foo-bar' });
+
+    assert.ok(cachedResult && cachedResult.then, 'cachedResult is a promise');
+
+    return cachedResult.then(result => {
+      assert.equal(this.adapterAjax.callCount, 0, 'adapter.ajax is never called');
+      assert.deepEqual(mockResult, result, 'queryURL returned cached result');
+    });
+  });
+
+  test('.cacheURL supports unloading of models and invalidates cache', function(assert) {
+    assert.expect(2);
+
+    let firstPayload = {
+      data: {
+        id: 1,
+        type: 'uw0tm8',
+        attributes: {},
+      },
+    };
+
+    let secondPayload = {
+      data: {
+        id: 2,
+        type: 'my-other-type',
+        attributes: {},
+      },
+    };
+
+    this.adapterAjax.returns(resolve(firstPayload));
+
+    return this.queryCache
+      .queryURL('/foo-bar', { cacheKey: 'foo-bar' })
+      .then(model => {
+        assert.equal(model.id, '1', 'Sanity check to ensure id is what we expected');
+        this.queryCache.cacheURL('bar', model);
+        this.adapterAjax.returns(resolve(secondPayload));
+        model.unloadRecord();
+      })
+      .then(() => this.queryCache.queryURL('/foo-bar', { cacheKey: 'bar' }))
+      .then(model => {
+        assert.equal(model.id, '2', 'unloadRecord clears the entry for entry of cacheURL');
+      });
+  });
 });
