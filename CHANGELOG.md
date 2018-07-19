@@ -1,5 +1,13 @@
 # ember-m3 changelog
 
+## 0.8.0
+
+* bugfix: dependent keys are tracked even when they are initially absent in the server payload
+* breaking: schema manager is now a service.  See UPGRADING.md. (thanks @dnachev)
+* bugfix: fix support for ember 3.4.0-beta.1
+* feature: Added [cacheURL](https://github.com/hjdivad/ember-m3/blob/e760dd7eed86dd3d19fdd7f9b36dec25c347a18c/README.md#manual-cache-insertion) (thanks @sangm)
+* records added to tracked arrays now remove themselves when unloaded
+
 ## 0.7.13
 
 * Added support to track changes in Array #136
