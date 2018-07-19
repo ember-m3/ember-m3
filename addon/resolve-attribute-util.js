@@ -139,3 +139,7 @@ export function resolveReferencesWithInternalModels(store, references) {
         : store._globalM3Cache[reference.id]
   );
 }
+
+export function isResolvedValue(value) {
+  return value && value.constructor && value.constructor.isModel;
+}

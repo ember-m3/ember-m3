@@ -62,3 +62,7 @@ export default class extends RecordArray {
 
   set length(v) {}
 }
+
+export function associateRecordWithRecordArray(record, recordArray) {
+  record._internalModel._recordArrays.add(recordArray);
+}

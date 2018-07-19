@@ -27,10 +27,6 @@ export function extendStore(Store) {
       return get(this, '_schemaManager').includesModel(modelName) || this._super(modelName);
     },
 
-    modelFactoryFor(modelName) {
-      return this._modelFactoryFor(modelName);
-    },
-
     _modelFactoryFor(modelName) {
       if (get(this, '_schemaManager').includesModel(modelName)) {
         return MegamorphicModelFactory;

@@ -16,6 +16,7 @@ import {
   resolveValue,
   resolveReferencesWithInternalModels,
   computeAttributeReference,
+  isResolvedValue as _isResolvedValue,
 } from './resolve-attribute-util';
 
 const { propertyDidChange } = Ember;
@@ -76,10 +77,6 @@ export class EmbeddedInternalModel {
   createSnapshot() {
     return new EmbeddedSnapshot(this.record);
   }
-}
-
-function _isResolvedValue(value) {
-  return value && value.constructor && value.constructor.isModel;
 }
 
 function disallowAliasSet(object, key, value) {
@@ -418,9 +415,12 @@ export default class MegamorphicModel extends EmberObject {
     this._removeError(key);
   }
 
-  _setAttribute(attr, value) {
+  _setAttribute(attr, value, suppressNotifications = false) {
     const schemaInterface = this._internalModel._modelData.schemaInterface;
+    let priorSuppressNotifications = schemaInterface._suppressNotifications;
+    schemaInterface._suppressNotifications = suppressNotifications;
     this._schema.setAttribute(this._modelName, attr, value, schemaInterface);
+    schemaInterface._suppressNotifications = priorSuppressNotifications;
     const isDirty = this._internalModel._modelData.isAttrDirty(attr);
     if (isDirty && !this.get('isDirty')) {
       this._updateCurrentState(updatedUncommitted);

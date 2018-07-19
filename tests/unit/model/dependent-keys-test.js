@@ -35,7 +35,7 @@ module('unit/model/dependent-keys', function(hooks) {
         }
       },
 
-      computeNestedModel(/* key, value, modelName, data */) {},
+      computeNestedModel(/* key, value, modelName, schemaInterface */) {},
 
       models: {},
     });
