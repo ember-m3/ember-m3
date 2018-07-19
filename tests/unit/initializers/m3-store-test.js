@@ -65,6 +65,11 @@ test('it adds `store.queryURL`', function(assert) {
   this.store.queryURL('/some-data', { params: { a: '1' } });
 });
 
+test('it adds `store.cacheURL`', function(assert) {
+  assert.expect(1);
+  assert.equal(typeof this.store.cacheURL, 'function', 'cacheURL added');
+});
+
 test('it adds `store.unloadURL`', function(assert) {
   assert.expect(2);
 
