@@ -4,7 +4,6 @@ import { run } from '@ember/runloop';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
-import SchemaManager from 'ember-m3/schema-manager';
 
 module('unit/model/dependent-keys', function(hooks) {
   setupTest(hooks);
@@ -14,7 +13,8 @@ module('unit/model/dependent-keys', function(hooks) {
     initializeStore(this);
     this.store = this.owner.lookup('service:store');
 
-    SchemaManager.registerSchema({
+    this.schemaManager = this.owner.lookup('service:m3-schema-manager');
+    this.schemaManager.registerSchema({
       includesModel(modelName) {
         return /^com.example.bookstore\./i.test(modelName);
       },
