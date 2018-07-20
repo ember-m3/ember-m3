@@ -59,7 +59,6 @@ export function extendStore(Store) {
       return this._super(modelName, id, clientId, storeWrapper);
     },
 
-
     /**
      * A thin wrapper around the API response that knows how to look up relationships.
      *
