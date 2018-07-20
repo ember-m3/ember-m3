@@ -380,23 +380,26 @@ in is an object with the following properties.
   }
   ```
 
-- `setAttribute(modelName, key, value, schemaInterface)` A function that can be used
+- `setAttribute(modelName, attrName, value, schemaInterface)` A function that can be used
   to update the model-data with raw value instead of resolved value.
   `schemaInterface.setAttr(key,value)` should be invoked inside the function to set
-  the value. Example:
+  the value. If this function is not provided, m3 will set value as is.
+
+  Example:
   ```js
-  setAttribute(modelName, key, value, schemaInterface) {
+  setAttribute(modelName, attrName, value, schemaInterface) {
     // Check if the value is resolved as model
     // update attribute model-data with id information.
     if (value && value.constructor && value.constructor.isModel) {
-      schemaInterface.setAttr(key, value.get('id'));
-      return;
+      schemaInterface.setAttr(attrName, value.get('id'));
     }
-
-    // else set value as is.
-    schemaInterface.setAttr(key, value);
   }
   ```
+
+- `computeAttributes(keys)` Compute the actual attribute names, default just return the
+  array passed in.
+  This is useful if you need to "decode/encode" your attribute names in a certain form, e.g.,
+  add a prefix when serializing.
 
 - `models` an object containing type-specific information that cannot be
   inferred from the payload.  The `models` property has the form:

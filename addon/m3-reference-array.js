@@ -1,7 +1,13 @@
 import { get } from '@ember/object';
 import M3RecordArray from './record-array';
 
-export default class extends M3RecordArray {
+/**
+ * M3ReferenceArray
+ *
+ * @class M3ReferenceArray
+ * @extends {M3RecordArray}
+ */
+export default class M3ReferenceArray extends M3RecordArray {
   init() {
     super.init(...arguments);
     this._key = get(this, 'key');

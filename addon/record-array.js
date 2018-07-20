@@ -2,7 +2,13 @@ import { get } from '@ember/object';
 import { RecordArray } from 'ember-data/-private';
 import { A } from '@ember/array';
 
-export default class extends RecordArray {
+/**
+ * M3RecordArray
+ *
+ * @class M3RecordArray
+ * @extends DS.RecordArray
+ */
+export default class M3RecordArray extends RecordArray {
   // TODO: implement more of RecordArray but make this not an arrayproxy
 
   replace(idx, removeAmt, newModels) {
