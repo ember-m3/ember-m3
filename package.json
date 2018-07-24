@@ -56,7 +56,7 @@
     "ember-load-initializers": "^1.0.0",
     "ember-lodash": "^4.17.5",
     "ember-qunit-assert-helpers": "^0.2.1",
-    "ember-resolver": "^4.0.0",
+    "ember-resolver": "^5.0.0",
     "ember-sinon": "^2.0.0",
     "ember-source": "~3.3.0",
     "ember-try": "^1.0.0-beta.2",
