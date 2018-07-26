@@ -3,7 +3,13 @@ import { get } from '@ember/object';
 import { isResolvedValue, resolveValue } from './resolve-attribute-util';
 import { associateRecordWithRecordArray } from './record-array';
 
-export default class extends ArrayProxy {
+/**
+ * M3TrackedArray
+ *
+ * @class M3TrackedArray
+ * @extends {Ember.ArrayProxy}
+ */
+export default class M3TrackedArray extends ArrayProxy {
   init() {
     super.init(...arguments);
     this._key = get(this, 'key');

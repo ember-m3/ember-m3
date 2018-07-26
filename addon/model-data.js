@@ -23,7 +23,16 @@ function notifyProperties(storeWrapper, modelName, id, clientId, changedKeys) {
   Ember.endPropertyChanges();
 }
 
+/**
+ * A public interface for getting and setting attribute of the underlying
+ * model data, and track dependent keys resolved by ref key.
+ *
+ * @class M3SchemaInterface
+ */
 class M3SchemaInterface {
+  /**
+   * @param {M3ModelData} modelData
+   */
   constructor(modelData) {
     this.modelData = modelData;
     this._keyBeingResolved = null;
@@ -31,6 +40,10 @@ class M3SchemaInterface {
     this._suppressNotifications = false;
   }
 
+  /**
+   * @param {string} key
+   * @private
+   */
   _beginDependentKeyResolution(key) {
     assert(
       'Do not invoke `SchemaInterface` method `_beginDependentKeyResolution` without ending the resolution of previous key.',
@@ -39,6 +52,10 @@ class M3SchemaInterface {
     this._keyBeingResolved = key;
   }
 
+  /**
+   * @param {string} key
+   * @private
+   */
   _endDependentKeyResolution(key) {
     assert(
       'Do not invoke `SchemaInterface` method `_endDependentKeyResolution` without begining the resolution of the key.',
@@ -51,6 +68,14 @@ class M3SchemaInterface {
     return this._refKeyDepkeyMap[refKey];
   }
 
+  /**
+   * Get the attribute name from the model.
+   * This can be useful if your payload keys are different from your attribute names;
+   * e.g. if your api adds a prefix to attributes that should be interpreted as references.
+   *
+   * @param {string} name name of the attribute
+   * @returns {Object} value of the attribute
+   */
   getAttr(name) {
     let value = this.modelData.getAttr(name);
     const keyBeingResolved = this._keyBeingResolved;
@@ -70,12 +95,27 @@ class M3SchemaInterface {
     return value;
   }
 
+  /**
+   * Set attribute for the model data
+   *
+   * @param {string} key
+   * @param {Object} value
+   */
   setAttr(key, value) {
     this.modelData.setAttr(key, value, this._suppressNotifications);
   }
 }
 
 export default class M3ModelData {
+  /**
+   * @param {string} modelName
+   * @param {string} id
+   * @param {number} [clientId]
+   * @param {DS.Store} storeWrapper
+   * @param {SchemaManager} schemaManager
+   * @param {M3ModelData} [parentModelData]
+   * @param {M3ModelData} [baseModelData]
+   */
   constructor(
     modelName,
     id,
@@ -119,6 +159,12 @@ export default class M3ModelData {
     };
   }
 
+  /**
+   * @param {Object} jsonApiResource
+   * @param {boolean} calculateChange
+   * @param {boolean} [notifyRecord=false]
+   * @returns {Array<string>} The list of changed keys
+   */
   pushData(jsonApiResource, calculateChange, notifyRecord = false) {
     if (this._baseModelData) {
       this._baseModelData.pushData(jsonApiResource, calculateChange, notifyRecord);
@@ -276,6 +322,12 @@ export default class M3ModelData {
 
   setBelongsTo() {}
 
+  /**
+   * @param {string} key
+   * @param {Object} value
+   * @param {boolean} _suppressNotifications
+   * @private
+   */
   setAttr(key, value, _suppressNotifications) {
     if (this._baseModelData) {
       return this._baseModelData.setAttr(key, value);
@@ -301,6 +353,10 @@ export default class M3ModelData {
     }
   }
 
+  /**
+   * @param {string} key
+   * @private
+   */
   getAttr(key) {
     if (this._baseModelData) {
       return this._baseModelData.getAttr(key);
@@ -313,6 +369,10 @@ export default class M3ModelData {
     }
   }
 
+  /**
+   * @param {string} key
+   * @returns {boolean}
+   */
   hasAttr(key) {
     if (this._baseModelData) {
       return this._baseModelData.hasAttr(key);
@@ -321,6 +381,10 @@ export default class M3ModelData {
     }
   }
 
+  /**
+   * @param {string} key
+   * @returns {boolean}
+   */
   hasLocalAttr(key) {
     return key in this._attributes;
   }
@@ -334,6 +398,9 @@ export default class M3ModelData {
     }
   }
 
+  /**
+   * @returns {boolean}
+   */
   isRecordInUse() {
     return this.storeWrapper.isRecordInUse(this.modelName, this.id, this.clientId);
   }
@@ -344,6 +411,13 @@ export default class M3ModelData {
 
   // INTERNAL API
 
+  /**
+   * Iterates through the attributes in-flight attrs and data of the model,
+   * calling the passed function.
+   *
+   * @param {Function} callback
+   * @param {*} binding
+   */
   eachAttribute(callback, binding) {
     if (this.__attributes !== null) {
       Object.keys(this._attributes).forEach(callback, binding);
@@ -358,13 +432,14 @@ export default class M3ModelData {
     }
   }
 
-  /*
-    Returns an object, whose keys are changed properties, and value is an
-    [oldProp, newProp] array.
-
-    @method changedAttributes
-    @private
-  */
+  /**
+   * Returns an object, whose keys are changed properties, and value is an
+   * [oldProp, newProp] array.
+   *
+   * @method changedAttributes
+   * @returns {Obejct}
+   * @private
+   */
   changedAttributes() {
     if (this._baseModelData) {
       return this._baseModelData.changedAttributes();
@@ -454,6 +529,10 @@ export default class M3ModelData {
     return dirtyKeys;
   }
 
+  /**
+   * @param {string} key
+   * @returns {boolean}
+   */
   isAttrDirty(key) {
     if (this._attributes[key] === undefined) {
       return false;
@@ -468,6 +547,10 @@ export default class M3ModelData {
     return originalValue !== this._attributes[key];
   }
 
+  /**
+   * @readonly
+   * @returns {Object}
+   */
   get _childModelDatas() {
     if (this.__childModelDatas === null) {
       this.__childModelDatas = Object.create(null);
@@ -475,6 +558,10 @@ export default class M3ModelData {
     return this.__childModelDatas;
   }
 
+  /**
+   * @readonly
+   * @returns {Object}
+   */
   get _attributes() {
     if (this.__attributes === null) {
       this.__attributes = Object.create(null);
@@ -486,6 +573,10 @@ export default class M3ModelData {
     this.__attributes = v;
   }
 
+  /**
+   * @readonly
+   * @returns {Object}
+   */
   get _data() {
     if (this.__data === null) {
       this.__data = Object.create(null);
@@ -527,6 +618,14 @@ export default class M3ModelData {
     }
   }
 
+  /**
+   * @param {string} key
+   * @param {string} idx
+   * @param {string} modelName
+   * @param {string} id
+   * @param {EmbeddedInternalModel} embeddedInternalModel
+   * @returns {M3ModelData}
+   */
   _getChildModelData(key, idx, modelName, id, embeddedInternalModel) {
     let childModelData;
     if (idx !== undefined && idx !== null) {
@@ -555,6 +654,13 @@ export default class M3ModelData {
     return childModelData;
   }
 
+  /**
+   * @param {string} key
+   * @param {string} idx
+   * @param {string} modelName
+   * @param {string} id
+   * @returns {M3ModelData}
+   */
   _createChildModelData(key, idx, modelName, id) {
     let baseChildModelData;
     if (this._baseModelData) {
@@ -599,13 +705,13 @@ export default class M3ModelData {
     }
   }
 
-  /*
-    Returns an existing child model data, which can be reused for merging updates or undefined if
-    there is no such child model data.
-
-    @param {string} key - The key, which to apply an update to
-    @param {Mixed} newValue - The updates, which needs to be merged
-    @return {M3ModelData} The child model data, which can be reused or undefined if there is none.
+  /**
+   * Returns an existing child model data, which can be reused for merging updates or undefined if
+   * there is no such child model data.
+   *
+   * @param {string} key - The key, which to apply an update to
+   * @param {Mixed} newValue - The updates, which needs to be merged
+   * @return {M3ModelData} The child model data, which can be reused or undefined if there is none.
    */
   _getExistingChildModelData(key, newValue) {
     if (
@@ -666,15 +772,15 @@ export default class M3ModelData {
     }
   }
 
-  /*
-    Checks if the attributes which are considered as changed are still
-    different to the state which is acknowledged by the server.
-
-    This method is needed when data for the internal model is pushed and the
-    pushed data might acknowledge dirty attributes as confirmed.
-
-    @method _updateChangedAttributes
-    @private
+  /**
+   * Checks if the attributes which are considered as changed are still
+   * different to the state which is acknowledged by the server.
+   *
+   * This method is needed when data for the internal model is pushed and the
+   * pushed data might acknowledge dirty attributes as confirmed.
+   *
+   * @method _updateChangedAttributes
+   * @private
    */
   _updateChangedAttributes() {
     let changedAttributes = this.changedAttributes();
@@ -693,12 +799,15 @@ export default class M3ModelData {
     }
   }
 
-  /*
-    Filters keys, which have local changes in _attributes, because even their value on
-    the server has changed, their local value is not and no property notification should
-    be sent for them.
-    @method _filterChangedKeys
-    @private
+  /**
+   * Filters keys, which have local changes in _attributes, because even their value on
+   * the server has changed, their local value is not and no property notification should
+   * be sent for them.
+   *
+   * @method _filterChangedKeys
+   * @param {Array<string>} changedKeys
+   * @returns {Array<string>}
+   * @private
    */
   _filterChangedKeys(changedKeys) {
     if (!changedKeys || changedKeys.length === 0) {
@@ -722,16 +831,15 @@ export default class M3ModelData {
     return this._projections.length === 1 && this._projections[0] === this;
   }
 
-  /*
-    Merges updates from the server and delegates changes in nested objects to their respective
-    child model data.
-
-    Returns the list of changed keys ignoring any changes in its children.
-
-    @param updates
-    @param nestedCallback a callback for updating the data of a nested model-data instance
-    @returns {Array}
-    @private
+  /**
+   * Merges updates from the server and delegates changes in nested objects to their respective
+   * child model data.
+   *
+   * @param {Object} updates
+   * @param {Function} nestedCallback a callback for updating the data of a nested model-data instance
+   * @param {boolean} calculateChanges
+   * @returns {Array<string>} The list of changed keys ignoring any changes in its children.
+   * @private
    */
   _mergeUpdates(updates, nestedCallback, calculateChanges) {
     let data = this._data;
