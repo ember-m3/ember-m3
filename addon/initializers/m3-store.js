@@ -60,16 +60,19 @@ export function extendStore(Store) {
     },
 
     /**
-     * A thin wrapper around the API response that knows how to look up relationships.
+     * A thin wrapper around the API response that knows how to look up references
      *
-     * @param {string} url The URL path to query.
+     * @param {string} url The URL path to query
      * @param {Object} options
-     * @param {string} [options.method=GET] The HTTP method to use.
+     * @param {string} [options.method=GET] The HTTP method to use
      * @param {Object} [options.params] The parameters to include
-     * @param {string} [options.cacheKey] A string to uniquely identify this request.
-     * @param {boolean} [options.reload=false]
-     * @param {boolean} [options.backgroundReload=false]
-     * @returns {Promise}
+     * @param {string} [options.cacheKey] A string to uniquely identify this request
+     * @param {boolean} [options.reload=false] If true, issue a request even a cached value exists
+     * @param {boolean} [options.backgroundReload=false] If true and a cached value exists,
+     * issue a non-blocking request but immediately fulfill with the cached value
+     * @returns {Promise<M3ModelData|RecordArray,Error>} Promise for loading `url` that fulfills to
+     * an `M3ModelData` if the response is a single resource or a `RecordArray` of `M3ModelData`s
+     * if the response is an array of resources
      */
     queryURL(url, options) {
       return this._queryCache.queryURL(url, options);

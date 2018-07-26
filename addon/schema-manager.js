@@ -9,6 +9,7 @@ export class SchemaManager {
    * Otherwise return an object with properties:
    *  - `id` The id of the referenced model (either m3 or `DS.Model`)
    *  - `type` The type of the referenced model (either m3 or `DS.Model`)
+   * `null` is also a valid type in which case `id` will be looked up in a global cache.
    *
    * Note that attribute references are all treated as synchronous.
    * There is no ember-m3 analogue to `DS.Model` async relationships.

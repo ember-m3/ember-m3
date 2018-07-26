@@ -69,7 +69,9 @@ class M3SchemaInterface {
   }
 
   /**
-   * Get the attribute of the model data plus recording the key being resolved
+   * Get the attribute name from the model.
+   * This can be useful if your payload keys are different from your attribute names;
+   * e.g. if your api adds a prefix to attributes that should be interpreted as references.
    *
    * @param {string} name name of the attribute
    * @returns {Object} value of the attribute
@@ -162,7 +164,6 @@ export default class M3ModelData {
    * @param {boolean} calculateChange
    * @param {boolean} [notifyRecord=false]
    * @returns {Array<string>} The list of changed keys
-   * @memberof M3ModelData
    */
   pushData(jsonApiResource, calculateChange, notifyRecord = false) {
     if (this._baseModelData) {
@@ -416,7 +417,6 @@ export default class M3ModelData {
    *
    * @param {Function} callback
    * @param {*} binding
-   * @memberof M3ModelData
    */
   eachAttribute(callback, binding) {
     if (this.__attributes !== null) {
@@ -532,7 +532,6 @@ export default class M3ModelData {
   /**
    * @param {string} key
    * @returns {boolean}
-   * @memberof M3ModelData
    */
   isAttrDirty(key) {
     if (this._attributes[key] === undefined) {
