@@ -428,7 +428,9 @@ export default class M3ModelData {
     }
 
     if (this.__data !== null) {
-      this._schema.computeAttributes(Object.keys(this._data)).forEach(callback, binding);
+      this._schema
+        .computeAttributes(Object.keys(this._data), this.modelName)
+        .forEach(callback, binding);
     }
   }
 
