@@ -91,11 +91,12 @@ export default class SchemaManager extends Service {
    * Compute the actual attribute names, default just return the array passed in.
    *
    * @param {Array<string>} keys
+   * @param {string} modelName
    * @returns {Array<string>}
    */
-  computeAttributes(keys) {
+  computeAttributes(keys, modelName) {
     if (this.schema.computeAttributes && typeof this.schema.computeAttributes === 'function') {
-      return this.schema.computeAttributes(keys);
+      return this.schema.computeAttributes(keys, modelName);
     }
 
     return keys;
