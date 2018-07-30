@@ -143,6 +143,9 @@ export default class SchemaManager extends Service {
   }
 
   _modelSchema(modelName) {
+    if (this.schema === null) {
+      return undefined;
+    }
     let models = this.schema.models;
     return models && models[modelName];
   }
