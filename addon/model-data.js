@@ -741,6 +741,32 @@ export default class M3ModelData {
     return newNestedDef && isSameType && isSameId ? nested : null;
   }
 
+  /**
+   * Updates the childModelDatas for a key, which is an array,
+   * upon any updates to resolved tracked array.
+   * @param {string} key
+   * @param {string} idx
+   * @param {string} removeLength
+   * @param {string} addLength
+   */
+  _resizeChildModelData(key, idx, removeLength, addLength) {
+    const childModelDatas = this._childModelDatas && this._childModelDatas[key];
+    if (!childModelDatas) {
+      return;
+    }
+
+    assert(
+      `Cannot invoke '_resizeChildModelData' as childModelData for ${key} is not an array`,
+      Array.isArray(childModelDatas)
+    );
+
+    const newItemsInChildModelData = new Array(addLength);
+    Array.prototype.splice.apply(
+      childModelDatas,
+      [idx, removeLength].concat(newItemsInChildModelData)
+    );
+  }
+
   _registerProjection(modelData) {
     if (!this._projections) {
       // we ensure projections contains the base as well
