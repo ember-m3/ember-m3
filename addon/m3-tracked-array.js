@@ -25,7 +25,16 @@ export default class M3TrackedArray extends ArrayProxy {
   }
 
   replaceContent(idx, removeAmt, newItems) {
-    newItems = newItems.map((item, idx) => {
+    // Update childModelDatas array
+    // mapping to array of nested models
+    this._model._internalModel._modelData._resizeChildModelData(
+      this._key,
+      idx,
+      removeAmt,
+      newItems.length
+    );
+
+    newItems = newItems.map((item, index) => {
       if (isResolvedValue(item)) {
         associateRecordWithRecordArray(item, this);
         return item;
@@ -38,7 +47,7 @@ export default class M3TrackedArray extends ArrayProxy {
         this._store,
         this._schema,
         this._model,
-        idx
+        index + idx
       );
     });
 

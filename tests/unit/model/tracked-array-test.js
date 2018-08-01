@@ -82,6 +82,67 @@ module('unit/model/tracked-array', function(hooks) {
     assert.equal(get(chapter2, 'name'), 'The Vanishing Glass', `new values can be resolved`);
   });
 
+  test('tracked nested array, non-reference, arrays resolve new values', function(assert) {
+    let model = run(() =>
+      this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            chapters: [
+              {
+                name: 'The Boy Who Lived',
+              },
+            ],
+          },
+        },
+      })
+    );
+
+    let chapters = model.get('chapters');
+    assert.equal(chapters instanceof M3TrackedArray, true, 'chapters is a tracked array');
+
+    let chapter1 = chapters.objectAt(0);
+    assert.equal(chapter1.constructor.isModel, true, 'chapters has resolved values');
+    assert.equal(
+      chapter1.get('name'),
+      'The Boy Who Lived',
+      `chapters's embedded records can resolve values`
+    );
+
+    run(() => chapters.pushObject({ name: 'The Vanishing Glass' }));
+
+    let chapter2 = chapters.objectAt(1);
+    assert.equal(chapter2.constructor.isModel, true, 'new values can be resolved');
+    assert.equal(get(chapter2, 'name'), 'The Vanishing Glass', `new values can be resolved`);
+
+    //Remove object
+    run(() => chapters.shiftObject());
+    assert.equal(chapters.length, 1, 'Item is removed');
+    chapter1 = chapters.objectAt(0);
+    assert.equal(chapter1.constructor.isModel, true, 'chapters has resolved values');
+    assert.equal(
+      get(chapter1, 'name'),
+      'The Vanishing Glass',
+      `First item is removed from the array`
+    );
+
+    //Push new object
+    run(() => chapters.pushObject({ name: 'The Vanishing Glass Pt. 2' }));
+    assert.equal(chapters.length, 2, 'Item is pushed at the end');
+    let chapter3 = chapters.objectAt(1);
+    assert.equal(chapter3.constructor.isModel, true, 'new values can be resolved');
+    assert.equal(get(chapter3, 'name'), 'The Vanishing Glass Pt. 2', `new values can be resolved`);
+
+    //unshit object
+    run(() => chapters.unshiftObject({ name: 'The Boy Who Lived' }));
+    chapter1 = chapters.objectAt(0);
+    assert.equal(chapters.length, 3, 'Item is removed');
+    assert.equal(chapter1.constructor.isModel, true, 'chapters has resolved values');
+    assert.equal(chapter1.get('name'), 'The Boy Who Lived', `added record at the start`);
+  });
+
   test('unloaded records are automatically removed from tracked arrays', function(assert) {
     let model = run(() =>
       this.store.push({
