@@ -1,5 +1,10 @@
 # ember-m3 changelog
 
+## 0.8.1
+
+* `modelName` is now passed to `computeAttributes`
+* bugfix: tracked arrays no longer overwrite existing entries (thanks @dnalagatla)
+
 ## 0.8.0
 
 * bugfix: dependent keys are tracked even when they are initially absent in the server payload
