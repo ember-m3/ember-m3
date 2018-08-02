@@ -1,11 +1,7 @@
-import Service from '@ember/service';
+import Service, { inject } from '@ember/service';
+import { defineProperty } from '@ember/object';
 
 export default class SchemaManager extends Service {
-  init() {
-    super.init(...arguments);
-    this.schema = null;
-  }
-
   /**
    * Determines whether an attribute is a reference.
    * If it is not, return `null` or `undefined`.
@@ -24,7 +20,7 @@ export default class SchemaManager extends Service {
    * @returns {Object}
    */
   computeAttributeReference(key, value, modelName, schemaInterface) {
-    return this.schema.computeAttributeReference(key, value, modelName, schemaInterface);
+    return this.get('schema').computeAttributeReference(key, value, modelName, schemaInterface);
   }
 
   /**
@@ -38,7 +34,7 @@ export default class SchemaManager extends Service {
    * @returns {Object}
    */
   computeNestedModel(key, value, modelName, schemaInterface) {
-    return this.schema.computeNestedModel(key, value, modelName, schemaInterface);
+    return this.get('schema').computeNestedModel(key, value, modelName, schemaInterface);
   }
 
   /**
@@ -48,7 +44,7 @@ export default class SchemaManager extends Service {
    * @returns {boolean}
    */
   includesModel(modelName) {
-    return this.schema.includesModel(modelName);
+    return this.get('schema').includesModel(modelName);
   }
 
   /**
@@ -60,7 +56,7 @@ export default class SchemaManager extends Service {
    * @returns {string}
    */
   computeBaseModelName(projectionModelName) {
-    return this.schema.computeBaseModelName(projectionModelName);
+    return this.get('schema').computeBaseModelName(projectionModelName);
   }
 
   isAttributeIncluded(modelName, attrName) {
@@ -95,8 +91,9 @@ export default class SchemaManager extends Service {
    * @returns {Array<string>}
    */
   computeAttributes(keys, modelName) {
-    if (this.schema.computeAttributes && typeof this.schema.computeAttributes === 'function') {
-      return this.schema.computeAttributes(keys, modelName);
+    let schema = this.get('schema');
+    if (schema.computeAttributes && typeof schema.computeAttributes === 'function') {
+      return schema.computeAttributes(keys, modelName);
     }
 
     return keys;
@@ -111,12 +108,7 @@ export default class SchemaManager extends Service {
    * @param {M3SchemaInterface} schemaInterface
    */
   setAttribute(modelName, attrName, value, schemaInterface) {
-    if (this.schema.setAttribute) {
-      this.schema.setAttribute(modelName, attrName, value, schemaInterface);
-      return;
-    }
-
-    schemaInterface.setAttr(attrName, value);
+    this.get('schema').setAttribute(modelName, attrName, value, schemaInterface);
   }
 
   transformValue(modelName, attrName, value) {
@@ -126,27 +118,8 @@ export default class SchemaManager extends Service {
     return transform ? transform(value) : value;
   }
 
-  /**
-   * Register a global schema to m3
-   *
-   * @param {Object} schema
-   * @param {Function} schema.includesModel
-   * @param {Function} schema.computeAttributeReference
-   * @param {Function} schema.computeNestedModel
-   * @param {Function} schema.includesModel
-   * @param {Function} schema.computeBaseModelName
-   * @param {Function} [schema.setAttribute]
-   * @param {Function} [schema.computeAttributes]
-   */
-  registerSchema(schema) {
-    this.schema = schema;
-  }
-
   _modelSchema(modelName) {
-    if (this.schema === null) {
-      return undefined;
-    }
-    let models = this.schema.models;
+    let models = this.get('schema').models;
     return models && models[modelName];
   }
 
@@ -177,3 +150,5 @@ export default class SchemaManager extends Service {
     return modelSchema && modelSchema[property];
   }
 }
+
+defineProperty(SchemaManager.prototype, 'schema', inject('m3-schema'));

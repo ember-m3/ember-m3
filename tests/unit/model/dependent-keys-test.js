@@ -3,42 +3,37 @@ import { get } from '@ember/object';
 import { run } from '@ember/runloop';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
-import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
+import DefaultSchema from 'ember-m3/services/m3-schema';
 
 module('unit/model/dependent-keys', function(hooks) {
   setupTest(hooks);
 
   hooks.beforeEach(function() {
     this.sinon = sinon.sandbox.create();
-    initializeStore(this);
     this.store = this.owner.lookup('service:store');
 
-    this.schemaManager = this.owner.lookup('service:m3-schema-manager');
-    this.schemaManager.registerSchema({
-      includesModel(modelName) {
-        return /^com.example.bookstore\./i.test(modelName);
-      },
+    this.owner.register(
+      'service:m3-schema',
+      class TestSchema extends DefaultSchema {
+        includesModel(modelName) {
+          return /^com.example.bookstore\./i.test(modelName);
+        }
 
-      computeBaseModelName() {},
-
-      computeAttributeReference(key, value, modelName, schemaInterface) {
-        let refValue = schemaInterface.getAttr(`*${key}`);
-        if (refValue !== undefined) {
-          if (Array.isArray(refValue)) {
-            return refValue.map(id => ({ id, type: null }));
-          } else {
-            return {
-              id: refValue,
-              type: null,
-            };
+        computeAttributeReference(key, value, modelName, schemaInterface) {
+          let refValue = schemaInterface.getAttr(`*${key}`);
+          if (refValue !== undefined) {
+            if (Array.isArray(refValue)) {
+              return refValue.map(id => ({ id, type: null }));
+            } else {
+              return {
+                id: refValue,
+                type: null,
+              };
+            }
           }
         }
-      },
-
-      computeNestedModel(/* key, value, modelName, schemaInterface */) {},
-
-      models: {},
-    });
+      }
+    );
   });
 
   test('when new payloads invalidate properties, their dependent properties are invalidated', function(assert) {

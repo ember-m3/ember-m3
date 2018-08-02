@@ -3,37 +3,32 @@ import { get } from '@ember/object';
 import { run } from '@ember/runloop';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
-import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
 import M3TrackedArray from 'ember-m3/m3-tracked-array';
+import DefaultSchema from 'ember-m3/services/m3-schema';
 
 module('unit/model/tracked-array', function(hooks) {
   setupTest(hooks);
 
   hooks.beforeEach(function() {
     this.sinon = sinon.sandbox.create();
-    initializeStore(this);
-    this.store = this.owner.lookup('service:store');
-
-    this.schemaManager = this.owner.lookup('service:m3-schema-manager');
-    this.schemaManager.registerSchema({
-      includesModel(modelName) {
-        return /^com.example.bookstore\./i.test(modelName);
-      },
-
-      computeBaseModelName() {},
-
-      computeAttributeReference(/* key, value, modelName, schemaInterface */) {},
-
-      computeNestedModel(key, value /*, modelName, schemaInterface */) {
-        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-          return {
-            attributes: value,
-          };
+    this.owner.register(
+      'service:m3-schema',
+      class TestSchema extends DefaultSchema {
+        includesModel(modelName) {
+          return /^com.example.bookstore\./i.test(modelName);
         }
-      },
 
-      models: {},
-    });
+        computeNestedModel(key, value /*, modelName, schemaInterface */) {
+          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            return {
+              attributes: value,
+            };
+          }
+        }
+      }
+    );
+
+    this.store = this.owner.lookup('service:store');
   });
 
   test('tracked, non-reference, arrays resolve new values', function(assert) {

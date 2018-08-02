@@ -1,17 +1,38 @@
 import { module, test } from 'qunit';
 import { assert } from '@ember/debug';
-import M3ModelData from 'ember-m3/model-data';
-import SchemaManager from 'ember-m3/services/m3-schema-manager';
 import sinon from 'sinon';
 import { zip } from 'lodash';
+import { setupTest } from 'ember-qunit';
+
+import M3ModelData from 'ember-m3/model-data';
+import DefaultSchema from 'ember-m3/services/m3-schema';
 
 const modelDataKey = ({ modelName, id }) => `${modelName}:${id}`;
 
 module('unit/model-data', function(hooks) {
+  setupTest(hooks);
+
   hooks.beforeEach(function() {
     this.sinon = sinon.sandbox.create();
 
-    let schemaManager = (this.schemaManager = SchemaManager.create());
+    this.owner.register(
+      'service:m3-schema',
+      class TestSchema extends DefaultSchema {
+        computeNestedModel(key, value) {
+          if (value !== null && typeof value === 'object') {
+            return { id: key, type: 'com.exmaple.bookstore.book', attributes: value };
+          }
+        }
+
+        computeBaseModelName(modelName) {
+          return ['com.bookstore.projected-book', 'com.bookstore.excerpt-book'].includes(modelName)
+            ? 'com.bookstore.book'
+            : null;
+        }
+      }
+    );
+
+    let schemaManager = (this.schemaManager = this.owner.lookup('service:m3-schema-manager'));
 
     let storeWrapper = (this.storeWrapper = {
       modelDatas: {},
@@ -50,20 +71,6 @@ module('unit/model-data', function(hooks) {
     this.mockModelData = function() {
       return this.storeWrapper.modelDataFor('com.bookstore.book', '1');
     };
-
-    schemaManager.registerSchema({
-      computeNestedModel(key, value) {
-        if (value !== null && typeof value === 'object') {
-          return { id: key, type: 'com.exmaple.bookstore.book', attributes: value };
-        }
-      },
-
-      computeBaseModelName(modelName) {
-        return ['com.bookstore.projected-book', 'com.bookstore.excerpt-book'].includes(modelName)
-          ? 'com.bookstore.book'
-          : null;
-      },
-    });
   });
 
   hooks.afterEach(function() {

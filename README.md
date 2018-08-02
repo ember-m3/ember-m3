@@ -57,56 +57,50 @@ For example, if your API returns responses like the following:
 You could support it with the following schema:
 
 ```js
-// app/instance-initializers/schema-initializer.js
-import SchemaManager from 'ember-m3/schema-manager';
+// app/services/m3-schema.js
+//
+// generated via `ember generate m3:schema
+import DefaultSchema from 'ember-m3/services/m3-schema';
 
 const BookstoreRegExp = /^com\.example\.bookstore\.*/;
 const ISBNRegExp = /^isbn:.*/;
 const URNRegExp = /^urn:(\w+):(.*)/;
 
-export function initialize(application) {
-  let schemaManager = application.lookup('service:m3-schema-manager');
-  schemaManager.registerSchema({
-    includesModel(modelName) {
-      return BookstoreRegExp.test(modelName);
-    },
+export default DefaultSchema.extend({
+  includesModel(modelName) {
+    return BookstoreRegExp.test(modelName);
+  },
 
-    computeAttributeReference(key, value, modelName, schemaInterface) {
-      if (!value) {
-        return;
-      }
+  computeAttributeReference(key, value, modelName, schemaInterface) {
+    if (!value) {
+      return;
+    }
 
-      let match;
+    let match;
 
-      if (ISBNRegExp.test(value)) {
-        return {
-          id: value,
-          type: 'com.example.bookstore.Book',
-        };
-      } else if ((match = URNRegExp.exec(value))) {
-        return {
-          id: match[2],
-          type: `com.example.bookstore.${match[1]}`,
-        };
-      }
-    },
+    if (ISBNRegExp.test(value)) {
+      return {
+        id: value,
+        type: 'com.example.bookstore.Book',
+      };
+    } else if ((match = URNRegExp.exec(value))) {
+      return {
+        id: match[2],
+        type: `com.example.bookstore.${match[1]}`,
+      };
+    }
+  },
 
-    computeNestedModel(key, value, modelName, schemaInterface) {
-      if (value && typeof value === 'object') {
-        return {
-          id: value.id,
-          type: value.type,
-          attributes: value,
-        };
-      }
-    },
-  });
-}
-
-export default {
-  name: 'm3-schema-initializer',
-  initialize,
-};
+  computeNestedModel(key, value, modelName, schemaInterface) {
+    if (value && typeof value === 'object') {
+      return {
+        id: value.id,
+        type: value.type,
+        attributes: value,
+      };
+    }
+  },
+});
 ```
 
 Notice that in this case, the schema doesn't specify anything model-specific and

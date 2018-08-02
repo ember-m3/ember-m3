@@ -4,15 +4,13 @@ import DS from 'ember-data';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
-
-import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
+import DefaultSchema from 'ember-m3/services/m3-schema';
 
 module('unit/store', function(hooks) {
   setupTest(hooks);
 
   hooks.beforeEach(function() {
     this.sinon = sinon.sandbox.create();
-    initializeStore(this);
 
     this.Author = DS.Model.extend({
       name: DS.attr('string'),
@@ -20,14 +18,14 @@ module('unit/store', function(hooks) {
     this.Author.toString = () => 'Author';
     this.owner.register('model:author', this.Author);
 
-    let schemaManager = this.owner.lookup('service:m3-schema-manager');
-    schemaManager.registerSchema({
-      includesModel(modelName) {
-        return /^com.example.bookstore\./i.test(modelName);
-      },
-      computeBaseModelName() {},
-    });
-
+    this.owner.register(
+      'service:m3-schema',
+      class TestSchema extends DefaultSchema {
+        includesModel(modelName) {
+          return /^com.example.bookstore\./i.test(modelName);
+        }
+      }
+    );
     this.store = this.owner.lookup('service:store');
   });
 

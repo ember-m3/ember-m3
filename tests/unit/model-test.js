@@ -6,13 +6,14 @@ import sinon from 'sinon';
 import DS from 'ember-data';
 import { zip } from 'lodash';
 
-import MegamorphicModel from 'ember-m3/model';
-import M3RecordArray from 'ember-m3/record-array';
-import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
 import EmberObject, { get, set, computed } from '@ember/object';
 import { Promise, resolve } from 'rsvp';
 import { run } from '@ember/runloop';
 import { isArray } from '@ember/array';
+
+import MegamorphicModel from 'ember-m3/model';
+import M3RecordArray from 'ember-m3/record-array';
+import DefaultSchema from 'ember-m3/services/m3-schema';
 
 const UrnWithTypeRegex = /^urn:([a-zA-Z.]+):(.*)/;
 const UrnWithoutTypeRegex = /^urn:(.*)/;
@@ -22,9 +23,7 @@ module('unit/model', function(hooks) {
 
   hooks.beforeEach(function() {
     this.sinon = sinon.sandbox.create();
-    initializeStore(this);
     this.store = this.owner.lookup('service:store');
-    this.schemaManager = this.owner.lookup('service:m3-schema-manager');
 
     this.Author = DS.Model.extend({
       name: DS.attr('string'),
@@ -35,12 +34,10 @@ module('unit/model', function(hooks) {
     this.Author.toString = () => 'Author';
     this.owner.register('model:author', this.Author);
 
-    this.schemaManager.registerSchema({
+    class TestSchema extends DefaultSchema {
       includesModel(modelName) {
         return /^com.example.bookstore\./i.test(modelName);
-      },
-
-      computeBaseModelName() {},
+      }
 
       // TODO: split this up to different tests
       computeAttributeReference(key, value, modelName, schemaInterface) {
@@ -87,7 +84,7 @@ module('unit/model', function(hooks) {
             id: value,
           };
         }
-      },
+      }
 
       computeNestedModel(key, value, modelName, data) {
         if (value === undefined) {
@@ -100,40 +97,40 @@ module('unit/model', function(hooks) {
             attributes: value,
           };
         }
-      },
-
-      models: {
-        'com.example.bookstore.book': {
-          aliases: {
-            title: 'name',
-            cost: 'price',
-            pub: 'publisher',
-            releaseDate: 'pubDate',
-            pb: 'paperback',
-            hb: 'hardback',
-          },
-          defaults: {
-            publisher: 'Penguin Classics',
-            hardback: true,
-            paperback: true,
-            publishedIn: 'US',
-          },
-          transforms: {
-            publisher(value) {
-              return `${value}, of course`;
-            },
-            pubDate(value) {
-              return value === undefined ? undefined : new Date(Date.parse(value));
-            },
-          },
+      }
+    }
+    TestSchema.prototype.models = {
+      'com.example.bookstore.book': {
+        aliases: {
+          title: 'name',
+          cost: 'price',
+          pub: 'publisher',
+          releaseDate: 'pubDate',
+          pb: 'paperback',
+          hb: 'hardback',
         },
-        'com.example.bookstore.chapter': {
-          defaults: {
-            firstCharacterMentioned: 'Harry Potter',
+        defaults: {
+          publisher: 'Penguin Classics',
+          hardback: true,
+          paperback: true,
+          publishedIn: 'US',
+        },
+        transforms: {
+          publisher(value) {
+            return `${value}, of course`;
+          },
+          pubDate(value) {
+            return value === undefined ? undefined : new Date(Date.parse(value));
           },
         },
       },
-    });
+      'com.example.bookstore.chapter': {
+        defaults: {
+          firstCharacterMentioned: 'Harry Potter',
+        },
+      },
+    };
+    this.owner.register('service:m3-schema', TestSchema);
   });
 
   hooks.afterEach(function() {
