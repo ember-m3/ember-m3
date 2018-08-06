@@ -4,7 +4,7 @@ import { run } from '@ember/runloop';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
-import { zip } from 'lodash';
+import stubCalls from '../helpers/stub-calls';
 
 import DS from 'ember-data';
 
@@ -12,10 +12,6 @@ import MegamorphicModel from 'ember-m3/model';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 
 const { Serializer } = DS;
-
-function stubCalls(stub) {
-  return zip(stub.thisValues.map(x => x + ''), stub.args);
-}
 
 module('unit/query-cache', function(hooks) {
   setupTest(hooks);

@@ -195,4 +195,69 @@ module('unit/model/tracked-array', function(hooks) {
       'unloaded records are removed from tracked arrays'
     );
   });
+
+  test('embedded models can be added to tracked arrays', function(assert) {
+    this.schema = this.owner.lookup('service:m3-schema');
+    this.sinon.spy(this.schema, 'setAttribute');
+
+    let [book1, book2] = run(() =>
+      this.store.push({
+        data: [
+          {
+            id: 'isbn:9780439708180',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Sorcerer's Stone`,
+              chapters: [
+                {
+                  name: 'The Boy Who Lived',
+                },
+              ],
+            },
+          },
+          {
+            id: 'urn:isbn9780439064873',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Chamber of Secrets`,
+              chapters: [
+                {
+                  name: 'The Worst Birthday',
+                },
+              ],
+            },
+          },
+        ],
+      })
+    );
+
+    let book1Chapter1 = book1.get('chapters').objectAt(0);
+    let book2Chapter1 = book2.get('chapters').objectAt(0);
+    book2.get('chapters').pushObject(book1Chapter1);
+
+    assert.equal(this.schema.setAttribute.callCount, 1, 'setAttribute called once');
+    assert.deepEqual(this.schema.setAttribute.lastCall.args.slice(0, -1), [
+      // model name is "normalized"
+      'com.example.bookstore.book',
+      'chapters',
+      [book2Chapter1, book1Chapter1],
+    ]);
+
+    assert.deepEqual(
+      book1.get('chapters').mapBy('name'),
+      ['The Boy Who Lived'],
+      'book1 chapters correct'
+    );
+    assert.deepEqual(
+      book2.get('chapters').mapBy('name'),
+      ['The Worst Birthday', 'The Boy Who Lived'],
+      'book2 chapters correct'
+    );
+
+    assert.strictEqual(
+      book1.get('chapters').objectAt(0),
+      book2.get('chapters').objectAt(1),
+      'embedded model can be shared between tracked arrays'
+    );
+  });
 });

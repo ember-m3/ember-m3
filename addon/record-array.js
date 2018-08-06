@@ -1,6 +1,7 @@
 import { get } from '@ember/object';
 import { RecordArray } from 'ember-data/-private';
 import { A } from '@ember/array';
+import { EmbeddedMegamorphicModel } from './model';
 
 /**
  * M3RecordArray
@@ -70,5 +71,14 @@ export default class M3RecordArray extends RecordArray {
 }
 
 export function associateRecordWithRecordArray(record, recordArray) {
+  if (record instanceof EmbeddedMegamorphicModel) {
+    // embedded models can be added across tracked arrays (although this is
+    // weird) but since they can't be unloaded there's no need to associate the
+    // array with the model
+    //
+    // unloading the top model after adding one of its embedded models to some
+    // other tracked array is undefined behaviour
+    return;
+  }
   record._internalModel._recordArrays.add(recordArray);
 }
