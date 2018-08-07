@@ -8,7 +8,6 @@ import EmberObject, { computed, get, set, defineProperty } from '@ember/object';
 import { isArray } from '@ember/array';
 import { warn } from '@ember/debug';
 import { alias } from '@ember/object/computed';
-import Map from '@ember/map';
 
 import M3RecordArray from './record-array';
 import { OWNER_KEY } from './util';
