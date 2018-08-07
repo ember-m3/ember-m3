@@ -767,6 +767,20 @@ export default class M3ModelData {
     );
   }
 
+  _setChildModelData(key, idx, model) {
+    let modelData = model._internalModel._modelData;
+
+    if (idx !== undefined && idx !== null) {
+      let childModelDatas = this._childModelDatas[key];
+      if (childModelDatas === undefined) {
+        childModelDatas = this._childModelDatas[key] = [];
+      }
+      childModelDatas[idx] = modelData;
+    } else {
+      this._childModelDatas[key] = modelData;
+    }
+  }
+
   _registerProjection(modelData) {
     if (!this._projections) {
       // we ensure projections contains the base as well

@@ -1,12 +1,12 @@
 import { module, test, skip } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import MegamorphicModel from 'ember-m3/model';
-import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
 import { watchProperties } from '../helpers/watch-property';
 import { get, set } from '@ember/object';
 import { run } from '@ember/runloop';
 import { Promise } from 'rsvp';
 import EmberObject from '@ember/object';
+import DefaultSchema from 'ember-m3/services/m3-schema';
 
 /*
   Ember Data currently dasherizes modelNames for use within the store, in these tests
@@ -30,15 +30,11 @@ module('unit/projection', function(hooks) {
   setupTest(hooks);
 
   hooks.beforeEach(function() {
-    initializeStore(this);
-
     this.store = this.owner.lookup('service:store');
-    this.schemaManager = this.owner.lookup('service:m3-schema-manager');
-
-    this.schemaManager.registerSchema({
+    class TestSchema extends DefaultSchema {
       includesModel(modelName) {
         return /^com\.example\.bookstore\./i.test(modelName);
-      },
+      }
 
       computeAttributeReference(key, value, modelName) {
         if (/^isbn:/.test(value)) {
@@ -59,7 +55,7 @@ module('unit/projection', function(hooks) {
             id: parts[2],
           };
         }
-      },
+      }
 
       computeNestedModel(key, value, modelName) {
         if (!value || typeof value !== 'object' || value.constructor === Date) {
@@ -75,7 +71,7 @@ module('unit/projection', function(hooks) {
           id: value.id,
           attributes: value,
         };
-      },
+      }
 
       computeBaseModelName(modelName) {
         let schema = this.models[modelName];
@@ -83,36 +79,37 @@ module('unit/projection', function(hooks) {
         if (schema !== undefined) {
           return schema.baseType;
         }
+      }
+    }
+    TestSchema.prototype.models = {
+      [NORM_BOOK_CLASS_PATH]: {},
+      [NORM_BOOK_EXCERPT_PROJECTION_CLASS_PATH]: {
+        baseType: BOOK_CLASS_PATH,
+        attributes: ['title', 'author', 'year', 'publisher'],
       },
-
-      models: {
-        [NORM_BOOK_CLASS_PATH]: {},
-        [NORM_BOOK_EXCERPT_PROJECTION_CLASS_PATH]: {
-          baseType: BOOK_CLASS_PATH,
-          attributes: ['title', 'author', 'year', 'publisher'],
+      [NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH]: {
+        baseType: BOOK_CLASS_PATH,
+        attributesTypes: {
+          publisher: PROJECTED_PUBLISHER_CLASS,
+          author: PROJECTED_AUTHOR_CLASS,
+          otherBooksInSeries: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
         },
-        [NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH]: {
-          baseType: BOOK_CLASS_PATH,
-          attributesTypes: {
-            publisher: PROJECTED_PUBLISHER_CLASS,
-            author: PROJECTED_AUTHOR_CLASS,
-            otherBooksInSeries: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
-          },
-          // if you want to project an embedded model then it must have a type
-          //  computedEmbeddedType
-          attributes: ['title', 'author', 'chapter-1', 'year', 'publisher', 'otherBooksInSeries'],
-        },
-        [NORM_PUBLISHER_CLASS]: {},
-        // this schema must come with the parent schema
-        [NORM_PROJECTED_AUTHOR_CLASS]: {
-          attributes: ['location', 'name'],
-        },
-        [NORM_PROJECTED_PUBLISHER_CLASS]: {
-          baseType: PUBLISHER_CLASS,
-          attributes: ['location', 'name'],
-        },
+        // if you want to project an embedded model then it must have a type
+        //  computedEmbeddedType
+        attributes: ['title', 'author', 'chapter-1', 'year', 'publisher', 'otherBooksInSeries'],
       },
-    });
+      [NORM_PUBLISHER_CLASS]: {},
+      // this schema must come with the parent schema
+      [NORM_PROJECTED_AUTHOR_CLASS]: {
+        attributes: ['location', 'name'],
+      },
+      [NORM_PROJECTED_PUBLISHER_CLASS]: {
+        baseType: PUBLISHER_CLASS,
+        attributes: ['location', 'name'],
+      },
+    };
+    this.owner.register('service:m3-schema', TestSchema);
+    this.schemaManager = this.owner.lookup('service:m3-schema-manager');
   });
 
   module('cache consistency', function() {
@@ -1800,7 +1797,12 @@ module('unit/projection', function(hooks) {
 
     hooks.beforeEach(function() {
       //Adding .setAttribute hook in schema
-      this.schemaManager.schema.setAttribute = function(modelName, attr, value, schemaInterface) {
+      this.schemaManager.get('schema').setAttribute = function(
+        modelName,
+        attr,
+        value,
+        schemaInterface
+      ) {
         const baseModelName = this.computeBaseModelName(modelName);
         if (
           baseModelName &&

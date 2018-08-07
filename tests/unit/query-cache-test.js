@@ -4,41 +4,29 @@ import { run } from '@ember/runloop';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
-import { zip } from 'lodash';
+import stubCalls from '../helpers/stub-calls';
 
 import DS from 'ember-data';
 
-import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
 import MegamorphicModel from 'ember-m3/model';
+import DefaultSchema from 'ember-m3/services/m3-schema';
 
 const { Serializer } = DS;
-
-function stubCalls(stub) {
-  return zip(stub.thisValues.map(x => x + ''), stub.args);
-}
 
 module('unit/query-cache', function(hooks) {
   setupTest(hooks);
 
   hooks.beforeEach(function() {
     this.sinon = sinon.sandbox.create();
-    initializeStore(this);
 
-    this.schemaManager = this.owner.lookup('service:m3-schema-manager');
-
-    this.schemaManager.registerSchema({
-      includesModel(modelName) {
-        return modelName !== 'application';
-      },
-
-      computeAttributeReference(/* key, value */) {},
-
-      computeNestedModel(/* key, value */) {},
-
-      computeBaseModelName() {},
-
-      models: {},
-    });
+    this.owner.register(
+      'service:m3-schema',
+      class TestSchema extends DefaultSchema {
+        includesModel(modelName) {
+          return modelName !== 'application';
+        }
+      }
+    );
 
     this.store = this.owner.lookup('service:store');
     this.adapter = this.store.adapterFor('application');

@@ -3,37 +3,32 @@ import { get } from '@ember/object';
 import { run } from '@ember/runloop';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
-import { initialize as initializeStore } from 'ember-m3/initializers/m3-store';
 import M3TrackedArray from 'ember-m3/m3-tracked-array';
+import DefaultSchema from 'ember-m3/services/m3-schema';
 
 module('unit/model/tracked-array', function(hooks) {
   setupTest(hooks);
 
   hooks.beforeEach(function() {
     this.sinon = sinon.sandbox.create();
-    initializeStore(this);
-    this.store = this.owner.lookup('service:store');
-
-    this.schemaManager = this.owner.lookup('service:m3-schema-manager');
-    this.schemaManager.registerSchema({
-      includesModel(modelName) {
-        return /^com.example.bookstore\./i.test(modelName);
-      },
-
-      computeBaseModelName() {},
-
-      computeAttributeReference(/* key, value, modelName, schemaInterface */) {},
-
-      computeNestedModel(key, value /*, modelName, schemaInterface */) {
-        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-          return {
-            attributes: value,
-          };
+    this.owner.register(
+      'service:m3-schema',
+      class TestSchema extends DefaultSchema {
+        includesModel(modelName) {
+          return /^com.example.bookstore\./i.test(modelName);
         }
-      },
 
-      models: {},
-    });
+        computeNestedModel(key, value /*, modelName, schemaInterface */) {
+          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            return {
+              attributes: value,
+            };
+          }
+        }
+      }
+    );
+
+    this.store = this.owner.lookup('service:store');
   });
 
   test('tracked, non-reference, arrays resolve new values', function(assert) {
@@ -198,6 +193,71 @@ module('unit/model/tracked-array', function(hooks) {
       chapters.mapBy('name'),
       ['The Boy Who Lived'],
       'unloaded records are removed from tracked arrays'
+    );
+  });
+
+  test('embedded models can be added to tracked arrays', function(assert) {
+    this.schema = this.owner.lookup('service:m3-schema');
+    this.sinon.spy(this.schema, 'setAttribute');
+
+    let [book1, book2] = run(() =>
+      this.store.push({
+        data: [
+          {
+            id: 'isbn:9780439708180',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Sorcerer's Stone`,
+              chapters: [
+                {
+                  name: 'The Boy Who Lived',
+                },
+              ],
+            },
+          },
+          {
+            id: 'urn:isbn9780439064873',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Chamber of Secrets`,
+              chapters: [
+                {
+                  name: 'The Worst Birthday',
+                },
+              ],
+            },
+          },
+        ],
+      })
+    );
+
+    let book1Chapter1 = book1.get('chapters').objectAt(0);
+    let book2Chapter1 = book2.get('chapters').objectAt(0);
+    book2.get('chapters').pushObject(book1Chapter1);
+
+    assert.equal(this.schema.setAttribute.callCount, 1, 'setAttribute called once');
+    assert.deepEqual(this.schema.setAttribute.lastCall.args.slice(0, -1), [
+      // model name is "normalized"
+      'com.example.bookstore.book',
+      'chapters',
+      [book2Chapter1, book1Chapter1],
+    ]);
+
+    assert.deepEqual(
+      book1.get('chapters').mapBy('name'),
+      ['The Boy Who Lived'],
+      'book1 chapters correct'
+    );
+    assert.deepEqual(
+      book2.get('chapters').mapBy('name'),
+      ['The Worst Birthday', 'The Boy Who Lived'],
+      'book2 chapters correct'
+    );
+
+    assert.strictEqual(
+      book1.get('chapters').objectAt(0),
+      book2.get('chapters').objectAt(1),
+      'embedded model can be shared between tracked arrays'
     );
   });
 });

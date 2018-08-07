@@ -37,6 +37,10 @@ export default class M3TrackedArray extends ArrayProxy {
     newItems = newItems.map((item, index) => {
       if (isResolvedValue(item)) {
         associateRecordWithRecordArray(item, this);
+        // TODO: clean up this ridiculous hack
+        // adding a resolved value to a tracked array requires the child model
+        // data stitching to be maintained
+        this._model._internalModel._modelData._setChildModelData(this._key, index + idx, item);
         return item;
       }
 

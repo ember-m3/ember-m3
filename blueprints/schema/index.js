@@ -1,6 +1,6 @@
 /* eslint-env node */
 module.exports = {
-  description: 'Generates an initializer for registering m3 schemas',
+  description: 'Generates an empty m3 schema',
 
   normalizeEntityName: function() {
     // this prevents an error when the entityName is
