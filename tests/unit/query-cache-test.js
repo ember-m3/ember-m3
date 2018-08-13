@@ -408,14 +408,14 @@ module('unit/query-cache', function(hooks) {
       data: {
         id: 1,
         type: 'something-or-other',
-        attributes: {},
+        attributes: { name: 'first' },
       },
     };
     let secondPayload = {
       data: {
         id: 2,
         type: 'something-or-other',
-        attributes: {},
+        attributes: { name: 'subsequent' },
       },
     };
     this.adapterAjax.returns(resolve(firstPayload));
@@ -426,6 +426,7 @@ module('unit/query-cache', function(hooks) {
       .queryURL('/uwot', { cacheKey })
       .then(model => {
         assert.equal(model.id, 1, 'the returned promise fulfills with the model');
+        assert.equal(model.get('name'), 'first', 'first value is returned');
       })
       .then(() => {
         this.adapterAjax.returns(resolve(secondPayload));
@@ -433,6 +434,7 @@ module('unit/query-cache', function(hooks) {
       })
       .then(model => {
         assert.equal(model.id, 2, 'the returned promise fulfills with the model');
+        assert.equal(model.get('name'), 'subsequent', 'the second value is returned');
         assert.equal(this.adapterAjax.callCount, 2, 'adapter.ajax is called again');
       });
   });
