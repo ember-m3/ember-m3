@@ -86,6 +86,6 @@
   },
   "ember-addon": {
     "configPath": "tests/dummy/config",
-    "defaultBlueprint": "schema-initializer"
+    "defaultBlueprint": "schema"
   }
 }
