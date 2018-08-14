@@ -132,7 +132,6 @@ The trade-offs made for this include:
 ## Installation
 
 - `ember install ember-m3`
-- `ember generate schema-initializer`
 
 ## Querying
 
@@ -301,7 +300,7 @@ store.queryURL('/foo', { cacheKey: 'foo' }).then(result => {
 
 You have to register a schema to tell ember-m3 what types it should be enabled
 for, as well as information that cannot be inferred from the response payload.
-You can think of the schema as a single POJO that represents the same
+You can think of the schema as a service that represents the same
 information, more or less, as all of your `DS.Model` files.
 
 ### What is a schema
@@ -324,9 +323,9 @@ the runtime cost of relationships.
 
 ### API
 
-You register your schema with a call to `m3SchemaManager.registerSchema(schema)`,
-where `m3SchemaManager` is the `m3-schema-manager` service. The `schema` you pass
-in is an object with the following properties.
+`Schema` is a service registered from `app/services/m3-schema.js`. For convenience
+you can extend a default schema from `ember-m3/services/schema`. The `schema` should
+have following properties.
 
 - `includesModel(modelName)` Whether or not ember-m3 should handle this
   `modelName`. It's fine to just `return true` here but this hook allows
@@ -400,7 +399,7 @@ in is an object with the following properties.
   }
   ```
 
-- `computeAttributes(keys)` Compute the actual attribute names, default just return the
+- `computeAttributes(keys, modelName)` Compute the actual attribute names, default just return the
   array passed in.
   This is useful if you need to "decode/encode" your attribute names in a certain form, e.g.,
   add a prefix when serializing.
