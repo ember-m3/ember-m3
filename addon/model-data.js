@@ -419,6 +419,10 @@ export default class M3ModelData {
    * @param {*} binding
    */
   eachAttribute(callback, binding) {
+    if (this._baseModelData) {
+      return this._baseModelData.eachAttribute(callback, binding);
+    }
+
     if (this.__attributes !== null) {
       Object.keys(this._attributes).forEach(callback, binding);
     }
