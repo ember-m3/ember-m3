@@ -1,5 +1,10 @@
 # ember-m3 changelog
 
+## 0.9.1
+
+- no longer including useless default service in `app/services/-ember-m3` which
+  mainly forced apps with in-repo addons to ensure they had `after` specified
+
 ## 0.9.0
 
 - apps now specify schemas via a service rather than global registration
