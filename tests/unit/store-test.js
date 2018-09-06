@@ -10,7 +10,7 @@ module('unit/store', function(hooks) {
   setupTest(hooks);
 
   hooks.beforeEach(function() {
-    this.sinon = sinon.sandbox.create();
+    this.sinon = sinon.createSandbox();
 
     this.Author = DS.Model.extend({
       name: DS.attr('string'),

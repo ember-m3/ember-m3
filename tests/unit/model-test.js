@@ -22,7 +22,7 @@ module('unit/model', function(hooks) {
   setupTest(hooks);
 
   hooks.beforeEach(function() {
-    this.sinon = sinon.sandbox.create();
+    this.sinon = sinon.createSandbox();
     this.store = this.owner.lookup('service:store');
 
     this.Author = DS.Model.extend({

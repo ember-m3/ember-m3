@@ -9,7 +9,7 @@ module('unit/model/dependent-keys', function(hooks) {
   setupTest(hooks);
 
   hooks.beforeEach(function() {
-    this.sinon = sinon.sandbox.create();
+    this.sinon = sinon.createSandbox();
     this.store = this.owner.lookup('service:store');
 
     this.owner.register(

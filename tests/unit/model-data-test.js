@@ -13,7 +13,7 @@ module('unit/model-data', function(hooks) {
   setupTest(hooks);
 
   hooks.beforeEach(function() {
-    this.sinon = sinon.sandbox.create();
+    this.sinon = sinon.createSandbox();
 
     this.owner.register(
       'service:m3-schema',
