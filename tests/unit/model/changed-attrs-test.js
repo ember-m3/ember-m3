@@ -93,6 +93,27 @@ module('unit/model/changed-attrs', function(hooks) {
     );
   });
 
+  test('nested models can report their own changed attributes', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+            rating: {
+              avg: 10,
+            },
+          },
+        },
+      });
+    });
+    model.set('rating.avg', 11);
+    assert.deepEqual(model.get('rating').changedAttributes(), {
+      avg: [10, 11],
+    });
+  });
+
   test('.changedAttributes returns nested dirty attributes within an object', function(assert) {
     let model = run(() => {
       return this.store.push({
