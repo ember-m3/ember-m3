@@ -1,5 +1,9 @@
 # ember-m3 changelog
 
+## 0.9.2
+
+- rollback ember-cli-babel to v6
+
 ## 0.9.1
 
 - no longer including useless default service in `app/services/-ember-m3` which
