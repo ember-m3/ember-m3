@@ -76,6 +76,10 @@ export class EmbeddedInternalModel {
   createSnapshot() {
     return new EmbeddedSnapshot(this.record);
   }
+
+  changedAttributes() {
+    return this._modelData.changedAttributes();
+  }
 }
 
 function disallowAliasSet(object, key, value) {
