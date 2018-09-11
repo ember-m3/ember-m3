@@ -104,7 +104,7 @@ class YesManAttributesSingletonClass {
 
 const YesManAttributes = new YesManAttributesSingletonClass();
 
-const retrieveFromCurrentState = computed('currentState', function(key) {
+const retrieveFromCurrentState = computed('_topModel.currentState', function(key) {
   return this._topModel._internalModel.currentState[key];
 }).readOnly();
 
@@ -180,6 +180,10 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   _updateCurrentState(state) {
+    if (this !== this._topModel) {
+      this._topModel._updateCurrentState(state);
+      return;
+    }
     this._internalModel.currentState = state;
     notifyPropertyChange(this, 'currentState');
   }
@@ -498,5 +502,13 @@ export class EmbeddedMegamorphicModel extends MegamorphicModel {
 
   set id(value) {
     return this.setUnknownProperty('id', value);
+  }
+
+  static toString() {
+    return 'EmbeddedMegamorphicModel';
+  }
+
+  toString() {
+    return `<EmbeddedMegamorphicModel:${this.id}>`;
   }
 }
