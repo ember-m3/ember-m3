@@ -1,5 +1,11 @@
 # ember-m3 changelog
 
+## 0.9.3
+
+- bugfix: keep nested model state in sync
+- bugfix: add `changedAttributes()` to nested models
+- bugfix: projections iterate attributes from base (#165)
+
 ## 0.9.2
 
 - rollback ember-cli-babel to v6
