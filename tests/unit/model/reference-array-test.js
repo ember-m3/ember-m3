@@ -419,4 +419,55 @@ module('unit/model/reference-array', function(hooks) {
       'M3RecordArray instance returns array length upon just checking length property'
     );
   });
+
+  test('reference array payload can update to undefined', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            '*relatedBooks': ['isbn:9780439064873', 'isbn:9780439136365'],
+          },
+        },
+        included: [
+          {
+            id: 'isbn:9780439064873',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Chamber of Secrets`,
+            },
+          },
+          {
+            id: 'isbn:9780439136365',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Prisoner of Azkaban`,
+            },
+          },
+        ],
+      });
+    });
+
+    assert.deepEqual(get(model, 'relatedBooks').map(x => get(x, 'name')), [
+      'Harry Potter and the Chamber of Secrets',
+      'Harry Potter and the Prisoner of Azkaban',
+    ]);
+
+    run(() => {
+      this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            '*relatedBooks': undefined,
+          },
+        },
+      });
+    });
+
+    assert.deepEqual(get(model, 'relatedBooks').map(x => get(x, 'name')), [], 'array empty');
+  });
 });

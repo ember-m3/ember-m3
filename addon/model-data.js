@@ -371,6 +371,19 @@ export default class M3ModelData {
 
   /**
    * @param {string} key
+   * @private
+   */
+  _deleteAttr(key) {
+    if (this._baseModelData) {
+      return this._baseModelData._deleteAttr(key);
+    } else {
+      delete this._attributes[key];
+      delete this._data[key];
+    }
+  }
+
+  /**
+   * @param {string} key
    * @returns {boolean}
    */
   hasAttr(key) {
