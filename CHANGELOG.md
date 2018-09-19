@@ -1,5 +1,9 @@
 # ember-m3 changelog
 
+## 0.9.4
+
+- bugfix: reference arrays can update to undefined (treated as now empty)
+
 ## 0.9.3
 
 - bugfix: keep nested model state in sync
