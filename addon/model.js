@@ -10,6 +10,7 @@ import { warn } from '@ember/debug';
 import { alias } from '@ember/object/computed';
 
 import M3RecordArray from './record-array';
+import M3ReferenceArray from './m3-reference-array';
 import { OWNER_KEY } from './util';
 import {
   resolveValue,
@@ -201,7 +202,8 @@ export default class MegamorphicModel extends EmberObject {
     let oldValue = this._cache[key];
     let newValue = this._internalModel._modelData.getAttr(key);
 
-    let oldIsRecordArray = oldValue && oldValue instanceof M3RecordArray;
+    let oldIsRecordArray =
+      oldValue && oldValue instanceof M3RecordArray && !(oldValue instanceof M3ReferenceArray);
 
     if (oldIsRecordArray) {
       if (this._internalModel._modelData.hasLocalAttr(key)) {
