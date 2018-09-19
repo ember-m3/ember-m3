@@ -210,13 +210,9 @@ export default class MegamorphicModel extends EmberObject {
         return;
       }
       // TODO: do this lazily
-      let references = computeAttributeReference(
-        key,
-        newValue,
-        this._modelName,
-        schemaInterface,
-        this._schema
-      );
+      let references =
+        computeAttributeReference(key, newValue, this._modelName, schemaInterface, this._schema) ||
+        [];
       let internalModels = resolveReferencesWithInternalModels(this._store, references);
       oldValue._setInternalModels(internalModels);
     } else {

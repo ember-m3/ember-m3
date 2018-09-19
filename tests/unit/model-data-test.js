@@ -245,6 +245,37 @@ module('unit/model-data', function(hooks) {
     );
   });
 
+  test(`private API _deleteAttr exists`, function(assert) {
+    let modelData = this.mockModelData();
+    modelData.pushData({
+      id: '1',
+      attributes: {
+        name: 'Harry Potter and the Chamber of Secrets',
+        prequel: `Harry Potter and the Sorcerer's Stone`,
+      },
+    });
+
+    assert.equal(
+      modelData.getAttr('name'),
+      'Harry Potter and the Chamber of Secrets',
+      'name attr exists'
+    );
+    assert.equal(
+      modelData.getAttr('prequel'),
+      `Harry Potter and the Sorcerer's Stone`,
+      'prequel attr exists'
+    );
+
+    modelData._deleteAttr('name');
+
+    assert.strictEqual(modelData.getAttr('name'), undefined, 'name attr gone');
+    assert.equal(
+      modelData.getAttr('prequel'),
+      `Harry Potter and the Sorcerer's Stone`,
+      'prequel attr still exists'
+    );
+  });
+
   test('projection model data initializes and register in base model data', function(assert) {
     let projectedModelData = this.storeWrapper.modelDataFor('com.bookstore.projected-book', '1');
 
