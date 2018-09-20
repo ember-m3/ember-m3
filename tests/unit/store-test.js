@@ -5,6 +5,7 @@ import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
 import DefaultSchema from 'ember-m3/services/m3-schema';
+import M3ReferenceArray from 'ember-m3/m3-reference-array';
 
 module('unit/store', function(hooks) {
   setupTest(hooks);
@@ -31,6 +32,90 @@ module('unit/store', function(hooks) {
 
   hooks.afterEach(function() {
     this.sinon.restore();
+  });
+
+  test('store.push correctly handles m3-reference-array', function(assert) {
+    // push book1 into the store
+    const book1 = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439064873',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Chamber of Secrets`,
+          },
+        },
+      });
+    });
+    // create array with book1
+    const array1 = M3ReferenceArray.create({
+      modelName: '-ember-m3',
+      content: A([book1]),
+      store: this.store,
+      manager: this.store._recordArrayManager,
+      key: 'relatedBooks',
+    });
+    // push model with array with book1 into store
+    const model1 = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            relatedBooks: array1,
+          },
+        },
+      });
+    });
+    // check that model in the store, it should just have book1
+    assert.equal(
+      this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439708180').get('relatedBooks')
+        .length,
+      1,
+      'relatedBooks has 1 book'
+    );
+
+    //push book2 into the store
+    const book2 = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439136365',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Prisoner of Azkaban`,
+          },
+        },
+      });
+    });
+    // create array with book1 and book2
+    const array2 = M3ReferenceArray.create({
+      modelName: '-ember-m3',
+      content: A([book1, book2]),
+      store: this.store,
+      manager: this.store._recordArrayManager,
+      key: 'relatedBooks',
+    });
+    // update model with array with book1 and book2
+    const model2 = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            relatedBooks: array2,
+          },
+        },
+      });
+    });
+    // check model again, should have book1 and book2
+    assert.equal(
+      this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439708180').get('relatedBooks')
+        .length,
+      2,
+      'relatedBooks has 2 books'
+    );
   });
 
   test('records are added to, and unloaded from, the global m3 cache', function(assert) {
