@@ -11,7 +11,7 @@
     "doc": "doc",
     "test": "tests"
   },
-  "repository": "",
+  "repository": "https://github.com/hjdivad/ember-m3",
   "scripts": {
     "build": "ember build",
     "start": "ember server",
