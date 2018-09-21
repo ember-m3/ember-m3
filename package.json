@@ -1,9 +1,11 @@
 {
   "name": "ember-m3",
   "version": "0.9.4",
-  "description": "The default blueprint for ember-cli addons.",
+  "description": "Alternative to DS.Model in which attributes and relationships are derived from API Payloads",
   "keywords": [
-    "ember-addon"
+    "ember-addon",
+    "ember-data",
+    "ember-data-addon"
   ],
   "license": "MIT",
   "author": "",
@@ -11,7 +13,7 @@
     "doc": "doc",
     "test": "tests"
   },
-  "repository": "",
+  "repository": "https://github.com/hjdivad/ember-m3",
   "scripts": {
     "build": "ember build",
     "start": "ember server",
