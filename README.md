@@ -383,7 +383,7 @@ have following properties.
   ```
 
 - `setAttribute(modelName, attrName, value, schemaInterface)` A function that can be used
-  to update the model-data with raw value instead of resolved value.
+  to update the record-data with raw value instead of resolved value.
   `schemaInterface.setAttr(key,value)` should be invoked inside the function to set
   the value. If this function is not provided, m3 will set value as is.
 
@@ -392,7 +392,7 @@ have following properties.
   ```js
   setAttribute(modelName, attrName, value, schemaInterface) {
     // Check if the value is resolved as model
-    // update attribute model-data with id information.
+    // update attribute record-data with id information.
     if (value && value.constructor && value.constructor.isModel) {
       schemaInterface.setAttr(attrName, value.get('id'));
     }

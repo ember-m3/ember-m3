@@ -9,6 +9,7 @@ import { isArray } from '@ember/array';
 import { warn } from '@ember/debug';
 import { alias } from '@ember/object/computed';
 
+import { recordDataFor } from './-private';
 import M3RecordArray from './record-array';
 import { OWNER_KEY } from './util';
 import {
@@ -55,13 +56,13 @@ class EmbeddedSnapshot {
   }
 }
 
-// TODO: shouldn't need this anymore; this level of indirection for nested modeldata isn't useful
+// TODO: shouldn't need this anymore; this level of indirection for nested recordData isn't useful
 export class EmbeddedInternalModel {
   constructor({ id, modelName, parentInternalModel, parentKey, parentIdx }) {
     this.id = id;
     this.modelName = modelName;
 
-    this._modelData = parentInternalModel._modelData._getChildModelData(
+    this._recordData = recordDataFor(parentInternalModel)._getChildRecordData(
       parentKey,
       parentIdx,
       modelName,
@@ -78,7 +79,7 @@ export class EmbeddedInternalModel {
   }
 
   changedAttributes() {
-    return this._modelData.changedAttributes();
+    return this._recordData.changedAttributes();
   }
 }
 
@@ -192,19 +193,21 @@ export default class MegamorphicModel extends EmberObject {
     if (!this._schema.isAttributeIncluded(this._modelName, key)) {
       return;
     }
-    const schemaInterface = this._internalModel._modelData.schemaInterface;
+    const recordData = recordDataFor(this);
+    const schemaInterface = recordData.schemaInterface;
     let resolvedKeysInCache = schemaInterface._getDependentResolvedKeys(key);
+
     if (resolvedKeysInCache) {
       this._notifyProperties(resolvedKeysInCache);
     }
 
     let oldValue = this._cache[key];
-    let newValue = this._internalModel._modelData.getAttr(key);
+    let newValue = recordData.getAttr(key);
 
     let oldIsRecordArray = oldValue && oldValue instanceof M3RecordArray;
 
     if (oldIsRecordArray) {
-      if (this._internalModel._modelData.hasLocalAttr(key)) {
+      if (recordData.hasLocalAttr(key)) {
         // This is a change notification from a `set` on this model, for a
         // resolved record array.  The record array is already updated in-place.
         return;
@@ -216,7 +219,7 @@ export default class MegamorphicModel extends EmberObject {
       let internalModels = resolveReferencesWithInternalModels(this._store, references);
       oldValue._setInternalModels(internalModels);
     } else {
-      // TODO: disconnect modeldata -> childModeldata in the case of nested model -> primitive
+      // TODO: disconnect recordData -> childRecordData in the case of nested model -> primitive
       // anything -> undefined | primitive
       delete this._cache[key];
       super.notifyPropertyChange(key);
@@ -234,11 +237,11 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   debugJSON() {
-    return this._internalModel._modelData._data;
+    return recordDataFor(this)._data;
   }
 
   eachAttribute(callback, binding) {
-    return this._internalModel._modelData.eachAttribute(callback, binding);
+    return recordDataFor(this).eachAttribute(callback, binding);
   }
 
   unloadRecord() {
@@ -282,7 +285,7 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   rollbackAttributes() {
-    let dirtyKeys = this._internalModel._modelData.rollbackAttributes();
+    let dirtyKeys = recordDataFor(this).rollbackAttributes();
     this._updateCurrentState(loadedSaved);
 
     if (dirtyKeys && dirtyKeys.length > 0) {
@@ -299,9 +302,9 @@ export default class MegamorphicModel extends EmberObject {
       return;
     }
 
-    let rawValue = this._internalModel._modelData.getAttr(key);
+    let rawValue = recordDataFor(this).getAttr(key);
     // TODO IGOR DAVID
-    // figure out if any of the below should be moved into model data
+    // figure out if any of the below should be moved into recordData
     if (rawValue === undefined) {
       let attrAlias = this._schema.getAttributeAlias(this._modelName, key);
       if (attrAlias) {
@@ -383,7 +386,7 @@ export default class MegamorphicModel extends EmberObject {
       }
     }
 
-    // Set value in model data
+    // Set value in recordData
     this._setAttribute(key, value);
 
     // update cache with the data,
@@ -393,9 +396,9 @@ export default class MegamorphicModel extends EmberObject {
       this._cache[key] = value;
     } else {
       // remove value from the cache
-      // Also, remove child model-data
+      // Also, remove child recordData
       delete this._cache[key];
-      this._internalModel._modelData._destroyChildModelData(key);
+      recordDataFor(this)._destroyChildRecordData(key);
     }
 
     // Remove errors upon setting of new value
@@ -406,7 +409,7 @@ export default class MegamorphicModel extends EmberObject {
   _setRecordArray(key, models) {
     // Schema hook handles setting
     // list of resolved
-    // models to Model data
+    // models to recordData
     this._setAttribute(key, models);
 
     if (key in this._cache) {
@@ -419,12 +422,16 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   _setAttribute(attr, value, suppressNotifications = false) {
-    const schemaInterface = this._internalModel._modelData.schemaInterface;
+    const recordData = recordDataFor(this);
+    const schemaInterface = recordData.schemaInterface;
     let priorSuppressNotifications = schemaInterface._suppressNotifications;
+
     schemaInterface._suppressNotifications = suppressNotifications;
     this._schema.setAttribute(this._modelName, attr, value, schemaInterface);
     schemaInterface._suppressNotifications = priorSuppressNotifications;
-    const isDirty = this._internalModel._modelData.isAttrDirty(attr);
+
+    const isDirty = recordData.isAttrDirty(attr);
+
     if (isDirty && !this.get('isDirty')) {
       this._updateCurrentState(updatedUncommitted);
     }

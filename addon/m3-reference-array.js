@@ -11,7 +11,7 @@ export default class M3ReferenceArray extends M3RecordArray {
   init() {
     super.init(...arguments);
     this._key = get(this, 'key');
-    this._model = get(this, 'model');
+    this._record = get(this, 'model');
   }
 
   replace(idx, removeAmt, newItems) {
@@ -20,8 +20,8 @@ export default class M3ReferenceArray extends M3RecordArray {
 
   replaceContent(idx, removeAmt, newItems) {
     super.replaceContent(idx, removeAmt, newItems);
-    // update attr in model data and model state
-    this._model._setAttribute(this._key, this, true);
+    // update attr in recordData and model state
+    this._record._setAttribute(this._key, this, true);
   }
 
   get length() {

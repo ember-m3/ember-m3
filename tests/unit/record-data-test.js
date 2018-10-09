@@ -4,12 +4,12 @@ import sinon from 'sinon';
 import { zip } from 'lodash';
 import { setupTest } from 'ember-qunit';
 
-import M3ModelData from 'ember-m3/model-data';
+import M3RecordData from 'ember-m3/record-data';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 
-const modelDataKey = ({ modelName, id }) => `${modelName}:${id}`;
+const recordDataKey = ({ modelName, id }) => `${modelName}:${id}`;
 
-module('unit/model-data', function(hooks) {
+module('unit/record-data', function(hooks) {
   setupTest(hooks);
 
   hooks.beforeEach(function() {
@@ -35,14 +35,14 @@ module('unit/model-data', function(hooks) {
     let schemaManager = (this.schemaManager = this.owner.lookup('service:m3-schema-manager'));
 
     let storeWrapper = (this.storeWrapper = {
-      modelDatas: {},
-      disconnectedModelDatas: {},
+      recordDatas: {},
+      disconnectedRecordDatas: {},
 
-      modelDataFor(modelName, id, clientId) {
-        let key = modelDataKey({ modelName, id });
+      recordDataFor(modelName, id, clientId) {
+        let key = recordDataKey({ modelName, id });
         return (
-          this.modelDatas[key] ||
-          (this.modelDatas[key] = new M3ModelData(
+          this.recordDatas[key] ||
+          (this.recordDatas[key] = new M3RecordData(
             modelName,
             id,
             clientId,
@@ -53,10 +53,10 @@ module('unit/model-data', function(hooks) {
       },
 
       disconnectRecord(modelName, id) {
-        let key = modelDataKey({ modelName, id });
-        assert(`Disconnect record called for missing model data ${key}`, this.modelDatas[key]);
-        this.disconnectedModelDatas[key] = this.modelDatas[key];
-        delete this.modelDatas[key];
+        let key = recordDataKey({ modelName, id });
+        assert(`Disconnect record called for missing recordData ${key}`, this.recordDatas[key]);
+        this.disconnectedRecordDatas[key] = this.recordDatas[key];
+        delete this.recordDatas[key];
       },
 
       setRecordId() {},
@@ -68,8 +68,8 @@ module('unit/model-data', function(hooks) {
       notifyPropertyChange() {},
     });
 
-    this.mockModelData = function() {
-      return this.storeWrapper.modelDataFor('com.bookstore.book', '1');
+    this.mockRecordData = function() {
+      return this.storeWrapper.recordDataFor('com.bookstore.book', '1');
     };
   });
 
@@ -78,7 +78,7 @@ module('unit/model-data', function(hooks) {
   });
 
   test(`.eachAttribute iterates attributes, in-flight attrs and data`, function(assert) {
-    let modelData = new M3ModelData(
+    let recordData = new M3RecordData(
       'com.exmaple.bookstore.book',
       '1',
       null,
@@ -88,7 +88,7 @@ module('unit/model-data', function(hooks) {
       null
     );
 
-    modelData.pushData(
+    recordData.pushData(
       {
         id: '1',
         attributes: {
@@ -98,18 +98,18 @@ module('unit/model-data', function(hooks) {
       false
     );
 
-    modelData.setAttr('inFlightAttr', 'value');
-    modelData.willCommit();
-    modelData.setAttr('localAttr', 'value');
+    recordData.setAttr('inFlightAttr', 'value');
+    recordData.willCommit();
+    recordData.setAttr('localAttr', 'value');
 
     let attrsIterated = [];
-    modelData.eachAttribute(attr => attrsIterated.push(attr));
+    recordData.eachAttribute(attr => attrsIterated.push(attr));
 
     assert.deepEqual(attrsIterated, ['localAttr', 'inFlightAttr', 'dataAttr']);
   });
 
-  test(`._getChildModelData returns new model data`, function(assert) {
-    let topModelData = new M3ModelData(
+  test(`._getChildRecordData returns new recordData`, function(assert) {
+    let topRecordData = new M3RecordData(
       'com.exmaple.bookstore.book',
       '1',
       null,
@@ -119,59 +119,59 @@ module('unit/model-data', function(hooks) {
       null
     );
 
-    assert.strictEqual(topModelData._parentModelData, null, 'top modelData has no parent');
+    assert.strictEqual(topRecordData._parentRecordData, null, 'top recordData has no parent');
     assert.deepEqual(
-      topModelData._childModelDatas,
+      topRecordData._childRecordDatas,
       {},
-      `initially child modelDatas aren't populated`
+      `initially child recordDatas aren't populated`
     );
 
-    let child1ModelData = topModelData._getChildModelData(
+    let child1RecordData = topRecordData._getChildRecordData(
       'child1',
       null,
       'com.example.bookstore.book',
       '1'
     );
-    let child2ModelData = topModelData._getChildModelData(
+    let child2RecordData = topRecordData._getChildRecordData(
       'child2',
       null,
       'com.example.bookstore.book',
       '1'
     );
 
-    assert.equal(child1ModelData._parentModelData, topModelData, 'child1 -> parent');
-    assert.equal(child2ModelData._parentModelData, topModelData, 'child2 -> parent');
+    assert.equal(child1RecordData._parentRecordData, topRecordData, 'child1 -> parent');
+    assert.equal(child2RecordData._parentRecordData, topRecordData, 'child2 -> parent');
     assert.deepEqual(
-      topModelData._childModelDatas,
+      topRecordData._childRecordDatas,
       {
-        child1: child1ModelData,
-        child2: child2ModelData,
+        child1: child1RecordData,
+        child2: child2RecordData,
       },
       'parent -> children'
     );
   });
 
   test('.schemaInterface can read attributes', function(assert) {
-    let modelData = this.mockModelData();
-    let schemaInterface = modelData.schemaInterface;
-    modelData.pushData({
+    let recordData = this.mockRecordData();
+    let schemaInterface = recordData.schemaInterface;
+    recordData.pushData({
       attributes: {
         foo: 'fooVal',
         bar: 'barVal',
       },
     });
     schemaInterface._keyBeingResolved = 'testKey';
-    assert.equal(modelData.getAttr('foo'), 'fooVal', 'modeldata has foo=fooVal');
+    assert.equal(recordData.getAttr('foo'), 'fooVal', 'recordData has foo=fooVal');
     assert.equal(schemaInterface.getAttr('foo'), 'fooVal', 'schemaInterface can read attr');
   });
 
   test('.schemaInterface cannot write attributes', function(assert) {
-    let modelData = this.mockModelData();
-    let schemaInterface = modelData.schemaInterface;
+    let recordData = this.mockRecordData();
+    let schemaInterface = recordData.schemaInterface;
 
-    assert.ok(typeof modelData.setAttr === 'function', 'modeldata api is as expected');
-    modelData.setAttr('bar', 'barVal');
-    assert.equal(modelData.getAttr('bar'), 'barVal', 'modeldata can write attr');
+    assert.ok(typeof recordData.setAttr === 'function', 'recordData api is as expected');
+    recordData.setAttr('bar', 'barVal');
+    assert.equal(recordData.getAttr('bar'), 'barVal', 'recordData can write attr');
 
     assert.ok(typeof schemaInterface.setAttr === 'function', 'schemaInterface can write attr');
   });
@@ -181,7 +181,7 @@ module('unit/model-data', function(hooks) {
     const rollbackAttributesSpy = this.sinon.spy();
     this.storeWrapper.notifyPropertyChange = rollbackAttributesSpy;
 
-    let modelData = new M3ModelData(
+    let recordData = new M3RecordData(
       'com.exmaple.bookstore.book',
       '1',
       null,
@@ -190,14 +190,14 @@ module('unit/model-data', function(hooks) {
       null,
       null
     );
-    modelData.rollbackAttributes(true);
+    recordData.rollbackAttributes(true);
     assert.equal(rollbackAttributesSpy.getCalls().length, 0, 'rollbackAttributes was not called');
   });
 
   test('.schemaInterface track dependent keys resolved by ref key', function(assert) {
-    let modelData = this.mockModelData();
-    let schemaInterface = modelData.schemaInterface;
-    modelData.pushData({
+    let recordData = this.mockRecordData();
+    let schemaInterface = recordData.schemaInterface;
+    recordData.pushData({
       attributes: {
         '*foo': 'fooVal',
         bar: 'barVal',
@@ -217,37 +217,36 @@ module('unit/model-data', function(hooks) {
 
   test('`.didCommit` sets the ID of the record in the store', function(assert) {
     let setRecordId = this.sinon.spy(this.storeWrapper, 'setRecordId');
+    let recordData = this.mockRecordData();
 
-    let modelData = this.mockModelData();
-
-    modelData.didCommit({
+    recordData.didCommit({
       id: 'newId',
       attributes: {},
     });
 
     assert.deepEqual(
       setRecordId.args,
-      [['com.bookstore.book', 'newId', modelData.clientId]],
+      [['com.bookstore.book', 'newId', recordData.clientId]],
       'Expected setRecodId to have been called'
     );
   });
 
-  test('`.unloadRecord` disconnects the model data from the store', function(assert) {
-    let modelData = this.mockModelData();
+  test('`.unloadRecord` disconnects the recordData from the store', function(assert) {
+    let recordData = this.mockRecordData();
 
     // unload
-    modelData.unloadRecord();
+    recordData.unloadRecord();
 
     assert.strictEqual(
-      this.storeWrapper.disconnectedModelDatas[modelDataKey(modelData)],
-      modelData,
-      'Expected the model data to have been disconnected'
+      this.storeWrapper.disconnectedRecordDatas[recordDataKey(recordData)],
+      recordData,
+      'Expected the recordData to have been disconnected'
     );
   });
 
   test(`private API _deleteAttr exists`, function(assert) {
-    let modelData = this.mockModelData();
-    modelData.pushData({
+    let recordData = this.mockRecordData();
+    recordData.pushData({
       id: '1',
       attributes: {
         name: 'Harry Potter and the Chamber of Secrets',
@@ -256,71 +255,70 @@ module('unit/model-data', function(hooks) {
     });
 
     assert.equal(
-      modelData.getAttr('name'),
+      recordData.getAttr('name'),
       'Harry Potter and the Chamber of Secrets',
       'name attr exists'
     );
     assert.equal(
-      modelData.getAttr('prequel'),
+      recordData.getAttr('prequel'),
       `Harry Potter and the Sorcerer's Stone`,
       'prequel attr exists'
     );
 
-    modelData._deleteAttr('name');
+    recordData._deleteAttr('name');
 
-    assert.strictEqual(modelData.getAttr('name'), undefined, 'name attr gone');
+    assert.strictEqual(recordData.getAttr('name'), undefined, 'name attr gone');
     assert.equal(
-      modelData.getAttr('prequel'),
+      recordData.getAttr('prequel'),
       `Harry Potter and the Sorcerer's Stone`,
       'prequel attr still exists'
     );
   });
 
-  test('projection model data initializes and register in base model data', function(assert) {
-    let projectedModelData = this.storeWrapper.modelDataFor('com.bookstore.projected-book', '1');
-
-    let baseModelData = this.storeWrapper.modelDatas[
-      modelDataKey({
+  test('projection recordData initializes and register in base recordData', function(assert) {
+    let projectedRecordData = this.storeWrapper.recordDataFor('com.bookstore.projected-book', '1');
+    let baseRecordData = this.storeWrapper.recordDatas[
+      recordDataKey({
         modelName: 'com.bookstore.book',
         id: '1',
       })
     ];
 
-    assert.notEqual(baseModelData, null, 'Expected base model data to be initialized');
+    assert.notEqual(baseRecordData, null, 'Expected base recordData to be initialized');
     assert.deepEqual(
-      baseModelData._projections,
-      [baseModelData, projectedModelData],
-      'Expected projected model data to be in the projections list'
+      baseRecordData._projections,
+      [baseRecordData, projectedRecordData],
+      'Expected projected recordData to be in the projections list'
     );
   });
 
-  test('nested projection model register in the base model nested model data', function(assert) {
-    let projectionModelData = this.storeWrapper.modelDataFor('com.bookstore.projected-book', '1');
-    let baseModelData = this.storeWrapper.modelDataFor('com.bookstore.book', '1');
+  test('nested projection model register in the base model nested recordData', function(assert) {
+    let projectionRecordData = this.storeWrapper.recordDataFor('com.bookstore.projected-book', '1');
+    let baseRecordData = this.storeWrapper.recordDataFor('com.bookstore.book', '1');
 
-    let nestedProjected = projectionModelData._getChildModelData(
+    let nestedProjected = projectionRecordData._getChildRecordData(
       'preface',
       undefined,
       'com.bookstore.chapter'
     );
 
     assert.ok(
-      baseModelData._childModelDatas['preface'],
-      'Expected base model data to have created a nested model data'
+      baseRecordData._childRecordDatas['preface'],
+      'Expected base recordData to have created a nested recordData'
     );
 
-    let nestedBase = baseModelData._getChildModelData('preface', undefined);
+    let nestedBase = baseRecordData._getChildRecordData('preface', undefined);
     assert.ok(
       nestedBase._projections.find(x => x === nestedProjected),
-      'Expected the nested projection model data to be registered in the nested base model data'
+      'Expected the nested projection recordData to be registered in the nested base recordData'
     );
   });
 
-  test('setting a nested model to null destroys child model datas in all projections', function(assert) {
-    let projectionModelData = this.storeWrapper.modelDataFor('com.bookstore.projected-book', '1');
-    let baseModelData = this.storeWrapper.modelDataFor('com.bookstore.book', '1');
+  test('setting a nested model to null destroys child recordDatas in all projections', function(assert) {
+    let projectionRecordData = this.storeWrapper.recordDataFor('com.bookstore.projected-book', '1');
+    let baseRecordData = this.storeWrapper.recordDataFor('com.bookstore.book', '1');
 
-    projectionModelData.pushData({
+    projectionRecordData.pushData({
       id: '1',
       attributes: {
         name: 'Harry Potter and the Chamber of Secrets',
@@ -330,16 +328,16 @@ module('unit/model-data', function(hooks) {
       },
     });
 
-    // initialize the child model data
-    projectionModelData._getChildModelData('prequelBook', null, 'com.bookstore.book', '1', null);
+    // initialize the child recordData
+    projectionRecordData._getChildRecordData('prequelBook', null, 'com.bookstore.book', '1', null);
 
     assert.ok(
-      baseModelData._childModelDatas['prequelBook'],
-      'Expected base child model data to have been created as well'
+      baseRecordData._childRecordDatas['prequelBook'],
+      'Expected base child recordData to have been created as well'
     );
 
     // reset to null
-    baseModelData.pushData({
+    baseRecordData.pushData({
       id: '1',
       attributes: {
         prequelBook: null,
@@ -347,110 +345,110 @@ module('unit/model-data', function(hooks) {
     });
 
     assert.notOk(
-      baseModelData._childModelDatas['prequelBook'],
-      'Expected base child model data to have been destroyed'
+      baseRecordData._childRecordDatas['prequelBook'],
+      'Expected base child recordData to have been destroyed'
     );
     assert.notOk(
-      projectionModelData._childModelDatas['prequelBook'],
-      'Expected projected child model data to have been destroyed'
+      projectionRecordData._childRecordDatas['prequelBook'],
+      'Expected projected child recordData to have been destroyed'
     );
   });
 
-  test('projection model data unregister from base model data and the store on unloadRecord', function(assert) {
-    let projectionModelData = this.storeWrapper.modelDataFor('com.bookstore.projected-book', '1');
-    let baseModelData = this.storeWrapper.modelDataFor('com.bookstore.book', '1');
+  test('projection recordData unregister from base recordData and the store on unloadRecord', function(assert) {
+    let projectionRecordData = this.storeWrapper.recordDataFor('com.bookstore.projected-book', '1');
+    let baseRecordData = this.storeWrapper.recordDataFor('com.bookstore.book', '1');
 
-    // unload the model data
-    projectionModelData.unloadRecord();
+    // unload the recordData
+    projectionRecordData.unloadRecord();
 
     assert.notEqual(
-      this.storeWrapper.disconnectedModelDatas[modelDataKey(projectionModelData)],
+      this.storeWrapper.disconnectedRecordDatas[recordDataKey(projectionRecordData)],
       null,
-      'Expected projection model data to have been disconnected from the store'
+      'Expected projection recordData to have been disconnected from the store'
     );
     assert.equal(
-      baseModelData._projections.find(x => x === projectionModelData),
+      baseRecordData._projections.find(x => x === projectionRecordData),
       null,
-      'Expected projected model data to have been removed from the projections'
+      'Expected projected recordData to have been removed from the projections'
     );
   });
 
-  test('base model data is disconnected from the store if there are no more projections', function(assert) {
-    let projectionModelData = this.storeWrapper.modelDataFor('com.bookstore.projected-book', '1');
-    let baseModelData = this.storeWrapper.modelDataFor('com.bookstore.book', '1');
+  test('base recordData is disconnected from the store if there are no more projections', function(assert) {
+    let projectionRecordData = this.storeWrapper.recordDataFor('com.bookstore.projected-book', '1');
+    let baseRecordData = this.storeWrapper.recordDataFor('com.bookstore.book', '1');
 
-    // unload the projection model data
-    projectionModelData.unloadRecord();
+    // unload the projection recordData
+    projectionRecordData.unloadRecord();
 
     assert.notEqual(
-      this.storeWrapper.disconnectedModelDatas[modelDataKey(baseModelData)],
+      this.storeWrapper.disconnectedRecordDatas[recordDataKey(baseRecordData)],
       null,
-      'Expected projection model data to have been disconnected from the store'
+      'Expected projection recordData to have been disconnected from the store'
     );
   });
 
-  test('base model data is not disconnected from the store if there are other projections', function(assert) {
-    let projectionModelData = this.storeWrapper.modelDataFor('com.bookstore.projected-book', '1');
-    this.storeWrapper.modelDataFor('com.bookstore.excerpt-book', '1');
-    let baseModelData = this.storeWrapper.modelDataFor('com.bookstore.book', '1');
+  test('base recordData is not disconnected from the store if there are other projections', function(assert) {
+    let projectionRecordData = this.storeWrapper.recordDataFor('com.bookstore.projected-book', '1');
+    this.storeWrapper.recordDataFor('com.bookstore.excerpt-book', '1');
+    let baseRecordData = this.storeWrapper.recordDataFor('com.bookstore.book', '1');
 
-    // unload the projection model data
-    projectionModelData.unloadRecord();
+    // unload the projection recordData
+    projectionRecordData.unloadRecord();
 
     assert.equal(
-      this.storeWrapper.disconnectedModelDatas[modelDataKey(baseModelData)],
+      this.storeWrapper.disconnectedRecordDatas[recordDataKey(baseRecordData)],
       null,
-      'Expected projection model data to not have been disconnected from the store'
+      'Expected projection recordData to not have been disconnected from the store'
     );
   });
 
-  test('base model data is not disconnected from the store if the record is in use', function(assert) {
+  test('base recordData is not disconnected from the store if the record is in use', function(assert) {
     this.storeWrapper.isRecordInUse = () => true;
 
-    let projectionModelData = this.storeWrapper.modelDataFor('com.bookstore.projected-book', '1');
-    let baseModelData = this.storeWrapper.modelDataFor('com.bookstore.book', '1');
+    let projectionRecordData = this.storeWrapper.recordDataFor('com.bookstore.projected-book', '1');
+    let baseRecordData = this.storeWrapper.recordDataFor('com.bookstore.book', '1');
 
-    // unload the projection model data
-    projectionModelData.unloadRecord();
+    // unload the projection recordData
+    projectionRecordData.unloadRecord();
 
     assert.equal(
-      this.storeWrapper.disconnectedModelDatas[modelDataKey(baseModelData)],
+      this.storeWrapper.disconnectedRecordDatas[recordDataKey(baseRecordData)],
       null,
-      'Expected projection model data to have been disconnected from the store'
+      'Expected projection recordData to have been disconnected from the store'
     );
   });
 
-  test('projection model data connects with base model data when committed with id', function(assert) {
-    let projectionModelData = this.storeWrapper.modelDataFor(
+  test('projection recordData connects with base recordData when committed with id', function(assert) {
+    let projectionRecordData = this.storeWrapper.recordDataFor(
       'com.bookstore.projected-book',
       null,
       1
     );
-    let baseModelData = this.storeWrapper.modelDatas[
-      modelDataKey({ modelName: 'com.bookstore.book', id: null })
+    let baseRecordData = this.storeWrapper.recordDatas[
+      recordDataKey({ modelName: 'com.bookstore.book', id: null })
     ];
-    assert.notEqual(baseModelData, null, 'Expected base model data to have been created as well');
+    assert.notEqual(baseRecordData, null, 'Expected base recordData to have been created as well');
     assert.ok(
-      baseModelData._projections.find(x => x === projectionModelData),
-      'Expected projection model data to have been registered'
+      baseRecordData._projections.find(x => x === projectionRecordData),
+      'Expected projection recordData to have been registered'
     );
     assert.equal(
-      baseModelData.clientId,
-      projectionModelData.clientId,
-      'Expected the base model data to have the same clientId as the projection'
+      baseRecordData.clientId,
+      projectionRecordData.clientId,
+      'Expected the base recordData to have the same clientId as the projection'
     );
 
     // actually set to be saved
-    projectionModelData.setAttr('name', 'Harry Potter');
-    projectionModelData.setAttr('preface', {
+    projectionRecordData.setAttr('name', 'Harry Potter');
+    projectionRecordData.setAttr('preface', {
       text: "Harry Potter's preface",
     });
 
     let setRecordIdSpy = this.sinon.spy(this.storeWrapper, 'setRecordId');
 
-    projectionModelData.willCommit();
+    projectionRecordData.willCommit();
 
-    projectionModelData.didCommit({
+    projectionRecordData.didCommit({
       id: '1',
       attributes: {},
     });
@@ -458,25 +456,25 @@ module('unit/model-data', function(hooks) {
     assert.deepEqual(
       setRecordIdSpy.args,
       [
-        ['com.bookstore.projected-book', '1', projectionModelData.clientId],
-        ['com.bookstore.book', '1', baseModelData.clientId],
+        ['com.bookstore.projected-book', '1', projectionRecordData.clientId],
+        ['com.bookstore.book', '1', baseRecordData.clientId],
       ],
       'Expected server-side ID to be set for the committed records'
     );
     assert.equal(
-      projectionModelData.id,
+      projectionRecordData.id,
       '1',
-      'Expected projection model data to have picked up the new ID'
+      'Expected projection recordData to have picked up the new ID'
     );
-    assert.equal(baseModelData.id, '1', 'Expected base model data to have picked up the new ID');
+    assert.equal(baseRecordData.id, '1', 'Expected base recordData to have picked up the new ID');
 
     assert.equal(
-      projectionModelData.getAttr('name'),
+      projectionRecordData.getAttr('name'),
       'Harry Potter',
       'Expected primitive attribute to have been retained'
     );
     assert.deepEqual(
-      projectionModelData.getAttr('preface'),
+      projectionRecordData.getAttr('preface'),
       {
         text: "Harry Potter's preface",
       },
@@ -485,7 +483,7 @@ module('unit/model-data', function(hooks) {
   });
 
   test(`.isAttrDirty check if key is not in inFlight and data and set locally`, function(assert) {
-    let modelData = new M3ModelData(
+    let recordData = new M3RecordData(
       'com.exmaple.bookstore.book',
       '1',
       null,
@@ -495,7 +493,7 @@ module('unit/model-data', function(hooks) {
       null
     );
 
-    modelData.pushData(
+    recordData.pushData(
       {
         id: '1',
         attributes: {
@@ -505,18 +503,18 @@ module('unit/model-data', function(hooks) {
       false
     );
 
-    modelData.setAttr('inFlightAttr', 'value');
-    modelData.willCommit();
-    modelData.setAttr('localAttr', 'value');
+    recordData.setAttr('inFlightAttr', 'value');
+    recordData.willCommit();
+    recordData.setAttr('localAttr', 'value');
 
-    assert.ok(!modelData.isAttrDirty('dataAttr'), 'data attr is not dirty');
-    assert.ok(!modelData.isAttrDirty('inFlightAttr'), 'inFlight attr is not dirty');
-    assert.ok(modelData.isAttrDirty('localAttr'), 'local attr is not dirty');
+    assert.ok(!recordData.isAttrDirty('dataAttr'), 'data attr is not dirty');
+    assert.ok(!recordData.isAttrDirty('inFlightAttr'), 'inFlight attr is not dirty');
+    assert.ok(recordData.isAttrDirty('localAttr'), 'local attr is not dirty');
   });
 
   module('with nested models', function(hooks) {
     hooks.beforeEach(function() {
-      this.topModelData = new M3ModelData(
+      this.topRecordData = new M3RecordData(
         'com.exmaple.bookstore.book',
         'top',
         null,
@@ -526,7 +524,7 @@ module('unit/model-data', function(hooks) {
         null
       );
 
-      this.topModelData.pushData({
+      this.topRecordData.pushData({
         attributes: {
           name: 'name',
           child1: {
@@ -547,7 +545,7 @@ module('unit/model-data', function(hooks) {
       this.child1Model = {
         _notifyProperties: this.sinon.spy(),
       };
-      this.child1ModelData = this.topModelData._getChildModelData(
+      this.child1RecordData = this.topRecordData._getChildRecordData(
         'child1',
         null,
         'com.exmaple.bookstore.book',
@@ -560,7 +558,7 @@ module('unit/model-data', function(hooks) {
       this.child2Model = {
         _notifyProperties: this.sinon.spy(),
       };
-      this.child2ModelData = this.topModelData._getChildModelData(
+      this.child2RecordData = this.topRecordData._getChildRecordData(
         'child2',
         null,
         'com.exmaple.bookstore.book',
@@ -573,7 +571,7 @@ module('unit/model-data', function(hooks) {
       this.child11Model = {
         _notifyProperties: this.sinon.spy(),
       };
-      this.child11ModelData = this.child1ModelData._getChildModelData(
+      this.child11RecordData = this.child1RecordData._getChildRecordData(
         'child1_1',
         null,
         'com.exmaple.bookstore.book',
@@ -582,9 +580,9 @@ module('unit/model-data', function(hooks) {
       );
     });
 
-    test('.pushData calls reified child model datas recursively', function(assert) {
-      let pushDataSpy = this.sinon.spy(M3ModelData.prototype, 'pushData');
-      let changedKeys = this.topModelData.pushData(
+    test('.pushData calls reified child recordDatas recursively', function(assert) {
+      let pushDataSpy = this.sinon.spy(M3RecordData.prototype, 'pushData');
+      let changedKeys = this.topRecordData.pushData(
         {
           attributes: {
             name: 'new name',
@@ -609,7 +607,7 @@ module('unit/model-data', function(hooks) {
         zip(pushDataSpy.thisValues.slice(1).map(x => x + ''), pushDataSpy.args.slice(1)),
         [
           [
-            this.child1ModelData + '',
+            this.child1RecordData + '',
             [
               {
                 attributes: {
@@ -624,7 +622,7 @@ module('unit/model-data', function(hooks) {
             ],
           ],
           [
-            this.child11ModelData + '',
+            this.child11RecordData + '',
             [
               {
                 attributes: {
@@ -640,8 +638,8 @@ module('unit/model-data', function(hooks) {
       );
     });
 
-    test('.pushData on a child modelData manually notifies changes', function(assert) {
-      this.topModelData.pushData(
+    test('.pushData on a child recordData manually notifies changes', function(assert) {
+      this.topRecordData.pushData(
         {
           attributes: {
             name: 'new name',
@@ -682,9 +680,9 @@ module('unit/model-data', function(hooks) {
       );
     });
 
-    test('.didCommit calls reified child model datas recursively', function(assert) {
-      let didCommitSpy = this.sinon.spy(M3ModelData.prototype, 'didCommit');
-      let changedKeys = this.topModelData.didCommit({
+    test('.didCommit calls reified child recordDatas recursively', function(assert) {
+      let didCommitSpy = this.sinon.spy(M3RecordData.prototype, 'didCommit');
+      let changedKeys = this.topRecordData.didCommit({
         attributes: {
           name: 'new name',
           child1: {
@@ -706,7 +704,7 @@ module('unit/model-data', function(hooks) {
         zip(didCommitSpy.thisValues.slice(1).map(x => x + ''), didCommitSpy.args.slice(1)),
         [
           [
-            this.child1ModelData + '',
+            this.child1RecordData + '',
             [
               {
                 attributes: {
@@ -720,7 +718,7 @@ module('unit/model-data', function(hooks) {
             ],
           ],
           [
-            this.child11ModelData + '',
+            this.child11RecordData + '',
             [
               {
                 attributes: {
@@ -735,8 +733,8 @@ module('unit/model-data', function(hooks) {
       );
     });
 
-    test('.didCommit on a child modelData manually notifies changes', function(assert) {
-      this.topModelData.didCommit({
+    test('.didCommit on a child recordData manually notifies changes', function(assert) {
+      this.topRecordData.didCommit({
         attributes: {
           name: 'new name',
           child1: {
@@ -774,10 +772,10 @@ module('unit/model-data', function(hooks) {
       );
     });
 
-    test('.commitWasRejected calls reified child model datas recursively', function(assert) {
-      let commitWasRejectedSpy = this.sinon.spy(M3ModelData.prototype, 'commitWasRejected');
-      this.topModelData.willCommit();
-      this.topModelData.commitWasRejected();
+    test('.commitWasRejected calls reified child recordDatas recursively', function(assert) {
+      let commitWasRejectedSpy = this.sinon.spy(M3RecordData.prototype, 'commitWasRejected');
+      this.topRecordData.willCommit();
+      this.topRecordData.commitWasRejected();
 
       assert.deepEqual(
         zip(
@@ -785,17 +783,17 @@ module('unit/model-data', function(hooks) {
           commitWasRejectedSpy.args.slice(1)
         ),
         [
-          [this.child1ModelData + '', []],
-          [this.child11ModelData + '', []],
-          [this.child2ModelData + '', []],
+          [this.child1RecordData + '', []],
+          [this.child11RecordData + '', []],
+          [this.child2RecordData + '', []],
         ],
         'commitWasRejected called recursively on children'
       );
     });
 
-    test('.rollbackAttributes calls reified child model datas recursively', function(assert) {
-      let rollbackAttributesSpy = this.sinon.spy(M3ModelData.prototype, 'rollbackAttributes');
-      this.topModelData.rollbackAttributes();
+    test('.rollbackAttributes calls reified child recordDatas recursively', function(assert) {
+      let rollbackAttributesSpy = this.sinon.spy(M3RecordData.prototype, 'rollbackAttributes');
+      this.topRecordData.rollbackAttributes();
 
       assert.deepEqual(
         zip(
@@ -803,9 +801,9 @@ module('unit/model-data', function(hooks) {
           rollbackAttributesSpy.args.slice(1)
         ),
         [
-          [this.child1ModelData + '', [true]],
-          [this.child11ModelData + '', [true]],
-          [this.child2ModelData + '', [true]],
+          [this.child1RecordData + '', [true]],
+          [this.child11RecordData + '', [true]],
+          [this.child2RecordData + '', [true]],
         ],
         'rollbackAttributes called recursively on children'
       );

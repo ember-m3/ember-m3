@@ -2,6 +2,7 @@ import ArrayProxy from '@ember/array/proxy';
 import { get } from '@ember/object';
 import { isResolvedValue, resolveValue } from './resolve-attribute-util';
 import { associateRecordWithRecordArray } from './record-array';
+import { recordDataFor } from './-private';
 
 /**
  * M3TrackedArray
@@ -17,7 +18,7 @@ export default class M3TrackedArray extends ArrayProxy {
     this._modelName = get(this, 'modelName');
     this._store = get(this, 'store');
     this._schema = get(this, 'schema');
-    this._model = get(this, 'model');
+    this._record = get(this, 'model');
   }
 
   replace(idx, removeAmt, newItems) {
@@ -25,14 +26,9 @@ export default class M3TrackedArray extends ArrayProxy {
   }
 
   replaceContent(idx, removeAmt, newItems) {
-    // Update childModelDatas array
+    // Update childRecordDatas array
     // mapping to array of nested models
-    this._model._internalModel._modelData._resizeChildModelData(
-      this._key,
-      idx,
-      removeAmt,
-      newItems.length
-    );
+    recordDataFor(this._record)._resizeChildRecordData(this._key, idx, removeAmt, newItems.length);
 
     newItems = newItems.map((item, index) => {
       if (isResolvedValue(item)) {
@@ -40,7 +36,7 @@ export default class M3TrackedArray extends ArrayProxy {
         // TODO: clean up this ridiculous hack
         // adding a resolved value to a tracked array requires the child model
         // data stitching to be maintained
-        this._model._internalModel._modelData._setChildModelData(this._key, index + idx, item);
+        recordDataFor(this._record)._setChildRecordData(this._key, index + idx, item);
         return item;
       }
 
@@ -50,7 +46,7 @@ export default class M3TrackedArray extends ArrayProxy {
         this._modelName,
         this._store,
         this._schema,
-        this._model,
+        this._record,
         index + idx
       );
     });
@@ -58,9 +54,9 @@ export default class M3TrackedArray extends ArrayProxy {
     // Update content
     this.content.replace(idx, removeAmt, newItems);
 
-    // Set attribute in model data and update model state and changedAttributes
+    // Set attribute in recordData and update model state and changedAttributes
     // object
-    this._model._setAttribute(this._key, this.content, true);
+    this._record._setAttribute(this._key, this.content, true);
   }
 
   get length() {

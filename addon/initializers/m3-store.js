@@ -4,7 +4,7 @@ import { inject } from '@ember/service';
 import { get } from '@ember/object';
 
 import MegamorphicModel from '../model';
-import M3ModelData from '../model-data';
+import M3RecordData from '../record-data';
 import MegamorphicModelFactory from '../factory';
 import QueryCache from '../query-cache';
 
@@ -51,10 +51,15 @@ export function extendStore(Store) {
       return this._super(modelName);
     },
 
-    createModelDataFor(modelName, id, clientId, storeWrapper) {
+    createModelDataFor() {
+      // TODO deprecate
+      return this.createRecordDataFor(...arguments);
+    },
+
+    createRecordDataFor(modelName, id, clientId, storeWrapper) {
       let schemaManager = get(this, '_schemaManager');
       if (schemaManager.includesModel(modelName)) {
-        return new M3ModelData(modelName, id, clientId, storeWrapper, schemaManager, null, null);
+        return new M3RecordData(modelName, id, clientId, storeWrapper, schemaManager, null, null);
       }
       return this._super(modelName, id, clientId, storeWrapper);
     },
@@ -70,8 +75,8 @@ export function extendStore(Store) {
      * @param {boolean} [options.reload=false] If true, issue a request even a cached value exists
      * @param {boolean} [options.backgroundReload=false] If true and a cached value exists,
      * issue a non-blocking request but immediately fulfill with the cached value
-     * @returns {Promise<M3ModelData|RecordArray,Error>} Promise for loading `url` that fulfills to
-     * an `M3ModelData` if the response is a single resource or a `RecordArray` of `M3ModelData`s
+     * @returns {Promise<M3RecordData|RecordArray,Error>} Promise for loading `url` that fulfills to
+     * an `M3RecordData` if the response is a single resource or a `RecordArray` of `M3RecordData`s
      * if the response is an array of resources
      */
     queryURL(url, options) {
