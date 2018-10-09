@@ -51,14 +51,21 @@ export function extendStore(Store) {
       return this._super(modelName);
     },
 
+    createModelDataFor() {
+      let ret = this.createRecordDataFor(...arguments);
+
+      // fallback to older ember-data methodName super if needed
+      if (ret === undefined) {
+        return this._super(...arguments);
+      }
+
+      return ret;
+    },
+
     createRecordDataFor(modelName, id, clientId, storeWrapper) {
       let schemaManager = get(this, '_schemaManager');
       if (schemaManager.includesModel(modelName)) {
         return new M3RecordData(modelName, id, clientId, storeWrapper, schemaManager, null, null);
-      }
-
-      if (this.createModelDataFor) {
-        return this.createModelDataFor(modelName, id, clientId, storeWrapper);
       }
 
       return this._super(modelName, id, clientId, storeWrapper);
