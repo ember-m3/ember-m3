@@ -51,16 +51,16 @@ export function extendStore(Store) {
       return this._super(modelName);
     },
 
-    createModelDataFor() {
-      // TODO deprecate
-      return this.createRecordDataFor(...arguments);
-    },
-
     createRecordDataFor(modelName, id, clientId, storeWrapper) {
       let schemaManager = get(this, '_schemaManager');
       if (schemaManager.includesModel(modelName)) {
         return new M3RecordData(modelName, id, clientId, storeWrapper, schemaManager, null, null);
       }
+
+      if (this.createModelDataFor) {
+        return this.createModelDataFor(modelName, id, clientId, storeWrapper);
+      }
+
       return this._super(modelName, id, clientId, storeWrapper);
     },
 
