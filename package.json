@@ -10,15 +10,15 @@
   "license": "MIT",
   "author": "David J. Hamilton <dhamilton@linkedin.com>",
   "contributors": [
-    "Dinesh Nalagatla",
-    "Thomas Wang",
-    "Sang Mercado",
+    "Dinesh Nalagatla <dinu.nalagatla@gmail.com> (https://www.linkedin.com/in/dineshnalagatla)",
+    "Thomas Wang <wangxgwxg@gmail.com> (https://twitter.com/xinganwang)",
+    "Sang Mercado <sang.mercado@gmail.com> (http://linkedin.com/in/sangmercado)",
     "Chris Thoburn <runspired@gmail.com> (https://twitter.com/runspired)",
-    "Steve Calvert",
+    "Steve Calvert <steve.calvert@gmail.com> (https://www.twitter.com/scalvert)",
     "Robert Jackson <me@rwjblue.com> (https://www.rwjblue.com)",
     "Alan Guo",
     "Igor Terzic",
-    "Danail Nachev"
+    "Danail Nachev (http://www.linkedin.com/in/danailnachev)"
   ],
   "directories": {
     "doc": "doc",
