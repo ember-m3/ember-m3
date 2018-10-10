@@ -8,7 +8,18 @@
     "ember-data-addon"
   ],
   "license": "MIT",
-  "author": "",
+  "author": "David J. Hamilton <dhamilton@linkedin.com>",
+  "contributors": [
+    "Dinesh Nalagatla",
+    "Thomas Wang",
+    "Sang Mercado",
+    "Chris Thoburn <runspired@gmail.com> (https://twitter.com/runspired)",
+    "Steve Calvert",
+    "Robert Jackson <me@rwjblue.com> (https://www.rwjblue.com)",
+    "Alan Guo",
+    "Igor Terzic",
+    "Danail Nachev"
+  ],
   "directories": {
     "doc": "doc",
     "test": "tests"
