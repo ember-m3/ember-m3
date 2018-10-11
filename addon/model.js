@@ -341,6 +341,10 @@ export default class MegamorphicModel extends EmberObject {
       return;
     }
 
+    if (value && value + '' === this.id) {
+      return;
+    }
+
     throw new Error(
       `You tried to set 'id' to '${value}' for '${
         this._modelName
