@@ -12,17 +12,17 @@ import { EmbeddedMegamorphicModel } from './model';
 export default class M3RecordArray extends RecordArray {
   // TODO: implement more of RecordArray but make this not an arrayproxy
 
-  replace(idx, removeAmt, newModels) {
-    this.replaceContent(idx, removeAmt, newModels);
+  replace(idx, removeAmt, newRecords) {
+    this.replaceContent(idx, removeAmt, newRecords);
   }
 
-  replaceContent(idx, removeAmt, newModels) {
-    let _newModels = A(newModels);
-    let addAmt = get(_newModels, 'length');
+  replaceContent(idx, removeAmt, newRecords) {
+    let _newRecords = A(newRecords);
+    let addAmt = get(_newRecords, 'length');
 
     let newInternalModels = new Array(addAmt);
     for (let i = 0; i < newInternalModels.length; ++i) {
-      newInternalModels[i] = _newModels.objectAt(i)._internalModel;
+      newInternalModels[i] = _newRecords.objectAt(i)._internalModel;
     }
     this.content.replace(idx, removeAmt, newInternalModels);
     this._registerWithInternalModels(newInternalModels);

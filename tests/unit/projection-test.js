@@ -2556,7 +2556,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    skip('we cannot create a new projection when existing model-data exists', function(assert) {
+    skip('we cannot create a new projection when existing recordData exists', function(assert) {
       // pre-populate the store with a different projection and base-data for the ID we will attempt to create.
       run(() => {
         this.store.push({

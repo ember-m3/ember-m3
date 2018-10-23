@@ -53,7 +53,7 @@ export default class DefaultSchema extends Service {
   }
 
   /**
-   * Update the model-data with raw value instead of resolved value
+   * Update the RecordData with raw value instead of resolved value
    *
    * @param {string} modelName
    * @param {string} attrName

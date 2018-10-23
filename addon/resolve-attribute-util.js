@@ -1,6 +1,7 @@
 import { dasherize } from '@ember/string';
-import M3ReferneceArray from './m3-reference-array';
+import M3ReferenceArray from './m3-reference-array';
 import M3TrackedArray from './m3-tracked-array';
+import { recordDataFor } from './-private';
 import { EmbeddedInternalModel, EmbeddedMegamorphicModel } from './model';
 import { A } from '@ember/array';
 
@@ -49,17 +50,18 @@ function resolveReferenceOrReferences(store, model, key, value, reference) {
  * 3. Single nested model -> EmbeddedMegaMorphicModel
  * 4. Array of nested models -> array of EmbeddedMegaMorphicModel
  */
-export function resolveValue(key, value, modelName, store, schema, model, parentIdx) {
-  const schemaInterface = model._internalModel._modelData.schemaInterface;
+export function resolveValue(key, value, modelName, store, schema, record, parentIdx) {
+  const recordData = recordDataFor(record);
+  const schemaInterface = recordData.schemaInterface;
 
   // First check to see if given value is either a reference or an array of references
   let reference = computeAttributeReference(key, value, modelName, schemaInterface, schema);
   if (reference !== undefined && reference !== null) {
-    return resolveReferenceOrReferences(store, model, key, value, reference);
+    return resolveReferenceOrReferences(store, record, key, value, reference);
   }
 
   if (Array.isArray(value)) {
-    return resolveArray(key, value, modelName, store, schema, model);
+    return resolveArray(key, value, modelName, store, schema, record);
   }
   let nested = computeNestedModel(key, value, modelName, schemaInterface, schema);
   if (nested) {
@@ -69,7 +71,7 @@ export function resolveValue(key, value, modelName, store, schema, model, parent
       // maintain consistency with internalmodel.modelName, which is normalized
       // internally within ember-data
       modelName: nested.type ? dasherize(nested.type) : null,
-      parentInternalModel: model._internalModel,
+      parentInternalModel: record._internalModel,
       parentKey: key,
       parentIdx,
     });
@@ -77,12 +79,12 @@ export function resolveValue(key, value, modelName, store, schema, model, parent
     let nestedModel = new EmbeddedMegamorphicModel({
       store,
       _internalModel: internalModel,
-      _parentModel: model,
-      _topModel: model._topModel,
+      _parentModel: record,
+      _topModel: record._topModel,
     });
     internalModel.record = nestedModel;
 
-    internalModel._modelData.pushData({
+    recordDataFor(internalModel).pushData({
       attributes: nested.attributes,
     });
 
@@ -112,16 +114,16 @@ export function resolveArray(key, value, modelName, store, schema, model) {
   });
 }
 
-export function resolveRecordArray(store, model, key, references) {
+export function resolveRecordArray(store, record, key, references) {
   let recordArrayManager = store._recordArrayManager;
 
-  let array = M3ReferneceArray.create({
+  let array = M3ReferenceArray.create({
     modelName: '-ember-m3',
     content: A(),
     store: store,
     manager: recordArrayManager,
     key,
-    model,
+    record,
   });
 
   let internalModels = resolveReferencesWithInternalModels(store, references);

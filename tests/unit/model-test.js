@@ -2,6 +2,7 @@ import Ember from 'ember';
 import { module, test, skip } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
+import { recordDataFor } from 'ember-m3/-private';
 
 import DS from 'ember-data';
 import { zip } from 'lodash';
@@ -1034,7 +1035,7 @@ module('unit/model', function(hooks) {
     );
   });
 
-  test('.setUnknownProperty child model data is removed upon setting a new value', function(assert) {
+  test('.setUnknownProperty child recordData is removed upon setting a new value', function(assert) {
     let model = run(() =>
       this.store.push({
         data: {
@@ -1051,15 +1052,15 @@ module('unit/model', function(hooks) {
       })
     );
 
-    // Testing if child Model data is removed upon setting new value
+    // Testing if child recordData is removed upon setting new value
     let nextChapter = get(model, 'nextChapter');
     assert.equal(
-      model._internalModel._modelData.__childModelDatas['nextChapter'].getAttr('name'),
+      recordDataFor(model).__childRecordDatas['nextChapter'].getAttr('name'),
       get(nextChapter, 'name'),
-      'child model data is created'
+      'child recordData is created'
     );
 
-    // Testing childModelData is removed upon
+    // Testing childRecordData is removed upon
     // setting a new value for nested model
     run(() =>
       set(model, 'nextChapter', {
@@ -1068,14 +1069,14 @@ module('unit/model', function(hooks) {
     );
 
     assert.ok(
-      model._internalModel._modelData.__childModelDatas['nextChapter'] === undefined,
-      'child model data is removed'
+      recordDataFor(model).__childRecordDatas['nextChapter'] === undefined,
+      'child recordData is removed'
     );
     nextChapter = get(model, 'nextChapter');
     assert.equal(
-      model._internalModel._modelData.__childModelDatas['nextChapter'].getAttr('name'),
+      recordDataFor(model).__childRecordDatas['nextChapter'].getAttr('name'),
       get(nextChapter, 'name'),
-      'child model data is updated with new value'
+      'child recordData is updated with new value'
     );
   });
 
@@ -1120,9 +1121,9 @@ module('unit/model', function(hooks) {
 
     //Attribute is updated with unresolved values
     assert.deepEqual(
-      model._internalModel._modelData.__attributes['relatedBooks'],
+      recordDataFor(model).__attributes['relatedBooks'],
       ['isbn:9780439064873', 'isbn:9780439136365'],
-      'model-data attributes is updated with unresoved array'
+      'recordData attributes are updated with unresolved array'
     );
 
     // value is resolved upon invoking get
@@ -2350,7 +2351,7 @@ module('unit/model', function(hooks) {
       return model.save().then(() => {
         assert.equal(model.get('isSaving'), false, 'model done saving');
         assert.deepEqual(
-          model._internalModel._modelData._data,
+          recordDataFor(model)._data,
           {
             name: 'The Winds of Winter',
             estimatedRating: '11/10',
