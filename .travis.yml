@@ -27,7 +27,7 @@ stages:
 jobs:
   fail_fast: true
   allow_failures:
-   - env: EMBER_TRY_SCENARIO=ember-canary
+   - env: EMBER_TRY_SCENARIO=canary-channel
    - env: NAME=floating dependencies
 
   include:
@@ -38,14 +38,15 @@ jobs:
 
     # runs tests against each supported Ember version
     - stage: specific version tests
-      env: EMBER_TRY_SCENARIO=ember-lts-2.16
-    - env: EMBER_TRY_SCENARIO=ember-lts-2.18
-    - env: EMBER_TRY_SCENARIO=ember-release
+      env: EMBER_TRY_SCENARIO=ember-lts-2.18
+    - env: EMBER_TRY_SCENARIO=ember-lts-3.4
+    - env: EMBER_TRY_SCENARIO=release-channel
+    - env: EMBER_TRY_SCENARIO=legacy-model-data
 
     # runs tests against future Ember versions
     - stage: advance warning tests
-      env: EMBER_TRY_SCENARIO=ember-beta
-    - env: EMBER_TRY_SCENARIO=ember-canary
+      env: EMBER_TRY_SCENARIO=beta-channel
+    - env: EMBER_TRY_SCENARIO=canary-channel
     - env: NAME=floating dependencies # used only to make Travis UI show description
       install: yarn install --no-lockfile --non-interactive
       script: yarn test
