@@ -114,7 +114,7 @@ export function resolveArray(key, value, modelName, store, schema, model) {
   });
 }
 
-export function resolveRecordArray(store, model, key, references) {
+export function resolveRecordArray(store, record, key, references) {
   let recordArrayManager = store._recordArrayManager;
 
   let array = M3ReferenceArray.create({
@@ -123,7 +123,7 @@ export function resolveRecordArray(store, model, key, references) {
     store: store,
     manager: recordArrayManager,
     key,
-    model,
+    record,
   });
 
   let internalModels = resolveReferencesWithInternalModels(store, references);

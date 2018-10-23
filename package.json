@@ -44,7 +44,8 @@
     ]
   },
   "dependencies": {
-    "ember-cli-babel": "^6.17.0"
+    "ember-cli-babel": "^6.17.0",
+    "ember-compatibility-helpers": "^1.2.0-beta.1"
   },
   "peerDependencies": {
     "ember-data": ">= 3.4.0"

@@ -4,6 +4,7 @@ import { assign, merge } from '@ember/polyfills';
 import { copy } from '@ember/object/internals';
 import { assert } from '@ember/debug';
 import Ember from 'ember';
+import { IS_RECORD_DATA } from 'ember-compatibility-helpers';
 import { recordDataFor } from './-private';
 
 const emberAssign = assign || merge;
@@ -131,10 +132,6 @@ export default class M3RecordData {
     this.id = id;
     this.storeWrapper = storeWrapper;
 
-    if (!storeWrapper.recordDataFor) {
-      storeWrapper.recordDataFor = storeWrapper.modelDataFor;
-    }
-
     this.isDestroyed = false;
     this._data = null;
     this._attributes = null;
@@ -152,7 +149,7 @@ export default class M3RecordData {
     this._baseRecordData = baseRecordData;
     this._projections = null;
 
-    this._initBaseModelData();
+    this._initBaseRecordData();
   }
 
   // PUBLIC API
@@ -624,18 +621,26 @@ export default class M3RecordData {
     this.__inFlightAttributes = v;
   }
 
-  _initBaseModelData() {
+  _initBaseRecordData() {
     if (!this._baseRecordData) {
       let baseModelName = this._schema.computeBaseModelName(this.modelName);
       if (!baseModelName) {
         return;
       }
 
-      this._baseRecordData = this.storeWrapper.recordDataFor(
-        dasherize(baseModelName),
-        this.id,
-        this.clientId
-      );
+      if (IS_RECORD_DATA) {
+        this._baseRecordData = this.storeWrapper.recordDataFor(
+          dasherize(baseModelName),
+          this.id,
+          this.clientId
+        );
+      } else {
+        this._baseRecordData = this.storeWrapper.modelDataFor(
+          dasherize(baseModelName),
+          this.id,
+          this.clientId
+        );
+      }
     }
 
     if (this._baseRecordData) {
