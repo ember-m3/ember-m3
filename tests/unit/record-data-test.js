@@ -38,6 +38,10 @@ module('unit/record-data', function(hooks) {
       recordDatas: {},
       disconnectedRecordDatas: {},
 
+      modelDataFor() {
+        return this.recordDataFor(...arguments);
+      },
+
       recordDataFor(modelName, id, clientId) {
         let key = recordDataKey({ modelName, id });
         return (

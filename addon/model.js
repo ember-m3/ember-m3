@@ -8,6 +8,7 @@ import EmberObject, { computed, get, set, defineProperty } from '@ember/object';
 import { isArray } from '@ember/array';
 import { warn } from '@ember/debug';
 import { alias } from '@ember/object/computed';
+import { IS_RECORD_DATA } from 'ember-compatibility-helpers';
 
 import { recordDataFor } from './-private';
 import M3RecordArray from './record-array';
@@ -62,13 +63,19 @@ export class EmbeddedInternalModel {
     this.id = id;
     this.modelName = modelName;
 
-    this._recordData = recordDataFor(parentInternalModel)._getChildRecordData(
+    let recordData = recordDataFor(parentInternalModel)._getChildRecordData(
       parentKey,
       parentIdx,
       modelName,
       id,
       this
     );
+    this._recordData = recordData;
+
+    if (!IS_RECORD_DATA) {
+      this._modelData = recordData;
+    }
+
     this.parentInternalModel = parentInternalModel;
 
     this.record = null;
