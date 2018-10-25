@@ -5,18 +5,30 @@ import { recordDataFor } from './-private';
 import { EmbeddedInternalModel, EmbeddedMegamorphicModel } from './model';
 import { A } from '@ember/array';
 
-export function computeAttributeReference(key, value, modelName, schemaInterface, schema) {
-  schemaInterface._beginDependentKeyResolution(key);
-  let reference = schema.computeAttributeReference(key, value, modelName, schemaInterface);
-  schemaInterface._endDependentKeyResolution(key);
-  return reference;
-}
+import {
+  computeAttributeReference,
+  computeNestedModel,
+  resolveReferencesWithInternalModels,
+} from './utils/resolve';
 
-function computeNestedModel(key, value, modelName, schemaInterface, schema) {
-  schemaInterface._beginDependentKeyResolution(key);
-  let nestedModel = schema.computeNestedModel(key, value, modelName, schemaInterface);
-  schemaInterface._endDependentKeyResolution(key);
-  return nestedModel;
+// ie an array of nested models
+export function resolveArray(key, value, modelName, store, schema, model) {
+  let resolvedArray = new Array(0);
+  if (value && value.length > 0) {
+    resolvedArray = value.map((value, idx) =>
+      resolveValue(key, value, modelName, store, schema, model, idx)
+    );
+  }
+
+  return M3TrackedArray.create({
+    content: A(resolvedArray),
+    key,
+    value,
+    modelName,
+    store,
+    schema,
+    model,
+  });
 }
 
 function resolveReference(store, reference) {
@@ -37,6 +49,24 @@ function resolveReferenceOrReferences(store, model, key, value, reference) {
   }
 
   return resolveReference(store, reference);
+}
+
+export function resolveRecordArray(store, record, key, references) {
+  let recordArrayManager = store._recordArrayManager;
+
+  let array = M3ReferenceArray.create({
+    modelName: '-ember-m3',
+    content: A(),
+    store: store,
+    manager: recordArrayManager,
+    key,
+    record,
+  });
+
+  let internalModels = resolveReferencesWithInternalModels(store, references);
+
+  array._setInternalModels(internalModels);
+  return array;
 }
 
 /**
@@ -92,56 +122,4 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
   }
 
   return value;
-}
-
-// ie an array of nested models
-export function resolveArray(key, value, modelName, store, schema, model) {
-  let resolvedArray = new Array(0);
-  if (value && value.length > 0) {
-    resolvedArray = value.map((value, idx) =>
-      resolveValue(key, value, modelName, store, schema, model, idx)
-    );
-  }
-
-  return M3TrackedArray.create({
-    content: A(resolvedArray),
-    key,
-    value,
-    modelName,
-    store,
-    schema,
-    model,
-  });
-}
-
-export function resolveRecordArray(store, record, key, references) {
-  let recordArrayManager = store._recordArrayManager;
-
-  let array = M3ReferenceArray.create({
-    modelName: '-ember-m3',
-    content: A(),
-    store: store,
-    manager: recordArrayManager,
-    key,
-    record,
-  });
-
-  let internalModels = resolveReferencesWithInternalModels(store, references);
-
-  array._setInternalModels(internalModels);
-  return array;
-}
-
-export function resolveReferencesWithInternalModels(store, references) {
-  // TODO: mention in UPGRADING.md
-  return references.map(
-    reference =>
-      reference.type
-        ? store._internalModelForId(dasherize(reference.type), reference.id)
-        : store._globalM3Cache[reference.id]
-  );
-}
-
-export function isResolvedValue(value) {
-  return value && value.constructor && value.constructor.isModel;
 }

@@ -1,6 +1,7 @@
 import ArrayProxy from '@ember/array/proxy';
 import { get } from '@ember/object';
-import { isResolvedValue, resolveValue } from './resolve-attribute-util';
+import { resolveValue } from './resolve-attribute-util';
+import { isResolvedValue } from './utils/resolve';
 import { associateRecordWithRecordArray } from './record-array';
 import { recordDataFor } from './-private';
 

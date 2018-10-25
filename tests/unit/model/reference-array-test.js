@@ -470,4 +470,64 @@ module('unit/model/reference-array', function(hooks) {
 
     assert.deepEqual(get(model, 'relatedBooks').map(x => get(x, 'name')), [], 'array empty');
   });
+
+  test('updated reference arrays resolve their new references lazily when using the global cache', function(assert) {
+    let model = run(() => {
+      // use obj instead of urn here so `_resolve` puts us in global cache
+      // rather than knowing the type from the id
+      return this.store.push({
+        data: {
+          id: 'obj:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            '*relatedBooks': [],
+          },
+        },
+        included: [],
+      });
+    });
+
+    let relatedBooks = model.get('relatedBooks');
+    assert.deepEqual(relatedBooks.mapBy('id'), [], 'record array instantiated');
+
+    run(() => {
+      this.store.push({
+        data: {
+          id: 'record:1',
+          type: 'com.example.bookstore.Unrelated',
+        },
+        included: [
+          {
+            id: 'obj:9780439708180',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Sorcerer's Stone`,
+              '*relatedBooks': ['obj:9780439064873', 'obj:9780439136365'],
+            },
+          },
+          {
+            id: 'obj:9780439064873',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Chamber of Secrets`,
+            },
+          },
+          {
+            id: 'obj:9780439136365',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Prisoner of Azkaban`,
+            },
+          },
+        ],
+      });
+    });
+
+    assert.deepEqual(
+      relatedBooks.mapBy('id'),
+      ['obj:9780439064873', 'obj:9780439136365'],
+      'record array updates references lazily'
+    );
+  });
 });

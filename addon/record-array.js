@@ -1,7 +1,9 @@
 import { get } from '@ember/object';
-import { RecordArray } from 'ember-data/-private';
+import { dasherize } from '@ember/string';
+import ArrayProxy from '@ember/array/proxy';
 import { A } from '@ember/array';
 import { EmbeddedMegamorphicModel } from './model';
+import { resolveReferencesWithInternalModels } from './utils/resolve';
 
 /**
  * M3RecordArray
@@ -9,8 +11,19 @@ import { EmbeddedMegamorphicModel } from './model';
  * @class M3RecordArray
  * @extends DS.RecordArray
  */
-export default class M3RecordArray extends RecordArray {
-  // TODO: implement more of RecordArray but make this not an arrayproxy
+export default class M3RecordArray extends ArrayProxy {
+  // public RecordArray API
+
+  init() {
+    // content must be set before super.init because that will install array
+    // observers
+    this.content = A();
+    super.init(...arguments);
+    this._references = [];
+    this._internalModels = [];
+    this._resolved = false;
+    this.store = this.store || null;
+  }
 
   replace(idx, removeAmt, newRecords) {
     this.replaceContent(idx, removeAmt, newRecords);
@@ -26,20 +39,54 @@ export default class M3RecordArray extends RecordArray {
     }
     this.content.replace(idx, removeAmt, newInternalModels);
     this._registerWithInternalModels(newInternalModels);
+    this._resolved = true;
   }
 
-  _update() {
-    if (!this.query) {
-      throw new Error(`Can't update RecordArray without a query`);
+  objectAtContent(idx) {
+    let internalModel = this.content[idx];
+    return internalModel && internalModel.getRecord();
+  }
+
+  objectAt(idx) {
+    this._resolve();
+    return super.objectAt(idx);
+  }
+
+  // RecordArrayManager private api
+
+  _pushInternalModels(internalModels) {
+    this._resolve();
+    this.content.pushObjects(internalModels);
+  }
+
+  _removeInternalModels(internalModels) {
+    if (this._resolved) {
+      this.content.removeObjects(internalModels);
+    } else {
+      for (let i = 0; i < internalModels.length; ++i) {
+        let internalModel = internalModels[i];
+
+        for (let j = 0; j < this.content.length; ++j) {
+          let { id, type } = this.content[j];
+          let dtype = type && dasherize(type);
+
+          if ((dtype === null || dtype === internalModel.modelName) && id === internalModel.id) {
+            this.content.removeAt(j);
+            break;
+          }
+        }
+      }
     }
-
-    let { url, params, method, cacheKey } = this.query;
-
-    return this.queryCache.queryURL(url, { params, method, cacheKey }, this);
   }
 
-  _setInternalModels(internalModels /*, payload */) {
-    this.content.setObjects(internalModels);
+  // Private API
+
+  _setInternalModels(internalModels, triggerChange = true) {
+    if (triggerChange) {
+      this.content.replace(0, this.content.length, internalModels);
+    } else {
+      this.content.splice(0, this.content.length, ...internalModels);
+    }
 
     this.setProperties({
       isLoaded: true,
@@ -47,6 +94,15 @@ export default class M3RecordArray extends RecordArray {
     });
 
     this._registerWithInternalModels(internalModels);
+    this._resolved = true;
+  }
+
+  _setReferences(references) {
+    this._references = references;
+    this._resolved = false;
+    // change event for this.content so we re-resolve next time something is
+    // asked for
+    this.content.setObjects(this._references);
   }
 
   _registerWithInternalModels(internalModels) {
@@ -55,6 +111,19 @@ export default class M3RecordArray extends RecordArray {
 
       internalModel._recordArrays.add(this);
     }
+  }
+
+  _resolve() {
+    if (this._resolved) {
+      return;
+    }
+
+    if (this._references !== null) {
+      let internalModels = resolveReferencesWithInternalModels(this.store, this._references);
+      this._setInternalModels(internalModels, false);
+    }
+
+    this._resolved = true;
   }
 
   // The length property can be removed entirely once our ember-source peer dep

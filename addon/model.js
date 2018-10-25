@@ -13,12 +13,8 @@ import { IS_RECORD_DATA } from 'ember-compatibility-helpers';
 import { recordDataFor } from './-private';
 import M3RecordArray from './record-array';
 import { OWNER_KEY } from './util';
-import {
-  resolveValue,
-  resolveReferencesWithInternalModels,
-  computeAttributeReference,
-  isResolvedValue as _isResolvedValue,
-} from './resolve-attribute-util';
+import { resolveValue } from './resolve-attribute-util';
+import { computeAttributeReference, isResolvedValue as _isResolvedValue } from './utils/resolve';
 
 const { propertyDidChange } = Ember;
 let { notifyPropertyChange } = Ember;
@@ -219,12 +215,10 @@ export default class MegamorphicModel extends EmberObject {
         // resolved record array.  The record array is already updated in-place.
         return;
       }
-      // TODO: do this lazily
       let references =
         computeAttributeReference(key, newValue, this._modelName, schemaInterface, this._schema) ||
         [];
-      let internalModels = resolveReferencesWithInternalModels(this._store, references);
-      oldValue._setInternalModels(internalModels);
+      oldValue._setReferences(references);
     } else {
       // TODO: disconnect recordData -> childRecordData in the case of nested model -> primitive
       // anything -> undefined | primitive
