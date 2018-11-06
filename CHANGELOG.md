@@ -1,5 +1,10 @@
 # ember-m3 changelog
 
+## 0.9.5
+
+- bugfix: do not throw when setting an id to its current value
+- bugfix: add support for ember-data 3.5.x
+
 ## 0.9.4
 
 - bugfix: reference arrays can update to undefined (treated as now empty)
