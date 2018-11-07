@@ -743,4 +743,48 @@ module('unit/model/changed-attrs', function(hooks) {
       });
     });
   });
+
+  test('updates from .save clear changed attributes in nested models', function(assert) {
+    this.owner.register(
+      'adapter:-ember-m3',
+      EmberObject.extend({
+        updateRecord() {
+          return Promise.resolve();
+        },
+      })
+    );
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+            author: 'George R. R. Martin',
+            rating: 10,
+            expectedPubDate: 'never',
+            chapters: [
+              {
+                name: 'Windy eh',
+                number: 1,
+              },
+              {
+                name: `I guess winter was coming after all`,
+                number: 2,
+              },
+            ],
+          },
+        },
+      });
+    });
+
+    let nestedModels = get(model, 'chapters');
+    set(nestedModels.get('firstObject'), 'name', 'super windy');
+    return run(() =>
+      model.save().then(data => {
+        assert.deepEqual(data.changedAttributes(), {}, 'changedAttributes is empty');
+      })
+    );
+  });
 });
