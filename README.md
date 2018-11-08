@@ -59,14 +59,14 @@ You could support it with the following schema:
 ```js
 // app/services/m3-schema.js
 //
-// generated via `ember generate m3:schema
+// generated via `ember generate service m3-schema`
 import DefaultSchema from 'ember-m3/services/m3-schema';
 
 const BookstoreRegExp = /^com\.example\.bookstore\.*/;
 const ISBNRegExp = /^isbn:.*/;
 const URNRegExp = /^urn:(\w+):(.*)/;
 
-export default DefaultSchema.extend({
+export default class MySchema extends DefaultSchema {
   includesModel(modelName) {
     return BookstoreRegExp.test(modelName);
   },
