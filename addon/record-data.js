@@ -1,7 +1,7 @@
 import { isEqual, isNone } from '@ember/utils';
 import { dasherize } from '@ember/string';
 import { assign, merge } from '@ember/polyfills';
-import { copy } from '@ember/object/internals';
+import { copy } from './utils/copy';
 import { assert } from '@ember/debug';
 import Ember from 'ember';
 import { IS_RECORD_DATA } from 'ember-compatibility-helpers';
