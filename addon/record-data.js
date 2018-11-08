@@ -511,6 +511,9 @@ export default class M3RecordData {
   }
 
   rollbackAttributes(notifyRecord = false) {
+    if (this._baseRecordData) {
+      return this._baseRecordData.rollbackAttributes(...arguments);
+    }
     let dirtyKeys;
     if (this.hasChangedAttributes()) {
       dirtyKeys = Object.keys(this._attributes);

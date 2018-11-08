@@ -198,6 +198,29 @@ module('unit/record-data', function(hooks) {
     assert.equal(rollbackAttributesSpy.getCalls().length, 0, 'rollbackAttributes was not called');
   });
 
+  test('.rollbackAttributes rolls backs the attributes on a base record data when dealing with a projection', function(assert) {
+    assert.expect(1);
+    const projectedRecordData = this.storeWrapper.recordDataFor(
+      'com.bookstore.projected-book',
+      '1'
+    );
+    const baseRecordData = this.storeWrapper.recordDatas[
+      recordDataKey({
+        modelName: 'com.bookstore.book',
+        id: '1',
+      })
+    ];
+    const rollbackAttributesSpy = this.sinon.spy(baseRecordData, 'rollbackAttributes');
+
+    projectedRecordData.rollbackAttributes();
+
+    assert.equal(
+      rollbackAttributesSpy.getCalls().length,
+      1,
+      'rollbackAttributes was called once for the base record data'
+    );
+  });
+
   test('.schemaInterface track dependent keys resolved by ref key', function(assert) {
     let recordData = this.mockRecordData();
     let schemaInterface = recordData.schemaInterface;
