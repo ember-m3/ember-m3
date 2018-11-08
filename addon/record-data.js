@@ -211,6 +211,7 @@ export default class M3RecordData {
     if (this._baseRecordData) {
       return this._baseRecordData.willCommit();
     }
+    // debugger
     this._inFlightAttributes = this._attributes;
     this._attributes = null;
 
@@ -220,9 +221,9 @@ export default class M3RecordData {
         let childKey = nestedKeys[i];
         let childRecordData = this._childRecordDatas[childKey];
         if (!Array.isArray(childRecordData)) {
-          // we don't re-use nested models within arrays so there's no need to
-          // propagate willCommit/didCommit
           childRecordData.willCommit();
+        } else {
+          childRecordData.forEach(child => child.willCommit());
         }
       }
     }
@@ -259,19 +260,44 @@ export default class M3RecordData {
       // as part of notifying all projections
       return [];
     }
+
+    // If the server returns a payload
     let attributes;
     if (jsonApiResource) {
       attributes = jsonApiResource.attributes;
     }
+    // In case, the server doesn't provide updates for changes in nested models.
+    this._syncNestedModelUpdates(attributes);
+
+    this._syncNestedModelUpdates(attributes);
+    // // Iterate through the children and if the childKey doesn't exist in the payload,
+    // // We need to call didCommit on it to ensure the childRecordData has the correct state.
+    // if (this.__childRecordDatas) {
+    //   let nestedKeys = Object.keys(this._childRecordDatas);
+    //   for (let i = 0; i < nestedKeys.length; ++i) {
+    //     let childKey = nestedKeys[i];
+    //     let childRecordData = this._childRecordDatas[childKey];
+    //     // If the childKey already exists in the server response, we don't need to didCommit
+    //     // _mergeUpdates will handle it.
+    //     if (attributes && childKey in attributes) {
+    //       continue;
+    //     }
+
+    //     if (!Array.isArray(childRecordData)) {
+    //       // TODO: pass value to didCommit jsonApiResource.attribute[childKey]? Don't think we need to do this anymore.
+    //       childRecordData.didCommit();
+    //     } else {
+    //       childRecordData.forEach(child => child.didCommit());
+    //     }
+    //   }
+    // }
 
     emberAssign(this._data, this._inFlightAttributes);
     this._inFlightAttributes = null;
 
     let changedKeys;
-    if (attributes !== undefined) {
-      changedKeys = this._mergeUpdates(attributes, commitDataAndNotify, true);
-      changedKeys = this._filterChangedKeys(changedKeys);
-    }
+    changedKeys = this._mergeUpdates(attributes, commitDataAndNotify, true);
+    changedKeys = this._filterChangedKeys(changedKeys);
 
     this._updateChangedAttributes();
 
@@ -927,10 +953,9 @@ export default class M3RecordData {
     if (calculateChanges) {
       changedKeys = [];
     }
-
     if (!updates) {
-      // no changes
-      return changedKeys;
+      // no changes from the server
+      updates = this._createNestedUpdatesForNoUpdates();
     }
 
     let updatedKeys = Object.keys(updates);
@@ -962,6 +987,30 @@ export default class M3RecordData {
     return changedKeys;
   }
 
+  /**
+   * Create the updates for the nested models when there's no updates from the server.
+   */
+  _createNestedUpdatesForNoUpdates() {
+    const updates = {};
+    // We need to recursively copy the childRecordDatas into data, to ensure the top level model knows about the change.
+
+    const childRecordDatas = this._getChildRecordDatas();
+    childRecordDatas.forEach(childRecordData => {
+      // If childKey already exists in updates, we don't need to copy their data
+      if (childRecordData.key in updates) {
+        updates[childRecordData.key] = childRecordData._data;
+        return;
+      }
+
+      if (!Array.isArray(childRecordData)) {
+        updates[childRecordData.key] = childRecordData._data;
+      } else {
+        updates[childRecordData.key] = childRecordData.data.map(child => child._data);
+      }
+    });
+    return updates;
+  }
+
   _notifyRecordProperties(changedKeys) {
     if (this._embeddedInternalModel) {
       this._embeddedInternalModel.record._notifyProperties(changedKeys);
@@ -986,6 +1035,48 @@ export default class M3RecordData {
       projections[i]._notifyRecordProperties(changedKeys);
     }
     return true;
+  }
+
+  /**
+   * TODO: Better name?
+   * When there are updates in the nested model, but server response doesn't contain the update,
+   * We need to sync the states of the child records.
+   */
+  _syncNestedModelUpdates(attributes) {
+    // Iterate through the children and if the childKey doesn't exist in the payload,
+    // We need to call didCommit on it to ensure the childRecordData has the correct state.
+    const childRecordDatas = this._getChildRecordDatas();
+    childRecordDatas.forEach(childRecordData => {
+      // If the childKey already exists in the server response, we don't need to didCommit
+      // _mergeUpdates will handle it.
+      if (attributes && childRecordData.key in attributes) {
+        return;
+      }
+
+      if (!Array.isArray(childRecordData.data)) {
+        // TODO: pass value to didCommit jsonApiResource.attribute[childKey]? Don't think we need to do this anymore.
+        childRecordData.data.didCommit();
+      } else {
+        childRecordData.data.forEach(child => child.didCommit());
+      }
+    });
+  }
+
+  /**
+   * Helper function for returning childRecordDatas in {key, value} format
+   * e.g, [{childKey, childRecordData}, {...}]
+   */
+  _getChildRecordDatas() {
+    if (this.__childRecordDatas) {
+      let nestedKeys = Object.keys(this._childRecordDatas);
+      return nestedKeys.map(nestedKey => {
+        return {
+          key: nestedKey,
+          data: this._childRecordDatas[key],
+        };
+      });
+    }
+    return [];
   }
 
   toString() {
