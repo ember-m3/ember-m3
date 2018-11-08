@@ -1,6 +1,6 @@
 {
   "name": "ember-m3",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "description": "Alternative to DS.Model in which attributes and relationships are derived from API Payloads",
   "keywords": [
     "ember-addon",
@@ -18,7 +18,8 @@
     "Robert Jackson <me@rwjblue.com> (https://www.rwjblue.com)",
     "Alan Guo",
     "Igor Terzic",
-    "Danail Nachev (http://www.linkedin.com/in/danailnachev)"
+    "Danail Nachev (http://www.linkedin.com/in/danailnachev)",
+    "Ibraheem Abdul-Malik"
   ],
   "directories": {
     "doc": "doc",

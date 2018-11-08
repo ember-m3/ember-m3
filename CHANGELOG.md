@@ -1,5 +1,12 @@
 # ember-m3 changelog
 
+## 0.9.6
+
+- bugfix: reference array updates are now resolved lazily #205
+- bugfix: destroying new records does not trigger API request
+- cleanup: dropped use of deprecated `Ember.copy`
+- cleanup: fixed errors in README (thanks @ibraheem4)
+
 ## 0.9.5
 
 - bugfix: do not throw when setting an id to its current value
