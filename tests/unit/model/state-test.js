@@ -51,11 +51,42 @@ module('unit/model/state', function(hooks) {
   skip('isLoaded', function() {});
   skip('isSaving', function() {});
   skip('isDeleted', function() {});
-  skip('isNew', function() {});
   skip('isValid', function() {});
 
+  test('isNew', function(assert) {
+    let existingRecord = run(() =>
+      this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            title: 'The Storm Before the Storm',
+            author: 'Mike Duncan',
+          },
+        },
+      })
+    );
+
+    assert.equal(existingRecord.get('isNew'), false, 'existingRecord.isNew');
+
+    existingRecord.deleteRecord();
+
+    assert.equal(existingRecord.get('isDirty'), true, 'existingRecor.delete() -> isDirty');
+
+    let newRecord = this.store.createRecord('com.example.bookstore.Book', {
+      title: 'Something is Going On',
+      author: 'Just Some Friendly Guy',
+    });
+
+    assert.equal(newRecord.get('isNew'), true, 'newRecord.isNew');
+
+    newRecord.deleteRecord();
+
+    assert.equal(newRecord.get('isDirty'), false, 'newRecord.delete() -> isDirty');
+  });
+
   test('isDirty', function(assert) {
-    let model = run(() => {
+    let record = run(() => {
       return this.store.push({
         data: {
           id: 1,
@@ -71,24 +102,26 @@ module('unit/model/state', function(hooks) {
       });
     });
 
-    assert.equal(model.get('isDirty'), false, 'model not dirty');
-    assert.equal(model.get('rating.isDirty'), false, 'nested model not dirty');
+    assert.equal(record.get('isDirty'), false, 'record not dirty');
+    assert.equal(record.get('rating.isDirty'), false, 'nested record not dirty');
 
-    model.set('author', 'Nobody yet');
+    record.set('author', 'Nobody yet');
 
-    assert.equal(model.get('isDirty'), true, 'model dirty');
-    assert.equal(model.get('rating.isDirty'), true, 'nested model shares dirty state with parent');
+    assert.equal(record.get('isDirty'), true, 'record dirty');
+    assert.equal(
+      record.get('rating.isDirty'),
+      true,
+      'nested record shares dirty state with parent'
+    );
 
-    model.rollbackAttributes();
+    record.rollbackAttributes();
 
-    assert.equal(model.get('isDirty'), false, 'model no longer dirty');
-    assert.equal(model.get('rating.isDirty'), false, 'nested model no longer dirty');
+    assert.equal(record.get('isDirty'), false, 'record no longer dirty');
+    assert.equal(record.get('rating.isDirty'), false, 'nested record no longer dirty');
 
-    model.set('rating.avg', 11);
+    record.set('rating.avg', 11);
 
-    assert.equal(model.get('isDirty'), true, 'model shares state with nested model');
-    assert.equal(model.get('rating.isDirty'), true, 'nested model dirty');
+    assert.equal(record.get('isDirty'), true, 'record shares state with nested record');
+    assert.equal(record.get('rating.isDirty'), true, 'nested record dirty');
   });
-
-  skip();
 });
