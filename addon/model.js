@@ -25,7 +25,7 @@ if (!HasNotifyPropertyChange) {
 }
 
 const {
-  deleted: { uncommitted: deletedUncommitted },
+  deleted: { uncommitted: deletedUncommitted, saved: deletedSaved },
   loaded: {
     saved: loadedSaved,
     updated: { uncommitted: updatedUncommitted },
@@ -277,7 +277,8 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   deleteRecord() {
-    this._updateCurrentState(deletedUncommitted);
+    let newState = get(this, 'isNew') ? deletedSaved : deletedUncommitted;
+    this._updateCurrentState(newState);
   }
 
   destroyRecord(options) {
