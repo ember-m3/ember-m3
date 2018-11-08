@@ -4,7 +4,7 @@ import { get } from '@ember/object';
 import { A } from '@ember/array';
 
 import MegamorphicModel from './model';
-import M3RecordArray from './record-array';
+import M3QueryArray from './query-array';
 
 function stripSlash(str, stripLeading, stripTrailing) {
   let startSlash = stripLeading && str.charAt(0) === '/';
@@ -186,14 +186,14 @@ export default class QueryCache {
       array._setInternalModels(internalModelOrModels);
       return array;
     } else if (Array.isArray(internalModelOrModels)) {
-      return this._createRecordArray(internalModelOrModels, query);
+      return this._createQueryArray(internalModelOrModels, query);
     } else {
       return internalModelOrModels.getRecord();
     }
   }
 
   _addResultToReverseCache(result, cacheKey) {
-    if (result.constructor === M3RecordArray) {
+    if (result.constructor === M3QueryArray) {
       for (let i = 0; i < result.content.length; ++i) {
         this._addRecordToReverseCache(result.content[i], cacheKey);
       }
@@ -208,8 +208,8 @@ export default class QueryCache {
     cacheKeys.push(cacheKey);
   }
 
-  _createRecordArray(internalModels, query) {
-    let array = M3RecordArray.create({
+  _createQueryArray(internalModels, query) {
+    let array = M3QueryArray.create({
       modelName: '-ember-m3',
       content: A(),
       store: this._store,

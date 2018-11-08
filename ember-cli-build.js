@@ -7,8 +7,11 @@ module.exports = function(defaults) {
   let app = new EmberAddon(defaults, {
     // Add options here
     emberData: {
-      enableRecordDataRFCBuild: true
-    }
+      enableRecordDataRFCBuild: true,
+    },
+    'ember-cli-babel': {
+      includePolyfill: true,
+    },
   });
 
   /*
