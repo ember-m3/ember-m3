@@ -559,6 +559,9 @@ export default class M3RecordData {
    * @returns {boolean}
    */
   isAttrDirty(key) {
+    if (this._baseRecordData) {
+      return this._baseRecordData.isAttrDirty(...arguments);
+    }
     if (this._attributes[key] === undefined) {
       return false;
     }

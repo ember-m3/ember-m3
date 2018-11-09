@@ -2625,6 +2625,69 @@ module('unit/projection', function(hooks) {
       );
     });
 
+    test('.rollbackAttributes on a projection ', function(assert) {
+      let projectedExcerpt = run(() => {
+        return this.store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {
+              title: BOOK_TITLE_1,
+              author: {
+                name: BOOK_AUTHOR_NAME_1,
+              },
+            },
+          },
+        });
+      });
+      run(() => {
+        this.store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              title: BOOK_TITLE_1,
+            },
+          },
+        });
+      });
+
+      assert.notOk(
+        projectedExcerpt.get('isDirty'),
+        'The projection should not be dirty on its initial state'
+      );
+      assert.deepEqual(
+        projectedExcerpt.changedAttributes(),
+        {},
+        'The projection should not have changed attributes on its initial state'
+      );
+      run(() => {
+        set(projectedExcerpt, 'title', BOOK_TITLE_2);
+      });
+      assert.ok(
+        projectedExcerpt.get('isDirty'),
+        'The projection should be dirty after mutating its state'
+      );
+      assert.deepEqual(
+        projectedExcerpt.changedAttributes(),
+        {
+          title: [BOOK_TITLE_1, BOOK_TITLE_2],
+        },
+        'The projection title was registered as a changed attribute after it was mutated'
+      );
+
+      projectedExcerpt.rollbackAttributes();
+      assert.notOk(
+        projectedExcerpt.get('isDirty'),
+        'The projection should not be dirty after rolling back its attributes'
+      );
+      assert.deepEqual(
+        projectedExcerpt.changedAttributes(),
+        {},
+        'The projection attributes went back to their original state after calling rollbackAttributes'
+      );
+    });
+
     skip('update and save of a projection does not touch non-whitelisted properties', function(assert) {
       let updateRecordCalls = 0;
       this.owner.register(
