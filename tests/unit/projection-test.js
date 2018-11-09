@@ -2625,7 +2625,7 @@ module('unit/projection', function(hooks) {
       );
     });
 
-    test('.rollbackAttributes on a projection ', function(assert) {
+    test('.rollbackAttributes on a projection sets the model attributes back to its original state', function(assert) {
       let projectedExcerpt = run(() => {
         return this.store.push({
           data: {
