@@ -2688,6 +2688,47 @@ module('unit/projection', function(hooks) {
       );
     });
 
+    test('.isDirty on a projection is true after updating its state', function(assert) {
+      let projectedExcerpt = run(() => {
+        return this.store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {
+              title: BOOK_TITLE_1,
+              author: {
+                name: BOOK_AUTHOR_NAME_1,
+              },
+            },
+          },
+        });
+      });
+      // Base record
+      run(() => {
+        this.store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              title: BOOK_TITLE_1,
+            },
+          },
+        });
+      });
+
+      assert.notOk(
+        projectedExcerpt.get('isDirty'),
+        'The projection should not be dirty on its initial state'
+      );
+      run(() => {
+        set(projectedExcerpt, 'title', BOOK_TITLE_2);
+      });
+      assert.ok(
+        projectedExcerpt.get('isDirty'),
+        'The projection should be dirty after mutating its state'
+      );
+    });
+
     skip('update and save of a projection does not touch non-whitelisted properties', function(assert) {
       let updateRecordCalls = 0;
       this.owner.register(
