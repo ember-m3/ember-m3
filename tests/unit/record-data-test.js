@@ -221,6 +221,25 @@ module('unit/record-data', function(hooks) {
     );
   });
 
+  test('.isAttrDirty returns true when the attribute is mutated on a projection', function(assert) {
+    assert.expect(2);
+    const projectedRecordData = this.storeWrapper.recordDataFor(
+      'com.bookstore.projected-book',
+      '1'
+    );
+    const attrName = 'name';
+
+    assert.notOk(
+      projectedRecordData.isAttrDirty(attrName),
+      'Fake attribute is not dirty initially'
+    );
+    projectedRecordData.setAttr(attrName, 'The best store in town');
+    assert.ok(
+      projectedRecordData.isAttrDirty(attrName),
+      'Fake attribute is dirty after being mutated'
+    );
+  });
+
   test('.schemaInterface track dependent keys resolved by ref key', function(assert) {
     let recordData = this.mockRecordData();
     let schemaInterface = recordData.schemaInterface;
