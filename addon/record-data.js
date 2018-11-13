@@ -220,9 +220,9 @@ export default class M3RecordData {
         let childKey = nestedKeys[i];
         let childRecordData = this._childRecordDatas[childKey];
         if (!Array.isArray(childRecordData)) {
-          // we don't re-use nested models within arrays so there's no need to
-          // propagate willCommit/didCommit
           childRecordData.willCommit();
+        } else {
+          childRecordData.forEach(child => child.willCommit());
         }
       }
     }
@@ -259,19 +259,23 @@ export default class M3RecordData {
       // as part of notifying all projections
       return [];
     }
+
+    // If the server returns a payload
     let attributes;
     if (jsonApiResource) {
       attributes = jsonApiResource.attributes;
     }
+    // We need to sync nested models in case of partial updates from server and local.
+    this._syncNestedModelUpdates(attributes);
 
     emberAssign(this._data, this._inFlightAttributes);
     this._inFlightAttributes = null;
 
     let changedKeys;
-    if (attributes !== undefined) {
-      changedKeys = this._mergeUpdates(attributes, commitDataAndNotify, true);
-      changedKeys = this._filterChangedKeys(changedKeys);
-    }
+    changedKeys = this._mergeUpdates(attributes, commitDataAndNotify, true);
+    changedKeys = this._filterChangedKeys(changedKeys);
+    // At this point, all of the nestedModels has been updated, so we can add their updates to the current model's data.
+    this._mergeNestedModelData();
 
     this._updateChangedAttributes();
 
@@ -935,7 +939,6 @@ export default class M3RecordData {
     }
 
     if (!updates) {
-      // no changes
       return changedKeys;
     }
 
@@ -992,6 +995,59 @@ export default class M3RecordData {
       projections[i]._notifyRecordProperties(changedKeys);
     }
     return true;
+  }
+
+  /**
+   * If there are local changes that are not altered by the server payload, we need to manually call didCOmmit
+   * on them to sync their states.
+   */
+  _syncNestedModelUpdates(attributes) {
+    // Iterate through the children and call didCommit on it to ensure the childRecordData has the correct state.
+    const childRecordDatas = this._getChildRecordDatas();
+    childRecordDatas.forEach(childRecordData => {
+      // Don't do anything if the key is inside the server payload
+      if (attributes && childRecordData.key in attributes) {
+        return;
+      }
+
+      if (!Array.isArray(childRecordData.data)) {
+        childRecordData.data.didCommit();
+      } else {
+        childRecordData.data.forEach(child => child.didCommit());
+      }
+    });
+  }
+
+  /**
+   * Merge data from nested models into parent, so its data is correctly in sync with its children.
+   */
+  _mergeNestedModelData() {
+    // We need to recursively copy the childRecordDatas into data, to ensure the top level model knows about the change.
+    const childRecordDatas = this._getChildRecordDatas();
+    childRecordDatas.forEach(childRecordData => {
+      if (!Array.isArray(childRecordData.data)) {
+        this._data[childRecordData.key] = childRecordData.data._data;
+      } else {
+        this._data[childRecordData.key] = childRecordData.data.map(child => child._data);
+      }
+    });
+  }
+
+  /**
+   * Helper function for returning childRecordDatas in {key, value} format
+   * e.g, [{childKey, childRecordData}, {...}]
+   */
+  _getChildRecordDatas() {
+    if (this.__childRecordDatas) {
+      let nestedKeys = Object.keys(this._childRecordDatas);
+      return nestedKeys.map(nestedKey => {
+        return {
+          key: nestedKey,
+          data: this._childRecordDatas[nestedKey],
+        };
+      });
+    }
+    return [];
   }
 
   toString() {

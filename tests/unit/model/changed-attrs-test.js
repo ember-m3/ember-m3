@@ -10,6 +10,8 @@ import MegamorphicModel from 'ember-m3/model';
 import M3RecordArray from 'ember-m3/record-array';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 
+import { recordDataFor } from 'ember-m3/-private';
+
 module('unit/model/changed-attrs', function(hooks) {
   setupTest(hooks);
 
@@ -742,5 +744,464 @@ module('unit/model/changed-attrs', function(hooks) {
         );
       });
     });
+  });
+
+  test('local nested model within non-array updates without server payload', function(assert) {
+    this.owner.register(
+      'adapter:-ember-m3',
+      EmberObject.extend({
+        updateRecord() {
+          return Promise.resolve();
+        },
+      })
+    );
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+            author: 'George R. R. Martin',
+            rating: 10,
+            expectedPubDate: 'never',
+            nextChapter: {
+              name: 'Chapter 1',
+              number: 1,
+              nextChapter: {
+                name: 'Chapter 2',
+                nunmber: 2,
+              },
+            },
+          },
+        },
+      });
+    });
+
+    let doubleNestedModel = get(model, 'nextChapter.nextChapter');
+    set(doubleNestedModel, 'name', 'Chapter 3');
+    return run(() =>
+      model.save().then(data => {
+        assert.deepEqual(recordDataFor(data)._data, {
+          name: 'The Winds of Winter',
+          author: 'George R. R. Martin',
+          rating: 10,
+          expectedPubDate: 'never',
+          nextChapter: {
+            name: 'Chapter 1',
+            number: 1,
+            nextChapter: {
+              name: 'Chapter 3',
+              nunmber: 2,
+            },
+          },
+        });
+        doubleNestedModel = get(data, 'nextChapter.nextChapter');
+        assert.deepEqual(
+          doubleNestedModel.changedAttributes(),
+          {},
+          'doubleNestedModel has no changedAttributes'
+        );
+        assert.deepEqual(data.changedAttributes(), {}, 'changedAttributes is empty');
+      })
+    );
+  });
+
+  test('local nested model within array updates without server payload', function(assert) {
+    this.owner.register(
+      'adapter:-ember-m3',
+      EmberObject.extend({
+        updateRecord() {
+          return Promise.resolve();
+        },
+      })
+    );
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+            author: 'George R. R. Martin',
+            rating: 10,
+            expectedPubDate: 'never',
+            chapters: [
+              {
+                name: 'Windy eh',
+                number: 1,
+              },
+              {
+                name: `I guess winter was coming after all`,
+                number: 2,
+              },
+            ],
+          },
+        },
+      });
+    });
+
+    let nestedModels = get(model, 'chapters');
+    set(nestedModels.get('firstObject'), 'name', 'super windy');
+    return run(() =>
+      model.save().then(data => {
+        assert.deepEqual(recordDataFor(data)._data, {
+          name: 'The Winds of Winter',
+          author: 'George R. R. Martin',
+          rating: 10,
+          expectedPubDate: 'never',
+          chapters: [
+            {
+              name: 'super windy',
+              number: 1,
+            },
+            {
+              name: `I guess winter was coming after all`,
+              number: 2,
+            },
+          ],
+        });
+        assert.deepEqual(data.changedAttributes(), {}, 'changedAttributes is empty');
+      })
+    );
+  });
+
+  test('local nested model within non-array updates overriden by server payload', function(assert) {
+    this.owner.register(
+      'adapter:-ember-m3',
+      EmberObject.extend({
+        updateRecord() {
+          return Promise.resolve({
+            data: {
+              id: 1,
+              type: 'com.example.bookstore.Book',
+              attributes: {
+                name: 'The Winds of Winter',
+                author: 'George R. R. Martin',
+                rating: 10,
+                expectedPubDate: 'never',
+                nextChapter: {
+                  name: 'Chapter 3',
+                  number: 1,
+                  nextChapter: {
+                    name: 'Chapter 4',
+                  },
+                },
+              },
+            },
+          });
+        },
+      })
+    );
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+            author: 'George R. R. Martin',
+            rating: 10,
+            expectedPubDate: 'never',
+            nextChapter: {
+              name: 'Chapter 1',
+              number: 1,
+              nextChapter: {
+                name: 'Chapter 2',
+                number: 2,
+              },
+            },
+          },
+        },
+      });
+    });
+
+    let doubleNestedModel = get(model, 'nextChapter.nextChapter');
+    set(doubleNestedModel, 'name', 'Chapter 3');
+    return run(() =>
+      model.save().then(data => {
+        assert.deepEqual(recordDataFor(data)._data, {
+          name: 'The Winds of Winter',
+          author: 'George R. R. Martin',
+          rating: 10,
+          expectedPubDate: 'never',
+          nextChapter: {
+            name: 'Chapter 3',
+            number: 1,
+            nextChapter: {
+              name: 'Chapter 4',
+              number: 2,
+            },
+          },
+        });
+        doubleNestedModel = get(data, 'nextChapter.nextChapter');
+        assert.deepEqual(
+          doubleNestedModel.changedAttributes(),
+          {},
+          'doubleNestedModel has no changedAttributes'
+        );
+        assert.deepEqual(data.changedAttributes(), {}, 'changedAttributes is empty');
+      })
+    );
+  });
+
+  test('local nested model within array updates overriden by server payload', function(assert) {
+    this.owner.register(
+      'adapter:-ember-m3',
+      EmberObject.extend({
+        updateRecord() {
+          return Promise.resolve({
+            data: {
+              id: 1,
+              type: 'com.example.bookstore.Book',
+              attributes: {
+                name: 'The Winds of Winter',
+                author: 'George R. R. Martin',
+                rating: 10,
+                expectedPubDate: 'never',
+                chapters: [
+                  {
+                    name: 'Chapter 4',
+                    number: 1,
+                  },
+                ],
+              },
+            },
+          });
+        },
+      })
+    );
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+            author: 'George R. R. Martin',
+            rating: 10,
+            expectedPubDate: 'never',
+            chapters: [
+              {
+                name: 'Chapter 1',
+                number: 1,
+              },
+              {
+                name: 'Chapter 2',
+                number: 2,
+              },
+            ],
+          },
+        },
+      });
+    });
+
+    let nestedModel = get(model, 'chapters');
+    set(nestedModel.get('firstObject'), 'name', 'super windy');
+    return run(() =>
+      model.save().then(data => {
+        assert.deepEqual(recordDataFor(data)._data, {
+          name: 'The Winds of Winter',
+          author: 'George R. R. Martin',
+          rating: 10,
+          expectedPubDate: 'never',
+          chapters: [
+            {
+              name: 'Chapter 4',
+              number: 1,
+            },
+          ],
+        });
+        assert.deepEqual(data.changedAttributes(), {}, 'changedAttributes is empty');
+      })
+    );
+  });
+
+  test('partial update from server and local changes for nested models within non-array', function(assert) {
+    this.owner.register(
+      'adapter:-ember-m3',
+      EmberObject.extend({
+        updateRecord() {
+          return Promise.resolve({
+            data: {
+              id: 'isbn:9780439708180',
+              type: 'com.example.bookstore.Book',
+              attributes: {
+                name: `Harry Potter and the Sorcerer's Stone`,
+                number: 0,
+                nextChapter: {
+                  name: 'The Boy Who whatever',
+                  number: 1,
+                },
+                authorNotes: {
+                  value: 'this book should sell well',
+                },
+              },
+            },
+          });
+        },
+      })
+    );
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            number: 0,
+            nextChapter: {
+              name: 'The Boy Who whatever',
+              number: 1,
+              nextChapter: {
+                name: 'The Vanishing dunno',
+                number: 2,
+              },
+            },
+            authorNotes: {
+              value: 'this book should sell well',
+            },
+          },
+        },
+      });
+    });
+
+    let doubleNestedModel = get(model, 'nextChapter.nextChapter');
+    set(doubleNestedModel, 'name', 'The Vanishing Boy');
+    return run(() =>
+      model.save().then(data => {
+        assert.deepEqual(recordDataFor(data)._data, {
+          name: `Harry Potter and the Sorcerer's Stone`,
+          number: 0,
+          nextChapter: {
+            name: 'The Boy Who whatever',
+            number: 1,
+            nextChapter: {
+              name: 'The Vanishing Boy',
+              number: 2,
+            },
+          },
+          authorNotes: {
+            value: 'this book should sell well',
+          },
+        });
+        doubleNestedModel = get(data, 'nextChapter.nextChapter');
+        assert.deepEqual(
+          doubleNestedModel.changedAttributes(),
+          {},
+          'doubleNestedModel has no changedAttributes'
+        );
+        assert.deepEqual(data.changedAttributes(), {}, 'changedAttributes is empty');
+      })
+    );
+  });
+
+  test('partial update from server and local changes for nested models within array', function(assert) {
+    this.owner.register(
+      'adapter:-ember-m3',
+      EmberObject.extend({
+        updateRecord() {
+          return Promise.resolve({
+            data: {
+              id: 'isbn:9780439708180',
+              type: 'com.example.bookstore.Book',
+              attributes: {
+                name: `Harry Potter and the Sorcerer's Stone`,
+                number: 0,
+                nextChapter: {
+                  number: 1,
+                  characters: [
+                    {
+                      name: 'Voldemort',
+                      number: 2,
+                    },
+                  ],
+                },
+                authorNotes: {
+                  value: 'this book should sell well',
+                },
+              },
+            },
+          });
+        },
+      })
+    );
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            number: 0,
+            nextChapter: {
+              name: 'The Boy Who whatever',
+              number: 1,
+              characters: [
+                {
+                  name: 'Harry Potter',
+                  number: 2,
+                },
+                {
+                  name: 'Ron',
+                  number: 3,
+                },
+              ],
+            },
+            authorNotes: {
+              value: 'this book should sell well',
+            },
+          },
+        },
+      });
+    });
+
+    let nestedModel = get(model, 'nextChapter');
+    let doubleNestedModel = get(nestedModel, 'characters');
+    run(() => {
+      set(nestedModel, 'name', 'The Boy Who Lived');
+      set(doubleNestedModel.get('firstObject'), 'name', 'Professor Snape');
+    });
+
+    return run(() =>
+      model.save().then(data => {
+        assert.deepEqual(recordDataFor(data)._data, {
+          name: `Harry Potter and the Sorcerer's Stone`,
+          number: 0,
+          nextChapter: {
+            name: 'The Boy Who Lived',
+            number: 1,
+            characters: [
+              {
+                name: 'Voldemort',
+                number: 2,
+              },
+            ],
+          },
+          authorNotes: {
+            value: 'this book should sell well',
+          },
+        });
+        nestedModel = get(data, 'nextChapter');
+        doubleNestedModel = get(nestedModel, 'characters');
+        assert.deepEqual(
+          nestedModel.changedAttributes(),
+          {},
+          'nestedModel has no changedAttributes'
+        );
+        assert.deepEqual(
+          doubleNestedModel.get('firstObject').changedAttributes(),
+          {},
+          'doubleNestedModel has no changedAttributes'
+        );
+        assert.deepEqual(data.changedAttributes(), {}, 'changedAttributes is empty');
+      })
+    );
   });
 });
