@@ -106,6 +106,15 @@ class M3SchemaInterface {
   setAttr(key, value) {
     this.recordData.setAttr(key, value, this._suppressNotifications);
   }
+
+  /**
+   * Delete attribute for the record data
+   *
+   * @param {string} attrName name of the attribute to delete
+   */
+  deleteAttr(attrName) {
+    this.recordData._deleteAttr(attrName);
+  }
 }
 
 export default class M3RecordData {

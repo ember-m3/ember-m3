@@ -558,6 +558,31 @@ module('unit/record-data', function(hooks) {
     assert.ok(recordData.isAttrDirty('localAttr'), 'local attr is not dirty');
   });
 
+  test('.schemaInterface can delete attributes', function(assert) {
+    let recordData = this.mockRecordData();
+    let schemaInterface = recordData.schemaInterface;
+    recordData.pushData({
+      attributes: {
+        foo: 'fooVal',
+        bar: 'barVal',
+      },
+    });
+    schemaInterface._keyBeingResolved = 'testKey';
+    assert.equal(recordData.getAttr('foo'), 'fooVal', 'recordData has foo=fooVal');
+    assert.equal(schemaInterface.getAttr('foo'), 'fooVal', 'schemaInterface can read attr');
+    schemaInterface.deleteAttr('foo');
+    assert.equal(
+      recordData.getAttr('foo'),
+      undefined,
+      'recordData does not have attr foo after calling deleteAttr'
+    );
+    assert.equal(
+      schemaInterface.getAttr('foo'),
+      undefined,
+      'schemaInterface does not have attr foo after calling deleteAttr'
+    );
+  });
+
   module('with nested models', function(hooks) {
     hooks.beforeEach(function() {
       this.topRecordData = new M3RecordData(
