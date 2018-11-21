@@ -583,6 +583,50 @@ module('unit/record-data', function(hooks) {
     );
   });
 
+  test('.hasLocalAttr validates the existance of key as part of the attributes of the record data', function(assert) {
+    let recordData = this.mockRecordData();
+    assert.notOk(
+      recordData.hasLocalAttr('name'),
+      'Name is not part of attributes because it has not been mutated'
+    );
+    recordData.setAttr('name', `Harry Potter and the Sorcerer's Stone`);
+    assert.ok(
+      recordData.hasLocalAttr('name'),
+      'Name is part of attributes because it has been mutated'
+    );
+  });
+
+  test('.hasLocalAttr validates the existance of key as part of the attributes of a base record data', function(assert) {
+    const projectedRecordData = this.storeWrapper.recordDataFor(
+      'com.bookstore.projected-book',
+      '1'
+    );
+    const baseRecordData = this.storeWrapper.recordDatas[
+      recordDataKey({
+        modelName: 'com.bookstore.book',
+        id: '1',
+      })
+    ];
+
+    assert.notOk(
+      baseRecordData.hasLocalAttr('name'),
+      'Name is not part of attributes of the base record because it has not been mutated'
+    );
+    assert.notOk(
+      projectedRecordData.hasLocalAttr('name'),
+      'Name is not part of attributes of the projected record because it has not been mutated'
+    );
+    projectedRecordData.setAttr('name', `Harry Potter and the Sorcerer's Stone`);
+    assert.ok(
+      baseRecordData.hasLocalAttr('name'),
+      'Name is part of attributes of the base record because it has been mutated'
+    );
+    assert.ok(
+      projectedRecordData.hasLocalAttr('name'),
+      'Name is part of attributes of the projected record because it has not been mutated'
+    );
+  });
+
   module('with nested models', function(hooks) {
     hooks.beforeEach(function() {
       this.topRecordData = new M3RecordData(

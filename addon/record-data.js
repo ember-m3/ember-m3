@@ -415,7 +415,11 @@ export default class M3RecordData {
    * @returns {boolean}
    */
   hasLocalAttr(key) {
-    return key in this._attributes;
+    if (this._baseRecordData) {
+      return this._baseRecordData.hasLocalAttr(key);
+    } else {
+      return key in this._attributes;
+    }
   }
 
   unloadRecord() {
