@@ -1,5 +1,11 @@
 # ember-m3 changelog
 
+## 0.9.7
+
+- feature: add `deleteAttr` to schema interface (thanks @eddi-ruva)
+- bugfix: nested model updates from local updates with partial updates from server #215 thanks (@ygongdev)
+- bugfix: `rollbackAttributes` for record data from projections (thanks @eddi-ruva)
+
 ## 0.9.6
 
 - bugfix: reference array updates are now resolved lazily #205
