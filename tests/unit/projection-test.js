@@ -54,6 +54,22 @@ module('unit/projection', function(hooks) {
             type,
             id: parts[2],
           };
+        } else if (Array.isArray(value)) {
+          return value
+            .map(v => {
+              let type = null;
+              let modelSchema = this.models[modelName];
+
+              if (modelSchema && modelSchema.attributesTypes && modelSchema.attributesTypes[key]) {
+                type = modelSchema.attributesTypes[key];
+              }
+
+              return {
+                type,
+                id: get(v, 'id'),
+              };
+            })
+            .filter(Boolean);
         }
       }
 
@@ -2028,6 +2044,73 @@ module('unit/projection', function(hooks) {
         baseRecord.get('publisher.name'),
         NEW_PUBLISHER_NAME,
         'publisher Name is updated'
+      );
+    });
+
+    test('Updating a reference array will update the array in the projection and the base record', function(assert) {
+      let { store } = this;
+      let OTHER_BOOK_ID = 'isbn:8888';
+      let projectedPreview;
+      let otherProjectedPreview;
+
+      run(() => {
+        // Base record for projectedPreview
+        store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              otherBooksInSeries: [],
+            },
+          },
+        });
+
+        // Base record for otherProjectedPreview
+        store.push({
+          data: {
+            id: OTHER_BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              otherBooksInSeries: [],
+            },
+          },
+        });
+
+        projectedPreview = store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+            attributes: {
+              otherBooksInSeries: [],
+            },
+          },
+        });
+
+        otherProjectedPreview = store.push({
+          data: {
+            id: OTHER_BOOK_ID,
+            type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+            attributes: {
+              otherBooksInSeries: [],
+            },
+          },
+        });
+      });
+
+      assert.deepEqual(
+        get(projectedPreview, 'otherBooksInSeries').map(book => get(book, 'id')),
+        [],
+        'Initial set of otherBookInSeries should be empty before mutating'
+      );
+
+      run(() => {
+        get(projectedPreview, 'otherBooksInSeries').replace(0, 1, [otherProjectedPreview]);
+      });
+
+      assert.deepEqual(
+        get(projectedPreview, 'otherBooksInSeries').map(book => get(book, 'id')),
+        [OTHER_BOOK_ID],
+        'Changes to otherBooksInSeries references should be reflected after mutation'
       );
     });
   });
