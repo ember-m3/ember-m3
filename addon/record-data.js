@@ -486,6 +486,7 @@ export default class M3RecordData {
     let serverState = this._data;
     let localChanges = this._attributes;
     let inFlightData = this._inFlightAttributes;
+    // TODO: test that we copy here
     let newData = emberAssign(copy(inFlightData), localChanges);
     let _changedAttributes = Object.create(null);
     let newDataKeys = Object.keys(newData);

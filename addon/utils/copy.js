@@ -8,24 +8,30 @@ function _copy(obj, seen, copies) {
 
   // avoid cyclical loops
   // eslint-disable-next-line no-cond-assign
-  if ((loc = seen.indexOf(obj) >= 0)) {
+  if ((loc = seen.indexOf(obj)) >= 0) {
     return copies[loc];
   }
+  seen.push(obj);
 
-  // IMPORTANT: this specific test will detect a native array only. Any other
-  // object will need to implement Copyable.
   if (Array.isArray(obj)) {
     ret = obj.slice();
+    copies.push(ret);
 
     loc = ret.length;
 
     while (--loc >= 0) {
-      ret[loc] = copy(ret[loc], copies);
+      ret[loc] = _copy(ret[loc], seen, copies);
     }
   } else if (obj instanceof Date) {
     ret = new Date(obj.getTime());
+    copies.push(ret);
+  } else if (obj.constructor !== undefined && obj.constructor !== Object) {
+    // don't deep copy non-json values
+    ret = obj;
+    copies.push(ret);
   } else {
     ret = {};
+    copies.push(ret);
     let key;
     for (key in obj) {
       // support Null prototype
@@ -39,12 +45,9 @@ function _copy(obj, seen, copies) {
         continue;
       }
 
-      ret[key] = copy(obj[key], seen, copies);
+      ret[key] = _copy(obj[key], seen, copies);
     }
   }
-
-  seen.push(obj);
-  copies.push(ret);
 
   return ret;
 }
