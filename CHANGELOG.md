@@ -1,5 +1,9 @@
 # ember-m3 changelog
 
+## 0.9.8
+
+- bugfix: `hasLocalAttr` was not taking into account the base record data when dealing with a projection record. (thanks @eddi-ruva)
+
 ## 0.9.7
 
 - feature: add `deleteAttr` to schema interface (thanks @eddi-ruva)
