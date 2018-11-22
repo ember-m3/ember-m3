@@ -1,5 +1,9 @@
 # ember-m3 changelog
 
+## 0.9.9
+
+- bugfix: `changedAttributes` could stack overflow from incorrect deep copy cycle detection (#231)
+
 ## 0.9.8
 
 - bugfix: `hasLocalAttr` was not taking into account the base record data when dealing with a projection record. (thanks @eddi-ruva)
