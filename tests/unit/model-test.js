@@ -15,6 +15,8 @@ import { isArray } from '@ember/array';
 import MegamorphicModel from 'ember-m3/model';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 
+import { gte } from 'ember-compatibility-helpers';
+
 const UrnWithTypeRegex = /^urn:([a-zA-Z.]+):(.*)/;
 const UrnWithoutTypeRegex = /^urn:(.*)/;
 
@@ -1176,47 +1178,49 @@ module('unit/model', function(hooks) {
     );
   });
 
-  test('DS.Models can have relationships into m3 models', function(assert) {
-    let model = run(() => {
-      return this.store.push({
-        data: {
-          id: '3',
-          type: 'author',
-          attributes: {
-            name: 'JK Rowling',
-          },
-          relationships: {
-            publishedBooks: {
-              data: [
-                {
-                  id: 'isbn:9780439708180',
-                  // Ember-Data requires model-name normalized types in relationship portions of a jsonapi resource
-                  type: 'com.example.bookstore.book',
-                },
-              ],
-            },
-          },
-        },
-
-        included: [
-          {
-            id: 'isbn:9780439708180',
-            type: 'com.example.bookstore.Book',
+  if (gte('ember-data', '3.5.1')) {
+    test('DS.Models can have relationships into m3 models', function(assert) {
+      let model = run(() => {
+        return this.store.push({
+          data: {
+            id: '3',
+            type: 'author',
             attributes: {
-              name: `Harry Potter and the Sorcerer's Stone`,
+              name: 'JK Rowling',
+            },
+            relationships: {
+              publishedBooks: {
+                data: [
+                  {
+                    id: 'isbn:9780439708180',
+                    // Ember-Data requires model-name normalized types in relationship portions of a jsonapi resource
+                    type: 'com.example.bookstore.book',
+                  },
+                ],
+              },
             },
           },
-        ],
-      });
-    });
 
-    assert.equal(get(model, 'name'), 'JK Rowling', 'ds.model loaded');
-    assert.equal(
-      get(model, 'publishedBooks.firstObject.name'),
-      `Harry Potter and the Sorcerer's Stone`,
-      'ds.model can access m3 model via relationship'
-    );
-  });
+          included: [
+            {
+              id: 'isbn:9780439708180',
+              type: 'com.example.bookstore.Book',
+              attributes: {
+                name: `Harry Potter and the Sorcerer's Stone`,
+              },
+            },
+          ],
+        });
+      });
+
+      assert.equal(get(model, 'name'), 'JK Rowling', 'ds.model loaded');
+      assert.equal(
+        get(model, 'publishedBooks.firstObject.name'),
+        `Harry Potter and the Sorcerer's Stone`,
+        'ds.model can access m3 model via relationship'
+      );
+    });
+  }
 
   test('nested models are created lazily', function(assert) {
     let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
