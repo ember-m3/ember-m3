@@ -6,7 +6,7 @@ import DS from 'ember-data';
 import { RootState } from 'ember-data/-private';
 import EmberObject, { computed, get, set, defineProperty } from '@ember/object';
 import { isArray } from '@ember/array';
-import { warn } from '@ember/debug';
+import { assert, warn } from '@ember/debug';
 import { alias } from '@ember/object/computed';
 import { IS_RECORD_DATA } from 'ember-compatibility-helpers';
 
@@ -493,6 +493,15 @@ defineProperty(MegamorphicModel.prototype, 'isDirty', retrieveFromCurrentState);
 defineProperty(MegamorphicModel.prototype, 'dirtyType', retrieveFromCurrentState);
 
 export class EmbeddedMegamorphicModel extends MegamorphicModel {
+  save() {
+    assert(
+      `Nested models cannot be directly saved. Perhaps you meant to save the top level model, '${
+        this._topModel._modelName
+      }:${this._topModel.id}'`,
+      false
+    );
+  }
+
   unloadRecord() {
     warn(
       `Nested models cannot be directly unloaded.  Perhaps you meant to unload the top level model, '${
