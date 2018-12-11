@@ -112,6 +112,44 @@ module('unit/record-data', function(hooks) {
     assert.deepEqual(attrsIterated, ['localAttr', 'inFlightAttr', 'dataAttr']);
   });
 
+  test(`.getServerAttr returns the server state`, function(assert) {
+    let recordData = new M3RecordData(
+      'com.exmaple.bookstore.book',
+      '1',
+      null,
+      this.storeWrapper,
+      this.schemaManager,
+      null,
+      null
+    );
+
+    recordData.pushData(
+      {
+        id: '1',
+        attributes: {
+          localAttr: 'server',
+          inFlightAttr: 'server',
+          serverAttr: 'server',
+        },
+      },
+      false
+    );
+
+    recordData.setAttr('inFlightAttr', 'value');
+    recordData.willCommit();
+    recordData.setAttr('localAttr', 'value');
+    recordData.setAttr('unknownAttr', 'value');
+
+    assert.equal(
+      recordData.getServerAttr('inFlightAttr'),
+      'server',
+      'InFlight attr read correctly'
+    );
+    assert.equal(recordData.getServerAttr('localAttr'), 'server', 'local attr read correctly');
+    assert.equal(recordData.getServerAttr('unknownAttr'), undefined, 'unknown attr read correctly');
+    assert.equal(recordData.getServerAttr('serverAttr'), 'server', 'server attr read correctly');
+  });
+
   test(`._getChildRecordData returns new recordData`, function(assert) {
     let topRecordData = new M3RecordData(
       'com.exmaple.bookstore.book',
