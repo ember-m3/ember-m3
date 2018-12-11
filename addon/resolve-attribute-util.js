@@ -114,10 +114,20 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
     });
     internalModel.record = nestedModel;
 
-    recordDataFor(internalModel).pushData({
-      attributes: nested.attributes,
-    });
+    let nestedRecordData = recordDataFor(internalModel);
 
+    if (
+      !recordData.getServerAttr ||
+      (recordData.getServerAttr(key) !== null && recordData.getServerAttr(key) !== undefined)
+    ) {
+      nestedRecordData.pushData({
+        attributes: nested.attributes,
+      });
+    } else {
+      Object.keys(nested.attributes).forEach(key => {
+        nestedRecordData.setAttr(key, nested.attributes[key], true);
+      });
+    }
     return nestedModel;
   }
 

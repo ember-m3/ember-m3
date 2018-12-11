@@ -422,6 +422,18 @@ export default class M3RecordData {
     }
   }
 
+  /**
+   * @param {string} key
+   * @returns {boolean}
+   */
+  getServerAttr(key) {
+    if (this._baseRecordData) {
+      return this._baseRecordData.getServerAttr(key);
+    } else {
+      return this._data[key];
+    }
+  }
+
   unloadRecord() {
     if (this.isDestroyed) {
       return;
@@ -519,7 +531,14 @@ export default class M3RecordData {
         } else {
           let childChangedAttributes = childRecordDatas.changedAttributes();
           if (Object.keys(childChangedAttributes).length > 0) {
-            _changedAttributes[childKey] = childChangedAttributes;
+            if (
+              this.getServerAttr(childKey) !== null &&
+              this.getServerAttr(childKey) !== undefined
+            ) {
+              _changedAttributes[childKey] = childChangedAttributes;
+            } else {
+              _changedAttributes[childKey] = [this.getServerAttr(childKey), childChangedAttributes];
+            }
           }
         }
       }

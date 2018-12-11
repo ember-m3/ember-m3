@@ -202,6 +202,66 @@ module('unit/model/changed-attrs', function(hooks) {
     );
   });
 
+  test('.changedAttributes returns [ undefined, object ] for newly created nested models', function(assert) {
+    assert.expect(2);
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            estimatedPubDate: 'January 2622',
+          },
+        },
+      });
+    });
+
+    model.set('author', { name: 'Chris' });
+    let author = model.get('author');
+
+    assert.deepEqual(
+      author.changedAttributes(),
+      { name: [undefined, 'Chris'] },
+      'Changed attributes for the nested model is correct'
+    );
+    assert.deepEqual(
+      model.changedAttributes(),
+      { author: [undefined, { name: [undefined, 'Chris'] }] },
+      'Changed attributes for the parent model is correct'
+    );
+  });
+
+  test('.changedAttributes returns [ null, object ] for nested models that were previously set to null by the server', function(assert) {
+    assert.expect(2);
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            author: null,
+            estimatedPubDate: 'January 2622',
+          },
+        },
+      });
+    });
+
+    model.set('author', { name: 'Chris' });
+    let author = model.get('author');
+    assert.deepEqual(
+      author.changedAttributes(),
+      { name: [undefined, 'Chris'] },
+      'Changed attributes for the nested model is correct'
+    );
+    assert.deepEqual(
+      model.changedAttributes(),
+      { author: [null, { name: [undefined, 'Chris'] }] },
+      'Changed attributes for the parent model is correct'
+    );
+  });
+
   test('.changedAttributes returns dirty attributes for arrays of primitive values', function(assert) {
     let model = run(() => {
       return this.store.push({
