@@ -89,7 +89,7 @@
     "ember-welcome-page": "^3.0.0",
     "eslint-config-prettier": "^3.0.0",
     "eslint-plugin-ember": "^5.0.3",
-    "eslint-plugin-prettier": "2.6.0",
+    "eslint-plugin-prettier": "3.0.1",
     "husky": "^1.0.0-rc.13",
     "lint-staged": "^8.0.5",
     "loader.js": "^4.2.3",
