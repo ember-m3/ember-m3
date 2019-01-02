@@ -14,7 +14,7 @@ import { recordDataFor } from './-private';
 import M3RecordArray from './record-array';
 import { OWNER_KEY } from './util';
 import { resolveValue } from './resolve-attribute-util';
-import { computeAttributeReference, isResolvedValue as _isResolvedValue } from './utils/resolve';
+import { computeAttributeReference } from './utils/resolve';
 
 const { propertyDidChange } = Ember;
 let { notifyPropertyChange } = Ember;
@@ -395,14 +395,15 @@ export default class MegamorphicModel extends EmberObject {
     // Set value in recordData
     this._setAttribute(key, value);
 
-    // update cache with the data,
-    // If value is resolved to a Model or an Array of Models.
-    // TODO: Add a schema hook to check if value is resolved.
-    if (_isResolvedValue(value) || (isArray(value) && value.every(v => _isResolvedValue(v)))) {
+    let schemaInterface = recordDataFor(this).schemaInterface;
+    let isResolved = this._schema.isAttributeResolved(this._modelName, key, value, schemaInterface);
+
+    if (isResolved) {
+      // resolved value, cache directly
       this._cache[key] = value;
     } else {
-      // remove value from the cache
-      // Also, remove child recordData
+      // value that requires resolution; clear cache and let the next request
+      // for the property resolve it
       delete this._cache[key];
       recordDataFor(this)._destroyChildRecordData(key);
     }

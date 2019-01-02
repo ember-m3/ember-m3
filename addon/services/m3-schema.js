@@ -1,4 +1,6 @@
 import Service from '@ember/service';
+import { isArray } from '@ember/array';
+import { isResolvedValue as _isResolvedValue } from '../utils/resolve';
 
 export default class DefaultSchema extends Service {
   computeAttributeReference(/* key, value, modelName, schemaInterface */) {
@@ -62,6 +64,31 @@ export default class DefaultSchema extends Service {
    */
   setAttribute(modelName, attrName, value, schemaInterface) {
     schemaInterface.setAttr(attrName, value);
+  }
+
+  isAttributeResolved(modelName, attrName, value /*, schemaInterface */) {
+    // by default records and arrays of records are treated as resolved.  Note
+    // that we don't want to check against our own record arrays specifically
+    // as ember data record arrays or many arrays should also be treated as
+    // resolved
+    if (_isResolvedValue(value)) {
+      // value is a record
+      return true;
+    }
+
+    if (isArray(value)) {
+      if (value.length > 0) {
+        // non-empty arrays are treated as resolved only if they are arrays of records
+        return value.every(v => _isResolvedValue(v));
+      } else {
+        // empty arrays are treated as resolved if they're non-native arrays
+        // (to handle ManyArray, RecordArrays &c.)
+        //
+        // empty native arrays are treated as unresolved as this is the primary
+        // way of setting arrays of new nested models
+        return !Array.isArray(value);
+      }
+    }
   }
 
   /*

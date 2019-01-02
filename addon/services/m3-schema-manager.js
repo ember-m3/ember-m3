@@ -111,6 +111,10 @@ export default class SchemaManager extends Service {
     this.get('schema').setAttribute(modelName, attrName, value, schemaInterface);
   }
 
+  isAttributeResolved(modelName, attrName, value, schemaInterface) {
+    return this.get('schema').isAttributeResolved(modelName, attrName, value, schemaInterface);
+  }
+
   transformValue(modelName, attrName, value) {
     let transforms = this._modelSchemaProperty(modelName, 'transforms');
     let transform = transforms && transforms[attrName];
