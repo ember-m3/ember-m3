@@ -105,7 +105,7 @@
     "defaultBlueprint": "schema"
   },
   "toolchain": {
-    "node": "11.1.0",
+    "node": "11.6.0",
     "yarn": "1.12.1"
   }
 }
