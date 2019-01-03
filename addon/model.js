@@ -9,6 +9,7 @@ import { isArray } from '@ember/array';
 import { assert, warn } from '@ember/debug';
 import { alias } from '@ember/object/computed';
 import { IS_RECORD_DATA } from 'ember-compatibility-helpers';
+import { notifyPropertyChange as _notifyPropertyChange } from '@ember/object';
 
 import { recordDataFor } from './-private';
 import M3RecordArray from './record-array';
@@ -17,10 +18,12 @@ import { resolveValue } from './resolve-attribute-util';
 import { computeAttributeReference, isResolvedValue as _isResolvedValue } from './utils/resolve';
 
 const { propertyDidChange } = Ember;
-let { notifyPropertyChange } = Ember;
+let notifyPropertyChange;
 
-const HasNotifyPropertyChange = notifyPropertyChange !== undefined;
-if (!HasNotifyPropertyChange) {
+const HasNotifyPropertyChange = _notifyPropertyChange !== undefined;
+if (HasNotifyPropertyChange) {
+  notifyPropertyChange = _notifyPropertyChange;
+} else {
   notifyPropertyChange = propertyDidChange;
 }
 
