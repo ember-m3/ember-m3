@@ -1,5 +1,12 @@
 # ember-m3 changelog
 
+## 0.10.0
+
+- feature: Add `isAttributeResolved` API for schema control over interpreting set values as already resolved or not
+- bugfix: empty native arrays are now correctly treated as unresolved when set
+- breaking: `changedAttributes` improved format for newly created nested records so they can be distinguished from edits to existing nested records (thanks @iterzic @eddie-ruva)
+- cleanup: add assertion for attempts to save embedded m3 models directly (thanks @ghaagsma)
+
 ## 0.9.9
 
 - bugfix: `changedAttributes` could stack overflow from incorrect deep copy cycle detection (#231)
