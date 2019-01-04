@@ -399,6 +399,24 @@ have following properties.
   }
   ```
 
+- `isAttributeResolved(modelName, attrName, value, schemaInterface)` A function
+  that determines whether a value that is being set should be treated as
+  resolved or not. Unresolved values that are set will be resoled when they
+  are next accessed -- resolved values are cached upon being set.
+
+  Example:
+
+  ```js
+  isAttributeResolved(modelName, attrName, value, schemaInterface) {
+    if (Array.isArray(value)) {
+      // treat all arrays as unresolved without examining their contents
+      return false;
+    } else {
+      return super.isAttributeResolved(...arguments);
+    }
+  }
+  ```
+
 - `computeAttributes(keys, modelName)` Compute the actual attribute names, default just return the
   array passed in.
   This is useful if you need to "decode/encode" your attribute names in a certain form, e.g.,
