@@ -3,7 +3,7 @@ language: node_js
 sudo: false
 dist: trusty
 node_js:
-  - "8"
+  - '8'
 
 addons:
   chrome: stable
@@ -14,7 +14,6 @@ env:
   global:
     # See https://git.io/vdao3 for details.
     - JOBS=1
-
 
 branches:
   only:
@@ -32,17 +31,19 @@ stages:
 jobs:
   fail_fast: true
   allow_failures:
-   - env: EMBER_TRY_SCENARIO=canary-channel
-   - env: NAME=floating dependencies
+    - env: EMBER_TRY_SCENARIO=canary-channel
+    - env: NAME=floating dependencies
 
   include:
     # runs tests with current locked deps and linting
     - stage: test
       env: NAME=test # used only to make Travis UI show description
-      script: 
+      script:
         - yarn test
         - yarn lint:js
 
+    - stage: feature flagged features
+      script: node_modules/.bin/ember try:one canary-channel --- ember test  --query enableoptionalfeatures
     # runs tests against each supported Ember version
     - stage: specific version tests
       env: EMBER_TRY_SCENARIO=release-channel

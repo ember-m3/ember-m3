@@ -2,6 +2,7 @@ import Ember from 'ember';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/feature-flags';
 import { recordDataFor } from 'ember-m3/-private';
 
 import DS from 'ember-data';
@@ -1184,6 +1185,54 @@ module('unit/model', function(hooks) {
     );
   });
 
+  test('tracked arrays with DS.Model', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            relatedItems: [
+              {
+                name: 'Chapter 1: The Boy Who Lived',
+              },
+              'isbn:9780439064873',
+            ],
+          },
+        },
+        included: [
+          {
+            id: 'isbn:9780439064873',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Chamber of Secrets`,
+            },
+          },
+          {
+            id: '3',
+            type: 'author',
+            attributes: {
+              name: `JK Rowling`,
+            },
+          },
+        ],
+      });
+    });
+
+    let relatedItems = get(model, 'relatedItems');
+    //let dsModel = relatedItems.objectAt(2);
+    let dsModel = this.store.peekRecord('author', '3');
+    run(() => {
+      relatedItems.pushObject(dsModel);
+    });
+    assert.equal(get(relatedItems, 'length'), 3, 'array has right length');
+    run(() => {
+      dsModel.unloadRecord();
+    });
+    assert.equal(get(relatedItems, 'length'), 2, 'array has right length');
+  });
+
   if (gte('ember-data', '3.5.1')) {
     test('DS.Models can have relationships into m3 models', function(assert) {
       let model = run(() => {
@@ -1300,11 +1349,19 @@ module('unit/model', function(hooks) {
       });
     });
 
-    assert.equal(
-      get(model, 'nextChapter._internalModel.modelName'),
-      'com.example.bookstore.chapter',
-      'nested models have normalized model names'
-    );
+    if (CUSTOM_MODEL_CLASS) {
+      assert.equal(
+        get(model, 'nextChapter._recordData.modelName'),
+        'com.example.bookstore.chapter',
+        'nested models have normalized model names'
+      );
+    } else {
+      assert.equal(
+        get(model, 'nextChapter._internalModel.modelName'),
+        'com.example.bookstore.chapter',
+        'nested models have normalized model names'
+      );
+    }
   });
 
   test('nested models with unnormalized model names can have defaults', function(assert) {

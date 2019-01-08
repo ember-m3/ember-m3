@@ -5,6 +5,8 @@ import { copy } from './utils/copy';
 import { assert } from '@ember/debug';
 import Ember from 'ember';
 import { IS_RECORD_DATA, gte } from 'ember-compatibility-helpers';
+import { recordDataToRecordMap, recordDataToQueryCache } from './initializers/m3-store';
+import { CUSTOM_MODEL_CLASS } from './feature-flags';
 
 const emberAssign = assign || merge;
 
@@ -135,35 +137,49 @@ export default class M3RecordData {
     storeWrapper,
     schemaManager,
     parentRecordData,
-    baseRecordData
+    baseRecordData,
+    globalM3CacheRD
   ) {
     this.modelName = modelName;
     this.clientId = clientId;
     this.id = id;
     this.storeWrapper = storeWrapper;
-
+    if (CUSTOM_MODEL_CLASS) {
+      this.globalM3CacheRD = globalM3CacheRD;
+      if (!baseRecordData && !parentRecordData && id) {
+        this.globalM3CacheRD[this.id] = this;
+      }
+      this._isNew = false;
+      this._isDeleted = false;
+      this._isLoaded = false;
+      this._isDeletionCommited = false;
+    } else {
+      this._embeddedInternalModel = null;
+    }
     this.isDestroyed = false;
     this._data = null;
     this._attributes = null;
     this.__inFlightAttributes = null;
-
     // Properties related to child recordDatas
     this._parentRecordData = parentRecordData;
-    this._embeddedInternalModel = null;
     this.__childRecordDatas = null;
     this._schema = schemaManager;
-
     this.schemaInterface = new M3SchemaInterface(this);
 
     // Properties related to projections
     this._baseRecordData = baseRecordData;
     this._projections = null;
-
     this._initBaseRecordData();
   }
 
-  // PUBLIC API
+  get _recordArrays() {
+    if (!this.__recordArrays) {
+      this.__recordArrays = new Set();
+    }
+    return this.__recordArrays;
+  }
 
+  // PUBLIC API
   getResourceIdentifier() {
     return {
       id: this.id,
@@ -190,6 +206,9 @@ export default class M3RecordData {
     notifyRecord = false,
     suppressProjectionNotifications = false
   ) {
+    if (CUSTOM_MODEL_CLASS) {
+      this._isLoaded = true;
+    }
     if (this._baseRecordData) {
       this._baseRecordData.pushData(
         jsonApiResource,
@@ -220,6 +239,12 @@ export default class M3RecordData {
     if (jsonApiResource.id) {
       // TODO Which cases do we need to initialize the id here?
       this.id = jsonApiResource.id + '';
+    }
+
+    if (CUSTOM_MODEL_CLASS) {
+      if (!this._baseRecordData && !this._parentRecordData && this.id) {
+        this.globalM3CacheRD[this.id] = this;
+      }
     }
 
     // by default, always notify projections when we receive data.  We might
@@ -265,7 +290,21 @@ export default class M3RecordData {
     if (this._baseRecordData) {
       return this._baseRecordData.hasChangedAttributes();
     } else {
-      return this.__attributes !== null && Object.keys(this.__attributes).length > 0;
+      let isDirty = this.__attributes !== null && Object.keys(this.__attributes).length > 0;
+      if (isDirty) {
+        return true;
+      }
+      let recordDatas = Object.keys(this._childRecordDatas).map(key => this._childRecordDatas[key]);
+      recordDatas.forEach(child => {
+        if (!Array.isArray(child)) {
+          if (child.hasChangedAttributes()) {
+            isDirty = true;
+          }
+        } else {
+          isDirty = child.some(rd => rd.hasChangedAttributes());
+        }
+      });
+      return isDirty;
     }
   }
 
@@ -278,8 +317,20 @@ export default class M3RecordData {
   }
 
   didCommit(jsonApiResource, notifyRecord = false) {
+    if (CUSTOM_MODEL_CLASS) {
+      this._isNew = false;
+      if (this._isDeleted) {
+        this._isDeletionCommited = true;
+        this.removeFromRecordArrays();
+      }
+    }
     if (jsonApiResource && jsonApiResource.id) {
       this.id = '' + jsonApiResource.id;
+    }
+    if (CUSTOM_MODEL_CLASS) {
+      if (!this._baseRecordData && !this._parentRecordData && this.id) {
+        this.globalM3CacheRD[this.id] = this;
+      }
     }
     if (!this._parentRecordData) {
       // only set the record ID if it is a top-level recordData
@@ -316,8 +367,12 @@ export default class M3RecordData {
       return [];
     }
 
-    if (notifyRecord) {
+    if (CUSTOM_MODEL_CLASS) {
       this._notifyRecordProperties(changedKeys);
+    } else {
+      if (notifyRecord) {
+        this._notifyRecordProperties(changedKeys);
+      }
     }
 
     return changedKeys || [];
@@ -393,6 +448,22 @@ export default class M3RecordData {
     }
   }
 
+  isNew() {
+    return this._isNew;
+  }
+
+  setIsDeleted(value) {
+    this._isDeleted = value;
+  }
+
+  isDeleted() {
+    return this._isDeleted;
+  }
+
+  isDeletionCommitted() {
+    return this._isDeletionCommited;
+  }
+
   /**
    * @param {string} key
    * @private
@@ -459,14 +530,30 @@ export default class M3RecordData {
   }
 
   unloadRecord() {
+    if (CUSTOM_MODEL_CLASS) {
+      delete this.globalM3CacheRD[this.id];
+    }
     if (this.isDestroyed) {
       return;
+    }
+    if (CUSTOM_MODEL_CLASS) {
+      this.removeFromRecordArrays();
+      let queryCache = recordDataToQueryCache.get(this);
+      let record = recordDataToRecordMap.get(this);
+      if (record) {
+        queryCache.unloadRecord(record);
+      }
     }
     if (this._baseRecordData || this._areAllProjectionsDestroyed()) {
       this._destroy();
     }
   }
 
+  removeFromRecordArrays() {
+    this._recordArrays.forEach(recordArray => {
+      recordArray._removeRecordData(this);
+    });
+  }
   /**
    * @returns {boolean}
    */
@@ -476,7 +563,12 @@ export default class M3RecordData {
 
   removeFromInverseRelationships() {}
 
-  clientDidCreate() {}
+  clientDidCreate() {
+    if (CUSTOM_MODEL_CLASS) {
+      this._isLoaded = true;
+      this._isNew = true;
+    }
+  }
 
   // INTERNAL API
 
@@ -505,6 +597,17 @@ export default class M3RecordData {
         .computeAttributes(Object.keys(this._data), this.modelName)
         .forEach(callback, binding);
     }
+  }
+
+  // Exposes attribute keys for the schema service to be able to iterate over the props
+  // Expected by the ED and snapshot interfaces. Longer term TODO is to look into decoupling
+  // things more so this is not required
+  attributesDefinition() {
+    let attrs = {};
+    this.eachAttribute(attr => {
+      attrs[attr] = { key: attr };
+    });
+    return attrs;
   }
 
   /**
@@ -736,7 +839,7 @@ export default class M3RecordData {
    * @param {string} idx
    * @param {string} modelName
    * @param {string} id
-   * @param {EmbeddedInternalModel} embeddedInternalModel
+   * @param {_embeddedInternalModel} embeddedInternalModel
    * @returns {M3RecordData}
    */
   _getChildRecordData(key, idx, modelName, id, embeddedInternalModel) {
@@ -768,8 +871,10 @@ export default class M3RecordData {
         );
       }
     }
-    if (!childRecordData._embeddedInternalModel) {
-      childRecordData._embeddedInternalModel = embeddedInternalModel;
+    if (!CUSTOM_MODEL_CLASS) {
+      if (!childRecordData._embeddedInternalModel) {
+        childRecordData._embeddedInternalModel = embeddedInternalModel;
+      }
     }
     return childRecordData;
   }
@@ -804,7 +909,8 @@ export default class M3RecordData {
       this.storeWrapper,
       this._schema,
       this,
-      baseChildRecordData
+      baseChildRecordData,
+      this.globalM3CacheRD
     );
   }
 
@@ -1074,11 +1180,17 @@ export default class M3RecordData {
   }
 
   _notifyRecordProperties(changedKeys) {
-    if (this._embeddedInternalModel) {
-      this._embeddedInternalModel.record._notifyProperties(changedKeys);
-    } else if (!this._parentRecordData) {
-      // only notify through the store if it is not a child recordData
-      notifyProperties(this.storeWrapper, this.modelName, this.id, this.clientId, changedKeys);
+    if (CUSTOM_MODEL_CLASS) {
+      let record = recordDataToRecordMap.get(this);
+      if (record) {
+        record._notifyProperties(changedKeys);
+      }
+    } else {
+      if (this._embeddedInternalModel) {
+        this._embeddedInternalModel.record._notifyProperties(changedKeys);
+      } else if (!this._parentRecordData) {
+        notifyProperties(this.storeWrapper, this.modelName, this.id, this.clientId, changedKeys);
+      }
     }
     // else base recordData that was initialized by a projection but never
     // fetched via `unknownProperty`, which is the only case where we have no

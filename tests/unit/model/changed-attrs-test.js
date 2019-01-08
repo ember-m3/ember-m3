@@ -11,6 +11,14 @@ import M3RecordArray from 'ember-m3/record-array';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 
 import { recordDataFor } from 'ember-m3/-private';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/feature-flags';
+
+function currentState(model) {
+  if (CUSTOM_MODEL_CLASS) {
+    return model.currentState.stateName;
+  }
+  return model._internalModel.currentState.stateName;
+}
 
 module('unit/model/changed-attrs', function(hooks) {
   setupTest(hooks);
@@ -68,22 +76,22 @@ module('unit/model/changed-attrs', function(hooks) {
       });
     });
     assert.ok(!model.get('isDirty'), 'model currently not dirty');
-    assert.equal(
-      model._internalModel.currentState.stateName,
-      'root.loaded.saved',
-      'model.state loaded.saved'
-    );
+    if (!CUSTOM_MODEL_CLASS) {
+      assert.equal(currentState(model), 'root.loaded.saved', 'model.state loaded.saved');
+    }
     run(() => {
       model.set('name', 'Alice in Wonderland');
       model.set('rating', null);
       model.set('expectedPubDate', undefined);
     });
     assert.ok(model.get('isDirty'), 'model is dirty as new values are set on the model');
-    assert.equal(
-      model._internalModel.currentState.stateName,
-      'root.loaded.updated.uncommitted',
-      'model state is updated.uncommitted'
-    );
+    if (!CUSTOM_MODEL_CLASS) {
+      assert.equal(
+        currentState(model),
+        'root.loaded.updated.uncommitted',
+        'model state is updated.uncommitted'
+      );
+    }
     assert.deepEqual(
       model.changedAttributes(),
       {
@@ -146,11 +154,9 @@ module('unit/model/changed-attrs', function(hooks) {
 
     assert.deepEqual(model.changedAttributes(), {}, 'initially no attributes are changed');
     assert.ok(!model.get('isDirty'), 'model currently not dirty');
-    assert.equal(
-      model._internalModel.currentState.stateName,
-      'root.loaded.saved',
-      'model.state loaded.saved'
-    );
+    if (!CUSTOM_MODEL_CLASS) {
+      assert.equal(currentState(model), 'root.loaded.saved', 'model.state loaded.saved');
+    }
 
     run(() => {
       set(model, 'name', 'secret book name');
@@ -195,11 +201,13 @@ module('unit/model/changed-attrs', function(hooks) {
       'only changed attributes in nested models are included'
     );
     assert.ok(model.get('isDirty'), 'model is dirty as new values are set on the model');
-    assert.equal(
-      model._internalModel.currentState.stateName,
-      'root.loaded.updated.uncommitted',
-      'model state is updated.uncommitted'
-    );
+    if (!CUSTOM_MODEL_CLASS) {
+      assert.equal(
+        currentState(model),
+        'root.loaded.updated.uncommitted',
+        'model state is updated.uncommitted'
+      );
+    }
   });
 
   test('.changedAttributes returns [ undefined, object ] for newly created nested models', function(assert) {
@@ -277,11 +285,9 @@ module('unit/model/changed-attrs', function(hooks) {
       });
     });
     assert.ok(!model.get('isDirty'), 'model currently not dirty');
-    assert.equal(
-      model._internalModel.currentState.stateName,
-      'root.loaded.saved',
-      'model.state loaded.saved'
-    );
+    if (!CUSTOM_MODEL_CLASS) {
+      assert.equal(currentState(model), 'root.loaded.saved', 'model.state loaded.saved');
+    }
 
     run(() => {
       set(model, 'chapters', ['so windy', 'winter winter']);
@@ -298,11 +304,13 @@ module('unit/model/changed-attrs', function(hooks) {
       '.changedAttributes returns changed arrays'
     );
     assert.ok(model.get('isDirty'), 'model is dirty as new values are set on the model');
-    assert.equal(
-      model._internalModel.currentState.stateName,
-      'root.loaded.updated.uncommitted',
-      'model state is updated.uncommitted'
-    );
+    if (!CUSTOM_MODEL_CLASS) {
+      assert.equal(
+        currentState(model),
+        'root.loaded.updated.uncommitted',
+        'model state is updated.uncommitted'
+      );
+    }
   });
 
   test('.changedAttributes returns dirty attributes for arrays of primitive values upon updating the array', function(assert) {
@@ -320,11 +328,9 @@ module('unit/model/changed-attrs', function(hooks) {
       });
     });
     assert.ok(!model.get('isDirty'), 'model currently not dirty');
-    assert.equal(
-      model._internalModel.currentState.stateName,
-      'root.loaded.saved',
-      'model.state loaded.saved'
-    );
+    if (!CUSTOM_MODEL_CLASS) {
+      assert.equal(currentState(model), 'root.loaded.saved', 'model.state loaded.saved');
+    }
 
     // Pushing simple value to array
     const chapters = model.get('chapters');
@@ -361,11 +367,13 @@ module('unit/model/changed-attrs', function(hooks) {
 
     // Model is dirty
     assert.ok(model.get('isDirty'), 'model is dirty as new values are set on the model');
-    assert.equal(
-      model._internalModel.currentState.stateName,
-      'root.loaded.updated.uncommitted',
-      'model state is updated.uncommitted'
-    );
+    if (!CUSTOM_MODEL_CLASS) {
+      assert.equal(
+        currentState(model),
+        'root.loaded.updated.uncommitted',
+        'model state is updated.uncommitted'
+      );
+    }
   });
 
   test('.changedAttributes returns dirty attributes for record array upon updating the array', function(assert) {
@@ -402,11 +410,9 @@ module('unit/model/changed-attrs', function(hooks) {
     let otherRecordArray = get(model, 'otherRecordArray');
 
     assert.ok(!model.get('isDirty'), 'model currently not dirty');
-    assert.equal(
-      model._internalModel.currentState.stateName,
-      'root.loaded.saved',
-      'model.state loaded.saved'
-    );
+    if (!CUSTOM_MODEL_CLASS) {
+      assert.equal(currentState(model), 'root.loaded.saved', 'model.state loaded.saved');
+    }
 
     // Pushing simple value to array
     run(() => {
@@ -427,11 +433,13 @@ module('unit/model/changed-attrs', function(hooks) {
 
     // Model is dirty
     assert.ok(model.get('isDirty'), 'model is dirty as new values are set on the model');
-    assert.equal(
-      model._internalModel.currentState.stateName,
-      'root.loaded.updated.uncommitted',
-      'model state is updated.uncommitted'
-    );
+    if (!CUSTOM_MODEL_CLASS) {
+      assert.equal(
+        currentState(model),
+        'root.loaded.updated.uncommitted',
+        'model state is updated.uncommitted'
+      );
+    }
   });
 
   test('.changedAttributes returns nested dirty attributes within arrays of nested models', function(assert) {
@@ -493,22 +501,26 @@ module('unit/model/changed-attrs', function(hooks) {
       model.set('name', 'Some other book');
     });
     assert.ok(model.get('isDirty'), 'model is dirty as new values are set on the model');
-    assert.equal(
-      model._internalModel.currentState.stateName,
-      'root.loaded.updated.uncommitted',
-      'model state is updated.uncommitted'
-    );
+    if (!CUSTOM_MODEL_CLASS) {
+      assert.equal(
+        currentState(model),
+        'root.loaded.updated.uncommitted',
+        'model state is updated.uncommitted'
+      );
+    }
 
     run(() => {
       model.rollbackAttributes();
     });
 
     assert.ok(!model.get('isDirty'), 'model currently not dirty');
-    assert.equal(
-      model._internalModel.currentState.stateName,
-      'root.loaded.saved',
-      'after rolling back model.state loaded.saved'
-    );
+    if (!CUSTOM_MODEL_CLASS) {
+      assert.equal(
+        currentState(model),
+        'root.loaded.saved',
+        'after rolling back model.state loaded.saved'
+      );
+    }
     assert.equal(
       get(model, 'name'),
       'The Winds of Winter',
@@ -533,15 +545,16 @@ module('unit/model/changed-attrs', function(hooks) {
       model.set('name', 'Some other book');
       // cache new value in resolution cache
       assert.equal(get(model, 'name'), 'Some other book', 'value is set correctly (and cached)');
-
       model.rollbackAttributes();
     });
 
-    assert.equal(
-      get(model, 'currentState.stateName'),
-      'root.loaded.saved',
-      'after rolling back model.state loaded.saved'
-    );
+    if (!CUSTOM_MODEL_CLASS) {
+      assert.equal(
+        currentState(model),
+        'root.loaded.saved',
+        'after rolling back model.state loaded.saved'
+      );
+    }
     assert.equal(
       get(model, 'name'),
       'The Winds of Winter',

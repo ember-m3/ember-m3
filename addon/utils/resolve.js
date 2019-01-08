@@ -1,4 +1,6 @@
 import { dasherize } from '@ember/string';
+import { recordDataToRecordMap } from '../initializers/m3-store';
+import { CUSTOM_MODEL_CLASS } from '../feature-flags';
 
 export function computeAttributeReference(key, value, modelName, schemaInterface, schema) {
   schemaInterface._beginDependentKeyResolution(key);
@@ -15,13 +17,41 @@ export function computeNestedModel(key, value, modelName, schemaInterface, schem
 }
 
 export function resolveReferencesWithInternalModels(store, references) {
-  return references.map(reference =>
-    reference.type
-      ? store._internalModelForId(dasherize(reference.type), reference.id)
-      : store._globalM3Cache[reference.id]
-  );
+  if (!CUSTOM_MODEL_CLASS) {
+    return references.map(reference =>
+      reference.type
+        ? store._internalModelForId(dasherize(reference.type), reference.id)
+        : store._globalM3Cache[reference.id]
+    );
+  }
+}
+
+export function resolveReferencesWithRecords(store, references) {
+  if (CUSTOM_MODEL_CLASS) {
+    return references.map(reference => {
+      if (reference.type) {
+        return store.peekRecord(dasherize(reference.type), reference.id);
+      } else {
+        let rd = store._globalM3RecordDataCache[reference.id];
+        if (rd) {
+          return getOrCreateRecordFromRecordData(rd, store);
+        }
+      }
+    });
+  }
 }
 
 export function isResolvedValue(value) {
   return value && value.constructor && value.constructor.isModel;
+}
+
+export function getOrCreateRecordFromRecordData(rd, store) {
+  if (CUSTOM_MODEL_CLASS) {
+    let record = recordDataToRecordMap.get(rd);
+    if (recordDataToRecordMap.get(rd)) {
+      return record;
+    } else {
+      return store.peekRecord(rd.modelName, rd.id);
+    }
+  }
 }

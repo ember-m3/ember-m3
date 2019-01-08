@@ -2,22 +2,71 @@ import { dasherize } from '@ember/string';
 import M3ReferenceArray from './m3-reference-array';
 import M3TrackedArray from './m3-tracked-array';
 import { recordDataFor } from './-private';
-import { EmbeddedInternalModel, EmbeddedMegamorphicModel } from './model';
+import { EmbeddedMegamorphicModel, EmbeddedSnapshot } from './model';
 import { A } from '@ember/array';
 
 import {
   computeAttributeReference,
   computeNestedModel,
+  resolveReferencesWithRecords,
+  getOrCreateRecordFromRecordData,
   resolveReferencesWithInternalModels,
 } from './utils/resolve';
+import { IS_RECORD_DATA } from 'ember-compatibility-helpers';
+import { CUSTOM_MODEL_CLASS } from './feature-flags';
+
+let EmbeddedInternalModel;
+if (!CUSTOM_MODEL_CLASS) {
+  // TODO: shouldn't need this anymore; this level of indirection for nested recordData isn't useful
+  EmbeddedInternalModel = class EmbeddedInternalModel {
+    constructor({ id, modelName, parentInternalModel, parentKey, parentIdx }) {
+      if (CUSTOM_MODEL_CLASS) {
+        //asert we dont need this class anymore
+        return;
+      }
+      this.id = id;
+      this.modelName = modelName;
+
+      let recordData = recordDataFor(parentInternalModel)._getChildRecordData(
+        parentKey,
+        parentIdx,
+        modelName,
+        id,
+        this
+      );
+      this._recordData = recordData;
+
+      if (!IS_RECORD_DATA) {
+        this._modelData = recordData;
+      }
+
+      this.parentInternalModel = parentInternalModel;
+
+      this.record = null;
+    }
+
+    createSnapshot() {
+      return new EmbeddedSnapshot(this.record);
+    }
+
+    changedAttributes() {
+      return this._recordData.changedAttributes();
+    }
+  };
+}
 
 function resolveReference(store, reference) {
   let { id } = reference;
   if (reference.type === null) {
     // for schemas with a global id-space but multiple types, schemas may
     // report a type of null
-    let internalModel = store._globalM3Cache[id];
-    return internalModel ? internalModel.getRecord() : null;
+    if (CUSTOM_MODEL_CLASS) {
+      let rd = store._globalM3RecordDataCache[reference.id];
+      return rd ? getOrCreateRecordFromRecordData(rd, store) : null;
+    } else {
+      let internalModel = store._globalM3Cache[id];
+      return internalModel ? internalModel.getRecord() : null;
+    }
   } else {
     // respect the user schema's type if provided
     return id !== null && id !== undefined ? store.peekRecord(reference.type, reference.id) : null;
@@ -44,9 +93,13 @@ export function resolveRecordArray(store, record, key, references) {
     record,
   });
 
-  let internalModels = resolveReferencesWithInternalModels(store, references);
-
-  array._setInternalModels(internalModels, false);
+  if (CUSTOM_MODEL_CLASS) {
+    let records = resolveReferencesWithRecords(store, references);
+    array._setObjects(records, false);
+  } else {
+    let internalModels = resolveReferencesWithInternalModels(store, references);
+    array._setInternalModels(internalModels, false);
+  }
   return array;
 }
 
@@ -120,27 +173,44 @@ function createNestedModel(store, record, recordData, key, nestedValue, parentId
     return nestedValue;
   }
 
-  let internalModel = new EmbeddedInternalModel({
-    // nested models with ids is pretty misleading; all they really ought to need is type
-    id: nestedValue.id,
-    // maintain consistency with internalmodel.modelName, which is normalized
-    // internally within ember-data
-    modelName: nestedValue.type ? dasherize(nestedValue.type) : null,
-    parentInternalModel: record._internalModel,
-    parentKey: key,
-    parentIdx,
-  });
+  let modelName, nestedRecordData, internalModel;
+  if (CUSTOM_MODEL_CLASS) {
+    // TODO
+    // for backwards compat we will still need to dasherize,
+    // but it would be good to confirm that this is no longer a requirement
+    modelName = nestedValue.type ? dasherize(nestedValue.type) : null;
+    nestedRecordData = recordData._getChildRecordData(key, parentIdx, modelName, nestedValue.id);
+  } else {
+    internalModel = new EmbeddedInternalModel({
+      // nested models with ids is pretty misleading; all they really ought to need is type
+      id: nestedValue.id,
+      // maintain consistency with internalmodel.modelName, which is normalized
+      // internally within ember-data
+      modelName: nestedValue.type ? dasherize(nestedValue.type) : null,
+      parentInternalModel: record._internalModel,
+      parentKey: key,
+      parentIdx,
+    });
+  }
 
-  let nestedModel = EmbeddedMegamorphicModel.create({
-    store,
-    _internalModel: internalModel,
-    _parentModel: record,
-    _topModel: record._topModel,
-  });
-  internalModel.record = nestedModel;
-
-  let nestedRecordData = recordDataFor(internalModel);
-
+  let nestedModel;
+  if (CUSTOM_MODEL_CLASS) {
+    nestedModel = EmbeddedMegamorphicModel.create({
+      store,
+      _parentModel: record,
+      _topModel: record._topModel,
+      _recordData: nestedRecordData,
+    });
+  } else {
+    nestedModel = EmbeddedMegamorphicModel.create({
+      store,
+      _parentModel: record,
+      _topModel: record._topModel,
+      _internalModel: internalModel,
+    });
+    internalModel.record = nestedModel;
+    nestedRecordData = recordDataFor(internalModel);
+  }
   if (
     !recordData.getServerAttr ||
     (recordData.getServerAttr(key) !== null && recordData.getServerAttr(key) !== undefined)

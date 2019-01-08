@@ -6,6 +6,7 @@ import M3RecordArray from 'ember-m3/record-array';
 import { flushChanges } from 'ember-m3/utils/notify-changes';
 import { isArray } from '@ember/array';
 import MutableArray from '@ember/array/mutable';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/feature-flags';
 
 module('unit/record-array', function(hooks) {
   setupTest(hooks);
@@ -41,7 +42,6 @@ module('unit/record-array', function(hooks) {
         ],
       });
     });
-
     this.createRecordArray = function() {
       let recordArray = M3RecordArray.create();
       recordArray.store = this.store;
@@ -130,8 +130,11 @@ module('unit/record-array', function(hooks) {
 
     let book2 = this.store.peekRecord('com.example.bookstore.Book', 'isbn:2');
 
-    let internalModels = [book2._internalModel];
-    recordArray._setInternalModels(internalModels);
+    if (CUSTOM_MODEL_CLASS) {
+      recordArray._setObjects([book2]);
+    } else {
+      recordArray._setInternalModels([book2._internalModel]);
+    }
 
     assert.equal(recordArray._resolved, true, 'setting internal models resolves the record array');
     assert.deepEqual(
@@ -219,66 +222,67 @@ module('unit/record-array', function(hooks) {
     assert.deepEqual(didChangeArgs, [[1, 1, 0]], 'eager didChange fired - third call - args');
   });
 
-  module('RecordArrayManager api', function() {
-    test('internal moodels can be added and removed from the RecordArrayManager api', function(assert) {
-      let recordArray = this.createRecordArray();
-      let book1 = this.store.peekRecord('com.example.bookstore.Book', 'isbn:1');
-      let book2 = this.store.peekRecord('com.example.bookstore.Book', 'isbn:2');
+  if (!CUSTOM_MODEL_CLASS) {
+    module('RecordArrayManager api', function() {
+      test('internal moodels can be added and removed from the RecordArrayManager api', function(assert) {
+        let recordArray = this.createRecordArray();
+        let book1 = this.store.peekRecord('com.example.bookstore.Book', 'isbn:1');
+        let book2 = this.store.peekRecord('com.example.bookstore.Book', 'isbn:2');
 
-      assert.deepEqual(recordArray.toArray().mapBy('id'), [], 'record array empty');
+        assert.deepEqual(recordArray.toArray().mapBy('id'), [], 'record array empty');
 
-      recordArray._pushInternalModels([book1._internalModel, book2._internalModel]);
+        recordArray._pushInternalModels([book1._internalModel, book2._internalModel]);
 
-      assert.deepEqual(
-        recordArray.toArray().mapBy('id'),
-        ['isbn:1', 'isbn:2'],
-        '_pushInternalModels'
-      );
+        assert.deepEqual(recordArray.toArray().mapBy('id'), ['isbn:1', 'isbn:2'], '_pushObjects');
 
-      recordArray._removeInternalModels([book1._internalModel]);
+        recordArray._removeInternalModels([book1._internalModel]);
 
-      assert.deepEqual(recordArray.toArray().mapBy('id'), ['isbn:2'], '_removeInternalModels');
+        assert.deepEqual(recordArray.toArray().mapBy('id'), ['isbn:2'], '_removeObjects');
+      });
+
+      test('adding internal models forces resolution', function(assert) {
+        let recordArray = this.createRecordArray();
+        recordArray._setReferences([
+          {
+            id: 'isbn:1',
+            type: 'com.example.bookstore.Book',
+          },
+        ]);
+
+        assert.equal(recordArray.length, 1, 'length is 1');
+        assert.equal(recordArray._resolved, false, 'length does not resolve');
+
+        let book2 = this.store.peekRecord('com.example.bookstore.Book', 'isbn:2');
+        recordArray._pushInternalModels([book2._internalModel]);
+        assert.equal(recordArray._resolved, true, '_pushInternalModels resolves');
+        assert.deepEqual(recordArray.toArray().mapBy('id'), ['isbn:1', 'isbn:2'], 'records added');
+      });
+
+      test('unresolved references can be removed', function(assert) {
+        let recordArray = this.createRecordArray();
+        recordArray._setReferences([
+          {
+            id: 'isbn:1',
+            type: 'com.example.bookstore.Book',
+          },
+          {
+            id: 'isbn:2',
+            type: 'com.example.bookstore.Book',
+          },
+        ]);
+
+        assert.equal(recordArray.length, 2, 'length is 2');
+
+        let book2 = this.store.peekRecord('com.example.bookstore.Book', 'isbn:2');
+        if (CUSTOM_MODEL_CLASS) {
+          recordArray._removeObjects([book2]);
+        } else {
+          recordArray._removeInternalModels([book2._internalModel]);
+        }
+
+        assert.equal(recordArray._resolved, false, '_removeObjects does not resolve');
+        assert.deepEqual(recordArray.toArray().mapBy('id'), ['isbn:1'], 'records removed');
+      });
     });
-
-    test('adding internal models forces resolution', function(assert) {
-      let recordArray = this.createRecordArray();
-      recordArray._setReferences([
-        {
-          id: 'isbn:1',
-          type: 'com.example.bookstore.Book',
-        },
-      ]);
-
-      assert.equal(recordArray.length, 1, 'length is 1');
-      assert.equal(recordArray._resolved, false, 'length does not resolve');
-
-      let book2 = this.store.peekRecord('com.example.bookstore.Book', 'isbn:2');
-      recordArray._pushInternalModels([book2._internalModel]);
-
-      assert.equal(recordArray._resolved, true, '_pushInternalModels resolves');
-      assert.deepEqual(recordArray.toArray().mapBy('id'), ['isbn:1', 'isbn:2'], 'records added');
-    });
-
-    test('unresolved references can be removed', function(assert) {
-      let recordArray = this.createRecordArray();
-      recordArray._setReferences([
-        {
-          id: 'isbn:1',
-          type: 'com.example.bookstore.Book',
-        },
-        {
-          id: 'isbn:2',
-          type: 'com.example.bookstore.Book',
-        },
-      ]);
-
-      assert.equal(recordArray.length, 2, 'length is 2');
-
-      let book2 = this.store.peekRecord('com.example.bookstore.Book', 'isbn:2');
-      recordArray._removeInternalModels([book2._internalModel]);
-
-      assert.equal(recordArray._resolved, false, '_removeInternalModels does not resolve');
-      assert.deepEqual(recordArray.toArray().mapBy('id'), ['isbn:1'], 'records removed');
-    });
-  });
+  }
 });

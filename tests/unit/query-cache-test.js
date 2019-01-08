@@ -23,7 +23,7 @@ module('unit/query-cache', function(hooks) {
       'service:m3-schema',
       class TestSchema extends DefaultSchema {
         includesModel(modelName) {
-          return modelName !== 'application';
+          return modelName !== 'application' && modelName !== 'author';
         }
       }
     );
