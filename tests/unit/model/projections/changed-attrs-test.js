@@ -96,11 +96,7 @@ module('unit/model/projections/changed-attrs', function(hooks) {
   });
 
   test('Can set a many embedded property to a semi resolved array containing a mix of pojos and megamorphic models - projections', async function(assert) {
-    if (gte('3.0.0')) {
-      assert.expect(4);
-    } else {
-      assert.expect(3);
-    }
+    assert.expect(3);
     this.owner.register(
       'adapter:-ember-m3',
       class TestAdapter {

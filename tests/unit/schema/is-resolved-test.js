@@ -207,7 +207,7 @@ module('unit/schema/is-resolved', function(hooks) {
       assert.ok(!('metadata' in this.book._cache), 'attriubte is not cached');
       let metadata = this.book.get('metadata');
 
-      assert.ok(metadata.constructor.isModel, 'attribute is resolved');
+      assert.ok(metadata.constructor.isM3Model, 'attribute is resolved');
       assert.equal(
         this.book.get('metadata.bestChapter.id'),
         'isbn:9780439708180:chapter:1',

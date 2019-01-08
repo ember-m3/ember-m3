@@ -5,6 +5,7 @@ import { copy } from './utils/copy';
 import { assert } from '@ember/debug';
 import Ember from 'ember';
 import { IS_RECORD_DATA, gte } from 'ember-compatibility-helpers';
+import { recordDataToRecordMap, recordDataToQueryCache } from './initializers/m3-store';
 
 const emberAssign = assign || merge;
 
@@ -16,10 +17,12 @@ function commitDataAndNotify(recordData, updates) {
   recordData.didCommit({ attributes: updates }, true);
 }
 
-function notifyProperties(storeWrapper, modelName, id, clientId, changedKeys) {
+function notifyProperties(storeWrapper, modelName, id, clientId, changedKeys, recordData) {
   Ember.beginPropertyChanges();
   for (let i = 0; i < changedKeys.length; i++) {
     storeWrapper.notifyPropertyChange(modelName, id, clientId, changedKeys[i]);
+    //let record = recordDataToRecordMap.get(recordData);
+    //record.notifyPropertyChange(changedKeys[i]);
   }
   Ember.endPropertyChanges();
 }
@@ -135,21 +138,25 @@ export default class M3RecordData {
     storeWrapper,
     schemaManager,
     parentRecordData,
-    baseRecordData
+    baseRecordData,
+    globalM3CacheRD
   ) {
     this.modelName = modelName;
     this.clientId = clientId;
     this.id = id;
     this.storeWrapper = storeWrapper;
-
+    this.globalM3CacheRD = globalM3CacheRD;
+    this.globalM3CacheRD[this.id] = this;
     this.isDestroyed = false;
     this._data = null;
     this._attributes = null;
     this.__inFlightAttributes = null;
+    this._isNew = false;
+    this._isDeleted = false;
 
     // Properties related to child recordDatas
     this._parentRecordData = parentRecordData;
-    this._embeddedInternalModel = null;
+    this._hasEmbeddedModel = false;
     this.__childRecordDatas = null;
     this._schema = schemaManager;
 
@@ -158,7 +165,9 @@ export default class M3RecordData {
     // Properties related to projections
     this._baseRecordData = baseRecordData;
     this._projections = null;
+    this._recordArrays = new Set();
 
+    this._pushed = false;
     this._initBaseRecordData();
   }
 
@@ -190,6 +199,7 @@ export default class M3RecordData {
     notifyRecord = false,
     suppressProjectionNotifications = false
   ) {
+    this._pushed = true;
     if (this._baseRecordData) {
       this._baseRecordData.pushData(
         jsonApiResource,
@@ -221,6 +231,8 @@ export default class M3RecordData {
       // TODO Which cases do we need to initialize the id here?
       this.id = jsonApiResource.id + '';
     }
+
+    this.globalM3CacheRD[this.id] = this;
 
     // by default, always notify projections when we receive data.  We might
     // not have been asked to calculate changes if the base record data has
@@ -265,7 +277,25 @@ export default class M3RecordData {
     if (this._baseRecordData) {
       return this._baseRecordData.hasChangedAttributes();
     } else {
-      return this.__attributes !== null && Object.keys(this.__attributes).length > 0;
+      let isDirty = this.__attributes !== null && Object.keys(this.__attributes).length > 0;
+      if (isDirty) {
+        return true;
+      }
+      let recordDatas = Object.values(this._childRecordDatas);
+      recordDatas.forEach(child => {
+        if (!Array.isArray(child)) {
+          if (child.hasChangedAttributes()) {
+            isDirty = true;
+          }
+        } else {
+          child.forEach(rd => {
+            if (rd.hasChangedAttributes()) {
+              isDirty = true;
+            }
+          });
+        }
+      });
+      return isDirty;
     }
   }
 
@@ -278,9 +308,12 @@ export default class M3RecordData {
   }
 
   didCommit(jsonApiResource, notifyRecord = false) {
+    debugger;
+    this._isNew = false;
     if (jsonApiResource && jsonApiResource.id) {
       this.id = '' + jsonApiResource.id;
     }
+    this.globalM3CacheRD[this.id] = this;
     if (!this._parentRecordData) {
       // only set the record ID if it is a top-level recordData
       this.storeWrapper.setRecordId(this.modelName, this.id, this.clientId);
@@ -316,9 +349,9 @@ export default class M3RecordData {
       return [];
     }
 
-    if (notifyRecord) {
-      this._notifyRecordProperties(changedKeys);
-    }
+    //if (notifyRecord) {
+    this._notifyRecordProperties(changedKeys);
+    //}
 
     return changedKeys || [];
   }
@@ -369,6 +402,7 @@ export default class M3RecordData {
    * @private
    */
   setAttr(key, value, _suppressNotifications) {
+    debugger;
     if (this._baseRecordData) {
       return this._baseRecordData.setAttr(key, value, _suppressNotifications);
     }
@@ -393,6 +427,21 @@ export default class M3RecordData {
     }
   }
 
+  isNew() {
+    return this._isNew;
+  }
+
+  setIsDeleted(value) {
+    if (value) {
+      // TODO check how rollback behaves
+      this.removeFromRecordArrays();
+    }
+    this._isDeleted = value;
+  }
+
+  isDeleted() {
+    return this._isDeleted;
+  }
   /**
    * @param {string} key
    * @private
@@ -459,14 +508,27 @@ export default class M3RecordData {
   }
 
   unloadRecord() {
+    debugger;
+    delete this.globalM3CacheRD[this.id];
     if (this.isDestroyed) {
       return;
+    }
+    this.removeFromRecordArrays();
+    let queryCache = recordDataToQueryCache.get(this);
+    //TODO double check how we get in a state where we dont have the record
+    if (queryCache) {
+      queryCache.unloadRecord(recordDataToRecordMap.get(this));
     }
     if (this._baseRecordData || this._areAllProjectionsDestroyed()) {
       this._destroy();
     }
   }
 
+  removeFromRecordArrays() {
+    this._recordArrays.forEach(recordArray => {
+      recordArray._removeRecordData(this);
+    });
+  }
   /**
    * @returns {boolean}
    */
@@ -476,7 +538,10 @@ export default class M3RecordData {
 
   removeFromInverseRelationships() {}
 
-  clientDidCreate() {}
+  clientDidCreate() {
+    this._pushed = true;
+    this._isNew = true;
+  }
 
   // INTERNAL API
 
@@ -505,6 +570,14 @@ export default class M3RecordData {
         .computeAttributes(Object.keys(this._data), this.modelName)
         .forEach(callback, binding);
     }
+  }
+
+  attributesDef() {
+    let attrs = {};
+    this.eachAttribute(attr => {
+      attrs[attr] = { key: attr };
+    });
+    return attrs;
   }
 
   /**
@@ -736,10 +809,10 @@ export default class M3RecordData {
    * @param {string} idx
    * @param {string} modelName
    * @param {string} id
-   * @param {EmbeddedInternalModel} embeddedInternalModel
+   * @param {_hasEmbeddedModel} _hasEmbeddedModel
    * @returns {M3RecordData}
    */
-  _getChildRecordData(key, idx, modelName, id, embeddedInternalModel) {
+  _getChildRecordData(key, idx, modelName, id) {
     let childRecordData;
 
     if (idx !== undefined && idx !== null) {
@@ -768,8 +841,8 @@ export default class M3RecordData {
         );
       }
     }
-    if (!childRecordData._embeddedInternalModel) {
-      childRecordData._embeddedInternalModel = embeddedInternalModel;
+    if (!childRecordData._hasEmbeddedModel) {
+      childRecordData._hasEmbeddedModel = true;
     }
     return childRecordData;
   }
@@ -804,7 +877,8 @@ export default class M3RecordData {
       this.storeWrapper,
       this._schema,
       this,
-      baseChildRecordData
+      baseChildRecordData,
+      this.globalM3CacheRD
     );
   }
 
@@ -1074,11 +1148,19 @@ export default class M3RecordData {
   }
 
   _notifyRecordProperties(changedKeys) {
-    if (this._embeddedInternalModel) {
-      this._embeddedInternalModel.record._notifyProperties(changedKeys);
+    let record = recordDataToRecordMap.get(this);
+    if (this._hasEmbeddedModel) {
+      let record = recordDataToRecordMap.get(this);
+      // TODO check whether its ok to be missing record
+      if (record) {
+        record._notifyProperties(changedKeys);
+      }
     } else if (!this._parentRecordData) {
+      if (record) {
+        record._notifyProperties(changedKeys);
+      }
       // only notify through the store if it is not a child recordData
-      notifyProperties(this.storeWrapper, this.modelName, this.id, this.clientId, changedKeys);
+      //notifyProperties(this.storeWrapper, this.modelName, this.id, this.clientId, changedKeys);
     }
     // else base recordData that was initialized by a projection but never
     // fetched via `unknownProperty`, which is the only case where we have no

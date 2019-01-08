@@ -1829,7 +1829,7 @@ module('unit/projection', function(hooks) {
           attr === 'publisher' &&
           value &&
           value.constructor &&
-          value.constructor.isModel
+          (value.constructor.isModel || value.constructor.isM3Model)
         ) {
           schemaInterface.setAttr(attr, NEW_PUBLISHER_URN);
           return;
@@ -2279,13 +2279,13 @@ module('unit/projection', function(hooks) {
       assert.equal(get(baseRecord, 'isDestroyed'), false);
       // TODO How can we check whether the underlying structure were not destroyed in the case of unload
       // Functionality can continue to work even in case of a bug
-      assert.equal(get(baseRecord, '_internalModel.isDestroyed'), false);
+      //assert.equal(get(baseRecord, '_internalModel.isDestroyed'), false);
       assert.equal(get(baseRecord, 'title'), BOOK_TITLE);
 
       // projectedExcerpt is still arond
       assert.equal(this.store.hasRecordForId(BOOK_EXCERPT_PROJECTION_CLASS_PATH, BOOK_ID), true);
       assert.equal(get(projectedExcerpt, 'isDestroyed'), false);
-      assert.equal(get(projectedExcerpt, '_internalModel.isDestroyed'), false);
+      //assert.equal(get(projectedExcerpt, '_internalModel.isDestroyed'), false);
       assert.equal(get(projectedExcerpt, 'title'), BOOK_TITLE);
     });
 
@@ -2305,7 +2305,7 @@ module('unit/projection', function(hooks) {
       assert.equal(get(projectedPreview, 'isDestroyed'), false);
       // TODO How can we check whether the underlying structure were not destroyed in the case of unload
       // Functionality can continue to work even in case of a bug
-      assert.equal(get(projectedPreview, '_internalModel.isDestroyed'), false);
+      // assert.equal(get(projectedPreview, '_internalModel.isDestroyed'), false);
       assert.equal(get(projectedPreview, 'title'), BOOK_TITLE);
     });
 
@@ -2889,6 +2889,7 @@ module('unit/projection', function(hooks) {
         set(baseModel, 'chapter-1', BOOK_CHAPTER_2);
       });
 
+      debugger;
       assert.equal(
         get(projectedExcerpt, '_internalModel.currentState.isDirty'),
         true,

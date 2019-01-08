@@ -54,7 +54,7 @@ module('unit/model/tracked-array', function(hooks) {
     assert.equal(chapters instanceof M3TrackedArray, true, 'chapters is a tracked array');
 
     let chapter1 = chapters.objectAt(0);
-    assert.equal(chapter1.constructor.isModel, true, 'chapters has resolved values');
+    assert.equal(chapter1.constructor.isM3Model, true, 'chapters has resolved values');
     assert.equal(
       chapter1.get('name'),
       'The Boy Who Lived',
@@ -73,7 +73,7 @@ module('unit/model/tracked-array', function(hooks) {
     run(() => chapters.pushObject({ name: 'The Vanishing Glass' }));
 
     let chapter2 = chapters.objectAt(3);
-    assert.equal(chapter2.constructor.isModel, true, 'new values can be resolved');
+    assert.equal(chapter2.constructor.isM3Model, true, 'new values can be resolved');
     assert.equal(get(chapter2, 'name'), 'The Vanishing Glass', `new values can be resolved`);
   });
 
@@ -99,7 +99,7 @@ module('unit/model/tracked-array', function(hooks) {
     assert.equal(chapters instanceof M3TrackedArray, true, 'chapters is a tracked array');
 
     let chapter1 = chapters.objectAt(0);
-    assert.equal(chapter1.constructor.isModel, true, 'chapters has resolved values');
+    assert.equal(chapter1.constructor.isM3Model, true, 'chapters has resolved values');
     assert.equal(
       chapter1.get('name'),
       'The Boy Who Lived',
@@ -109,14 +109,14 @@ module('unit/model/tracked-array', function(hooks) {
     run(() => chapters.pushObject({ name: 'The Vanishing Glass' }));
 
     let chapter2 = chapters.objectAt(1);
-    assert.equal(chapter2.constructor.isModel, true, 'new values can be resolved');
+    assert.equal(chapter2.constructor.isM3Model, true, 'new values can be resolved');
     assert.equal(get(chapter2, 'name'), 'The Vanishing Glass', `new values can be resolved`);
 
     //Remove object
     run(() => chapters.shiftObject());
     assert.equal(chapters.length, 1, 'Item is removed');
     chapter1 = chapters.objectAt(0);
-    assert.equal(chapter1.constructor.isModel, true, 'chapters has resolved values');
+    assert.equal(chapter1.constructor.isM3Model, true, 'chapters has resolved values');
     assert.equal(
       get(chapter1, 'name'),
       'The Vanishing Glass',
@@ -127,14 +127,14 @@ module('unit/model/tracked-array', function(hooks) {
     run(() => chapters.pushObject({ name: 'The Vanishing Glass Pt. 2' }));
     assert.equal(chapters.length, 2, 'Item is pushed at the end');
     let chapter3 = chapters.objectAt(1);
-    assert.equal(chapter3.constructor.isModel, true, 'new values can be resolved');
+    assert.equal(chapter3.constructor.isM3Model, true, 'new values can be resolved');
     assert.equal(get(chapter3, 'name'), 'The Vanishing Glass Pt. 2', `new values can be resolved`);
 
     //unshit object
     run(() => chapters.unshiftObject({ name: 'The Boy Who Lived' }));
     chapter1 = chapters.objectAt(0);
     assert.equal(chapters.length, 3, 'Item is removed');
-    assert.equal(chapter1.constructor.isModel, true, 'chapters has resolved values');
+    assert.equal(chapter1.constructor.isM3Model, true, 'chapters has resolved values');
     assert.equal(chapter1.get('name'), 'The Boy Who Lived', `added record at the start`);
   });
 

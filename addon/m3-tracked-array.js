@@ -76,16 +76,13 @@ export default class M3TrackedArray extends ArrayProxy {
     return this.content && this.content.length !== undefined ? this.content.length : 0;
   }
 
-  _removeInternalModels(internalModels) {
+  _removeRecordData(recordData) {
     for (let i = this.content.length; i >= 0; --i) {
       let item = this.content.objectAt(i);
       if (isResolvedValue(item)) {
-        for (let j = 0; j < internalModels.length; ++j) {
-          let internalModel = internalModels[j];
-          if (internalModel === item._internalModel) {
-            this.content.removeAt(i);
-            break;
-          }
+        if (recordData === item._recordData) {
+          this.content.removeAt(i);
+          break;
         }
       }
     }
