@@ -32,6 +32,10 @@ module('unit/initializers/m3-store', function(hooks) {
       adapterFor: this.adapterForStub,
       serializerFor: this.serializerForStub,
       _modelFactoryFor: this.modelFactoryForStub,
+      registerSchemaDefinitionService: function() {},
+      getSchemaDefinitionService: function() {
+        return {};
+      },
     });
     MockStore.toString = () => 'MockStore';
     extendStore(MockStore);

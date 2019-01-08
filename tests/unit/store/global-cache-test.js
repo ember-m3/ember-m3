@@ -4,6 +4,7 @@ import { run } from '@ember/runloop';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import DS from 'ember-data';
 import sinon from 'sinon';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/feature-flags';
 
 module('unit/store/global-cache', function(hooks) {
   setupTest(hooks);
@@ -120,34 +121,63 @@ module('unit/store/global-cache', function(hooks) {
 
     assert.equal(this.store.hasRecordForId('author', 'author:1'), true);
 
-    assert.deepEqual(
-      Object.keys(this.store._globalM3Cache).sort(),
-      [
-        'isbn:9780439064873',
-        'isbn:9780439708180',
-        'isbn:9780439708180/chapter/1',
-        'isbn:9780439708180/chapter/2',
-      ],
-      'global cache contains all m3 models, but no ds models'
-    );
+    if (CUSTOM_MODEL_CLASS) {
+      assert.deepEqual(
+        Object.keys(this.store._globalM3RecordDataCache).sort(),
+        [
+          'isbn:9780439064873',
+          'isbn:9780439708180',
+          'isbn:9780439708180/chapter/1',
+          'isbn:9780439708180/chapter/2',
+        ],
+        'global cache contains all m3 models, but no ds models'
+      );
+    } else {
+      assert.deepEqual(
+        Object.keys(this.store._globalM3Cache).sort(),
+        [
+          'isbn:9780439064873',
+          'isbn:9780439708180',
+          'isbn:9780439708180/chapter/1',
+          'isbn:9780439708180/chapter/2',
+        ],
+        'global cache contains all m3 models, but no ds models'
+      );
+    }
 
     run(() =>
       this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439708180').unloadRecord()
     );
 
-    assert.deepEqual(
-      Object.keys(this.store._globalM3Cache).sort(),
-      ['isbn:9780439064873', 'isbn:9780439708180/chapter/1', 'isbn:9780439708180/chapter/2'],
-      'global cache can unload records'
-    );
+    if (CUSTOM_MODEL_CLASS) {
+      assert.deepEqual(
+        Object.keys(this.store._globalM3RecordDataCache).sort(),
+        ['isbn:9780439064873', 'isbn:9780439708180/chapter/1', 'isbn:9780439708180/chapter/2'],
+        'global cache can unload records'
+      );
+    } else {
+      assert.deepEqual(
+        Object.keys(this.store._globalM3Cache).sort(),
+        ['isbn:9780439064873', 'isbn:9780439708180/chapter/1', 'isbn:9780439708180/chapter/2'],
+        'global cache can unload records'
+      );
+    }
 
     run(() => this.store.unloadAll());
 
-    assert.deepEqual(
-      Object.keys(this.store._globalM3Cache),
-      [],
-      'global cache can unload all records'
-    );
+    if (CUSTOM_MODEL_CLASS) {
+      assert.deepEqual(
+        Object.keys(this.store._globalM3RecordDataCache),
+        [],
+        'global cache can unload all records'
+      );
+    } else {
+      assert.deepEqual(
+        Object.keys(this.store._globalM3Cache),
+        [],
+        'global cache can unload all records'
+      );
+    }
   });
 
   test('projections are not added to the global m3 cache', function(assert) {

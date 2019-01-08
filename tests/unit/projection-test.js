@@ -7,7 +7,7 @@ import { run } from '@ember/runloop';
 import { Promise } from 'rsvp';
 import EmberObject from '@ember/object';
 import DefaultSchema from 'ember-m3/services/m3-schema';
-
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/feature-flags';
 /*
   Ember Data currently dasherizes modelNames for use within the store, in these tests
   payloads given to the store use non-normalized modelNames while schemas and
@@ -2279,13 +2279,21 @@ module('unit/projection', function(hooks) {
       assert.equal(get(baseRecord, 'isDestroyed'), false);
       // TODO How can we check whether the underlying structure were not destroyed in the case of unload
       // Functionality can continue to work even in case of a bug
-      assert.equal(get(baseRecord, '_internalModel.isDestroyed'), false);
+      if (CUSTOM_MODEL_CLASS) {
+        assert.equal(get(baseRecord, '_recordData.isDestroyed'), false);
+      } else {
+        assert.equal(get(baseRecord, '_internalModel.isDestroyed'), false);
+      }
       assert.equal(get(baseRecord, 'title'), BOOK_TITLE);
 
       // projectedExcerpt is still arond
       assert.equal(this.store.hasRecordForId(BOOK_EXCERPT_PROJECTION_CLASS_PATH, BOOK_ID), true);
       assert.equal(get(projectedExcerpt, 'isDestroyed'), false);
-      assert.equal(get(projectedExcerpt, '_internalModel.isDestroyed'), false);
+      if (CUSTOM_MODEL_CLASS) {
+        assert.equal(get(projectedExcerpt, '_recordData.isDestroyed'), false);
+      } else {
+        assert.equal(get(projectedExcerpt, '_internalModel.isDestroyed'), false);
+      }
       assert.equal(get(projectedExcerpt, 'title'), BOOK_TITLE);
     });
 
@@ -2305,7 +2313,11 @@ module('unit/projection', function(hooks) {
       assert.equal(get(projectedPreview, 'isDestroyed'), false);
       // TODO How can we check whether the underlying structure were not destroyed in the case of unload
       // Functionality can continue to work even in case of a bug
-      assert.equal(get(projectedPreview, '_internalModel.isDestroyed'), false);
+      if (CUSTOM_MODEL_CLASS) {
+        assert.equal(get(projectedPreview, '_recordData.isDestroyed'), false);
+      } else {
+        assert.equal(get(projectedPreview, '_internalModel.isDestroyed'), false);
+      }
       assert.equal(get(projectedPreview, 'title'), BOOK_TITLE);
     });
 

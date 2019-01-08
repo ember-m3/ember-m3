@@ -11,6 +11,55 @@ import { dasherize } from '@ember/string';
 import { getOwner } from '@ember/application';
 import seenTypesPerStore from '../utils/seen-types-per-store';
 import { next } from '@ember/runloop';
+import { assign, merge } from '@ember/polyfills';
+import { CUSTOM_MODEL_CLASS } from '../feature-flags';
+import MegamorphicModel from '../model';
+
+const emberAssign = assign || merge;
+export let recordDataToRecordMap = new WeakMap();
+export let recordDataToQueryCache = new WeakMap();
+export let recordToRecordArrayMap = new WeakMap();
+
+class SchemaDefinition {
+  constructor(store, dsModelSchema) {
+    this.store = store;
+    this.dsModelSchema = dsModelSchema;
+  }
+  attributesDefinitionFor(identifier) {
+    let modelName;
+    if (identifier.type) {
+      modelName = identifier.type;
+    } else {
+      modelName = identifier;
+    }
+    if (get(this.store, '_schemaManager').includesModel(modelName)) {
+      if (identifier) {
+        return this.store.recordDataFor(identifier).attributesDefinition();
+      } else {
+        return {};
+      }
+    }
+    return this.dsModelSchema.attributesDefinitionFor(modelName);
+  }
+  relationshipsDefinitionFor(identifier) {
+    let modelName;
+    if (identifier.type) {
+      modelName = identifier.type;
+    } else {
+      modelName = identifier;
+    }
+    if (get(this.store, '_schemaManager').includesModel(modelName)) {
+      return Object.create(null);
+    }
+    return this.dsModelSchema.relationshipsDefinitionFor(modelName);
+  }
+  doesTypeExist(modelName) {
+    if (get(this.store, '_schemaManager').includesModel(modelName)) {
+      return true;
+    }
+    return this.dsModelSchema.doesTypeExist(modelName);
+  }
+}
 
 const STORE_OVERRIDES = {
   _schemaManager: inject('m3-schema-manager'),
@@ -18,16 +67,22 @@ const STORE_OVERRIDES = {
   init() {
     this._super(...arguments);
     this._queryCache = new QueryCache({ store: this });
-    this._globalM3Cache = new Object(null);
     seenTypesPerStore.set(this, new Set());
 
     if (gte('ember-data', '3.12.0-alpha.0')) {
       this._modifiedInternalModelMapProto = undefined;
     }
+    if (CUSTOM_MODEL_CLASS) {
+      this._globalM3RecordDataCache = new Object(null);
+      this._recordDataToRecordMap = recordDataToRecordMap;
+      let defaultSchema = this.getSchemaDefinitionService();
+      this.registerSchemaDefinitionService(new SchemaDefinition(this, defaultSchema));
+    } else {
+      this._globalM3Cache = new Object(null);
+    }
   },
 
   // Store hooks necessary for using a single model class
-
   _hasModelFor(modelName) {
     return get(this, '_schemaManager').includesModel(modelName) || this._super(modelName);
   },
@@ -51,6 +106,38 @@ const STORE_OVERRIDES = {
       return this._super('-ember-m3');
     }
     return this._super(modelName);
+  },
+
+  instantiateRecord(identifier, createRecordArgs, recordDataFor, notificationManager) {
+    let recordData = recordDataFor(identifier);
+    recordDataToQueryCache.set(recordData, this._queryCache);
+    let modelName = identifier.type;
+    if (get(this, '_schemaManager').includesModel(modelName)) {
+      let createOptions = emberAssign({ _recordData: recordData, store: this }, createRecordArgs);
+      // TODO remove the megamorphicModelFactory
+      let record = MegamorphicModelFactory.create(createOptions);
+      notificationManager.subscribe(identifier, (identifier, value) => {
+        if (value === 'state') {
+          record.notifyPropertyChange('isNew');
+          record.notifyPropertyChange('isDeleted');
+        } else if (value === 'identity') {
+          record.notifyPropertyChange('id');
+        }
+      });
+      record._setIdentifier(identifier);
+      return record;
+    }
+    return this._super(...arguments);
+  },
+
+  teardownRecord(record) {
+    if (!(record instanceof MegamorphicModel)) {
+      let recordArrays = recordToRecordArrayMap.get(record);
+      if (recordArrays) {
+        recordArrays.forEach(recordArray => recordArray._removeObject(record));
+      }
+    }
+    return this._super(record);
   },
 
   /**
@@ -110,36 +197,40 @@ const STORE_OVERRIDES = {
   // TODO: make secondary caches possible via public API
 
   _pushInternalModel(jsonAPIResource) {
-    let internalModel = this._super(jsonAPIResource);
-    let schemaManager = get(this, '_schemaManager');
-    let { type } = jsonAPIResource;
-    if (schemaManager.includesModel(type)) {
-      let baseName = schemaManager.computeBaseModelName(dasherize(type));
-      if (baseName === null || baseName === undefined) {
-        // only populate base records in the global cache
-        this._globalM3Cache[internalModel.id] = internalModel;
+    if (CUSTOM_MODEL_CLASS) {
+      return this._super(jsonAPIResource);
+    } else {
+      let internalModel = this._super(jsonAPIResource);
+      let schemaManager = get(this, '_schemaManager');
+      let { type } = jsonAPIResource;
+      if (schemaManager.includesModel(type)) {
+        let baseName = schemaManager.computeBaseModelName(dasherize(type));
+        if (baseName === null || baseName === undefined) {
+          // only populate base records in the global cache
+          this._globalM3Cache[internalModel.id] = internalModel;
+        }
       }
-    }
 
-    if (gte('ember-data', '3.12.0-alpha.0')) {
-      if (this._modifiedInternalModelMapProto === undefined) {
-        let store = this;
-        // set this up for removals
-        let proto = (this._modifiedInternalModelMapProto = Object.getPrototypeOf(
-          this._internalModelsFor(self.modelName)
-        ));
+      if (gte('ember-data', '3.12.0-alpha.0')) {
+        if (this._modifiedInternalModelMapProto === undefined) {
+          let store = this;
+          // set this up for removals
+          let proto = (this._modifiedInternalModelMapProto = Object.getPrototypeOf(
+            this._internalModelsFor(self.modelName)
+          ));
 
-        let originalRemove = proto.remove;
-        proto.__originalRemove = originalRemove;
-        proto.remove = function remove(internalModel) {
-          delete store._globalM3Cache[internalModel.id];
-          return originalRemove.apply(this, arguments);
-        };
-        this._internalModelMapModified = true;
+          let originalRemove = proto.remove;
+          proto.__originalRemove = originalRemove;
+          proto.remove = function remove(internalModel) {
+            delete store._globalM3Cache[internalModel.id];
+            return originalRemove.apply(this, arguments);
+          };
+          this._internalModelMapModified = true;
+        }
       }
-    }
 
-    return internalModel;
+      return internalModel;
+    }
   },
 
   willDestroy() {
@@ -175,7 +266,16 @@ function createRecordDataFor(modelName, id, clientId, storeWrapper) {
           .addedType(modelName);
       });
     }
-    return new M3RecordData(modelName, id, clientId, storeWrapper, schemaManager, null, null);
+    return new M3RecordData(
+      modelName,
+      id,
+      clientId,
+      storeWrapper,
+      schemaManager,
+      null,
+      null,
+      this._globalM3RecordDataCache
+    );
   }
 
   return this._super(modelName, id, clientId, storeWrapper);

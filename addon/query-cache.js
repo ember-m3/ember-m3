@@ -4,6 +4,7 @@ import { get } from '@ember/object';
 
 import MegamorphicModel from './model';
 import M3QueryArray from './query-array';
+import { CUSTOM_MODEL_CLASS } from './feature-flags';
 
 function stripSlash(str, stripLeading, stripTrailing) {
   let startSlash = stripLeading && str.charAt(0) === '/';
@@ -191,22 +192,41 @@ export default class QueryCache {
   }
 
   _createResult(payload, query, array) {
-    let internalModelOrModels = this._store._push(payload);
+    let internalModelOrModels;
+    if (CUSTOM_MODEL_CLASS) {
+      internalModelOrModels = this._store.push(payload);
+    } else {
+      internalModelOrModels = this._store._push(payload);
+    }
 
     if (array) {
-      array._setInternalModels(internalModelOrModels);
+      if (CUSTOM_MODEL_CLASS) {
+        array._setObjects(internalModelOrModels);
+      } else {
+        array._setInternalModels(internalModelOrModels);
+      }
       return array;
     } else if (Array.isArray(internalModelOrModels)) {
       return this._createQueryArray(internalModelOrModels, query);
     } else {
-      return internalModelOrModels.getRecord();
+      if (CUSTOM_MODEL_CLASS) {
+        return internalModelOrModels;
+      } else {
+        return internalModelOrModels.getRecord();
+      }
     }
   }
 
   _addResultToReverseCache(result, cacheKey) {
     if (result.constructor === M3QueryArray) {
-      for (let i = 0; i < result._internalModels.length; ++i) {
-        this._addRecordToReverseCache(result._internalModels[i], cacheKey);
+      if (CUSTOM_MODEL_CLASS) {
+        for (let i = 0; i < result._objects.length; ++i) {
+          this._addRecordToReverseCache(result._objects[i], cacheKey);
+        }
+      } else {
+        for (let i = 0; i < result._internalModels.length; ++i) {
+          this._addRecordToReverseCache(result._internalModels[i], cacheKey);
+        }
       }
     } else {
       this._addRecordToReverseCache(result, cacheKey);
@@ -219,7 +239,7 @@ export default class QueryCache {
     cacheKeys.push(cacheKey);
   }
 
-  _createQueryArray(internalModels, query) {
+  _createQueryArray(internalModelsOrModels, query) {
     let array = M3QueryArray.create({
       modelName: '-ember-m3',
       store: this._store,
@@ -229,9 +249,13 @@ export default class QueryCache {
       query,
     });
 
-    array._setInternalModels(internalModels, false);
-
-    this._recordArrayManager._adapterPopulatedRecordArrays.push(array);
+    if (CUSTOM_MODEL_CLASS) {
+      //TODO consider not setting models eagerly
+      array._setObjects(internalModelsOrModels);
+    } else {
+      array._setInternalModels(internalModelsOrModels, false);
+      this._recordArrayManager._adapterPopulatedRecordArrays.push(array);
+    }
 
     return array;
   }

@@ -5,6 +5,15 @@ import { isResolvedValue } from './utils/resolve';
 import { associateRecordWithRecordArray } from './record-array';
 import { recordDataFor } from './-private';
 import { deprecate } from '@ember/debug';
+import { CUSTOM_MODEL_CLASS } from './feature-flags';
+import MegamorphicModel from './model';
+import require from 'require';
+import { recordDataToRecordMap } from './initializers/m3-store';
+
+let recordIdentifierFor;
+if (require.has('@ember-data/store')) {
+  recordIdentifierFor = require('@ember-data/store').recordIdentifierFor;
+}
 
 /**
  * M3TrackedArray
@@ -42,14 +51,26 @@ export default class M3TrackedArray extends ArrayProxy {
     newItems = newItems.map((item, index) => {
       if (isResolvedValue(item)) {
         associateRecordWithRecordArray(item, this);
+        let parentRecordData = recordDataFor(this._record);
+        let childRecordData;
+        if (item instanceof MegamorphicModel) {
+          childRecordData = recordDataFor(item);
+        } else {
+          if (CUSTOM_MODEL_CLASS) {
+            let identifier = recordIdentifierFor(item);
+            childRecordData = parentRecordData.storeWrapper.recordDataFor(
+              identifier.type,
+              identifier.id,
+              identifier.lid
+            );
+          } else {
+            childRecordData = recordDataFor(item);
+          }
+        }
         // TODO: clean up this ridiculous hack
         // adding a resolved value to a tracked array requires the child model
         // data stitching to be maintained
-        recordDataFor(this._record)._setChildRecordData(
-          this._key,
-          index + idx,
-          recordDataFor(item)
-        );
+        parentRecordData._setChildRecordData(this._key, index + idx, childRecordData);
         return item;
       }
 
@@ -77,16 +98,38 @@ export default class M3TrackedArray extends ArrayProxy {
   }
 
   _removeInternalModels(internalModels) {
-    for (let i = this.content.length; i >= 0; --i) {
-      let item = this.content.objectAt(i);
-      if (isResolvedValue(item)) {
-        for (let j = 0; j < internalModels.length; ++j) {
-          let internalModel = internalModels[j];
-          if (internalModel === item._internalModel) {
-            this.content.removeAt(i);
-            break;
+    if (CUSTOM_MODEL_CLASS) {
+      throw new Error('Should not be calling _removeInternalModels when CUSTOM_MODEL_CLASS is on');
+    } else {
+      for (let i = this.content.length; i >= 0; --i) {
+        let item = this.content.objectAt(i);
+        if (isResolvedValue(item)) {
+          for (let j = 0; j < internalModels.length; ++j) {
+            let internalModel = internalModels[j];
+            if (internalModel === item._internalModel) {
+              this.content.removeAt(i);
+              break;
+            }
           }
         }
+      }
+    }
+  }
+
+  _removeObject(record) {
+    this.content.removeObject(record);
+  }
+
+  _removeRecordData(recordData) {
+    let recordToMatch = recordDataToRecordMap.get(recordData);
+    if (!recordToMatch) {
+      return;
+    }
+    for (let i = this.content.length; i >= 0; --i) {
+      let item = this.content.objectAt(i);
+      if (recordToMatch === item) {
+        this.content.removeAt(i);
+        break;
       }
     }
   }

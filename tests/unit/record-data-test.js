@@ -6,6 +6,8 @@ import { setupTest } from 'ember-qunit';
 
 import M3RecordData from 'ember-m3/record-data';
 import DefaultSchema from 'ember-m3/services/m3-schema';
+import { recordDataToRecordMap } from 'ember-m3/initializers/m3-store';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/feature-flags';
 
 const recordDataKey = ({ modelName, id }) => `${modelName}:${id}`;
 
@@ -15,6 +17,7 @@ module('unit/record-data', function(hooks) {
   hooks.beforeEach(function() {
     this.sinon = sinon.createSandbox();
 
+    let globalCache = new Object(null);
     this.owner.register(
       'service:m3-schema',
       class TestSchema extends DefaultSchema {
@@ -51,7 +54,10 @@ module('unit/record-data', function(hooks) {
             id,
             clientId,
             storeWrapper,
-            schemaManager
+            schemaManager,
+            null,
+            null,
+            globalCache
           ))
         );
       },
@@ -89,7 +95,8 @@ module('unit/record-data', function(hooks) {
       this.storeWrapper,
       this.schemaManager,
       null,
-      null
+      null,
+      {}
     );
 
     recordData.pushData(
@@ -120,7 +127,8 @@ module('unit/record-data', function(hooks) {
       this.storeWrapper,
       this.schemaManager,
       null,
-      null
+      null,
+      {}
     );
 
     recordData.pushData(
@@ -158,7 +166,8 @@ module('unit/record-data', function(hooks) {
       this.storeWrapper,
       this.schemaManager,
       null,
-      null
+      null,
+      {}
     );
 
     assert.strictEqual(topRecordData._parentRecordData, null, 'top recordData has no parent');
@@ -230,7 +239,8 @@ module('unit/record-data', function(hooks) {
       this.storeWrapper,
       this.schemaManager,
       null,
-      null
+      null,
+      {}
     );
     recordData.rollbackAttributes(true);
     assert.equal(rollbackAttributesSpy.getCalls().length, 0, 'rollbackAttributes was not called');
@@ -595,7 +605,8 @@ module('unit/record-data', function(hooks) {
       this.storeWrapper,
       this.schemaManager,
       null,
-      null
+      null,
+      {}
     );
 
     recordData.pushData(
@@ -695,7 +706,8 @@ module('unit/record-data', function(hooks) {
         this.storeWrapper,
         this.schemaManager,
         null,
-        null
+        null,
+        {}
       );
 
       this.topRecordData.pushData({
@@ -719,6 +731,7 @@ module('unit/record-data', function(hooks) {
       this.child1Model = {
         _notifyProperties: this.sinon.spy(),
       };
+
       this.child1RecordData = this.topRecordData._getChildRecordData(
         'child1',
         null,
@@ -728,6 +741,8 @@ module('unit/record-data', function(hooks) {
           record: this.child1Model,
         }
       );
+
+      recordDataToRecordMap.set(this.child1RecordData, this.child1Model);
 
       this.child2Model = {
         _notifyProperties: this.sinon.spy(),
@@ -741,6 +756,7 @@ module('unit/record-data', function(hooks) {
           record: this.child2Model,
         }
       );
+      recordDataToRecordMap.set(this.child2RecordData, this.child2Model);
 
       this.child11Model = {
         _notifyProperties: this.sinon.spy(),
@@ -752,6 +768,7 @@ module('unit/record-data', function(hooks) {
         'child1_1',
         { record: this.child11Model }
       );
+      recordDataToRecordMap.set(this.child11RecordData, this.child11Model);
     });
 
     test('.pushData calls reified child recordDatas recursively', function(assert) {
@@ -940,11 +957,19 @@ module('unit/record-data', function(hooks) {
         'grandchild1_1._notifyProperties called'
       );
 
-      assert.equal(
-        this.child2Model._notifyProperties.callCount,
-        0,
-        'child2._notifyProperties not called'
-      );
+      if (CUSTOM_MODEL_CLASS) {
+        assert.equal(
+          this.child2Model._notifyProperties.callCount,
+          1,
+          'child2._notifyProperties called'
+        );
+      } else {
+        assert.equal(
+          this.child2Model._notifyProperties.callCount,
+          0,
+          'child2._notifyProperties called'
+        );
+      }
     });
 
     test('.commitWasRejected calls reified child recordDatas recursively', function(assert) {
