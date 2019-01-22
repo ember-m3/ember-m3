@@ -5,6 +5,25 @@ import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 
+class TestSchema extends DefaultSchema {
+  includesModel(modelName) {
+    return /^com.example.bookstore\./i.test(modelName);
+  }
+
+  computeAttributeReference(key, value, modelName, schemaInterface) {
+    let refValue = schemaInterface.getAttr(`*${key}`);
+    if (refValue !== undefined) {
+      if (Array.isArray(refValue)) {
+        return refValue.map(id => ({ id, type: null }));
+      } else {
+        return {
+          id: refValue,
+          type: null,
+        };
+      }
+    }
+  }
+}
 module('unit/model/dependent-keys', function(hooks) {
   setupTest(hooks);
 
@@ -12,28 +31,7 @@ module('unit/model/dependent-keys', function(hooks) {
     this.sinon = sinon.createSandbox();
     this.store = this.owner.lookup('service:store');
 
-    this.owner.register(
-      'service:m3-schema',
-      class TestSchema extends DefaultSchema {
-        includesModel(modelName) {
-          return /^com.example.bookstore\./i.test(modelName);
-        }
-
-        computeAttributeReference(key, value, modelName, schemaInterface) {
-          let refValue = schemaInterface.getAttr(`*${key}`);
-          if (refValue !== undefined) {
-            if (Array.isArray(refValue)) {
-              return refValue.map(id => ({ id, type: null }));
-            } else {
-              return {
-                id: refValue,
-                type: null,
-              };
-            }
-          }
-        }
-      }
-    );
+    this.owner.register('service:m3-schema', TestSchema);
   });
 
   test('when new payloads invalidate properties, their dependent properties are invalidated', function(assert) {
@@ -143,6 +141,63 @@ module('unit/model/dependent-keys', function(hooks) {
   });
 
   test('properties requested in computeAttributeRef are treated as dependent even when initially absent', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            pubDate: 'September 1989',
+            relatedBooks: [],
+          },
+        },
+      });
+    });
+
+    assert.equal(get(model, 'relatedBooks.length'), 0, 'initially relatedBooks is an empty array');
+
+    run(() => {
+      return this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            '*relatedBooks': ['isbn:9780439358080'],
+          },
+        },
+        included: [
+          {
+            id: 'isbn:9780439358080',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Fantastic Beasts and Where to Find Them`,
+            },
+          },
+        ],
+      });
+    });
+
+    assert.deepEqual(
+      get(model, 'relatedBooks').mapBy('name'),
+      [`Fantastic Beasts and Where to Find Them`],
+      'relatedBooks is invalidated when *relatedBooks changes'
+    );
+  });
+
+  test('Accessing a property twice while resolving it does not cause errors', function(assert) {
+    assert.expect(5);
+
+    this.owner.register(
+      'service:m3-schema',
+      class SelfReferencingSchema extends TestSchema {
+        computeAttributeReference(key, value, modelName, schemaInterface) {
+          let selfKey = schemaInterface.getAttr(`${key}`);
+          assert.ok(selfKey, 'can lookup itself');
+          return super.computeAttributeReference(key, value, modelName, schemaInterface);
+        }
+      }
+    );
     let model = run(() => {
       return this.store.push({
         data: {
