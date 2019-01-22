@@ -86,12 +86,14 @@ class M3SchemaInterface {
       keyBeingResolved
     );
 
-    // it might be nice to avoid doing this if we know that we don't need to
-    // support depkeys from the server changing between requests
-    this._refKeyDepkeyMap[name] = this._refKeyDepkeyMap[name] || [];
-    let refKeyMap = this._refKeyDepkeyMap[name];
-    if (refKeyMap.indexOf(keyBeingResolved) < 0) {
-      refKeyMap.push(this._keyBeingResolved);
+    if (keyBeingResolved !== name) {
+      // it might be nice to avoid doing this if we know that we don't need to
+      // support depkeys from the server changing between requests
+      this._refKeyDepkeyMap[name] = this._refKeyDepkeyMap[name] || [];
+      let refKeyMap = this._refKeyDepkeyMap[name];
+      if (refKeyMap.indexOf(keyBeingResolved) < 0) {
+        refKeyMap.push(this._keyBeingResolved);
+      }
     }
 
     return value;
