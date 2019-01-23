@@ -346,7 +346,7 @@ export default class M3RecordData {
    */
   setAttr(key, value, _suppressNotifications) {
     if (this._baseRecordData) {
-      return this._baseRecordData.setAttr(key, value);
+      return this._baseRecordData.setAttr(key, value, _suppressNotifications);
     }
 
     let originalValue;
@@ -769,6 +769,17 @@ export default class M3RecordData {
   }
 
   _destroyChildRecordData(key) {
+    if (this._baseRecordData) {
+      return this._baseRecordData._destroyChildRecordData(key);
+    }
+    if (!this.__childRecordDatas) {
+      return;
+    }
+
+    return this.__destroyChildRecordData(key);
+  }
+
+  __destroyChildRecordData(key) {
     if (!this.__childRecordDatas) {
       return;
     }
@@ -778,11 +789,12 @@ export default class M3RecordData {
       // destroy
       delete this._childRecordDatas[key];
     }
+
     if (this._projections) {
       // TODO Add a test for this destruction
       // start from 1 as we know the first projection is the recordData
       for (let i = 1; i < this._projections.length; i++) {
-        this._projections[i]._destroyChildRecordData(key);
+        this._projections[i].__destroyChildRecordData(key);
       }
     }
   }
