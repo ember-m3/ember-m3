@@ -1,5 +1,10 @@
 # ember-m3 changelog
 
+## 0.10.1
+
+- bugfix: prevent cycles in dependencies from self-referential schemas (thanks @igort)
+- bugfix: fix changed attributes for projections when dirty nested models set to null
+
 ## 0.10.0
 
 - feature: Add `isAttributeResolved` API for schema control over interpreting set values as already resolved or not
