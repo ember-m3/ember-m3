@@ -88,4 +88,64 @@ module('unit/model/projections/changed-attrs', function(hooks) {
       'changed attributes is correct'
     );
   });
+
+  test('REGRESSION = nested models can report their own changed attributes', function(assert) {
+    this.store.push({
+      data: [
+        {
+          id: 'urn:book:1',
+          type: 'com.bookstore.Book',
+          attributes: {
+            dummyCollection: [
+              {
+                country: 'US',
+                geographicArea: 'California',
+                city: 'San Francisco',
+                postalCode: '94110',
+                description: 'Club house',
+                $type: 'com.linkedin.voyager.organization.OrganizationAddress',
+                headquarter: true,
+                line1: '1234 Lucky St',
+              },
+            ],
+          },
+        },
+        {
+          id: 'urn:book:1',
+          type: 'com.bookstore.ProjectedBook',
+          dummyCollection: [
+            {
+              country: 'US',
+              geographicArea: 'California',
+              city: 'San Francisco',
+              postalCode: '94110',
+              description: 'Club house',
+              $type: 'com.linkedin.voyager.organization.OrganizationAddress',
+              headquarter: true,
+              line1: '1234 Lucky St',
+            },
+          ],
+        },
+      ],
+    });
+
+    let model = this.store.peekRecord('com.bookstore.ProjectedBook', 'urn:book:1');
+
+    const currentCollection = model.get('dummyCollection').slice();
+    const aNewLocation = {
+      country: 'MX',
+      geographicArea: 'California',
+      city: 'Ensenada',
+      postalCode: '22810',
+      description: 'Home',
+      $type: 'com.linkedin.voyager.organization.OrganizationAddress',
+      headquarter: true,
+      line1: '555 Main St.',
+    };
+    model.set('dummyCollection', currentCollection.concat(aNewLocation));
+    model.get('dummyCollection');
+    assert.deepEqual(model.changedAttributes(), {
+      dummyCollection: [[], []],
+    });
+  });
 });
