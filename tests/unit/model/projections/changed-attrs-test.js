@@ -90,13 +90,48 @@ module('unit/model/projections/changed-attrs', function(hooks) {
   });
 
   test('REGRESSION = nested models can report their own changed attributes', function(assert) {
+    this.owner.register(
+      'service:m3-schema',
+      class TestSchema extends DefaultSchema {
+        includesModel() {
+          return true;
+        }
+
+        computeNestedModel(key, value) {
+          let attributesType;
+          try {
+            attributesType = value.$type;
+          } catch (e) {
+            console.log('"attributes" is a proxy');
+          }
+
+          if (key !== 'results' && typeof attributesType !== 'string') {
+            // object without a known type
+            return undefined;
+          }
+
+          return {
+            id: key,
+            type: attributesType,
+            attributes: value,
+          };
+        }
+
+        computeBaseModelName(modelName) {
+          return ['com.bookstore.projected-book', 'com.bookstore.excerpt-book'].includes(modelName)
+            ? 'com.bookstore.book'
+            : null;
+        }
+      }
+    );
+
     this.store.push({
       data: [
         {
           id: 'urn:book:1',
           type: 'com.bookstore.Book',
           attributes: {
-            dummyCollection: [
+            locations: [
               {
                 country: 'US',
                 geographicArea: 'California',
@@ -113,7 +148,7 @@ module('unit/model/projections/changed-attrs', function(hooks) {
         {
           id: 'urn:book:1',
           type: 'com.bookstore.ProjectedBook',
-          dummyCollection: [
+          locations: [
             {
               country: 'US',
               geographicArea: 'California',
@@ -131,7 +166,7 @@ module('unit/model/projections/changed-attrs', function(hooks) {
 
     let model = this.store.peekRecord('com.bookstore.ProjectedBook', 'urn:book:1');
 
-    const currentCollection = model.get('dummyCollection').slice();
+    const currentCollection = model.get('locations').slice();
     const aNewLocation = {
       country: 'MX',
       geographicArea: 'California',
@@ -142,10 +177,10 @@ module('unit/model/projections/changed-attrs', function(hooks) {
       headquarter: true,
       line1: '555 Main St.',
     };
-    model.set('dummyCollection', currentCollection.concat(aNewLocation));
-    model.get('dummyCollection');
+    model.set('locations', currentCollection.concat(aNewLocation));
+    model.get('locations');
     assert.deepEqual(model.changedAttributes(), {
-      dummyCollection: [[], []],
+      locations: [[], []],
     });
   });
 });
