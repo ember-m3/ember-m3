@@ -37,7 +37,11 @@ export default class M3TrackedArray extends ArrayProxy {
         // TODO: clean up this ridiculous hack
         // adding a resolved value to a tracked array requires the child model
         // data stitching to be maintained
-        recordDataFor(this._record)._setChildRecordData(this._key, index + idx, item);
+        recordDataFor(this._record)._setChildRecordData(
+          this._key,
+          index + idx,
+          recordDataFor(item)
+        );
         return item;
       }
 

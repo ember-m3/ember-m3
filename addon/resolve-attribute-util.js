@@ -12,12 +12,17 @@ import {
 } from './utils/resolve';
 
 // ie an array of nested models
-export function resolveArray(key, value, modelName, store, schema, model) {
+export function resolveArray(key, value, modelName, store, schema, model, recordData) {
   let resolvedArray = new Array(0);
   if (value && value.length > 0) {
-    resolvedArray = value.map((value, idx) =>
-      resolveValue(key, value, modelName, store, schema, model, idx)
-    );
+    resolvedArray = value.map((value, idx) => {
+      if (value instanceof EmbeddedMegamorphicModel) {
+        recordData._setChildRecordData(key, idx, recordDataFor(value));
+        return value;
+      } else {
+        return resolveValue(key, value, modelName, store, schema, model, idx);
+      }
+    });
   }
 
   return M3TrackedArray.create({
@@ -91,7 +96,7 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
   }
 
   if (Array.isArray(value)) {
-    return resolveArray(key, value, modelName, store, schema, record);
+    return resolveArray(key, value, modelName, store, schema, record, recordData);
   }
   let nested = computeNestedModel(key, value, modelName, schemaInterface, schema);
   if (nested) {
