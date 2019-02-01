@@ -44,7 +44,9 @@ export default class M3RecordArray extends ArrayProxy {
 
   objectAtContent(idx) {
     let internalModel = this.content[idx];
-    return internalModel && internalModel.getRecord();
+    return internalModel !== null && internalModel !== undefined
+      ? internalModel.getRecord()
+      : undefined;
   }
 
   objectAt(idx) {
@@ -109,7 +111,11 @@ export default class M3RecordArray extends ArrayProxy {
     for (let i = 0, l = internalModels.length; i < l; i++) {
       let internalModel = internalModels[i];
 
-      internalModel._recordArrays.add(this);
+      // allow refs to point to resources not in the store
+      // TODO: instead add a schema missing ref hook; #254
+      if (internalModel !== null && internalModel !== undefined) {
+        internalModel._recordArrays.add(this);
+      }
     }
   }
 
