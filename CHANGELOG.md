@@ -1,5 +1,9 @@
 # ember-m3 changelog
 
+## 0.10.2
+
+- bugfix: Revert 'Delegate `_destroyChildRecordData` to base'
+
 ## 0.10.1
 
 - bugfix: prevent cycles in dependencies from self-referential schemas (thanks @igort)
