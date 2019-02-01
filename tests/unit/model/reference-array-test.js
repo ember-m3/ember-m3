@@ -530,4 +530,51 @@ module('unit/model/reference-array', function(hooks) {
       'record array updates references lazily'
     );
   });
+
+  // TODO: add support instead for a missing ref hook #254
+  test('reference arrays can point to nonexistant records', function(assert) {
+    let model = run(() => {
+      // use obj instead of urn here so `_resolve` puts us in global cache
+      // rather than knowing the type from the id
+      return this.store.push({
+        data: {
+          id: 'obj:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            '*relatedBooks': [],
+          },
+        },
+        included: [],
+      });
+    });
+
+    let relatedBooks = model.get('relatedBooks');
+    assert.deepEqual(relatedBooks.mapBy('id'), [], 'record array instantiated');
+
+    run(() => {
+      this.store.push({
+        data: {
+          id: 'record:1',
+          type: 'com.example.bookstore.Unrelated',
+        },
+        included: [
+          {
+            id: 'obj:9780439708180',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Sorcerer's Stone`,
+              '*relatedBooks': ['obj:9780439064873', 'obj:9780439136365'],
+            },
+          },
+        ],
+      });
+    });
+
+    assert.deepEqual(
+      relatedBooks.toArray(),
+      [undefined, undefined],
+      'record arrays can refer to records not in store'
+    );
+  });
 });
