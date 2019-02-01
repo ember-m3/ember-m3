@@ -236,51 +236,27 @@ module('unit/record-data', function(hooks) {
     assert.equal(rollbackAttributesSpy.getCalls().length, 0, 'rollbackAttributes was not called');
   });
 
-  module('base record data delegates', function() {
-    const baseDelegates = {
-      pushData: [{ id: 'test-resource', attributes: {} }, false, false],
-      willCommit: [],
-      didCommit: [{ id: 'test-resource', attributes: {} }, false],
-      commitWasRejected: [],
-      setAttr: ['some-key', 'some-value', false],
-      getAttr: ['some-key'],
-      _deleteAttr: ['some-key'],
-      hasAttr: ['some-key'],
-      hasLocalAttr: ['some-key'],
-      getServerAttr: ['some-key'],
-      isAttrDirty: ['some-key'],
-      eachAttribute: [() => {}, { binding: 'binding' }],
-      hasChangedAttributes: [],
-      changedAttributes: [],
-      rollbackAttributes: [],
-      _destroyChildRecordData: ['some-key'],
-    };
-    for (let method of Object.keys(baseDelegates)) {
-      let args = baseDelegates[method];
+  test('.rollbackAttributes rolls backs the attributes on a base record data when dealing with a projection', function(assert) {
+    assert.expect(1);
+    const projectedRecordData = this.storeWrapper.recordDataFor(
+      'com.bookstore.projected-book',
+      '1'
+    );
+    const baseRecordData = this.storeWrapper.recordDatas[
+      recordDataKey({
+        modelName: 'com.bookstore.book',
+        id: '1',
+      })
+    ];
+    const rollbackAttributesSpy = this.sinon.spy(baseRecordData, 'rollbackAttributes');
 
-      test(`${method} delegates to base record data`, function(assert) {
-        const projectedRecordData = this.storeWrapper.recordDataFor(
-          'com.bookstore.projected-book',
-          '1'
-        );
-        const baseRecordData = this.storeWrapper.recordDatas[
-          recordDataKey({
-            modelName: 'com.bookstore.book',
-            id: '1',
-          })
-        ];
-        const baseRecordDataSpy = this.sinon.spy(baseRecordData, method);
+    projectedRecordData.rollbackAttributes();
 
-        projectedRecordData[method].apply(projectedRecordData, args);
-
-        assert.equal(baseRecordDataSpy.getCalls().length, 1, `base ${method} was called once`);
-        assert.deepEqual(
-          baseRecordDataSpy.args,
-          [args],
-          `base ${method} was called with correct args`
-        );
-      });
-    }
+    assert.equal(
+      rollbackAttributesSpy.getCalls().length,
+      1,
+      'rollbackAttributes was called once for the base record data'
+    );
   });
 
   test('.isAttrDirty returns true when the attribute is mutated on a projection', function(assert) {
