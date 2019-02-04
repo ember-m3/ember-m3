@@ -26,3 +26,4 @@ testem.log
 bower.json.ember-try
 package.json.ember-try
 /ember-m3-*.tgz
+/dist-*
