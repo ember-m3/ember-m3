@@ -30,13 +30,16 @@ export default class M3RecordArray extends ArrayProxy {
   }
 
   replaceContent(idx, removeAmt, newRecords) {
-    let _newRecords = A(newRecords);
-    let addAmt = get(_newRecords, 'length');
-
+    let addAmt = get(newRecords, 'length');
     let newInternalModels = new Array(addAmt);
-    for (let i = 0; i < newInternalModels.length; ++i) {
-      newInternalModels[i] = _newRecords.objectAt(i)._internalModel;
+
+    if (addAmt > 0) {
+      let _newRecords = A(newRecords);
+      for (let i = 0; i < newInternalModels.length; ++i) {
+        newInternalModels[i] = _newRecords.objectAt(i)._internalModel;
+      }
     }
+
     this.content.replace(idx, removeAmt, newInternalModels);
     this._registerWithInternalModels(newInternalModels);
     this._resolved = true;

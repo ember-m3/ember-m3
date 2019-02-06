@@ -21,6 +21,10 @@ const BOOK_PREVIEW_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.Boo
 const NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH = 'com.example.bookstore.projection.book-preview';
 const PROJECTED_AUTHOR_CLASS = 'com.example.bookstore.projectedType.ProjectedAuthor';
 const NORM_PROJECTED_AUTHOR_CLASS = 'com.example.bookstore.projected-type.projected-author';
+const AUTHORS_CLASS_PATH = 'com.example.bookstore.Authors';
+const NORM_AUTHORS_CLASS_PATH = 'com.example.bookstore.authors';
+const PROJECTED_AUTHORS_CLASS_PATH = 'com.example.bookstore.projectedType.ProjectedAuthors';
+const NORM_PROJECTED_AUTHORS_CLASS_PATH = 'com.example.bookstore.projected-type.projected-authors';
 const PUBLISHER_CLASS = 'com.example.bookstore.Publisher';
 const NORM_PUBLISHER_CLASS = 'com.example.bookstore.publisher';
 const PROJECTED_PUBLISHER_CLASS = 'com.example.bookstore.projectedType.ProjectedPublisher';
@@ -2891,4 +2895,190 @@ module('unit/projection', function(hooks) {
   skip(`Creating a projection with an unloaded schema`, function() {});
   skip(`Finding a projection with an unloaded schema`, function() {});
   skip(`fetched schemas must be complete (projected types must also be included)`, function() {});
+});
+
+module('creating/updating projections with resolutions', function(hooks) {
+  setupTest(hooks);
+
+  hooks.beforeEach(function() {
+    this.store = this.owner.lookup('service:store');
+    class TestSchema extends DefaultSchema {
+      includesModel(modelName) {
+        return /^com\.example\.bookstore\./i.test(modelName);
+      }
+
+      computeAttributeReference(key, value, modelName) {
+        if (/^isbn:/.test(value)) {
+          return {
+            id: value,
+            type: BOOK_CLASS_PATH,
+          };
+        } else if (/^urn:([^:]+):(.*)/.test(value)) {
+          let parts = /^urn:([^:]+):(.*)/.exec(value);
+          let type = parts[1];
+          let modelSchema = this.models[modelName];
+
+          if (modelSchema && modelSchema.attributesTypes && modelSchema.attributesTypes[key]) {
+            type = modelSchema.attributesTypes[key];
+          }
+          return {
+            type,
+            id: parts[2],
+          };
+        } else if (Array.isArray(value)) {
+          return value
+            .map(v => {
+              let type = null;
+              let modelSchema = this.models[modelName];
+
+              if (modelSchema && modelSchema.attributesTypes && modelSchema.attributesTypes[key]) {
+                type = modelSchema.attributesTypes[key];
+              }
+
+              return {
+                type,
+                id: get(v, 'id'),
+              };
+            })
+            .filter(Boolean);
+        }
+      }
+
+      computeNestedModel(key, value, modelName) {
+        if (!value || typeof value !== 'object' || value.constructor === Date) {
+          return null;
+        }
+        let valueType = value.type;
+        let modelSchema = this.models[modelName];
+        if (modelSchema && modelSchema.attributesTypes && modelSchema.attributesTypes[key]) {
+          valueType = modelSchema.attributesTypes[key];
+        }
+        return {
+          type: valueType,
+          id: value.id,
+          attributes: value,
+        };
+      }
+
+      computeBaseModelName(modelName) {
+        let schema = this.models[modelName];
+
+        if (schema !== undefined) {
+          return schema.baseType;
+        }
+      }
+    }
+    TestSchema.prototype.models = {
+      [NORM_BOOK_CLASS_PATH]: {},
+      [NORM_BOOK_EXCERPT_PROJECTION_CLASS_PATH]: {
+        baseType: BOOK_CLASS_PATH,
+        attributes: ['title', 'authors'],
+      },
+      [NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH]: {
+        baseType: BOOK_CLASS_PATH,
+        attributesTypes: {
+          authors: PROJECTED_AUTHORS_CLASS_PATH,
+        },
+        // if you want to project an embedded model then it must have a type
+        //  computedEmbeddedType
+
+        attributes: ['title', 'authors'],
+      },
+      [NORM_AUTHORS_CLASS_PATH]: {
+        attributes: ['people'],
+      },
+      [NORM_PROJECTED_AUTHORS_CLASS_PATH]: {
+        baseType: AUTHORS_CLASS_PATH,
+        attributesTypes: {
+          people: PROJECTED_AUTHOR_CLASS,
+        },
+        attributes: ['people'],
+      },
+      // this schema must come with the parent schema
+      [NORM_PROJECTED_AUTHOR_CLASS]: {
+        attributes: ['name'],
+      },
+    };
+    this.owner.register('service:m3-schema', TestSchema);
+    this.schemaManager = this.owner.lookup('service:m3-schema-manager');
+  });
+
+  const BOOK_ID = 'isbn:123';
+  const BOOK_TITLE_1 = 'Alice in Wonderland';
+  const BOOK_AUTHOR_ID_1 = 'author:1';
+  const BOOK_AUTHOR_NAME_1 = 'Lewis Carol';
+
+  test('newly created and saved projections with embedded records that are resolutions can receive updates', async function(assert) {
+    this.owner.register(
+      'adapter:-ember-m3',
+      EmberObject.extend({
+        createRecord() {
+          return Promise.resolve({
+            data: {
+              id: BOOK_ID,
+              type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+              attributes: {},
+            },
+          });
+        },
+        updateRecord() {
+          return Promise.resolve({
+            data: {
+              id: BOOK_ID,
+              type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+            },
+          });
+        },
+      })
+    );
+
+    let authorPreview = this.store.push({
+      data: {
+        type: PROJECTED_AUTHOR_CLASS,
+        id: BOOK_AUTHOR_ID_1,
+        attributes: {
+          name: BOOK_AUTHOR_NAME_1,
+        },
+      },
+    });
+
+    let projectedPreview = this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
+      title: BOOK_TITLE_1,
+      authors: {
+        $type: AUTHORS_CLASS_PATH,
+        people: [],
+      },
+    });
+
+    let authors = get(projectedPreview, 'authors');
+    let people = get(authors, 'people');
+
+    people.pushObject(authorPreview);
+
+    // reify the nested model
+    let name = get(authors, 'people.firstObject.name');
+    assert.equal(name, BOOK_AUTHOR_NAME_1);
+
+    await projectedPreview.save();
+
+    assert.equal(
+      get(projectedPreview, 'title'),
+      BOOK_TITLE_1,
+      'Expected preview projection to have correct title'
+    );
+    assert.equal(
+      get(projectedPreview, 'authors.people.firstObject.name'),
+      BOOK_AUTHOR_NAME_1,
+      'Expected preview projection to have correct author.name'
+    );
+
+    people.removeObject(authorPreview);
+    await projectedPreview.save();
+
+    assert.equal(
+      get(projectedPreview, 'authors.people.length'),
+      0,
+      'Expected preview projection to have no authors'
+    );
+  });
 });
