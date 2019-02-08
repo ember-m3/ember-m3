@@ -46,7 +46,8 @@
   ],
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "lint-staged",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   },
   "lint-staged": {
@@ -63,6 +64,8 @@
     "ember-data": ">= 3.5.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^7.5.0",
+    "@commitlint/travis-cli": "^7.5.0",
     "broccoli-asset-rev": "^2.4.5",
     "ember-cli": "~3.6.0",
     "ember-cli-dependency-checker": "^3.0.0",

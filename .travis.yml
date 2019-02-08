@@ -64,4 +64,5 @@ install:
   - yarn install
 
 script:
+  - commitlint-travis
   - node_modules/.bin/ember try:one $EMBER_TRY_SCENARIO --skip-cleanup
