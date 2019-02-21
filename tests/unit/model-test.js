@@ -856,7 +856,7 @@ module('unit/model', function(hooks) {
       () => {
         set(model, 'title', 'Volume I. The Birth of Britain');
       },
-      /You tried to set 'title' to 'Volume I. The Birth of Britain', but 'title' is an alias in 'com.example.bookstore.book' and aliases are read-only/,
+      /Error: Cannot set read-only property 'title' on object:/,
       'error to set an alias'
     );
   });
