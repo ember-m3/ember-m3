@@ -173,14 +173,30 @@ export default class M3RecordData {
   }
 
   /**
-   * @param {Object} jsonApiResource
-   * @param {boolean} calculateChange
+   * Notify this `RecordData` that it has new attributes from the server.
+   *
+   * @param {Object} jsonApiResource the payload resource to use for updating
+   * the server attributes
+   * @param {boolean} calculateChange Whether or not changes that result from
+   * this resource being pushed should be calculated.
    * @param {boolean} [notifyRecord=false]
-   * @returns {Array<string>} The list of changed keys
+   * @params {boolean} [suppressProjectionNotifications=false]
+   * @returns {Array<string>} The list of changed keys if `calculateChange
+   * === true` and `[]` otherwise.
    */
-  pushData(jsonApiResource, calculateChange, notifyRecord = false) {
+  pushData(
+    jsonApiResource,
+    calculateChange,
+    notifyRecord = false,
+    suppressProjectionNotifications = false
+  ) {
     if (this._baseRecordData) {
-      this._baseRecordData.pushData(jsonApiResource, calculateChange, notifyRecord);
+      this._baseRecordData.pushData(
+        jsonApiResource,
+        calculateChange,
+        notifyRecord,
+        suppressProjectionNotifications
+      );
       // we don't need to return any changed keys, because properties will be invalidated
       // as part of notifying all projections
       return [];
@@ -206,7 +222,14 @@ export default class M3RecordData {
       this.id = jsonApiResource.id + '';
     }
 
-    if (this._notifyProjectionProperties(changedKeys)) {
+    // by default, always notify projections when we receive data.  We might
+    // not have been asked to calculate changes if the base record data has
+    // no record, but we might still have records instantiated for our
+    // projections.
+    //
+    // Notifications are explicitly suppressed when we're using `pushData`
+    // synthetically while resolving nested record data
+    if (!suppressProjectionNotifications && this._notifyProjectionProperties(changedKeys)) {
       return [];
     }
 

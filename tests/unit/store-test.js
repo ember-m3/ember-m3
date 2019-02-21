@@ -5,6 +5,7 @@ import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
 import DefaultSchema from 'ember-m3/services/m3-schema';
+import { addObserver } from '@ember/object/observers';
 
 module('unit/store', function(hooks) {
   setupTest(hooks);
@@ -120,5 +121,48 @@ module('unit/store', function(hooks) {
       [],
       'global cache can unload all records'
     );
+  });
+
+  test('pushPayload batches change notifications', function(assert) {
+    this.store.pushPayload('com.example.bookstore.Book', {
+      data: {
+        id: 'book:1',
+        type: 'com.example.bookstore.Book',
+        attributes: {
+          title: 'Marlborough: his life and times',
+          volume: 1,
+        },
+      },
+    });
+
+    let book = this.store.peekRecord('com.example.bookstore.Book', 'book:1');
+    addObserver(book, 'volume', () => {
+      // This assert relies on ember data pushing `data` after all `included`
+      // resources during `pushPayload`
+      assert.equal(
+        this.store.hasRecordForId('com.example.bookstore.SyntheticEnd', 'end:1'),
+        true,
+        'observer is not called until entire payload is pushed'
+      );
+    });
+    book.get('volume');
+
+    this.store.pushPayload('com.example.bookstore.Book', {
+      data: {
+        id: 'end:1',
+        type: 'com.example.bookstore.SyntheticEnd',
+        attributes: {},
+      },
+      included: [
+        {
+          id: 'book:1',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            title: 'Marlborough: his life and times',
+            volume: 2,
+          },
+        },
+      ],
+    });
   });
 });

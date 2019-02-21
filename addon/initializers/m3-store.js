@@ -7,6 +7,7 @@ import MegamorphicModel from '../model';
 import M3RecordData from '../record-data';
 import MegamorphicModelFactory from '../factory';
 import QueryCache from '../query-cache';
+import { flushChanges } from '../utils/notify-changes';
 
 const STORE_OVERRIDES = {
   _schemaManager: inject('m3-schema-manager'),
@@ -85,6 +86,15 @@ const STORE_OVERRIDES = {
    */
   containsURL(cacheKey) {
     return this._queryCache.contains(cacheKey);
+  },
+
+  // override _push to batch change notifications which we're obliged to do
+  // since all our properties are treated as volatiles as they come from
+  // `unknownProperty`
+  _push(jsonApiDoc) {
+    let result = this._super(jsonApiDoc);
+    flushChanges(this);
+    return result;
   },
 
   // These two hooks are used for the secondary cache

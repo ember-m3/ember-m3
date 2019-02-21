@@ -58,12 +58,12 @@ module('unit/model/projections/changed-attrs', function(hooks) {
     assert.equal(
       projectedRecord.get('randomChapter.position'),
       2,
-      'read properties from nested models'
+      'read randomChapter.position (nested record)'
     );
     assert.equal(
       projectedRecord.get('randomChapter.title'),
       'Not actually a chapter in this book',
-      'read properties from nested models'
+      'read randomChapter.title (nested record)'
     );
 
     // ensure the nested model itself has some changed attributes
