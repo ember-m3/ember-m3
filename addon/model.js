@@ -7,7 +7,7 @@ import { RootState } from 'ember-data/-private';
 import EmberObject, { computed, get, set, defineProperty } from '@ember/object';
 import { isArray } from '@ember/array';
 import { assert, warn } from '@ember/debug';
-import { alias } from '@ember/object/computed';
+import { readOnly } from '@ember/object/computed';
 import { IS_RECORD_DATA } from 'ember-compatibility-helpers';
 import { notifyPropertyChange as _notifyPropertyChange } from '@ember/object';
 
@@ -87,14 +87,6 @@ export class EmbeddedInternalModel {
   changedAttributes() {
     return this._recordData.changedAttributes();
   }
-}
-
-function disallowAliasSet(object, key, value) {
-  throw new Error(
-    `You tried to set '${key}' to '${value}', but '${key}' is an alias in '${
-      object._modelName
-    }' and aliases are read-only`
-  );
 }
 
 class YesManAttributesSingletonClass {
@@ -313,11 +305,9 @@ export default class MegamorphicModel extends EmberObject {
     if (rawValue === undefined) {
       let attrAlias = this._schema.getAttributeAlias(this._modelName, key);
       if (attrAlias) {
-        const cp = alias(attrAlias);
-        cp.set = disallowAliasSet;
+        const cp = readOnly(attrAlias);
         defineProperty(this, key, cp);
-        // may also be reasonable to fall back to Ember.get after defining the property.
-        return cp.get(this, key);
+        return get(this, key);
       }
 
       let defaultValue = this._schema.getDefaultValue(this._modelName, key);
