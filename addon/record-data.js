@@ -5,7 +5,6 @@ import { copy } from './utils/copy';
 import { assert } from '@ember/debug';
 import Ember from 'ember';
 import { IS_RECORD_DATA } from 'ember-compatibility-helpers';
-import { recordDataFor } from './-private';
 
 const emberAssign = assign || merge;
 
@@ -861,17 +860,25 @@ export default class M3RecordData {
     );
   }
 
-  _setChildRecordData(key, idx, record) {
-    let recordData = recordDataFor(record);
-
-    if (idx !== undefined && idx !== null) {
-      let childRecordDatas = this._childRecordDatas[key];
-      if (childRecordDatas === undefined) {
-        childRecordDatas = this._childRecordDatas[key] = [];
+  _setChildRecordData(key, idx, recordData) {
+    if (recordData._baseRecordData && this._baseRecordData) {
+      this._baseRecordData._setChildRecordData(key, idx, recordData._baseRecordData);
+    } else if (!recordData._baseRecordData && !this._baseRecordData) {
+      // TODO assert against one of these being set but the other one not
+      if (idx !== undefined && idx !== null) {
+        let childRecordDatas = this._childRecordDatas[key];
+        if (childRecordDatas === undefined) {
+          childRecordDatas = this._childRecordDatas[key] = [];
+        }
+        childRecordDatas[idx] = recordData;
+      } else {
+        this._childRecordDatas[key] = recordData;
       }
-      childRecordDatas[idx] = recordData;
     } else {
-      this._childRecordDatas[key] = recordData;
+      assert(
+        'Projection levels match between the nested recordData being set and the parent recordData',
+        false
+      );
     }
   }
 

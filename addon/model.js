@@ -390,7 +390,6 @@ export default class MegamorphicModel extends EmberObject {
 
     let schemaInterface = recordDataFor(this).schemaInterface;
     let isResolved = this._schema.isAttributeResolved(this._modelName, key, value, schemaInterface);
-
     if (isResolved) {
       // resolved value, cache directly
       this._cache[key] = value;
