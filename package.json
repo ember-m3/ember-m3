@@ -28,7 +28,7 @@
   "repository": "https://github.com/hjdivad/ember-m3",
   "scripts": {
     "build": "ember build",
-    "start": "ember server",
+    "start": "ember server --no-live-reload --port=0",
     "test": "ember test",
     "format": "node_modules/.bin/prettier --write --ignore-path .gitignore 'addon/**/*.js' 'app/**/*.js' 'tests/**/*.js'"
   },
