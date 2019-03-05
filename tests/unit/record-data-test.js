@@ -238,7 +238,7 @@ module('unit/record-data', function(hooks) {
 
   module('base record data delegates', function() {
     const baseDelegates = {
-      pushData: [{ id: 'test-resource', attributes: {} }, false, false],
+      pushData: [{ id: 'test-resource', attributes: {} }, false, false, false],
       willCommit: [],
       didCommit: [{ id: 'test-resource', attributes: {} }, false],
       commitWasRejected: [],

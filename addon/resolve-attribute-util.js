@@ -125,9 +125,14 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
       !recordData.getServerAttr ||
       (recordData.getServerAttr(key) !== null && recordData.getServerAttr(key) !== undefined)
     ) {
-      nestedRecordData.pushData({
-        attributes: nested.attributes,
-      });
+      nestedRecordData.pushData(
+        {
+          attributes: nested.attributes,
+        },
+        false,
+        false,
+        true
+      );
     } else {
       Object.keys(nested.attributes).forEach(key => {
         nestedRecordData.setAttr(key, nested.attributes[key], true);

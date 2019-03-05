@@ -1,7 +1,6 @@
 // This lint error disables "this.attrs" everywhere.  What could go wrong?
 /* eslint-disable ember/no-attrs-in-components */
 
-import Ember from 'ember';
 import DS from 'ember-data';
 import { RootState } from 'ember-data/-private';
 import EmberObject, { computed, get, set, defineProperty } from '@ember/object';
@@ -9,23 +8,19 @@ import { isArray } from '@ember/array';
 import { assert, warn } from '@ember/debug';
 import { readOnly } from '@ember/object/computed';
 import { IS_RECORD_DATA } from 'ember-compatibility-helpers';
-import { notifyPropertyChange as _notifyPropertyChange } from '@ember/object';
 
 import { recordDataFor } from './-private';
 import M3RecordArray from './record-array';
 import { OWNER_KEY } from './util';
 import { resolveValue } from './resolve-attribute-util';
 import { computeAttributeReference } from './utils/resolve';
-
-const { propertyDidChange } = Ember;
-let notifyPropertyChange;
-
-const HasNotifyPropertyChange = _notifyPropertyChange !== undefined;
-if (HasNotifyPropertyChange) {
-  notifyPropertyChange = _notifyPropertyChange;
-} else {
-  notifyPropertyChange = propertyDidChange;
-}
+import {
+  assertNoChanges,
+  notifyPropertyChange,
+  deferPropertyChange,
+  flushChanges,
+} from './utils/notify-changes';
+import { DEBUG } from '@glimmer/env';
 
 const {
   deleted: { uncommitted: deletedUncommitted, saved: deletedSaved },
@@ -171,11 +166,9 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   _notifyProperties(keys) {
-    Ember.beginPropertyChanges();
     for (let i = 0, length = keys.length; i < length; i++) {
       this.notifyPropertyChange(keys[i]);
     }
-    Ember.endPropertyChanges();
   }
 
   _updateCurrentState(state) {
@@ -184,6 +177,8 @@ export default class MegamorphicModel extends EmberObject {
       return;
     }
     this._internalModel.currentState = state;
+    // currentState is defined on the prototype and will be treated as
+    // non-volatile, so it's safe to eagerly send a change event
     notifyPropertyChange(this, 'currentState');
   }
 
@@ -218,8 +213,12 @@ export default class MegamorphicModel extends EmberObject {
       // TODO: disconnect recordData -> childRecordData in the case of nested model -> primitive
       // anything -> undefined | primitive
       delete this._cache[key];
-      super.notifyPropertyChange(key);
+      this._deferProprtyChange(key);
     }
+  }
+
+  _deferProprtyChange(key) {
+    deferPropertyChange(this._store, this, key);
   }
 
   changedAttributes() {
@@ -282,12 +281,17 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   rollbackAttributes() {
+    if (DEBUG) {
+      assertNoChanges(this._store);
+    }
+
     let dirtyKeys = recordDataFor(this).rollbackAttributes();
     this._updateCurrentState(loadedSaved);
 
     if (dirtyKeys && dirtyKeys.length > 0) {
       this._notifyProperties(dirtyKeys);
     }
+    flushChanges(this._store);
   }
 
   unknownProperty(key) {
@@ -362,6 +366,10 @@ export default class MegamorphicModel extends EmberObject {
       return;
     }
 
+    if (DEBUG) {
+      assertNoChanges(this._store);
+    }
+
     if (!this._schema.isAttributeIncluded(this._modelName, key)) {
       throw new Error(`Cannot set a non-whitelisted property ${key} on type ${this._modelName}`);
     }
@@ -402,6 +410,7 @@ export default class MegamorphicModel extends EmberObject {
 
     // Remove errors upon setting of new value
     this._removeError(key);
+    flushChanges(this._store);
     return;
   }
 
