@@ -1,11 +1,12 @@
 import { A } from '@ember/array';
 import { run } from '@ember/runloop';
 import DS from 'ember-data';
-import { module, test } from 'qunit';
+import { module, test, skip } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import { addObserver } from '@ember/object/observers';
+import { resolve } from 'rsvp';
 
 module('unit/store', function(hooks) {
   setupTest(hooks);
@@ -164,5 +165,123 @@ module('unit/store', function(hooks) {
         },
       ],
     });
+  });
+
+  test('didSaveRecord with included resources effectively batches change notifications', async function(assert) {
+    assert.expect(2);
+
+    this.owner.register(
+      'adapter:application',
+      class TestAdapter {
+        static create(props) {
+          return new TestAdapter(props);
+        }
+
+        updateRecord() {
+          return resolve({
+            data: {
+              id: 'book:1',
+              type: 'com.example.bookstore.Book',
+              attributes: {
+                title: 'Marlborough: his life and times',
+                volume: 2,
+              },
+            },
+            included: [
+              {
+                id: 'end:1',
+                type: 'com.example.bookstore.SyntheticEnd',
+                attributes: {
+                  saved: true,
+                },
+              },
+            ],
+          });
+        }
+      }
+    );
+
+    this.store.pushPayload('com.example.bookstore.Book', {
+      data: {
+        id: 'book:1',
+        type: 'com.example.bookstore.Book',
+        attributes: {
+          title: 'Marlborough: his life and times',
+          volume: 1,
+        },
+      },
+      included: [
+        {
+          id: 'end:1',
+          type: 'com.example.bookstore.SyntheticEnd',
+          attributes: {},
+        },
+      ],
+    });
+
+    let book = this.store.peekRecord('com.example.bookstore.Book', 'book:1');
+    addObserver(book, 'volume', () => {
+      // in the didSaveRecordCase, data is pushed before included
+      let synthEnd = this.store.peekRecord('com.example.bookstore.SyntheticEnd', 'end:1');
+      assert.equal(
+        synthEnd.get('saved'),
+        true,
+        'observer is not called until entire payload is pushed'
+      );
+    });
+    book.get('volume');
+
+    book.set('author', 'Winston Churchill');
+    assert.equal(book.get('isDirty'), true, 'book now dirty');
+
+    await book.save();
+  });
+
+  skip('didSave with no included resources flushes changed notifications', async function(assert) {
+    assert.expect(2);
+
+    this.owner.register(
+      'adapter:application',
+      class TestAdapter {
+        static create(props) {
+          return new TestAdapter(props);
+        }
+
+        updateRecord() {
+          return resolve({
+            data: {
+              id: 'book:1',
+              type: 'com.example.bookstore.Book',
+              attributes: {
+                title: 'Marlborough: his life and times',
+                volume: 2,
+              },
+            },
+          });
+        }
+      }
+    );
+
+    this.store.pushPayload('com.example.bookstore.Book', {
+      data: {
+        id: 'book:1',
+        type: 'com.example.bookstore.Book',
+        attributes: {
+          title: 'Marlborough: his life and times',
+          volume: 1,
+        },
+      },
+    });
+
+    let book = this.store.peekRecord('com.example.bookstore.Book', 'book:1');
+    addObserver(book, 'volume', () => {
+      assert.ok(true, 'changes flushed');
+    });
+    book.get('volume');
+
+    book.set('author', 'Winston Churchill');
+    assert.equal(book.get('isDirty'), true, 'book now dirty');
+
+    await book.save();
   });
 });
