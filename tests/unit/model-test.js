@@ -2673,7 +2673,7 @@ module('unit/model', function(hooks) {
   });
 
   test('store.queryRecord', function(assert) {
-    assert.expect(4);
+    assert.expect(5);
 
     this.owner.register(
       'adapter:-ember-m3',
@@ -2700,6 +2700,7 @@ module('unit/model', function(hooks) {
       this.store.queryRecord('com.example.bookstore.book', { author: 'JK Rowling' }).then(model => {
         assert.equal(model.get('id'), 'isbn:9780439708180', 'model.id');
         assert.equal(model.constructor, MegamorphicModel, 'model.constructor');
+        assert.equal(model._modelName, 'com.example.bookstore.book');
       })
     );
   });
