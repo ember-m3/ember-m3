@@ -76,7 +76,6 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
 
   if (Array.isArray(nested)) {
     isArray = true;
-    value = nested;
     content = nested.map((v, i) => createNestedModel(store, record, recordData, key, v, i));
   } else if (nested) {
     content = createNestedModel(store, record, recordData, key, nested, parentIdx);
@@ -93,7 +92,6 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
     return M3TrackedArray.create({
       content: A(content),
       key,
-      value, // why do we stash this here?
       modelName,
       store,
       schema,
