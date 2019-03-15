@@ -113,6 +113,11 @@ function transferOrResolveValue(store, schema, record, recordData, modelName, ke
 }
 
 function createNestedModel(store, record, recordData, key, nestedValue, parentIdx = null) {
+  if (parentIdx !== null && nestedValue instanceof EmbeddedMegamorphicModel) {
+    recordData._setChildRecordData(key, parentIdx, recordDataFor(nestedValue));
+    return nestedValue;
+  }
+
   let internalModel = new EmbeddedInternalModel({
     // nested models with ids is pretty misleading; all they really ought to need is type
     id: nestedValue.id,
@@ -151,10 +156,6 @@ function createNestedModel(store, record, recordData, key, nestedValue, parentId
       nestedRecordData.setAttr(key, nestedValue.attributes[key], true);
     });
   }
-
-  // if (parentIdx !== null) {
-  //   recordData._setChildRecordData(key, parentIdx, nestedRecordData);
-  // }
 
   return nestedModel;
 }
