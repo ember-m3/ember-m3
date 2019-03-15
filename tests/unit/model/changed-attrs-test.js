@@ -1275,6 +1275,9 @@ module('unit/model/changed-attrs', function(hooks) {
         }
 
         computeNestedModel(key, value) {
+          if (Array.isArray(value)) {
+            return null;
+          }
           assert.ok(
             !(value instanceof MegamorphicModel),
             "We don't pass Megamorphic Models to computeNestedModel"
