@@ -14,8 +14,7 @@ export default class DefaultSchema extends Service {
   computeNestedModel(/* key, value, modelName, schemaInterface */) {
     // If the attribute with value `value` under key `key` of `modelName`
     // should be treated as a nested model instead of a plain POJO, then
-    // return `{ id, type, attributes }`.  Arrays will have this method
-    // invoked for each entry in the array, not for the array itself.
+    // return `{ id, type, attributes }`.
     //
     // For example with payload
     //
@@ -36,6 +35,17 @@ export default class DefaultSchema extends Service {
     // merely as a POJO.
     //
     // To have the attribute treated as a POJO return null.
+    //
+    // ## Arrays
+    //
+    // Arrays will have this method invoked for the top level
+    // where you have two choices.
+    //
+    // returning `null` will result in `computeNestedModel` being called
+    // for each individual entry in the array instead.
+    //
+    // alternatively, you may normalize the entire array at once,
+    // returning an array with its contents in jsonapi format.
     //
     return null;
   }

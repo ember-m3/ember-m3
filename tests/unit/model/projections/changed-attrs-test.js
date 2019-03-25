@@ -18,6 +18,10 @@ module('unit/model/projections/changed-attrs', function(hooks) {
         }
 
         computeNestedModel(key, value) {
+          if (Array.isArray(value)) {
+            return null;
+          }
+
           if (value !== null && typeof value === 'object') {
             return { id: key, type: value.type, attributes: value };
           }
@@ -117,6 +121,9 @@ module('unit/model/projections/changed-attrs', function(hooks) {
         }
 
         computeNestedModel(key, value) {
+          if (Array.isArray(value)) {
+            return null;
+          }
           assert.ok(
             !(value instanceof MegamorphicModel),
             "We don't pass Megamorphic Models to computeNestedModel"
@@ -175,7 +182,6 @@ module('unit/model/projections/changed-attrs', function(hooks) {
     });
 
     let record = this.store.peekRecord('com.bookstore.ProjectedBook', 'urn:book:1');
-
     const currentCollection = record.get('locations').slice();
     const aNewLocation = {
       country: 'MX',

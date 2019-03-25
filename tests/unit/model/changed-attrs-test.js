@@ -1265,7 +1265,7 @@ module('unit/model/changed-attrs', function(hooks) {
     );
   });
 
-  test('Can set a many embedded property to a semi resolved array containing a mix of pojos and megamorphic models', function(assert) {
+  test('Can set a many embedded property to a semi resolved array containing a mix of pojos and megamorphic models (computeNestedModel does not handle array)', function(assert) {
     assert.expect(5);
     this.owner.register(
       'service:m3-schema',
@@ -1275,6 +1275,9 @@ module('unit/model/changed-attrs', function(hooks) {
         }
 
         computeNestedModel(key, value) {
+          if (Array.isArray(value)) {
+            return null;
+          }
           assert.ok(
             !(value instanceof MegamorphicModel),
             "We don't pass Megamorphic Models to computeNestedModel"
@@ -1284,11 +1287,81 @@ module('unit/model/changed-attrs', function(hooks) {
             return { id: key, type: attributesType, attributes: value };
           }
         }
+      }
+    );
 
-        computeBaseModelName(modelName) {
-          return ['com.bookstore.projected-book', 'com.bookstore.excerpt-book'].includes(modelName)
-            ? 'com.bookstore.book'
-            : null;
+    this.store.push({
+      data: [
+        {
+          id: 'urn:book:1',
+          type: 'com.bookstore.Book',
+          attributes: {
+            locations: [
+              {
+                country: 'US',
+                geographicArea: 'California',
+                city: 'San Francisco',
+                postalCode: '94110',
+                description: 'Club house',
+                $type: 'OrganizationAddress',
+                headquarter: true,
+                line1: '1234 Lucky St',
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    let record = this.store.peekRecord('com.bookstore.Book', 'urn:book:1');
+
+    const currentCollection = record.get('locations').slice();
+    const aNewLocation = {
+      country: 'MX',
+      geographicArea: 'California',
+      city: 'Ensenada',
+      postalCode: '22810',
+      description: 'Home',
+      $type: 'OrganizationAddress',
+      headquarter: true,
+      line1: '555 Main St.',
+    };
+    record.set('locations', currentCollection.concat(aNewLocation));
+
+    let locations = record.get('locations');
+    assert.deepEqual(
+      locations.map(l => l.get('country')),
+      ['US', 'MX'],
+      'Locations retrieved succesfully'
+    );
+  });
+
+  test('Can set a many embedded property to a semi resolved array containing a mix of pojos and megamorphic models (computeNestedModel does handle array)', function(assert) {
+    assert.expect(5);
+    this.owner.register(
+      'service:m3-schema',
+      class TestSchema extends DefaultSchema {
+        includesModel() {
+          return true;
+        }
+
+        computeNestedModel(key, value) {
+          if (Array.isArray(value)) {
+            return value.map(v => {
+              if (v instanceof MegamorphicModel) {
+                return v;
+              }
+              return this.computeNestedModel(key, v);
+            });
+          }
+          assert.ok(
+            !(value instanceof MegamorphicModel),
+            "We don't pass Megamorphic Models to computeNestedModel"
+          );
+          let attributesType = value && value.$type;
+          if (value !== null && typeof value === 'object') {
+            return { id: key, type: attributesType, attributes: value };
+          }
         }
       }
     );

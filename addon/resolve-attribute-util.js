@@ -11,31 +11,6 @@ import {
   resolveReferencesWithInternalModels,
 } from './utils/resolve';
 
-// ie an array of nested models
-export function resolveArray(key, value, modelName, store, schema, model, recordData) {
-  let resolvedArray = new Array(0);
-  if (value && value.length > 0) {
-    resolvedArray = value.map((value, idx) => {
-      if (value instanceof EmbeddedMegamorphicModel) {
-        recordData._setChildRecordData(key, idx, recordDataFor(value));
-        return value;
-      } else {
-        return resolveValue(key, value, modelName, store, schema, model, idx);
-      }
-    });
-  }
-
-  return M3TrackedArray.create({
-    content: A(resolvedArray),
-    key,
-    value,
-    modelName,
-    store,
-    schema,
-    model,
-  });
-}
-
 function resolveReference(store, reference) {
   if (reference.type === null) {
     // for schemas with a global id-space but multiple types, schemas may
@@ -95,51 +70,92 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
     return resolveReferenceOrReferences(store, record, key, value, reference);
   }
 
-  if (Array.isArray(value)) {
-    return resolveArray(key, value, modelName, store, schema, record, recordData);
-  }
   let nested = computeNestedModel(key, value, modelName, schemaInterface, schema);
-  if (nested) {
-    let internalModel = new EmbeddedInternalModel({
-      // nested models with ids is pretty misleading; all they really ought to need is type
-      id: nested.id,
-      // maintain consistency with internalmodel.modelName, which is normalized
-      // internally within ember-data
-      modelName: nested.type ? dasherize(nested.type) : null,
-      parentInternalModel: record._internalModel,
-      parentKey: key,
-      parentIdx,
-    });
+  let content;
+  let isArray = false;
 
-    let nestedModel = new EmbeddedMegamorphicModel({
-      store,
-      _internalModel: internalModel,
-      _parentModel: record,
-      _topModel: record._topModel,
-    });
-    internalModel.record = nestedModel;
-
-    let nestedRecordData = recordDataFor(internalModel);
-
-    if (
-      !recordData.getServerAttr ||
-      (recordData.getServerAttr(key) !== null && recordData.getServerAttr(key) !== undefined)
-    ) {
-      nestedRecordData.pushData(
-        {
-          attributes: nested.attributes,
-        },
-        false,
-        false,
-        true
-      );
-    } else {
-      Object.keys(nested.attributes).forEach(key => {
-        nestedRecordData.setAttr(key, nested.attributes[key], true);
-      });
-    }
-    return nestedModel;
+  if (Array.isArray(nested)) {
+    isArray = true;
+    content = nested.map((v, i) => createNestedModel(store, record, recordData, key, v, i));
+  } else if (nested) {
+    content = createNestedModel(store, record, recordData, key, nested, parentIdx);
+  } else if (Array.isArray(value)) {
+    isArray = true;
+    content = value.map((v, i) =>
+      transferOrResolveValue(store, schema, record, recordData, modelName, key, v, i)
+    );
+  } else {
+    content = value;
   }
 
-  return value;
+  if (isArray === true) {
+    return M3TrackedArray.create({
+      content: A(content),
+      key,
+      modelName,
+      store,
+      schema,
+      model: record,
+    });
+  }
+
+  return content;
+}
+
+function transferOrResolveValue(store, schema, record, recordData, modelName, key, value, index) {
+  if (value instanceof EmbeddedMegamorphicModel) {
+    // transfer ownership to the new RecordData
+    recordData._setChildRecordData(key, index, recordDataFor(value));
+    return value;
+  }
+
+  return resolveValue(key, value, modelName, store, schema, record, index);
+}
+
+function createNestedModel(store, record, recordData, key, nestedValue, parentIdx = null) {
+  if (parentIdx !== null && nestedValue instanceof EmbeddedMegamorphicModel) {
+    recordData._setChildRecordData(key, parentIdx, recordDataFor(nestedValue));
+    return nestedValue;
+  }
+
+  let internalModel = new EmbeddedInternalModel({
+    // nested models with ids is pretty misleading; all they really ought to need is type
+    id: nestedValue.id,
+    // maintain consistency with internalmodel.modelName, which is normalized
+    // internally within ember-data
+    modelName: nestedValue.type ? dasherize(nestedValue.type) : null,
+    parentInternalModel: record._internalModel,
+    parentKey: key,
+    parentIdx,
+  });
+
+  let nestedModel = new EmbeddedMegamorphicModel({
+    store,
+    _internalModel: internalModel,
+    _parentModel: record,
+    _topModel: record._topModel,
+  });
+  internalModel.record = nestedModel;
+
+  let nestedRecordData = recordDataFor(internalModel);
+
+  if (
+    !recordData.getServerAttr ||
+    (recordData.getServerAttr(key) !== null && recordData.getServerAttr(key) !== undefined)
+  ) {
+    nestedRecordData.pushData(
+      {
+        attributes: nestedValue.attributes,
+      },
+      false,
+      false,
+      true
+    );
+  } else {
+    Object.keys(nestedValue.attributes).forEach(key => {
+      nestedRecordData.setAttr(key, nestedValue.attributes[key], true);
+    });
+  }
+
+  return nestedModel;
 }

@@ -22,6 +22,9 @@ export default class Schema extends DefaultSchema {
   }
 
   computeNestedModel(key, value) {
+    if (Array.isArray(value)) {
+      return null;
+    }
     if (typeof value === 'object' && value !== null && typeof value.$type === 'string') {
       return {
         id: value.isbn,
