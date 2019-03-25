@@ -1287,12 +1287,6 @@ module('unit/model/changed-attrs', function(hooks) {
             return { id: key, type: attributesType, attributes: value };
           }
         }
-
-        computeBaseModelName(modelName) {
-          return ['com.bookstore.projected-book', 'com.bookstore.excerpt-book'].includes(modelName)
-            ? 'com.bookstore.book'
-            : null;
-        }
       }
     );
 
@@ -1368,12 +1362,6 @@ module('unit/model/changed-attrs', function(hooks) {
           if (value !== null && typeof value === 'object') {
             return { id: key, type: attributesType, attributes: value };
           }
-        }
-
-        computeBaseModelName(modelName) {
-          return ['com.bookstore.projected-book', 'com.bookstore.excerpt-book'].includes(modelName)
-            ? 'com.bookstore.book'
-            : null;
         }
       }
     );
