@@ -4,6 +4,6 @@ export default {
   class: Model,
 
   create(props) {
-    return new Model(props);
+    return Model.create(props);
   },
 };

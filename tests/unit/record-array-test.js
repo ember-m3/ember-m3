@@ -40,7 +40,7 @@ module('unit/record-array', function(hooks) {
     });
 
     this.createRecordArray = function() {
-      let recordArray = new M3RecordArray();
+      let recordArray = M3RecordArray.create();
       recordArray.store = this.store;
       return recordArray;
     };
