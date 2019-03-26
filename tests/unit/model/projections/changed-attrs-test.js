@@ -2,7 +2,6 @@ import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import MegamorphicModel from 'ember-m3/model';
-import { gte } from 'ember-compatibility-helpers';
 
 module('unit/model/projections/changed-attrs', function(hooks) {
   setupTest(hooks);

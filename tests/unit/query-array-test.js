@@ -60,7 +60,7 @@ module('unit/query-array', function(hooks) {
   });
 
   test('QueryArray requires a query', function(assert) {
-    let queryArray = new M3QueryArray();
+    let queryArray = M3QueryArray.create();
 
     assert.throws(() => {
       queryArray.update();

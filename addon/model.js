@@ -384,10 +384,6 @@ export default class MegamorphicModel {
       return;
     }
 
-    if (!this._init) {
-      console.log({ key, value });
-    }
-
     if (DEBUG) {
       assertNoChanges(this._store);
     }
