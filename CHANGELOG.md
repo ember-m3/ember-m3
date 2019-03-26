@@ -1,5 +1,14 @@
 # ember-m3 changelog
 
+## 0.10.3
+
+- feat: allow handling of EmbeddedMegamorphicModels by computeNestedModel
+- feat: dont stash value on tracked arrays
+- feat: enable computeNestedModel to handle arrays
+- bugfix: batch change notifications
+- bugfix: setting arrays with a mix of models and pojos
+- bugfix: Revert "Revert "Delegate `_destroyChildRecordData` to base""
+
 ## 0.10.2
 
 - bugfix: Revert 'Delegate `_destroyChildRecordData` to base'
