@@ -3,7 +3,8 @@
 
 import DS from 'ember-data';
 import { RootState } from 'ember-data/-private';
-import EmberObject, { computed, get, set, defineProperty } from '@ember/object';
+import { computed, get, set, setProperties, defineProperty } from '@ember/object';
+import { addObserver } from '@ember/object/observers';
 import { isArray } from '@ember/array';
 import { assert, warn } from '@ember/debug';
 import { readOnly } from '@ember/object/computed';
@@ -102,41 +103,50 @@ const retrieveFromCurrentState = computed('_topModel.currentState', function(key
   return this._topModel._internalModel.currentState[key];
 }).readOnly();
 
-// global buffer for initial properties to work around
-//  a)  can't write to `this` before `super`
-//  b)  core_object writes properties before calling `init`; this means that no
-//      CP or setknownProperty can rely on any initialization
-let initProperites = Object.create(null);
+const INIT_KEYS = {
+  store: 1,
+  _internalModel: 1,
+  _topModel: 1,
+  _parentModel: 1,
+  isError: 1,
+};
 
-export default class MegamorphicModel extends EmberObject {
+export default class MegamorphicModel {
+  constructor(properties) {
+    this.init(properties);
+  }
   init(properties) {
-    // Drop Ember.Object subclassing instead
-    super.init(...arguments);
+    this._init = false;
+    this.store = properties.store;
     this._store = properties.store;
     this._internalModel = properties._internalModel;
     this._cache = Object.create(null);
     this._schema = get(properties.store, '_schemaManager');
 
-    this._topModel = this._topModel || this;
-    this._parentModel = this._parentModel || null;
-    this._errors = new DS.Errors();
-    this._init = true;
+    this._topModel = properties._topModel || this;
+    this._parentModel = properties._parentModel || null;
+    this._errors = DS.Errors.create();
+    this.isDestroying = false;
+    this.isDestroyed = false;
+    this.isError = properties.isError;
 
-    this._flushInitProperties();
-  }
-
-  _flushInitProperties() {
-    let propertiesToFlush = initProperites;
-    initProperites = Object.create(null);
-
-    let keys = Object.keys(propertiesToFlush);
+    let keys = Object.keys(properties);
     if (keys.length > 0) {
       for (let i = 0; i < keys.length; ++i) {
         let key = keys[i];
-        let value = propertiesToFlush[key];
-        this.setUnknownProperty(key, value);
+        let value = properties[key];
+        if (INIT_KEYS[key] !== 1) {
+          set(this, key, value);
+        }
       }
     }
+
+    this._init = true;
+  }
+
+  destroy() {
+    this.isDestroying = true;
+    this.isDestroyed = true;
   }
 
   static get isModel() {
@@ -180,6 +190,10 @@ export default class MegamorphicModel extends EmberObject {
     // currentState is defined on the prototype and will be treated as
     // non-volatile, so it's safe to eagerly send a change event
     notifyPropertyChange(this, 'currentState');
+  }
+
+  get(key) {
+    return get(this, key);
   }
 
   notifyPropertyChange(key) {
@@ -247,6 +261,14 @@ export default class MegamorphicModel extends EmberObject {
 
   set(key, value) {
     set(this, key, value);
+  }
+
+  setProperties(properties) {
+    setProperties(this, properties);
+  }
+
+  addObserver(...args) {
+    addObserver(this, ...args);
   }
 
   serialize(options) {
@@ -357,13 +379,13 @@ export default class MegamorphicModel extends EmberObject {
   // TODO: drop change events for unretrieved properties
   setUnknownProperty(key, value) {
     if (key === OWNER_KEY) {
+      this[OWNER_KEY] = value;
       // 2.12 support; later versions avoid this call entirely
       return;
     }
 
     if (!this._init) {
-      initProperites[key] = value;
-      return;
+      console.log({ key, value });
     }
 
     if (DEBUG) {

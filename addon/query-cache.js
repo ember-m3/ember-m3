@@ -16,8 +16,8 @@ export default class QueryCache {
   constructor({ store }) {
     this._store = store;
     this._recordArrayManager = this._store.recordArrayManager;
-    this._queryCache = new Object(null);
-    this._reverseQueryCache = new Object(null);
+    this._queryCache = Object.create(null);
+    this._reverseQueryCache = Object.create(null);
     this.__adapter = null;
     this.__serializer = null;
   }

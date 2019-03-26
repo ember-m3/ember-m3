@@ -17,7 +17,7 @@ module('unit/query-array', function(hooks) {
     }();
 
     this.createRecordArray = function(options = {}) {
-      return new M3QueryArray(
+      return M3QueryArray.create(
         Object.assign(
           {
             store: this.store,

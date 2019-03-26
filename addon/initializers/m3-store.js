@@ -15,7 +15,7 @@ const STORE_OVERRIDES = {
   init() {
     this._super(...arguments);
     this._queryCache = new QueryCache({ store: this });
-    this._globalM3Cache = new Object(null);
+    this._globalM3Cache = Object.create(null);
   },
 
   // Store hooks necessary for using a single model class
