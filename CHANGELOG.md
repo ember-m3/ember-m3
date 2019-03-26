@@ -1,5 +1,9 @@
 # ember-m3 changelog
 
+## 0.10.5
+
+- fix: bring back M3TrackedArray.value and deprecate
+
 ## 0.10.4
 
 - feat: allow handling of EmbeddedMegamorphicModels by computeNestedModel
