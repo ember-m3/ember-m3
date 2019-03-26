@@ -92,6 +92,7 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
     return M3TrackedArray.create({
       content: A(content),
       key,
+      _value: value,
       modelName,
       store,
       schema,

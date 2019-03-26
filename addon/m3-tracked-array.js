@@ -4,6 +4,7 @@ import { resolveValue } from './resolve-attribute-util';
 import { isResolvedValue } from './utils/resolve';
 import { associateRecordWithRecordArray } from './record-array';
 import { recordDataFor } from './-private';
+import { deprecate } from '@ember/debug';
 
 /**
  * M3TrackedArray
@@ -15,11 +16,18 @@ export default class M3TrackedArray extends ArrayProxy {
   init() {
     super.init(...arguments);
     this._key = get(this, 'key');
-    this._value = get(this, 'value');
     this._modelName = get(this, 'modelName');
     this._store = get(this, 'store');
     this._schema = get(this, 'schema');
     this._record = get(this, 'model');
+  }
+
+  get value() {
+    deprecate('Accessing value on an M3TrackedArray was private and is deprecated.', false, {
+      id: 'm3.tracked-array.value',
+      until: '1.0',
+    });
+    return this._value;
   }
 
   replace(idx, removeAmt, newItems) {
