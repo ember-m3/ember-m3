@@ -1,6 +1,6 @@
 # ember-m3 changelog
 
-## 0.10.3
+## 0.10.4
 
 - feat: allow handling of EmbeddedMegamorphicModels by computeNestedModel
 - feat: dont stash value on tracked arrays
