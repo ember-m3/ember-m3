@@ -7,14 +7,14 @@ module('unit/query-array', function(hooks) {
 
   hooks.beforeEach(function() {
     this.store = this.owner.lookup('service:store');
-    this.queryCache = new class MockQueryCache {
+    this.queryCache = new (class MockQueryCache {
       queryURL() {
         return new Promise((resolve, reject) => {
           this.resolve = resolve;
           this.reject = reject;
         });
       }
-    }();
+    })();
 
     this.createRecordArray = function(options = {}) {
       return new M3QueryArray(
