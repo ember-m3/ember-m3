@@ -32,6 +32,9 @@ stages:
 jobs:
   fail_fast: true
   allow_failures:
+    # We can't currently test against ember-data #beta or #canary due to
+    # packages work; for now leave these as allowed failures
+   - env: EMBER_TRY_SCENARIO=beta-channel
    - env: EMBER_TRY_SCENARIO=canary-channel
    - env: NAME=floating dependencies
 
