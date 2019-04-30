@@ -1,5 +1,5 @@
 import EmberObject from '@ember/object';
-import { Promise, defer, resolve } from 'rsvp';
+import { Promise, defer, resolve, reject } from 'rsvp';
 import { run } from '@ember/runloop';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
@@ -961,5 +961,18 @@ module('unit/query-cache', function(hooks) {
       .then(model => {
         assert.equal(model.id, '2', 'unloadRecord clears the entry for entry of cacheURL');
       });
+  });
+
+  test('queryURL evicts cache if the request rejects', function(assert) {
+    assert.expect(1);
+
+    let cacheKey = 'uwot';
+    let options = { cacheKey };
+
+    this.adapterAjax.returns(reject(new Error('An error occurred.')));
+
+    return this.queryCache.queryURL('/uwot', options).catch(() => {
+      assert.notOk(this.queryCache.contains(cacheKey));
+    });
   });
 });

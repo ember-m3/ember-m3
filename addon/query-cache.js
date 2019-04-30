@@ -43,26 +43,34 @@ export default class QueryCache {
     let loadPromise;
 
     if (backgroundReload || reload || cachedPromise === undefined) {
-      loadPromise = this._adapterQueryURL(adapterUrl, method, options).then(rawPayload => {
-        let payload = this._serializer.normalizeResponse(
-          this._store,
-          MegamorphicModel,
-          rawPayload,
-          cacheKey,
-          'queryURL'
-        );
-        let result = this._createResult(payload, { url, params, method, cacheKey }, array);
-        //Add result to reverseCache.
-        if (cacheKey) {
-          this._addResultToReverseCache(result, cacheKey);
-        }
-        return result;
-      });
+      loadPromise = this._adapterQueryURL(adapterUrl, method, options)
+        .then(rawPayload => {
+          let payload = this._serializer.normalizeResponse(
+            this._store,
+            MegamorphicModel,
+            rawPayload,
+            cacheKey,
+            'queryURL'
+          );
+          let result = this._createResult(payload, { url, params, method, cacheKey }, array);
+          // Add result to reverseCache.
+          if (cacheKey) {
+            this._addResultToReverseCache(result, cacheKey);
+          }
+          return result;
+        })
+        .catch(error => {
+          // If the Promise rejects, evict the query cache to allow for retries.
+          if (cacheKey) {
+            this.unloadURL(cacheKey);
+          }
+          throw error;
+        });
     }
 
     if (reload || cachedPromise === undefined) {
-      //Store the promise in the cache until it is fulfilled and
-      //retrun same promise for subsequent request.
+      // Store the promise in the cache until it is fulfilled and
+      // return same promise for subsequent request.
       if (cacheKey) {
         this._queryCache[cacheKey] = loadPromise;
       }
