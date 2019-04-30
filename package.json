@@ -1,6 +1,6 @@
 {
   "name": "ember-m3",
-  "version": "0.10.5",
+  "version": "0.10.6",
   "description": "Alternative to DS.Model in which attributes and relationships are derived from API Payloads",
   "keywords": [
     "ember-addon",

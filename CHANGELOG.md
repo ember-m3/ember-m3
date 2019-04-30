@@ -1,5 +1,10 @@
 # ember-m3 changelog
 
+## 0.10.6
+
+- fix: queryURL no longer erroneously caches rejected responses (thanks @teopalva)
+- docs: update contributing guide (thanks @ghaagsma)
+
 ## 0.10.5
 
 - fix: bring back M3TrackedArray.value and deprecate
