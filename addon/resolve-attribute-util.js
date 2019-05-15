@@ -130,7 +130,7 @@ function createNestedModel(store, record, recordData, key, nestedValue, parentId
     parentIdx,
   });
 
-  let nestedModel = new EmbeddedMegamorphicModel({
+  let nestedModel = EmbeddedMegamorphicModel.create({
     store,
     _internalModel: internalModel,
     _parentModel: record,

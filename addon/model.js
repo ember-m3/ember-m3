@@ -119,7 +119,7 @@ export default class MegamorphicModel extends EmberObject {
 
     this._topModel = this._topModel || this;
     this._parentModel = this._parentModel || null;
-    this._errors = new DS.Errors();
+    this._errors = DS.Errors.create();
     this._init = true;
 
     this._flushInitProperties();
@@ -152,10 +152,6 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   static eachRelationship(/* callback */) {}
-
-  static create(properties) {
-    return new this(properties);
-  }
 
   get _modelName() {
     return this._internalModel.modelName;
