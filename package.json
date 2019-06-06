@@ -106,7 +106,7 @@
     "configPath": "tests/dummy/config",
     "defaultBlueprint": "schema"
   },
-  "toolchain": {
+  "volta": {
     "node": "11.1.0",
     "yarn": "1.12.1"
   }
