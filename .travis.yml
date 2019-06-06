@@ -3,7 +3,7 @@ language: node_js
 sudo: false
 dist: trusty
 node_js:
-  - "6"
+  - "8"
 
 addons:
   chrome: stable
@@ -46,8 +46,8 @@ jobs:
 
     # runs tests against each supported Ember version
     - stage: specific version tests
-      env: EMBER_TRY_SCENARIO=ember-lts-2.18
-    - env: EMBER_TRY_SCENARIO=ember-lts-3.4
+      env: EMBER_TRY_SCENARIO=ember-lts-3.4
+    - env: EMBER_TRY_SCENARIO=ember-lts-3.8
     - env: EMBER_TRY_SCENARIO=release-channel
     - env: EMBER_TRY_SCENARIO=legacy-model-data
 
