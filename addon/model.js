@@ -344,9 +344,7 @@ export default class MegamorphicModel extends EmberObject {
     }
 
     throw new Error(
-      `You tried to set 'id' to '${value}' for '${
-        this._modelName
-      }' but records can only set their ID by providing it to store.createRecord()`
+      `You tried to set 'id' to '${value}' for '${this._modelName}' but records can only set their ID by providing it to store.createRecord()`
     );
   }
 
@@ -372,9 +370,7 @@ export default class MegamorphicModel extends EmberObject {
 
     if (this._schema.getAttributeAlias(this._modelName, key)) {
       throw new Error(
-        `You tried to set '${key}' to '${value}', but '${key}' is an alias in '${
-          this._modelName
-        }' and aliases are read-only`
+        `You tried to set '${key}' to '${value}', but '${key}' is an alias in '${this._modelName}' and aliases are read-only`
       );
     }
 
@@ -493,18 +489,14 @@ defineProperty(MegamorphicModel.prototype, 'dirtyType', retrieveFromCurrentState
 export class EmbeddedMegamorphicModel extends MegamorphicModel {
   save() {
     assert(
-      `Nested models cannot be directly saved. Perhaps you meant to save the top level model, '${
-        this._topModel._modelName
-      }:${this._topModel.id}'`,
+      `Nested models cannot be directly saved. Perhaps you meant to save the top level model, '${this._topModel._modelName}:${this._topModel.id}'`,
       false
     );
   }
 
   unloadRecord() {
     warn(
-      `Nested models cannot be directly unloaded.  Perhaps you meant to unload the top level model, '${
-        this._topModel._modelName
-      }:${this._topModel.id}'`,
+      `Nested models cannot be directly unloaded.  Perhaps you meant to unload the top level model, '${this._topModel._modelName}:${this._topModel.id}'`,
       false,
       { id: 'ember-m3.nested-model-unloadRecord' }
     );
