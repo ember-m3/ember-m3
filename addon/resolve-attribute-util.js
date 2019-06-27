@@ -45,7 +45,7 @@ export function resolveRecordArray(store, record, key, references) {
 
   let internalModels = resolveReferencesWithInternalModels(store, references);
 
-  array._setInternalModels(internalModels);
+  array._setInternalModels(internalModels, false);
   return array;
 }
 

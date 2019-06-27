@@ -1,7 +1,6 @@
 import { Promise as RSVPPromise } from 'rsvp';
 import { assert } from '@ember/debug';
 import { get } from '@ember/object';
-import { A } from '@ember/array';
 
 import MegamorphicModel from './model';
 import M3QueryArray from './query-array';
@@ -202,8 +201,8 @@ export default class QueryCache {
 
   _addResultToReverseCache(result, cacheKey) {
     if (result.constructor === M3QueryArray) {
-      for (let i = 0; i < result.content.length; ++i) {
-        this._addRecordToReverseCache(result.content[i], cacheKey);
+      for (let i = 0; i < result._internalModels.length; ++i) {
+        this._addRecordToReverseCache(result._internalModels[i], cacheKey);
       }
     } else {
       this._addRecordToReverseCache(result, cacheKey);
@@ -219,7 +218,6 @@ export default class QueryCache {
   _createQueryArray(internalModels, query) {
     let array = M3QueryArray.create({
       modelName: '-ember-m3',
-      content: A(),
       store: this._store,
       manager: this._recordArrayManager,
 
@@ -227,7 +225,7 @@ export default class QueryCache {
       query,
     });
 
-    array._setInternalModels(internalModels);
+    array._setInternalModels(internalModels, false);
 
     this._recordArrayManager._adapterPopulatedRecordArrays.push(array);
 
