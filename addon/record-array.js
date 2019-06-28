@@ -1,9 +1,15 @@
 import { get } from '@ember/object';
 import { dasherize } from '@ember/string';
-import ArrayProxy from '@ember/array/proxy';
+import EmberObject from '@ember/object';
+import MutableArray from '@ember/array/mutable';
 import { A } from '@ember/array';
 import { EmbeddedMegamorphicModel } from './model';
 import { resolveReferencesWithInternalModels } from './utils/resolve';
+import {
+  deferArrayPropertyChange,
+  deferPropertyChange,
+  flushChanges,
+} from './utils/notify-changes';
 
 /**
  * M3RecordArray
@@ -11,25 +17,18 @@ import { resolveReferencesWithInternalModels } from './utils/resolve';
  * @class M3RecordArray
  * @extends DS.RecordArray
  */
-export default class M3RecordArray extends ArrayProxy {
+export default class M3RecordArray extends EmberObject {
   // public RecordArray API
 
   init() {
-    // content must be set before super.init because that will install array
-    // observers
-    this.content = A();
+    this._internalModels = A();
     super.init(...arguments);
     this._references = [];
-    this._internalModels = [];
     this._resolved = false;
     this.store = this.store || null;
   }
 
   replace(idx, removeAmt, newRecords) {
-    this.replaceContent(idx, removeAmt, newRecords);
-  }
-
-  replaceContent(idx, removeAmt, newRecords) {
     let addAmt = get(newRecords, 'length');
     let newInternalModels = new Array(addAmt);
 
@@ -40,13 +39,18 @@ export default class M3RecordArray extends ArrayProxy {
       }
     }
 
-    this.content.replace(idx, removeAmt, newInternalModels);
+    this._internalModels.replace(idx, removeAmt, newInternalModels);
     this._registerWithInternalModels(newInternalModels);
     this._resolved = true;
+
+    deferArrayPropertyChange(this.store, this, 0, removeAmt, newRecords);
+    deferPropertyChange(this.store, this, '[]');
+    // eager change events on mutation as mutations are user entry points
+    flushChanges(this.store);
   }
 
   objectAtContent(idx) {
-    let internalModel = this.content[idx];
+    let internalModel = this._internalModels[idx];
     return internalModel !== null && internalModel !== undefined
       ? internalModel.getRecord()
       : undefined;
@@ -54,29 +58,29 @@ export default class M3RecordArray extends ArrayProxy {
 
   objectAt(idx) {
     this._resolve();
-    return super.objectAt(idx);
+    return this.objectAtContent(idx);
   }
 
   // RecordArrayManager private api
 
   _pushInternalModels(internalModels) {
     this._resolve();
-    this.content.pushObjects(internalModels);
+    this._internalModels.pushObjects(internalModels);
   }
 
   _removeInternalModels(internalModels) {
     if (this._resolved) {
-      this.content.removeObjects(internalModels);
+      this._internalModels.removeObjects(internalModels);
     } else {
       for (let i = 0; i < internalModels.length; ++i) {
         let internalModel = internalModels[i];
 
-        for (let j = 0; j < this.content.length; ++j) {
-          let { id, type } = this.content[j];
+        for (let j = 0; j < this._references.length; ++j) {
+          let { id, type } = this._references[j];
           let dtype = type && dasherize(type);
 
           if ((dtype === null || dtype === internalModel.modelName) && id === internalModel.id) {
-            this.content.removeAt(j);
+            this._references.splice(j, 1);
             break;
           }
         }
@@ -87,10 +91,11 @@ export default class M3RecordArray extends ArrayProxy {
   // Private API
 
   _setInternalModels(internalModels, triggerChange = true) {
+    let originalLength = this._internalModels.length;
+    this._internalModels.replace(0, this._internalModels.length, internalModels);
     if (triggerChange) {
-      this.content.replace(0, this.content.length, internalModels);
-    } else {
-      this.content.splice(0, this.content.length, ...internalModels);
+      deferArrayPropertyChange(this.store, this, 0, originalLength, this._internalModels.length);
+      deferPropertyChange(this.store, this, '[]');
     }
 
     this.setProperties({
@@ -105,9 +110,10 @@ export default class M3RecordArray extends ArrayProxy {
   _setReferences(references) {
     this._references = references;
     this._resolved = false;
-    // change event for this.content so we re-resolve next time something is
-    // asked for
-    this.content.setObjects(this._references);
+    let originalLength = this._internalModels.length;
+    this._internalModels = A();
+    deferArrayPropertyChange(this.store, this, 0, originalLength, this._internalModels.length);
+    deferPropertyChange(this.store, this, '[]');
   }
 
   _registerWithInternalModels(internalModels) {
@@ -142,11 +148,21 @@ export default class M3RecordArray extends ArrayProxy {
   // setter as a matter of OO + es6 class semantics.
 
   get length() {
-    return this.content && this.content.length !== undefined ? this.content.length : 0;
+    if (this._resolved) {
+      return this._internalModels && this._internalModels.length !== undefined
+        ? this._internalModels.length
+        : 0;
+    } else {
+      return this._references && this._references.length !== undefined
+        ? this._references.length
+        : 0;
+    }
   }
 
   set length(v) {}
 }
+
+M3RecordArray.reopen(MutableArray);
 
 export function associateRecordWithRecordArray(record, recordArray) {
   if (record instanceof EmbeddedMegamorphicModel) {

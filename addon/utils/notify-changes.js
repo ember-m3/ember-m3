@@ -15,39 +15,90 @@ if (HasNotifyPropertyChange) {
   notifyPropertyChange = propertyDidChange;
 }
 
-const StoreToChanges = new WeakMap();
+// Separate array & prop changes for simplicity.  This prevents us from
+// re-issuing the property changes in order, but Ember already triggers array
+// changes eagerly, even within `changeProperties`
 
-function beginChanges(store) {
-  StoreToChanges.set(store, []);
+// WeakMap<DS.Store, [obj, startIdx: number, removeCount: number, addCount: number]>
+const StoreToArrayChanges = new WeakMap();
+// WeakMap<DS.Store, [obj, property: string]>
+const StoreToPropChanges = new WeakMap();
+
+function getPropertyChanges(store) {
+  if (!StoreToPropChanges.has(store)) {
+    StoreToPropChanges.set(store, []);
+  }
+  return StoreToPropChanges.get(store);
+}
+
+function getArrayChanges(store) {
+  if (!StoreToArrayChanges.has(store)) {
+    StoreToArrayChanges.set(store, []);
+  }
+  return StoreToArrayChanges.get(store);
 }
 
 export function deferPropertyChange(store, obj, key) {
-  if (!StoreToChanges.has(store)) {
-    beginChanges(store);
-  }
-  let changes = StoreToChanges.get(store);
-  changes.push(obj, key);
+  getPropertyChanges(store).push(obj, key);
 }
 
-export function flushChanges(store) {
-  let changes = StoreToChanges.get(store) || [];
+export function deferArrayPropertyChange(store, array, start, deleteCount, addCount) {
+  if (DEBUG) {
+    // don't assert Ember.isArray as that will return true for native arrays
+    assert(
+      `deferArrayPropertyChange called on something other than an Ember array; wrap native arrays with Ember.A(array) or enable Array prototype extensions`,
+      typeof array.arrayContentDidChange === 'function'
+    );
+  }
+  getArrayChanges(store).push(array, start, deleteCount, addCount);
+}
+
+function flushArrayChanges(store) {
+  let changes = StoreToArrayChanges.get(store) || [];
+  changeProperties(() => {
+    for (let i = 0; i < changes.length; i += 4) {
+      let array = changes[i];
+      let startIdx = changes[i + 1];
+      let removeCount = changes[i + 2];
+      let addCount = changes[i + 3];
+      array.arrayContentDidChange(startIdx, removeCount, addCount);
+    }
+  });
+  StoreToArrayChanges.set(store, []);
+}
+
+function flushPropChanges(store) {
+  let changes = StoreToPropChanges.get(store) || [];
   changeProperties(() => {
     for (let i = 0; i < changes.length; i += 2) {
       let obj = changes[i];
-      let key = changes[i + 1];
-      notifyPropertyChange(obj, key);
+      let change = changes[i + 1];
+      notifyPropertyChange(obj, change);
     }
   });
-  StoreToChanges.set(store, []);
+  StoreToPropChanges.set(store, []);
+}
+
+export function flushChanges(store) {
+  changeProperties(() => {
+    flushArrayChanges(store);
+    flushPropChanges(store);
+  });
 }
 
 export function assertNoChanges(store) {
   if (DEBUG) {
-    let changes = StoreToChanges.get(store) || [];
-    let changedProps = changes.filter((o, i) => i % 2 === 1);
+    let propChanges = StoreToPropChanges.get(store) || [];
+    let changedProps = propChanges.filter((o, i) => i % 2 === 1);
     assert(
       `There should be no queued changes, but we have: ${changedProps.join(', ')} `,
-      changes.length === 0
+      changedProps.length === 0
+    );
+
+    let arrayChanges = StoreToArrayChanges.get(store) || [];
+    assert(
+      `There should be no queued array changes, but we have: ${arrayChanges.length} `,
+      arrayChanges.length === 0
     );
   }
 }

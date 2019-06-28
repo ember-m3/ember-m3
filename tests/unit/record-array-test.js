@@ -3,6 +3,9 @@ import { setupTest } from 'ember-qunit';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import { run } from '@ember/runloop';
 import M3RecordArray from 'ember-m3/record-array';
+import { flushChanges } from 'ember-m3/utils/notify-changes';
+import { isArray } from '@ember/array';
+import MutableArray from '@ember/array/mutable';
 
 module('unit/record-array', function(hooks) {
   setupTest(hooks);
@@ -49,6 +52,11 @@ module('unit/record-array', function(hooks) {
   test('initially record arrays are unresolved', function(assert) {
     let recordArray = this.createRecordArray();
     assert.equal(recordArray._resolved, false);
+  });
+
+  test('RecordArray is a mutable Ember Array', function(assert) {
+    assert.ok(isArray(this.createRecordArray()));
+    assert.ok(MutableArray.detect(this.createRecordArray()));
   });
 
   test('requesting an object resolves the record array', function(assert) {
@@ -133,7 +141,7 @@ module('unit/record-array', function(hooks) {
     );
   });
 
-  test('setting references triggers a property change event', function(assert) {
+  test('setting references triggers a deferred didChange event', function(assert) {
     let recordArray = this.createRecordArray();
     let willChangeCount = 0;
     let didChangeCount = 0;
@@ -147,8 +155,38 @@ module('unit/record-array', function(hooks) {
     });
     recordArray._setReferences([{ id: 'isbn:1', type: null }]);
 
-    assert.equal(willChangeCount, 1, 'willChange');
-    assert.equal(didChangeCount, 1, 'willChange');
+    assert.equal(willChangeCount, 0, 'eager willChange');
+    assert.equal(didChangeCount, 0, 'eager didChange');
+
+    flushChanges(this.store);
+
+    // don't store enough info for willChange
+    assert.equal(willChangeCount, 0, 'deferred willChange');
+    assert.equal(didChangeCount, 1, 'deferred didChange');
+  });
+
+  test('replacing records triggers an eager didChange event', function(assert) {
+    let recordArray = this.createRecordArray();
+    let willChangeCount = 0;
+    let didChangeCount = 0;
+    recordArray.addArrayObserver({
+      arrayWillChange() {
+        ++willChangeCount;
+      },
+      arrayDidChange() {
+        ++didChangeCount;
+      },
+    });
+    let book1 = this.store.peekRecord('com.example.bookstore.Book', 'isbn:1');
+    recordArray.pushObject(book1);
+
+    assert.equal(willChangeCount, 0, 'eager willChange not fired');
+    assert.equal(didChangeCount, 1, 'eager didChange fired');
+
+    recordArray.popObject();
+
+    assert.equal(willChangeCount, 0, 'eager willChange not fired');
+    assert.equal(didChangeCount, 2, 'eager didChange fired');
   });
 
   module('RecordArrayManager api', function() {

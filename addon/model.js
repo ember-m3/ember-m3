@@ -414,7 +414,7 @@ export default class MegamorphicModel extends EmberObject {
 
     if (key in this._cache) {
       let recordArray = this._cache[key];
-      recordArray.replaceContent(0, get(recordArray, 'length'), models);
+      recordArray.replace(0, get(recordArray, 'length'), models);
     }
 
     // Remove errors upon setting
