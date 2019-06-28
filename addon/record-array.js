@@ -141,25 +141,9 @@ export default class M3RecordArray extends EmberObject {
     this._resolved = true;
   }
 
-  // The length property can be removed entirely once our ember-source peer dep
-  // is >= 3.1.0.
-  //
-  // It is not safe to override a getter on a superclass that specifies a
-  // setter as a matter of OO + es6 class semantics.
-
   get length() {
-    if (this._resolved) {
-      return this._internalModels && this._internalModels.length !== undefined
-        ? this._internalModels.length
-        : 0;
-    } else {
-      return this._references && this._references.length !== undefined
-        ? this._references.length
-        : 0;
-    }
+    return this._resolved ? this._internalModels.length : this._references.length;
   }
-
-  set length(v) {}
 }
 
 M3RecordArray.reopen(MutableArray);
