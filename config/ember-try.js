@@ -46,7 +46,7 @@ module.exports = function() {
           npm: {
             devDependencies: {
               'ember-source': urls[0],
-              'ember-data': 'emberjs/data#release',
+              'ember-data': 'latest',
             },
           },
         },
@@ -55,7 +55,7 @@ module.exports = function() {
           npm: {
             devDependencies: {
               'ember-source': urls[1],
-              'ember-data': 'emberjs/data#beta',
+              'ember-data': 'beta',
             },
           },
         },
@@ -64,7 +64,7 @@ module.exports = function() {
           npm: {
             devDependencies: {
               'ember-source': urls[2],
-              'ember-data': 'emberjs/data#master',
+              'ember-data': 'canary',
             },
           },
         },
