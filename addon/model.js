@@ -179,9 +179,6 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   notifyPropertyChange(key) {
-    if (!this._schema.isAttributeIncluded(this._modelName, key)) {
-      return;
-    }
     const recordData = recordDataFor(this);
     const schemaInterface = recordData.schemaInterface;
     let resolvedKeysInCache = schemaInterface._getDependentResolvedKeys(key);
@@ -190,8 +187,14 @@ export default class MegamorphicModel extends EmberObject {
       this._notifyProperties(resolvedKeysInCache);
     }
 
+    if (!this._schema.isAttributeIncluded(this._modelName, key)) {
+      return;
+    }
+
     let oldValue = this._cache[key];
     let newValue = recordData.getAttr(key);
+    // TODO: hack remove obviously
+    if(key === 'elements') newValue = recordData.getAttr('*elements');
 
     let oldIsRecordArray = oldValue && oldValue instanceof M3RecordArray;
 
