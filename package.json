@@ -91,7 +91,7 @@
     "ember-try": "^1.0.0-beta.2",
     "ember-welcome-page": "^4.0.0",
     "eslint-config-prettier": "^4.1.0",
-    "eslint-plugin-ember": "^5.0.3",
+    "eslint-plugin-ember": "^6.7.1",
     "eslint-plugin-prettier": "2.6.0",
     "husky": "^1.0.0-rc.13",
     "lint-staged": "^8.0.5",
