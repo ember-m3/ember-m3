@@ -86,7 +86,7 @@
     "ember-qunit-assert-helpers": "^0.2.1",
     "ember-resolver": "^5.0.0",
     "ember-sinon": "^2.0.0",
-    "ember-source": "~3.9.0",
+    "ember-source": "~3.11.1",
     "ember-source-channel-url": "^1.1.0",
     "ember-try": "^1.0.0-beta.2",
     "ember-welcome-page": "^4.0.0",
