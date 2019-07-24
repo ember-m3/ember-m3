@@ -42,7 +42,9 @@ jobs:
     # runs tests with current locked deps and linting
     - stage: test
       env: NAME=test # used only to make Travis UI show description
-      script: yarn test
+      script: 
+        - yarn test
+        - yarn lint:js
 
     # runs tests against each supported Ember version
     - stage: specific version tests

@@ -16,7 +16,7 @@ module.exports = {
         '--remote-debugging-port=0',
         '--window-size=1440,900',
         '--no-sandbox',
-      ]
-    }
-  }
+      ],
+    },
+  },
 };

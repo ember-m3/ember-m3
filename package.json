@@ -30,7 +30,8 @@
     "build": "ember build",
     "start": "ember server --no-live-reload --port=0",
     "test": "ember test",
-    "format": "node_modules/.bin/prettier --write --ignore-path .gitignore 'addon/**/*.js' 'app/**/*.js' 'tests/**/*.js'"
+    "lint:js": "eslint .",
+    "format": "eslint --fix ."
   },
   "files": [
     "package.json",
@@ -69,7 +70,6 @@
     "broccoli-asset-rev": "^3.0.0",
     "ember-cli": "~3.11.0",
     "ember-cli-dependency-checker": "^3.0.0",
-    "ember-cli-eslint": "^5.0.0",
     "ember-cli-htmlbars": "^3.0.0",
     "ember-cli-htmlbars-inline-precompile": "^2.1.0",
     "ember-cli-inject-live-reload": "^2.0.1",
@@ -90,9 +90,10 @@
     "ember-source-channel-url": "^2.0.1",
     "ember-try": "^1.0.0-beta.2",
     "ember-welcome-page": "^4.0.0",
+    "eslint": "^6.1.0",
     "eslint-config-prettier": "^6.0.0",
     "eslint-plugin-ember": "^6.7.1",
-    "eslint-plugin-prettier": "2.7.0",
+    "eslint-plugin-prettier": "^3.1.0",
     "husky": "^3.0.1",
     "lint-staged": "^9.2.0",
     "loader.js": "^4.2.3",
@@ -107,7 +108,7 @@
     "defaultBlueprint": "schema"
   },
   "volta": {
-    "node": "11.1.0",
+    "node": "10.16.0",
     "yarn": "1.12.1"
   }
 }

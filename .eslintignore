@@ -1,3 +1,5 @@
 **/blueprints/schema/files/app/services/m3-schema.js
 **/node_modules/**
-
+**/dist/**
+**/tmp/**
+!/*.js
