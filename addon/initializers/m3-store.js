@@ -8,6 +8,7 @@ import M3RecordData from '../record-data';
 import MegamorphicModelFactory from '../factory';
 import QueryCache from '../query-cache';
 import { flushChanges } from '../utils/notify-changes';
+import { dasherize } from '@ember/string';
 
 const STORE_OVERRIDES = {
   _schemaManager: inject('m3-schema-manager'),
@@ -102,8 +103,14 @@ const STORE_OVERRIDES = {
 
   _pushInternalModel(jsonAPIResource) {
     let internalModel = this._super(jsonAPIResource);
-    if (get(this, '_schemaManager').includesModel(jsonAPIResource.type)) {
-      this._globalM3Cache[internalModel.id] = internalModel;
+    let schemaManager = get(this, '_schemaManager');
+    let { type } = jsonAPIResource;
+    if (schemaManager.includesModel(type)) {
+      let baseName = schemaManager.computeBaseModelName(dasherize(type));
+      if (baseName === null || baseName === undefined) {
+        // only populate base records in the global cache
+        this._globalM3Cache[internalModel.id] = internalModel;
+      }
     }
     return internalModel;
   },
