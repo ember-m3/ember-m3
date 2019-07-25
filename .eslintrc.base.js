@@ -8,4 +8,15 @@ module.exports = {
   env: {
     browser: true,
   },
+  overrides: [
+    {
+      files: ['config/ember-try.js', '.*.js'],
+      env: {
+        node: true,
+      },
+      parserOptions: {
+        sourceType: 'script',
+      },
+    },
+  ],
 };
