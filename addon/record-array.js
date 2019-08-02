@@ -45,6 +45,7 @@ export default class M3RecordArray extends EmberObject {
 
     deferArrayPropertyChange(this.store, this, 0, removeAmt, newRecords);
     deferPropertyChange(this.store, this, '[]');
+    deferPropertyChange(this.store, this, 'length');
     // eager change events on mutation as mutations are user entry points
     flushChanges(this.store);
   }
@@ -71,6 +72,12 @@ export default class M3RecordArray extends EmberObject {
   _removeInternalModels(internalModels) {
     if (this._resolved) {
       this._internalModels.removeObjects(internalModels);
+      deferArrayPropertyChange(this.store, this, 0, internalModels.length, 0);
+      deferPropertyChange(this.store, this, '[]');
+      deferPropertyChange(this.store, this, 'length');
+      // eager change events here; we're not processing payloads (that goes
+      // through `_setInternalModels`); we're doing `unloadRecord`
+      flushChanges(this.store);
     } else {
       for (let i = 0; i < internalModels.length; ++i) {
         let internalModel = internalModels[i];
@@ -96,6 +103,7 @@ export default class M3RecordArray extends EmberObject {
     if (triggerChange) {
       deferArrayPropertyChange(this.store, this, 0, originalLength, this._internalModels.length);
       deferPropertyChange(this.store, this, '[]');
+      deferPropertyChange(this.store, this, 'length');
     }
 
     this.setProperties({
@@ -114,6 +122,7 @@ export default class M3RecordArray extends EmberObject {
     this._internalModels = A();
     deferArrayPropertyChange(this.store, this, 0, originalLength, this._internalModels.length);
     deferPropertyChange(this.store, this, '[]');
+    deferPropertyChange(this.store, this, 'length');
   }
 
   _registerWithInternalModels(internalModels) {
