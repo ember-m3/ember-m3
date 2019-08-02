@@ -1,14 +1,16 @@
 import DS from 'ember-data';
-import DataAdapter from '@ember/debug/data-adapter';
+import DebugAdapter from '../adapters/debug-adapter';
 import { inject } from '@ember/service';
 import { get } from '@ember/object';
 import { IS_RECORD_DATA, gte } from 'ember-compatibility-helpers';
-import MegamorphicModel from '../model';
 import M3RecordData from '../record-data';
 import MegamorphicModelFactory from '../factory';
 import QueryCache from '../query-cache';
 import { flushChanges } from '../utils/notify-changes';
 import { dasherize } from '@ember/string';
+import { getOwner } from '@ember/application';
+import seenTypesPerStore from '../utils/seen-types-per-store';
+import { next } from '@ember/runloop';
 
 const STORE_OVERRIDES = {
   _schemaManager: inject('m3-schema-manager'),
@@ -17,6 +19,7 @@ const STORE_OVERRIDES = {
     this._super(...arguments);
     this._queryCache = new QueryCache({ store: this });
     this._globalM3Cache = new Object(null);
+    seenTypesPerStore.set(this, new Set());
 
     if (gte('ember-data', '3.12.0-alpha.0')) {
       this._modifiedInternalModelMapProto = undefined;
@@ -160,6 +163,17 @@ if (!gte('ember-data', '3.12.0-alpha.0')) {
 function createRecordDataFor(modelName, id, clientId, storeWrapper) {
   let schemaManager = get(this, '_schemaManager');
   if (schemaManager.includesModel(modelName)) {
+    seenTypesPerStore.get(this).add(modelName);
+
+    if (get(schemaManager, 'schema').watchModelTypes) {
+      next(() => {
+        // We need this to execute in the next task queue so that wrapRecord is not called
+        // before the M3RecordData is created
+        getOwner(this)
+          .lookup('data-adapter:main')
+          .addedType(modelName);
+      });
+    }
     return new M3RecordData(modelName, id, clientId, storeWrapper, schemaManager, null, null);
   }
 
@@ -173,7 +187,6 @@ if (IS_RECORD_DATA) {
 }
 
 extendStore(DS.Store);
-extendDataAdapter(DataAdapter);
 
 /**
  * @param {DS.Store} Store ember-data Store to be extended
@@ -182,30 +195,20 @@ export function extendStore(Store) {
   Store.reopen(STORE_OVERRIDES);
 }
 
-/**
- * @param {DataAdapter} DataAdapter
+/*
+ Configures a registry with injections on Ember applications
+ for the m3 store. Accepts an optional namespace argument.
+
+ @method initializeDebugAdapter
+ @param {Ember.Registry} registry
  */
-export function extendDataAdapter(DataAdapter) {
-  DataAdapter.reopen({
-    _schemaManager: inject('m3-schema-manager'),
-
-    getModelTypes() {
-      return this._super(...arguments).concat({
-        klass: MegamorphicModel,
-        name: '-ember-m3',
-      });
-    },
-
-    _nameToClass(modelName) {
-      if (get(this, '_schemaManager').includesModel(modelName)) {
-        return MegamorphicModel;
-      }
-      return this._super(...arguments);
-    },
-  });
+function initializeDebugAdapter(registry) {
+  registry.register('data-adapter:main', DebugAdapter);
 }
 
-export function initialize() {}
+export function initialize(application) {
+  initializeDebugAdapter(application);
+}
 
 export default {
   name: 'm3-store',

@@ -20,6 +20,7 @@ testem.log
 /yarn-error.log
 /bin/*api*.sh
 /.npmrc
+.DS_Store
 
 # ember-try
 .node_modules.ember-try/
