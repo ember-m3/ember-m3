@@ -1,5 +1,9 @@
 # ember-m3 changelog
 
+## 0.11.1
+
+- fix: only store base types in global cache (#315)
+
 ## 0.11.0
 
 - chore: drop support for node 6 and ember 2.18 (we support latest 2 LTS and current release)
