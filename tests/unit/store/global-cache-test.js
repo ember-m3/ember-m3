@@ -91,15 +91,19 @@ module('unit/store/global-cache', function(hooks) {
       })
     );
 
-    assert.deepEqual(
-      Object.keys(this.store._identityMap._map).sort(),
-      ['author', 'com.example.bookstore.book', 'com.example.bookstore.chapter'],
-      'Identity map contains expected types'
+    assert.equal(
+      this.store.peekAll('com.example.bookstore.Book').length,
+      2,
+      '2 books are in the cache'
     );
+    assert.equal(
+      this.store.peekAll('com.example.bookstore.Chapter').length,
+      2,
+      '2 chapters are in the cache'
+    );
+    assert.equal(this.store.peekAll('author').length, 1, '1 author in the cache');
 
-    let bookIds = A(this.store._internalModelsFor('com.example.bookstore.book')._models).mapBy(
-      'id'
-    );
+    let bookIds = this.store.peekAll('com.example.bookstore.Book').map(x => x.id);
 
     assert.deepEqual(
       bookIds,
@@ -107,9 +111,7 @@ module('unit/store/global-cache', function(hooks) {
       'Identity map contains expected models - book'
     );
 
-    let chapterIds = A(
-      this.store._internalModelsFor('com.example.bookstore.chapter')._models
-    ).mapBy('id');
+    let chapterIds = this.store.peekAll('com.example.bookstore.Chapter').map(x => x.id);
 
     assert.deepEqual(
       chapterIds,
