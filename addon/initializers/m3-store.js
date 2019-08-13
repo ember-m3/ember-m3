@@ -2,7 +2,7 @@ import DS from 'ember-data';
 import DataAdapter from '@ember/debug/data-adapter';
 import { inject } from '@ember/service';
 import { get } from '@ember/object';
-import { IS_RECORD_DATA } from 'ember-compatibility-helpers';
+import { IS_RECORD_DATA, gte } from 'ember-compatibility-helpers';
 import MegamorphicModel from '../model';
 import M3RecordData from '../record-data';
 import MegamorphicModelFactory from '../factory';
@@ -17,6 +17,10 @@ const STORE_OVERRIDES = {
     this._super(...arguments);
     this._queryCache = new QueryCache({ store: this });
     this._globalM3Cache = new Object(null);
+
+    if (gte('ember-data', '3.12.0-alpha.0')) {
+      this._modifiedInternalModelMapProto = undefined;
+    }
   },
 
   // Store hooks necessary for using a single model class
@@ -112,14 +116,46 @@ const STORE_OVERRIDES = {
         this._globalM3Cache[internalModel.id] = internalModel;
       }
     }
+
+    if (gte('ember-data', '3.12.0-alpha.0')) {
+      if (this._modifiedInternalModelMapProto === undefined) {
+        let store = this;
+        // set this up for removals
+        let proto = (this._modifiedInternalModelMapProto = Object.getPrototypeOf(
+          this._internalModelsFor(self.modelName)
+        ));
+
+        let originalRemove = proto.remove;
+        proto.__originalRemove = originalRemove;
+        proto.remove = function remove(internalModel) {
+          delete store._globalM3Cache[internalModel.id];
+          return originalRemove.apply(this, arguments);
+        };
+        this._internalModelMapModified = true;
+      }
+    }
+
     return internalModel;
   },
 
-  _removeFromIdMap(internalModel) {
-    delete this._globalM3Cache[internalModel.id];
-    return this._super(internalModel);
+  willDestroy() {
+    if (gte('ember-data', '3.12.0-alpha.0')) {
+      if (this._modifiedInternalModelMapProto !== undefined) {
+        let proto = this._modifiedInternalModelMapProto;
+        proto.remove = proto.__originalRemove;
+        this._modifiedInternalModelMapProto = undefined;
+      }
+    }
+    return this._super();
   },
 };
+
+if (!gte('ember-data', '3.12.0-alpha.0')) {
+  STORE_OVERRIDES._removeFromIdMap = function _removeFromIdMap(internalModel) {
+    delete this._globalM3Cache[internalModel.id];
+    return this._super(internalModel);
+  };
+}
 
 function createRecordDataFor(modelName, id, clientId, storeWrapper) {
   let schemaManager = get(this, '_schemaManager');

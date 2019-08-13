@@ -296,35 +296,41 @@ module('unit/model', function(hooks) {
     );
   });
 
-  test('global m3 cache removes unloaded records', function(assert) {
-    let model = run(() => {
-      return this.store.push({
-        data: {
-          id: 'isbn:9780439708180',
-          type: 'com.example.bookstore.Book',
-          attributes: {
-            name: `Harry Potter and the Sorcerer's Stone`,
-            // no type, requires global m3 index
-            lastChapter: 'urn:chapter17',
-          },
-        },
-        included: [
-          {
-            id: 'urn:chapter17',
-            type: 'com.example.bookstore.Chapter',
+  function testGlobalCacheUnloading(description) {
+    test(description, function(assert) {
+      let model = run(() => {
+        return this.store.push({
+          data: {
+            id: 'isbn:9780439708180',
+            type: 'com.example.bookstore.Book',
             attributes: {
-              name: `The Man with Two Faces`,
+              name: `Harry Potter and the Sorcerer's Stone`,
+              // no type, requires global m3 index
+              lastChapter: 'urn:chapter17',
             },
           },
-        ],
+          included: [
+            {
+              id: 'urn:chapter17',
+              type: 'com.example.bookstore.Chapter',
+              attributes: {
+                name: `The Man with Two Faces`,
+              },
+            },
+          ],
+        });
       });
-    });
 
-    run(() =>
-      this.store.peekRecord('com.example.bookstore.Chapter', 'urn:chapter17').unloadRecord()
-    );
-    assert.equal(get(model, 'lastChapter'), null, 'global m3 cache removed unloaded record');
-  });
+      run(() =>
+        this.store.peekRecord('com.example.bookstore.Chapter', 'urn:chapter17').unloadRecord()
+      );
+      assert.equal(get(model, 'lastChapter'), null, 'global m3 cache removed unloaded record');
+    });
+  }
+  testGlobalCacheUnloading('global m3 cache removes unloaded records');
+  // multiple concurrent stores itself is not tested here, but subsequent
+  // stores occur regularly during tests, fastboot &c.
+  testGlobalCacheUnloading('global m3 cache unloading works across subsequent stores');
 
   test('.unknownProperty resolves id-matched values to external DS.models', function(assert) {
     let model = run(() => {
