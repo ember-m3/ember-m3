@@ -1,5 +1,9 @@
 # ember-m3 changelog
 
+## 0.11.2
+
+- fix: compatibility with Ember Data 3.12.x (thanks @rwjblue)
+
 ## 0.11.1
 
 - fix: only store base types in global cache (#315)
