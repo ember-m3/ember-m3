@@ -3,7 +3,6 @@ import { setupTest } from 'ember-qunit';
 import { run } from '@ember/runloop';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import DS from 'ember-data';
-import { A } from '@ember/array';
 import sinon from 'sinon';
 
 module('unit/store/global-cache', function(hooks) {
