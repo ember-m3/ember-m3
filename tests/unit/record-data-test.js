@@ -540,11 +540,6 @@ module('unit/record-data', function(hooks) {
       baseRecordData._projections.find(x => x === projectionRecordData),
       'Expected projection recordData to have been registered'
     );
-    assert.equal(
-      baseRecordData.clientId,
-      projectionRecordData.clientId,
-      'Expected the base recordData to have the same clientId as the projection'
-    );
 
     // actually set to be saved
     projectionRecordData.setAttr('name', 'Harry Potter');
