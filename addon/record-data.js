@@ -4,7 +4,7 @@ import { assign, merge } from '@ember/polyfills';
 import { copy } from './utils/copy';
 import { assert } from '@ember/debug';
 import Ember from 'ember';
-import { IS_RECORD_DATA } from 'ember-compatibility-helpers';
+import { IS_RECORD_DATA, gte } from 'ember-compatibility-helpers';
 
 const emberAssign = assign || merge;
 
@@ -696,11 +696,15 @@ export default class M3RecordData {
       }
 
       if (IS_RECORD_DATA) {
-        this._baseRecordData = this.storeWrapper.recordDataFor(
-          dasherize(baseModelName),
-          this.id,
-          this.clientId
-        );
+        if (gte('ember-data', '3.13.0')) {
+          this._baseRecordData = this.storeWrapper.recordDataFor(dasherize(baseModelName), this.id);
+        } else {
+          this._baseRecordData = this.storeWrapper.recordDataFor(
+            dasherize(baseModelName),
+            this.id,
+            this.clientId
+          );
+        }
       } else {
         this._baseRecordData = this.storeWrapper.modelDataFor(
           dasherize(baseModelName),
