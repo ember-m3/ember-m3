@@ -1,5 +1,11 @@
 # ember-m3 changelog
 
+## 0.11.3
+
+- fix: issues when creating record data for projections (thanks @runspired)
+- fix: allow user schemas to compute references with null ids
+- fix: user schema hooks take priority over raw values for determining reference arrays
+
 ## 0.11.2
 
 - fix: compatibility with Ember Data 3.12.x (thanks @rwjblue)
