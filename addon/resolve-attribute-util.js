@@ -12,19 +12,20 @@ import {
 } from './utils/resolve';
 
 function resolveReference(store, reference) {
+  let { id } = reference;
   if (reference.type === null) {
     // for schemas with a global id-space but multiple types, schemas may
     // report a type of null
-    let internalModel = store._globalM3Cache[reference.id];
+    let internalModel = store._globalM3Cache[id];
     return internalModel ? internalModel.getRecord() : null;
   } else {
     // respect the user schema's type if provided
-    return store.peekRecord(reference.type, reference.id);
+    return id !== null && id !== undefined ? store.peekRecord(reference.type, reference.id) : null;
   }
 }
 
 function resolveReferenceOrReferences(store, model, key, value, reference) {
-  if (Array.isArray(value) || Array.isArray(reference)) {
+  if (Array.isArray(reference)) {
     return resolveRecordArray(store, model, key, reference);
   }
 
