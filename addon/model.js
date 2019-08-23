@@ -228,7 +228,7 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   debugJSON() {
-    return recordDataFor(this)._data;
+    return recordDataFor(this)._debugJSON();
   }
 
   eachAttribute(callback, binding) {
