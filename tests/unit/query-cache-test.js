@@ -33,10 +33,11 @@ module('unit/query-cache', function(hooks) {
 
     this.queryCache = this.store._queryCache;
     this.adapterAjax = this.sinon.stub(this.adapter, 'ajax').returns(resolve());
-  }),
-    hooks.afterEach(function() {
-      this.sinon.restore();
-    });
+  });
+
+  hooks.afterEach(function() {
+    this.sinon.restore();
+  });
 
   test('.queryURL uses adapter.ajax to send requests', function(assert) {
     assert.equal(this.adapterAjax.callCount, 0, 'initial callCount 0');
@@ -176,8 +177,8 @@ module('unit/query-cache', function(hooks) {
     this.adapterAjax.returns(
       resolve({
         data: {
-          id: 1,
-          type: 'my-type',
+          id: 123,
+          type: 'my-synthetic-type',
         },
       })
     );
@@ -194,7 +195,7 @@ module('unit/query-cache', function(hooks) {
   test('a custom -ember-m3 adapter can be registered', function(assert) {
     let payload = {
       data: {
-        id: 1,
+        id: 2,
         type: 'my-type',
       },
     };

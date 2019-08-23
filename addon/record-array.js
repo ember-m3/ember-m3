@@ -43,9 +43,10 @@ export default class M3RecordArray extends EmberObject {
     this._registerWithInternalModels(newInternalModels);
     this._resolved = true;
 
-    deferArrayPropertyChange(this.store, this, 0, removeAmt, newRecords);
+    deferArrayPropertyChange(this.store, this, idx, removeAmt, addAmt);
     deferPropertyChange(this.store, this, '[]');
     deferPropertyChange(this.store, this, 'length');
+
     // eager change events on mutation as mutations are user entry points
     flushChanges(this.store);
   }

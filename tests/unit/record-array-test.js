@@ -144,37 +144,47 @@ module('unit/record-array', function(hooks) {
   test('setting references triggers a deferred didChange event', function(assert) {
     let recordArray = this.createRecordArray();
     let willChangeCount = 0;
+    let didChangeArray = null;
     let didChangeCount = 0;
+    let didChangeArgs = [];
     recordArray.addArrayObserver({
       arrayWillChange() {
         ++willChangeCount;
       },
-      arrayDidChange() {
+      arrayDidChange(array, ...args) {
         ++didChangeCount;
+        didChangeArray = array;
+        didChangeArgs.push(args);
       },
     });
     recordArray._setReferences([{ id: 'isbn:1', type: null }]);
 
-    assert.equal(willChangeCount, 0, 'eager willChange');
-    assert.equal(didChangeCount, 0, 'eager didChange');
+    assert.equal(willChangeCount, 0, 'no eager willChange');
+    assert.equal(didChangeCount, 0, 'no eager didChange');
 
     flushChanges(this.store);
 
     // don't store enough info for willChange
     assert.equal(willChangeCount, 0, 'deferred willChange');
     assert.equal(didChangeCount, 1, 'deferred didChange');
+    assert.strictEqual(didChangeArray, recordArray, 'didChange array is correct');
+    assert.deepEqual(didChangeArgs, [[0, 0, 0]], 'didChange args are correct');
   });
 
   test('replacing records triggers an eager didChange event', function(assert) {
     let recordArray = this.createRecordArray();
     let willChangeCount = 0;
     let didChangeCount = 0;
+    let didChangeArray = null;
+    let didChangeArgs = [];
     recordArray.addArrayObserver({
       arrayWillChange() {
         ++willChangeCount;
       },
-      arrayDidChange() {
+      arrayDidChange(array, ...args) {
         ++didChangeCount;
+        didChangeArray = array;
+        didChangeArgs.push(args);
       },
     });
     let book1 = this.store.peekRecord('com.example.bookstore.Book', 'isbn:1');
@@ -182,11 +192,31 @@ module('unit/record-array', function(hooks) {
 
     assert.equal(willChangeCount, 0, 'eager willChange not fired');
     assert.equal(didChangeCount, 1, 'eager didChange fired');
+    assert.strictEqual(didChangeArray, recordArray, 'eager didChange fired - array');
+    assert.deepEqual(didChangeArgs, [[0, 0, 1]], 'eager didChange fired - args');
+
+    didChangeArray = null;
+    didChangeArgs = [];
 
     recordArray.popObject();
 
     assert.equal(willChangeCount, 0, 'eager willChange not fired');
     assert.equal(didChangeCount, 2, 'eager didChange fired');
+    assert.strictEqual(didChangeArray, recordArray, 'eager didChange fired - second call - array');
+    assert.deepEqual(didChangeArgs, [[0, 1, 0]], 'eager didChange fired - second call - args');
+
+    recordArray.pushObject(book1);
+    recordArray.pushObject(book1);
+
+    didChangeArray = null;
+    didChangeArgs = [];
+
+    recordArray.popObject(book1);
+
+    assert.equal(willChangeCount, 0, 'eager willChange not fired');
+    assert.equal(didChangeCount, 5, 'eager didChange fired');
+    assert.strictEqual(didChangeArray, recordArray, 'eager didChange fired - third call - array');
+    assert.deepEqual(didChangeArgs, [[1, 1, 0]], 'eager didChange fired - third call - args');
   });
 
   module('RecordArrayManager api', function() {
