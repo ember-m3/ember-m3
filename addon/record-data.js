@@ -796,6 +796,15 @@ export default class M3RecordData {
     );
   }
 
+  _debugJSON() {
+    // if the model is a projection, delegate to the base record to get the JSON
+    if (this._baseRecordData) {
+      return this._baseRecordData._debugJSON();
+    }
+
+    return this._data;
+  }
+
   _destroyChildRecordData(key) {
     if (this._baseRecordData) {
       return this._baseRecordData._destroyChildRecordData(key);

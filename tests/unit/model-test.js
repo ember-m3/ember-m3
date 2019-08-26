@@ -3131,4 +3131,42 @@ module('unit/model', function(hooks) {
       });
     });
   });
+
+  test('.debugJSON returns expected JSON for m3 records', function(assert) {
+    const BOOK_ID = 'isbn:9780439708180';
+    const BOOK_CLASS_PATH = 'com.example.bookstore.Book';
+    const expectedJSON = {
+      title: `Harry Potter and the Sorcerer's Stone`,
+      chapters: [
+        {
+          name: 'The Boy Who Lived',
+        },
+        {
+          name: 'The Vanishing Glass',
+        },
+      ],
+    };
+    run(() => {
+      this.store.push({
+        data: {
+          id: BOOK_ID,
+          type: BOOK_CLASS_PATH,
+          attributes: {
+            title: `Harry Potter and the Sorcerer's Stone`,
+            chapters: [
+              {
+                name: 'The Boy Who Lived',
+              },
+              {
+                name: 'The Vanishing Glass',
+              },
+            ],
+          },
+        },
+      });
+    });
+    const bookRecord = this.store.peekRecord(BOOK_CLASS_PATH, BOOK_ID);
+
+    assert.deepEqual(bookRecord.debugJSON(), expectedJSON, 'The JSON returned is correct');
+  });
 });

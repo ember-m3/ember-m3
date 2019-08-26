@@ -2816,6 +2816,33 @@ module('unit/projection', function(hooks) {
       );
     });
 
+    test('.debugJSON returns expected JSON for projections', function(assert) {
+      const expectedJSON = {
+        title: 'Alice in Wonderland',
+        author: {
+          name: 'Lewis Carol',
+        },
+      };
+
+      run(() => {
+        this.store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {
+              title: BOOK_TITLE_1,
+              author: {
+                name: BOOK_AUTHOR_NAME_1,
+              },
+            },
+          },
+        });
+      });
+      const bookRecord = this.store.peekRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, BOOK_ID);
+
+      assert.deepEqual(bookRecord.debugJSON(), expectedJSON, 'The JSON returned is correct');
+    });
+
     skip('update and save of a projection does not touch non-whitelisted properties', function(assert) {
       let updateRecordCalls = 0;
       this.owner.register(
