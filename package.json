@@ -105,7 +105,8 @@
   },
   "ember-addon": {
     "configPath": "tests/dummy/config",
-    "defaultBlueprint": "schema"
+    "defaultBlueprint": "schema",
+    "after": "ember-data"
   },
   "volta": {
     "node": "10.16.0",
