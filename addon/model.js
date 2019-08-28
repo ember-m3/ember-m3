@@ -179,15 +179,16 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   notifyPropertyChange(key) {
-    if (!this._schema.isAttributeIncluded(this._modelName, key)) {
-      return;
-    }
     const recordData = recordDataFor(this);
     const schemaInterface = recordData.schemaInterface;
     let resolvedKeysInCache = schemaInterface._getDependentResolvedKeys(key);
 
     if (resolvedKeysInCache) {
       this._notifyProperties(resolvedKeysInCache);
+    }
+
+    if (!this._schema.isAttributeIncluded(this._modelName, key)) {
+      return;
     }
 
     let oldValue = this._cache[key];

@@ -578,3 +578,108 @@ module('unit/model/reference-array', function(hooks) {
     );
   });
 });
+
+module('unit/modules/reference-array-with-key-switch', function(hooks) {
+  setupTest(hooks);
+
+  hooks.beforeEach(function() {
+    class TestSchema extends DefaultSchema {
+      includesModel(modelName) {
+        return /^com.example\./i.test(modelName);
+      }
+
+      computeAttributeReference(key, value, modelName, schemaInterface) {
+        let refValue = schemaInterface.getAttr(`*${key}`);
+        if (isArray(refValue)) {
+          return refValue.map(_resolve);
+        }
+
+        if (refValue !== undefined) {
+          return _resolve(refValue);
+        }
+      }
+    }
+    TestSchema.prototype.models = {
+      'com.example.bookstore': {
+        attributes: ['elements'],
+      },
+    };
+    this.owner.register('service:m3-schema', TestSchema);
+    this.store = this.owner.lookup('service:store');
+  });
+
+  test('The key on the payload can differ from the key on the record', async function(assert) {
+    const record = this.store.push({
+      data: {
+        id: 'urn:bookstore:1',
+        type: 'com.example.Bookstore',
+        attributes: {
+          '*elements': ['urn:book:1', 'urn:book:2'],
+        },
+      },
+      included: [
+        {
+          id: 'urn:book:1',
+          type: 'com.example.Book',
+          attributes: {
+            name: 'Book 1!',
+          },
+        },
+        {
+          id: 'urn:book:2',
+          type: 'com.example.Book',
+          attributes: {
+            name: 'Book 2!',
+          },
+        },
+      ],
+    });
+    const books = record.get('elements');
+    assert.equal(books.length, 2, 'We have two books');
+    assert.deepEqual(
+      books.map(b => b.get('name')),
+      ['Book 1!', 'Book 2!'],
+      'We have the right books'
+    );
+
+    this.store.push({
+      data: {
+        id: 'urn:bookstore:1',
+        type: 'com.example.Bookstore',
+        attributes: {
+          '*elements': ['urn:book:1', 'urn:book:3', 'urn:book:4'],
+        },
+      },
+      included: [
+        {
+          id: 'urn:book:1',
+          type: 'com.example.Book',
+          attributes: {
+            name: 'Book 1!',
+          },
+        },
+        {
+          id: 'urn:book:3',
+          type: 'com.example.Book',
+          attributes: {
+            name: 'Book 3!',
+          },
+        },
+        {
+          id: 'urn:book:4',
+          type: 'com.example.Book',
+          attributes: {
+            name: 'Book 4!',
+          },
+        },
+      ],
+    });
+
+    assert.equal(books.length, 3, 'We updated to 3 books');
+    assert.deepEqual(
+      books.map(b => b.get('name')),
+      ['Book 1!', 'Book 3!', 'Book 4!'],
+      'We have the right books after the update'
+    );
+  });
+});
