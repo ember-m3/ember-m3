@@ -1,10 +1,13 @@
 import { setupTest } from 'ember-qunit';
 import { get } from '@ember/object';
+import { A } from '@ember/array';
 import { settled } from '@ember/test-helpers';
 import DebugAdapter from 'ember-m3/adapters/debug-adapter';
 import { module, test } from 'qunit';
 import sinon from 'sinon';
 import DefaultSchema from 'ember-m3/services/m3-schema';
+
+const BOOK_MODEL_TYPE = 'com.example.bookstore.Book';
 
 module('integration/debug-adapter', function(hooks) {
   setupTest(hooks);
@@ -40,12 +43,44 @@ module('integration/debug-adapter', function(hooks) {
       }
     );
 
-    this.store.pushPayload('com.example.bookstore.Book', {
+    this.wrappedModelTypeObject = {
+      name: BOOK_MODEL_TYPE,
+      count: 1,
+      columns: [
+        {
+          name: 'id',
+          desc: 'id',
+        },
+        {
+          name: '$type',
+          desc: '$type',
+        },
+        {
+          name: 'name',
+          desc: 'name',
+        },
+        {
+          name: 'author',
+          desc: 'author',
+        },
+        {
+          name: 'pubDate',
+          desc: 'pubDate',
+        },
+        {
+          name: 'readerComments',
+          desc: 'readerComments',
+        },
+      ],
+      object: BOOK_MODEL_TYPE,
+    };
+
+    this.store.pushPayload(BOOK_MODEL_TYPE, {
       data: {
         id: 'urn:bookstore:1',
-        type: 'com.example.bookstore.Book',
+        type: BOOK_MODEL_TYPE,
         attributes: {
-          $type: 'com.example.bookstore.Book',
+          $type: BOOK_MODEL_TYPE,
           name: 'The Birth of Britain',
           author: 'urn:author:1',
           pubDate: 'April 2005',
@@ -75,12 +110,18 @@ module('integration/debug-adapter', function(hooks) {
             },
             parts: [
               {
-                value: 'Really enjoyed this book',
+                value: { text: 'Really enjoyed this book' },
               },
               {
-                value: 'A lot',
+                value: ['A lot'],
               },
             ],
+            metadata: {
+              commentLikedBy: ['urn:author:1', 'urn:author:2'],
+              avatar: {
+                logo: 'test.png',
+              },
+            },
           },
         },
         {
@@ -119,7 +160,7 @@ module('integration/debug-adapter', function(hooks) {
   });
 
   test('columnsForType returns attribute names as expected when records exist', function(assert) {
-    const bookstore = this.store.peekAll('com.example.bookstore.Book');
+    const bookstore = this.store.peekAll(BOOK_MODEL_TYPE);
     const columns = this.debugAdapter.columnsForType(bookstore);
 
     assert.equal(columns.length, 6, 'A column is added for each attribute on the record');
@@ -135,22 +176,28 @@ module('integration/debug-adapter', function(hooks) {
     const readerComments = this.store.peekAll('com.example.bookstore.ReaderComment');
     const columns = this.debugAdapter.columnsForType(readerComments);
 
-    assert.equal(columns.length, 4, 'A column is added for each attribute on the record');
+    assert.equal(columns.length, 5, 'A column is added for each attribute on the record');
     assert.deepEqual(columns[0], { name: 'id', desc: 'id' });
     assert.deepEqual(columns[1], { name: 'commenter', desc: 'commenter' });
     assert.deepEqual(columns[2], { name: 'body', desc: 'body' });
     assert.deepEqual(columns[3], { name: 'parts', desc: 'parts' });
+    assert.deepEqual(columns[4], { name: 'metadata', desc: 'metadata' });
   });
 
   test('getRecordColumnValues returns attribute values as expected when records exist', function(assert) {
-    const bookstore = this.store.peekRecord('com.example.bookstore.Book', 'urn:bookstore:1');
-    const valuesObject = this.debugAdapter.getRecordColumnValues(bookstore);
+    const bookstore = this.store.peekRecord(BOOK_MODEL_TYPE, 'urn:bookstore:1');
+    const bookValuesObject = this.debugAdapter.getRecordColumnValues(bookstore);
+    const readerComment = this.store.peekRecord(
+      'com.example.bookstore.ReaderComment',
+      'urn:comment:2'
+    );
+    const readerValuesObject = this.debugAdapter.getRecordColumnValues(readerComment);
 
     assert.deepEqual(
-      valuesObject,
+      bookValuesObject,
       {
         id: 'urn:bookstore:1',
-        $type: 'com.example.bookstore.Book',
+        $type: BOOK_MODEL_TYPE,
         name: 'The Birth of Britain',
         author: 'urn:author:1',
         pubDate: 'April 2005',
@@ -158,10 +205,34 @@ module('integration/debug-adapter', function(hooks) {
       },
       'Object returned contains column to value mapping'
     );
+
+    assert.deepEqual(
+      readerValuesObject,
+      {
+        commenter: {
+          $type: 'com.example.bookstore.Commenter',
+          name: 'Some Other User',
+        },
+        id: 'urn:comment:2',
+        metadata: {
+          avatar: '{"logo":"test.png"}',
+          commentLikedBy: '["urn:author:1","urn:author:2"]',
+        },
+        parts: [
+          {
+            value: '{"text":"Really enjoyed this book"}',
+          },
+          {
+            value: '["A lot"]',
+          },
+        ],
+      },
+      'Object returned contains stringified values for deeply nested data'
+    );
   });
 
   test('getRecords returns list of records for a specific model type', function(assert) {
-    const records = this.debugAdapter.getRecords('com.example.bookstore.Book');
+    const records = this.debugAdapter.getRecords(BOOK_MODEL_TYPE);
     assert.equal(
       get(records, 'modelName'),
       'com.example.bookstore.book',
@@ -193,42 +264,31 @@ module('integration/debug-adapter', function(hooks) {
     );
   });
 
+  test('addedType wraps model and notifies Ember Inspector of new types', async function(assert) {
+    this.debugAdapter.typesAddedCallback = this.sinon.stub();
+    this.debugAdapter.typesUpdatedCallback = this.sinon.stub();
+    this.debugAdapter.localReleaseMethods = A([]);
+
+    this.debugAdapter.addedType(BOOK_MODEL_TYPE);
+
+    assert.ok(
+      this.debugAdapter.typesAddedCallback.calledWithExactly([this.wrappedModelTypeObject]),
+      'addedType processes and wraps new model types when they are pushed into the store'
+    );
+
+    this.debugAdapter.addedType(BOOK_MODEL_TYPE);
+
+    assert.ok(
+      this.debugAdapter.typesAddedCallback.calledOnce,
+      'typesAddedCallback is not executed again if same model type is passed into addedType'
+    );
+  });
+
   test('wrapModelType returns wrapper object that includes record information', function(assert) {
-    const wrappedModelType = this.debugAdapter.wrapModelType('com.example.bookstore.Book');
-    const wrappedModelTypeObject = {
-      name: 'com.example.bookstore.Book',
-      count: 1,
-      columns: [
-        {
-          name: 'id',
-          desc: 'id',
-        },
-        {
-          name: '$type',
-          desc: '$type',
-        },
-        {
-          name: 'name',
-          desc: 'name',
-        },
-        {
-          name: 'author',
-          desc: 'author',
-        },
-        {
-          name: 'pubDate',
-          desc: 'pubDate',
-        },
-        {
-          name: 'readerComments',
-          desc: 'readerComments',
-        },
-      ],
-      object: 'com.example.bookstore.Book',
-    };
+    const wrappedModelType = this.debugAdapter.wrapModelType(BOOK_MODEL_TYPE);
 
     assert.deepEqual(
-      wrappedModelTypeObject,
+      this.wrappedModelTypeObject,
       wrappedModelType,
       'Wrapped model information is returned as expected'
     );

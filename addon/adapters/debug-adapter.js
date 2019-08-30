@@ -1,6 +1,6 @@
 import { A, isArray } from '@ember/array';
 import DataAdapter from '@ember/debug/data-adapter';
-import { get, setProperties, defineProperty } from '@ember/object';
+import { get, defineProperty } from '@ember/object';
 import { inject } from '@ember/service';
 import seenTypesPerStore from '../utils/seen-types-per-store';
 import { default as MegamorphicModel } from '../model';
@@ -18,12 +18,28 @@ import { default as MegamorphicModel } from '../model';
 export default class DebugAdapter extends DataAdapter {
   init() {
     super.init(...arguments);
-    setProperties(this, {
-      // This keeps track of all model types the debug adapter has seen already (so we don't watch for changes twice)
-      seenTypesInAdapter: new Set(),
-      // This is the same attribute limit value that is set in Ember Inspector
-      attributeLimit: 100,
-    });
+    // This keeps track of all model types the debug adapter has seen already (so we don't watch for changes twice)
+    this.seenTypesInAdapter = new Set();
+    // This is the same attribute limit value that is set in Ember Inspector
+    this.attributeLimit = 100;
+  }
+
+  /**
+    Iterates through objects and if there is a nested object or array, stringifies the value
+    This is needed because Ember Inspector does not support data structures more than two levels deep
+    @private
+    @method _stringifyNestedValues
+    @param nestedJSON Nested objects from the record
+    @return Object with stringified values as needed
+  */
+  _stringifyNestedValues(nestedJSON) {
+    for (let key in nestedJSON) {
+      const nestedJSONValue = nestedJSON[key];
+      if (nestedJSONValue instanceof Object) {
+        nestedJSON[key] = JSON.stringify(nestedJSONValue);
+      }
+    }
+    return nestedJSON;
   }
 
   /**
@@ -36,7 +52,9 @@ export default class DebugAdapter extends DataAdapter {
   */
   _getRecordValues(attributeValue) {
     if (attributeValue instanceof MegamorphicModel) {
-      return attributeValue.debugJSON();
+      const objectJSON = attributeValue.debugJSON();
+
+      return this._stringifyNestedValues(objectJSON);
     } else if (isArray(attributeValue) && get(attributeValue, 'length')) {
       return attributeValue.map(nestedAttributeValue =>
         this._getRecordValues(nestedAttributeValue)
@@ -44,7 +62,9 @@ export default class DebugAdapter extends DataAdapter {
     } else if (isArray(attributeValue) && !get(attributeValue, 'length')) {
       return [];
     } else if (attributeValue instanceof Object) {
-      return JSON.parse(JSON.stringify(attributeValue));
+      const objectJSON = JSON.parse(JSON.stringify(attributeValue));
+
+      return this._stringifyNestedValues(objectJSON);
     }
     return attributeValue;
   }
@@ -204,10 +224,10 @@ export default class DebugAdapter extends DataAdapter {
   */
   addedType(type) {
     // TODO: Store columns in seenType and do a deep equal check to see if they need to be updated
-    let seenTypesInAdapter = get(this, 'seenTypesInAdapter');
+
     // If a new model type is added, we need to notify Ember Inspector of it
-    if (!seenTypesInAdapter.has(type)) {
-      seenTypesInAdapter.add(type);
+    if (!this.seenTypesInAdapter.has(type)) {
+      this.seenTypesInAdapter.add(type);
 
       let wrappedType = this.processAddedType(type);
       // This is where we let Ember Inspect know a new model type has been added
@@ -247,11 +267,12 @@ export default class DebugAdapter extends DataAdapter {
     // We set watchModelTypes to true so that the m3 schema service knows when we are in debug mode
     // and needs to notify the debug adapter of new model types added
     this.get('schema').watchModelTypes = true;
+
     this.typesAddedCallback = typesAdded;
     this.typesUpdatedCallback = typesUpdated;
     this.localReleaseMethods = A();
 
-    modelTypes.forEach(type => get(this, 'seenTypesInAdapter').add(type.name));
+    modelTypes.forEach(type => this.seenTypesInAdapter.add(type.name));
     let typesToSend = modelTypes.map(type => this.processAddedType(type.name));
     typesAdded(typesToSend);
 
