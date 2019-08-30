@@ -291,13 +291,15 @@ module('unit/record-data', function(hooks) {
     );
     const attrName = 'name';
 
-    assert.notOk(
+    assert.equal(
       projectedRecordData.isAttrDirty(attrName),
+      false,
       'Fake attribute is not dirty initially'
     );
     projectedRecordData.setAttr(attrName, 'The best store in town');
-    assert.ok(
+    assert.equal(
       projectedRecordData.isAttrDirty(attrName),
+      true,
       'Fake attribute is dirty after being mutated'
     );
   });
