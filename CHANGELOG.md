@@ -1,5 +1,9 @@
 # ember-m3 changelog
 
+## 0.11.5
+
+- fix: model now dirties during set if the schema dirties any attribute (including ones other than what was set) #377 (thanks @rwjblue)
+
 ## 0.11.4
 
 - feat: add debug-adapter for Ember-Inspector support (thanks @syu15)
