@@ -4,4 +4,6 @@ import { start } from 'ember-qunit';
 import './helpers/watch-property';
 
 setResolver(resolver);
-start();
+start({
+  setupTestIsolationValidation: true,
+});
