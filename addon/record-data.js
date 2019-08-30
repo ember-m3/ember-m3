@@ -623,7 +623,7 @@ export default class M3RecordData {
     if (this._baseRecordData) {
       return this._baseRecordData.isAttrDirty(...arguments);
     }
-    if (this._attributes[key] === undefined) {
+    if (!(key in this._attributes)) {
       return false;
     }
     let originalValue;
@@ -634,6 +634,18 @@ export default class M3RecordData {
     }
 
     return originalValue !== this._attributes[key];
+  }
+
+  hasDirtyAttr() {
+    if (this._baseRecordData) {
+      return this._baseRecordData.hasDirtyAttr();
+    }
+
+    if (this.__attributes === null) {
+      return false;
+    }
+
+    return Object.keys(this.__attributes).length > 0;
   }
 
   /**
