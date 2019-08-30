@@ -1,5 +1,12 @@
 # ember-m3 changelog
 
+## 0.11.4
+
+- feat: add debug-adapter for Ember-Inspector support (thanks @syu15)
+- fix: fix `debugJSON` for projections (thanks @syu15)
+- fix: trigger change notifications when updating references in reference arrays (thanks @runspired)
+- fix: trigger array change with correct index arg (thanks @rwjblue)
+
 ## 0.11.3
 
 - fix: issues when creating record data for projections (thanks @runspired)
