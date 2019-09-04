@@ -727,5 +727,14 @@ this.store.findRecord('com.example.bookstore.book', 1, { url: '/book/from/surpri
 
 ## Requirements
 
-- ember@^2.12.0
-- ember-data@~2.14.10
+ember-m3 supports three Ember.js and Ember Data versions
+
+- The [latest release](https://emberjs.com/releases/release/)
+- The current LTS version
+- The previous LTS version
+
+As of 23 September (ie when Ember 3.13.0 ships) this will mean
+
+- 3.13.x (the latest release)
+- 3.12.x (the current LTS)
+- 3.8.x (the previous LTS)
