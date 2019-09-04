@@ -495,6 +495,10 @@ want to have different request headers, serialization or normalization for
 your m3 models. The `-ember-m3` adapter and serializer are the appropriate
 places for this.
 
+## Debugging
+
+To learn how to debug `m3` records, refer to the [debugging documentation](DEBUGGING.md)
+
 ## Alternative Patterns
 
 If you are converting an application that uses `DS.Model`s (perhaps because it
