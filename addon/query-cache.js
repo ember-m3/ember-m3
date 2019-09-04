@@ -29,12 +29,16 @@ export default class QueryCache {
       cacheKey = null,
       reload = false,
       backgroundReload = false,
+      adapterOptions = undefined,
     } = {},
     array
   ) {
     let options = {};
     if (params) {
       options.params = params;
+    }
+    if (adapterOptions) {
+      options.adapterOptions = adapterOptions;
     }
 
     let cachedPromise = cacheKey ? this._queryCache[cacheKey] : undefined;

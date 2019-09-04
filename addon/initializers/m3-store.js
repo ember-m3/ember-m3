@@ -64,6 +64,7 @@ const STORE_OVERRIDES = {
    * @param {boolean} [options.reload=false] If true, issue a request even a cached value exists
    * @param {boolean} [options.backgroundReload=false] If true and a cached value exists,
    * issue a non-blocking request but immediately fulfill with the cached value
+   * @param {Object} [options.adapterOptions] The custom options to pass along to the `queryURL` function on the adapter
    * @returns {Promise<M3RecordData|RecordArray,Error>} Promise for loading `url` that fulfills to
    * an `M3RecordData` if the response is a single resource or a `RecordArray` of `M3RecordData`s
    * if the response is an array of resources

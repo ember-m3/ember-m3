@@ -216,6 +216,8 @@ normalization to JSON API.
     was found, resolve the returned promise immediately with the cached entry
     and update the store when the request completes.
 
+  - `options.adapterOptions` defaults to `undefined`. The custom options to pass along to the `queryURL` function on the adapter.
+
 #### Caching
 
 When `cacheKey` is provided, the response is cached under `cacheKey`.
