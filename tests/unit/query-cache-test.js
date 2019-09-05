@@ -914,6 +914,32 @@ module('unit/query-cache', function(hooks) {
     });
   });
 
+  test('.queryURL passes adapterOptions to queryURL adapter hook if available', function(assert) {
+    let adapterOptions = { option: 'value' };
+
+    this.adapter.queryURL = this.sinon.stub().returns(
+      resolve({
+        data: {
+          id: '1',
+          type: 'something-or-other',
+          attributes: {},
+        },
+      })
+    );
+
+    let options = { adapterOptions };
+
+    this.adapter.namespace = 'ns';
+    return this.queryCache.queryURL('test-url', options).then(() => {
+      assert.deepEqual(
+        stubCalls(this.adapter.queryURL),
+        [[this.adapter + '', ['/ns/test-url', 'GET', { adapterOptions }]]],
+        'adapter.queryURL is called with adapterOptions'
+      );
+      assert.equal(this.adapterAjax.called, false, '`adapter.ajax` is not called');
+    });
+  });
+
   test('.cacheURL inserts consistently inserts a promise into cache', function(assert) {
     assert.expect(3);
     const mockResult = { id: 1, foo: 'bar' };
