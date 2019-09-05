@@ -1,5 +1,10 @@
 # ember-m3 changelog
 
+## 0.11.6
+
+- docs: Improved debugging docs (thanks @syu15)
+- feat: `adapter.queryURL` now supports `adapterOptions` (thanks @loganrosen)
+
 ## 0.11.5
 
 - fix: model now dirties during set if the schema dirties any attribute (including ones other than what was set) #377 (thanks @rwjblue)
