@@ -52,7 +52,7 @@ jobs:
 
     # runs tests against future Ember versions
     - stage: advance warning tests
-    - env: EMBER_TRY_SCENARIO=canary-channel
+      env: EMBER_TRY_SCENARIO=canary-channel
     - env: NAME=floating dependencies # used only to make Travis UI show description
       install: yarn install --no-lockfile --non-interactive
       script: yarn test
