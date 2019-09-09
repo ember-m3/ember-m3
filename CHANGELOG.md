@@ -1,5 +1,9 @@
 # ember-m3 changelog
 
+## 0.11.7
+
+- fix: Do not cause build errors with ember-cli-babel@7 (#386 thanks @rwjblue)
+
 ## 0.11.6
 
 - docs: Improved debugging docs (thanks @syu15)
