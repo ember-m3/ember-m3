@@ -124,6 +124,11 @@ export default class MegamorphicModel extends EmberObject {
     );
   }
 
+  eachAttribute(callback, binding) {
+    let recordData = recordDataFor(this);
+    return recordData.eachAttribute(callback, binding);
+  }
+
   _flushInitProperties() {
     let propertiesToFlush = initProperites;
     initProperites = Object.create(null);
