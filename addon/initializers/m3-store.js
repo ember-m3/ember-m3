@@ -64,34 +64,14 @@ const STORE_OVERRIDES = {
 
   // Store hooks necessary for using a single model class
   _hasModelFor(modelName) {
+    debugger;
     return get(this, '_schemaManager').includesModel(modelName) || this._super(modelName);
   },
 
   _modelFactoryFor(modelName) {
+    debugger;
     if (get(this, '_schemaManager').includesModel(modelName)) {
       return MegamorphicModelFactory;
-    }
-    return this._super(modelName);
-  },
-
-  _relationshipsDefinitionFor: function(modelName) {
-    if (false) {
-      //assert
-      return;
-    }
-    if (get(this, '_schemaManager').includesModel(modelName)) {
-      return Object.create(null);
-    }
-    return this._super(modelName);
-  },
-
-  _attributesDefinitionFor: function(modelName, id) {
-    if (false) {
-      //assert
-      return;
-    }
-    if (get(this, '_schemaManager').includesModel(modelName)) {
-      return this.recordDataFor(modelName, id).attributesDef();
     }
     return this._super(modelName);
   },
