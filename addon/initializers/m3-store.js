@@ -54,10 +54,12 @@ const STORE_OVERRIDES = {
     if (gte('ember-data', '3.12.0-alpha.0')) {
       this._modifiedInternalModelMapProto = undefined;
     }
-    this._globalM3CacheRD = new Object(null);
-    this._recordDataToRecordMap = recordDataToRecordMap;
-    let defaultSchema = this.getSchemaDefinitionService();
-    this.registerSchemaDefinitionService(new SchemaDefinition(this, defaultSchema));
+    if (false) {
+      this._globalM3CacheRD = new Object(null);
+      this._recordDataToRecordMap = recordDataToRecordMap;
+      let defaultSchema = this.getSchemaDefinitionService();
+      this.registerSchemaDefinitionService(new SchemaDefinition(this, defaultSchema));
+    }
   },
 
   // Store hooks necessary for using a single model class
@@ -71,9 +73,12 @@ const STORE_OVERRIDES = {
     }
     return this._super(modelName);
   },
-  /*
 
   _relationshipsDefinitionFor: function(modelName) {
+    if (false) {
+      //assert
+      return;
+    }
     if (get(this, '_schemaManager').includesModel(modelName)) {
       return Object.create(null);
     }
@@ -81,12 +86,15 @@ const STORE_OVERRIDES = {
   },
 
   _attributesDefinitionFor: function(modelName, id) {
+    if (false) {
+      //assert
+      return;
+    }
     if (get(this, '_schemaManager').includesModel(modelName)) {
       return this.recordDataFor(modelName, id).attributesDef();
     }
     return this._super(modelName);
   },
-  */
 
   adapterFor(modelName) {
     if (get(this, '_schemaManager').includesModel(modelName)) {
@@ -133,6 +141,57 @@ const STORE_OVERRIDES = {
     return this._super(...arguments);
   },
 
+  _pushInternalModel(jsonAPIResource) {
+    if (false) {
+      //assert
+      return;
+    }
+    let internalModel = this._super(jsonAPIResource);
+    let schemaManager = get(this, '_schemaManager');
+    let { type } = jsonAPIResource;
+    if (schemaManager.includesModel(type)) {
+      let baseName = schemaManager.computeBaseModelName(dasherize(type));
+      if (baseName === null || baseName === undefined) {
+        // only populate base records in the global cache
+        this._globalM3Cache[internalModel.id] = internalModel;
+      }
+    }
+
+    if (gte('ember-data', '3.12.0-alpha.0')) {
+      if (this._modifiedInternalModelMapProto === undefined) {
+        let store = this;
+        // set this up for removals
+        let proto = (this._modifiedInternalModelMapProto = Object.getPrototypeOf(
+          this._internalModelsFor(self.modelName)
+        ));
+
+        let originalRemove = proto.remove;
+        proto.__originalRemove = originalRemove;
+        proto.remove = function remove(internalModel) {
+          delete store._globalM3Cache[internalModel.id];
+          return originalRemove.apply(this, arguments);
+        };
+        this._internalModelMapModified = true;
+      }
+    }
+
+    return internalModel;
+  },
+
+  willDestroy() {
+    if (false) {
+      // assert
+      return;
+    }
+    if (gte('ember-data', '3.12.0-alpha.0')) {
+      if (this._modifiedInternalModelMapProto !== undefined) {
+        let proto = this._modifiedInternalModelMapProto;
+        proto.remove = proto.__originalRemove;
+        this._modifiedInternalModelMapProto = undefined;
+      }
+    }
+    return this._super();
+  },
   /**
    * A thin wrapper around the API response that knows how to look up references
    *
