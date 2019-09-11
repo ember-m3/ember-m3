@@ -150,7 +150,10 @@ export default class M3RecordArray extends EmberObject {
     this._resolved = true;
   }
 
-  _setInternalModels() {}
+  _setInternalModels(internalModels) {
+    this._setObjects(internalModels.map(im => im.getRecord()));
+  }
+
   _setReferences(references) {
     this._references = references;
     this._resolved = false;
