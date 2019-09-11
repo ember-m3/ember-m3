@@ -616,62 +616,104 @@ const isValid = computed(function() {
 
 /**
  */
-const isDirty = computed(function() {
-  if (this._topModel !== this) {
-    return this._topModel.get('isDirty');
-  }
-  return (
-    this._recordData.hasChangedAttributes() ||
-    ((this._recordData.isNew() || this._recordData.isDeleted()) &&
-      this._recordData.isNew() !== this._recordData.isDeleted())
-  );
-}).volatile();
+let isDirty;
+if (false) {
+  isDirty = computed(function() {
+    if (this._topModel !== this) {
+      return this._topModel.get('isDirty');
+    }
+    return (
+      this._recordData.hasChangedAttributes() ||
+      ((this._recordData.isNew() || this._recordData.isDeleted()) &&
+        this._recordData.isNew() !== this._recordData.isDeleted())
+    );
+  }).volatile();
+} else {
+  isDirty = retrieveFromCurrentState;
+}
 
-const isDeleted = computed(function() {
-  return this._recordData.isDeleted();
-}).volatile();
+let isDeleted;
+if (false) {
+  isDeleted = computed(function() {
+    return this._recordData.isDeleted();
+  }).volatile();
+} else {
+  isDeleted = retrieveFromCurrentState;
+}
 
-const isNew = computed(function() {
-  return this._recordData.isNew();
-});
+let isNew;
+if (false) {
+  isNew = computed(function() {
+    return this._recordData.isNew();
+  });
+} else {
+  isNew = retrieveFromCurrentState;
+}
 
-const isSaving = computed(function() {
-  let requests = this.store.getRequestStateService().getPendingRequestsForRecord(this._identifier);
-  return !!requests.find(req => req.request.data[0].op === 'saveRecord');
-});
+let isSaving;
+if (false) {
+  isSaving = computed(function() {
+    let requests = this.store
+      .getRequestStateService()
+      .getPendingRequestsForRecord(this._identifier);
+    return !!requests.find(req => req.request.data[0].op === 'saveRecord');
+  });
+} else {
+  isSaving = retrieveFromCurrentState;
+}
 
-const isLoaded = computed(function() {
-  return this._recordData._pushed;
-});
+let isLoaded;
+if (false) {
+  isLoaded = computed(function() {
+    return this._recordData._pushed;
+  });
+} else {
+  isLoaded = retrieveFromCurrentState;
+}
 
-const isLoading = computed(function() {
-  return !this.get('isLoaded');
-});
+let isLoading;
+if (false) {
+  isLoading = computed(function() {
+    return !this.get('isLoaded');
+  });
+} else {
+  isLoading = retrieveFromCurrentState;
+}
 
-const dirtyType = computed(function() {
-  if (this._recordData.isNew()) {
-    return 'created';
-  }
-  if (this._recordData.isDeleted()) {
-    return 'deleted';
-  }
-  if (this._recordData.hasChangedAttributes()) {
-    return 'updated';
-  }
-}).volatile();
+let dirtyType;
+if (false) {
+  dirtyType = computed(function() {
+    if (this._recordData.isNew()) {
+      return 'created';
+    }
+    if (this._recordData.isDeleted()) {
+      return 'deleted';
+    }
+    if (this._recordData.hasChangedAttributes()) {
+      return 'updated';
+    }
+  }).volatile();
+} else {
+  dirtyType = retrieveFromCurrentState;
+}
 
-const currentState = computed(function() {
-  let stateName = 'root';
-  stateName = stateName + '.loaded';
-  if (this._recordData.hasChangedAttributes()) {
-    stateName = stateName + '.updated.uncommitted';
-  } else {
-    stateName = stateName + '.saved';
-  }
-  return {
-    stateName,
-  };
-}).volatile();
+let currentState;
+if (false) {
+  currentState = computed(function() {
+    let stateName = 'root';
+    stateName = stateName + '.loaded';
+    if (this._recordData.hasChangedAttributes()) {
+      stateName = stateName + '.updated.uncommitted';
+    } else {
+      stateName = stateName + '.saved';
+    }
+    return {
+      stateName,
+    };
+  }).volatile();
+} else {
+  currentState = retrieveFromCurrentState;
+}
 // STATE PROPS
 defineProperty(MegamorphicModel.prototype, 'isLoading', isLoaded);
 defineProperty(MegamorphicModel.prototype, 'isLoaded', isLoading);
@@ -690,7 +732,7 @@ defineProperty(MegamorphicModel.prototype, 'isDeleted', isDeleted);
 defineProperty(MegamorphicModel.prototype, 'isNew', isNew);
 defineProperty(MegamorphicModel.prototype, 'isSaving', isSaving);
 
-defineProperty(MegamorphicModel.prototype, 'currentState', currentState);
+//defineProperty(MegamorphicModel.prototype, 'currentState', currentState);
 
 export class EmbeddedMegamorphicModel extends MegamorphicModel {
   save() {
