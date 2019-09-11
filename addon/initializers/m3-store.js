@@ -141,57 +141,6 @@ const STORE_OVERRIDES = {
     return this._super(...arguments);
   },
 
-  _pushInternalModel(jsonAPIResource) {
-    if (false) {
-      //assert
-      return;
-    }
-    let internalModel = this._super(jsonAPIResource);
-    let schemaManager = get(this, '_schemaManager');
-    let { type } = jsonAPIResource;
-    if (schemaManager.includesModel(type)) {
-      let baseName = schemaManager.computeBaseModelName(dasherize(type));
-      if (baseName === null || baseName === undefined) {
-        // only populate base records in the global cache
-        this._globalM3Cache[internalModel.id] = internalModel;
-      }
-    }
-
-    if (gte('ember-data', '3.12.0-alpha.0')) {
-      if (this._modifiedInternalModelMapProto === undefined) {
-        let store = this;
-        // set this up for removals
-        let proto = (this._modifiedInternalModelMapProto = Object.getPrototypeOf(
-          this._internalModelsFor(self.modelName)
-        ));
-
-        let originalRemove = proto.remove;
-        proto.__originalRemove = originalRemove;
-        proto.remove = function remove(internalModel) {
-          delete store._globalM3Cache[internalModel.id];
-          return originalRemove.apply(this, arguments);
-        };
-        this._internalModelMapModified = true;
-      }
-    }
-
-    return internalModel;
-  },
-
-  willDestroy() {
-    if (false) {
-      // assert
-      return;
-    }
-    if (gte('ember-data', '3.12.0-alpha.0')) {
-      if (this._modifiedInternalModelMapProto !== undefined) {
-        let proto = this._modifiedInternalModelMapProto;
-        proto.remove = proto.__originalRemove;
-        this._modifiedInternalModelMapProto = undefined;
-      }
-    }
-    return this._super();
-  },
   /**
    * A thin wrapper around the API response that knows how to look up references
    *
@@ -243,6 +192,58 @@ const STORE_OVERRIDES = {
     let result = this._super(jsonApiDoc);
     flushChanges(this);
     return result;
+  },
+
+  _pushInternalModel(jsonAPIResource) {
+    if (false) {
+      //assert
+      return;
+    }
+    let internalModel = this._super(jsonAPIResource);
+    let schemaManager = get(this, '_schemaManager');
+    let { type } = jsonAPIResource;
+    if (schemaManager.includesModel(type)) {
+      let baseName = schemaManager.computeBaseModelName(dasherize(type));
+      if (baseName === null || baseName === undefined) {
+        // only populate base records in the global cache
+        this._globalM3Cache[internalModel.id] = internalModel;
+      }
+    }
+
+    if (gte('ember-data', '3.12.0-alpha.0')) {
+      if (this._modifiedInternalModelMapProto === undefined) {
+        let store = this;
+        // set this up for removals
+        let proto = (this._modifiedInternalModelMapProto = Object.getPrototypeOf(
+          this._internalModelsFor(self.modelName)
+        ));
+
+        let originalRemove = proto.remove;
+        proto.__originalRemove = originalRemove;
+        proto.remove = function remove(internalModel) {
+          delete store._globalM3Cache[internalModel.id];
+          return originalRemove.apply(this, arguments);
+        };
+        this._internalModelMapModified = true;
+      }
+    }
+
+    return internalModel;
+  },
+
+  willDestroy() {
+    if (false) {
+      // assert
+      return;
+    }
+    if (gte('ember-data', '3.12.0-alpha.0')) {
+      if (this._modifiedInternalModelMapProto !== undefined) {
+        let proto = this._modifiedInternalModelMapProto;
+        proto.remove = proto.__originalRemove;
+        this._modifiedInternalModelMapProto = undefined;
+      }
+    }
+    return this._super();
   },
 };
 
