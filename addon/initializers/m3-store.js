@@ -64,12 +64,10 @@ const STORE_OVERRIDES = {
 
   // Store hooks necessary for using a single model class
   _hasModelFor(modelName) {
-    debugger;
     return get(this, '_schemaManager').includesModel(modelName) || this._super(modelName);
   },
 
   _modelFactoryFor(modelName) {
-    debugger;
     if (get(this, '_schemaManager').includesModel(modelName)) {
       return MegamorphicModelFactory;
     }
@@ -107,7 +105,6 @@ const STORE_OVERRIDES = {
       //recordDataToRecordMap.set(recordData, model);
       notificationManager.subscribe(identifier, (identifier, value) => {
         if (value === 'attributes') {
-          debugger;
         } else if (value === 'state') {
           record.notifyPropertyChange('isNew');
           record.notifyPropertyChange('isDeleted');

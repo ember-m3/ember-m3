@@ -65,9 +65,12 @@ export default class M3RecordArray extends EmberObject {
       return record;
     } else {
       let internalModel = this._objects[idx];
+      return internalModel;
+      /*
       return internalModel !== null && internalModel !== undefined
         ? internalModel.getRecord()
         : undefined;
+        */
     }
   }
 
@@ -122,6 +125,7 @@ export default class M3RecordArray extends EmberObject {
     }
   }
 
+  _removeInternalModels() {}
   // Private API
 
   _setObjects(objects, triggerChange = true) {
@@ -203,7 +207,11 @@ export default class M3RecordArray extends EmberObject {
       }
     }
     */
-    records.forEach(record => record && record._recordData._recordArrays.add(this));
+    if (false) {
+      records.forEach(record => record && record._recordData._recordArrays.add(this));
+    } else {
+      records.forEach(record => record && record._internalModel._recordArrays.add(this));
+    }
   }
 
   _resolve() {
