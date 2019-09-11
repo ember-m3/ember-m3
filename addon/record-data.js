@@ -319,7 +319,9 @@ export default class M3RecordData {
     if (jsonApiResource && jsonApiResource.id) {
       this.id = '' + jsonApiResource.id;
     }
-    this.globalM3CacheRD[this.id] = this;
+    if (false) {
+      this.globalM3CacheRD[this.id] = this;
+    }
     if (!this._parentRecordData) {
       // only set the record ID if it is a top-level recordData
       this.storeWrapper.setRecordId(this.modelName, this.id, this.clientId);
