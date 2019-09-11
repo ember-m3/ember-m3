@@ -38,7 +38,11 @@ export default class M3RecordArray extends EmberObject {
     if (addAmt > 0) {
       let _newRecords = A(newRecords);
       for (let i = 0; i < newObjects.length; ++i) {
-        newObjects[i] = _newRecords.objectAt(i);
+        if (false) {
+          newObjects[i] = _newRecords.objectAt(i);
+        } else {
+          newObjects[i] = _newRecords.objectAt(i)._internalModel;
+        }
       }
     }
 
@@ -55,9 +59,16 @@ export default class M3RecordArray extends EmberObject {
   }
 
   objectAtContent(idx) {
-    // TODO make this lazy again
-    let record = this._objects[idx];
-    return record;
+    if (false) {
+      // TODO make this lazy again
+      let record = this._objects[idx];
+      return record;
+    } else {
+      let internalModel = this._objects[idx];
+      return internalModel !== null && internalModel !== undefined
+        ? internalModel.getRecord()
+        : undefined;
+    }
   }
 
   objectAt(idx) {
@@ -91,6 +102,12 @@ export default class M3RecordArray extends EmberObject {
           let { id, type } = this._references[j];
           let dtype = type && dasherize(type);
           // TODO we might not need the second condition
+          let modelName;
+          if (false) {
+            modelName = object._recordData.modelName;
+          } else {
+            modelName = object.modelName;
+          }
           if (
             (dtype === null ||
               dtype === object.modelName ||
@@ -129,6 +146,7 @@ export default class M3RecordArray extends EmberObject {
     this._resolved = true;
   }
 
+  _setInternalModels() {}
   _setReferences(references) {
     this._references = references;
     this._resolved = false;
@@ -218,5 +236,9 @@ export function associateRecordWithRecordArray(record, recordArray) {
     // other tracked array is undefined behaviour
     return;
   }
-  record._recordData._recordArrays.add(recordArray);
+  if (false) {
+    record._recordData._recordArrays.add(recordArray);
+  } else {
+    record._internalModel._recordArrays.add(recordArray);
+  }
 }

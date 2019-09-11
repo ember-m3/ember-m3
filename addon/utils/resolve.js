@@ -15,6 +15,14 @@ export function computeNestedModel(key, value, modelName, schemaInterface, schem
   return nestedModel;
 }
 
+export function resolveReferencesWithInternalModels(store, references) {
+  return references.map(reference =>
+    reference.type
+      ? store._internalModelForId(dasherize(reference.type), reference.id)
+      : store._globalM3Cache[reference.id]
+  );
+}
+
 export function resolveReferencesWithRecords(store, references) {
   return references.map(reference => {
     if (reference.type) {
@@ -29,7 +37,11 @@ export function resolveReferencesWithRecords(store, references) {
 }
 
 export function isResolvedValue(value) {
-  return value && value.constructor && (value.constructor.isModel || value.constructor.isM3Model);
+  if (false) {
+    return value && value.constructor && (value.constructor.isModel || value.constructor.isM3Model);
+  } else {
+    return value && value.constructor && value.constructor.isModel;
+  }
 }
 
 export function getOrCreateRecordFromRD(rd, store) {

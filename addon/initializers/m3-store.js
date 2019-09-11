@@ -194,6 +194,9 @@ const STORE_OVERRIDES = {
     return result;
   },
 
+  // These two hooks are used for the secondary cache
+  // TODO: make secondary caches possible via public API
+
   _pushInternalModel(jsonAPIResource) {
     if (false) {
       //assert
