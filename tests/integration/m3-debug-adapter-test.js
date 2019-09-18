@@ -1,23 +1,15 @@
 import { setupTest } from 'ember-qunit';
 import { get } from '@ember/object';
-import { A } from '@ember/array';
-import { settled } from '@ember/test-helpers';
-import DebugAdapter from 'ember-m3/adapters/debug-adapter';
 import { module, test } from 'qunit';
-import sinon from 'sinon';
 import DefaultSchema from 'ember-m3/services/m3-schema';
+import M3DebugAdapter from 'ember-m3/adapters/m3-debug-adapter';
 
 const BOOK_MODEL_TYPE = 'com.example.bookstore.Book';
 
-module('integration/debug-adapter', function(hooks) {
+module('integration/m3-debug-adapter', function(hooks) {
   setupTest(hooks);
 
   hooks.beforeEach(function() {
-    this.sinon = sinon.createSandbox();
-
-    this.store = this.owner.lookup('service:store');
-    this.owner.register('data-adapter:main', DebugAdapter);
-    this.debugAdapter = this.owner.lookup('data-adapter:main');
     this.owner.register(
       'service:m3-schema',
       class TestSchema extends DefaultSchema {
@@ -42,6 +34,13 @@ module('integration/debug-adapter', function(hooks) {
         }
       }
     );
+    this.schema = this.owner.lookup('service:m3-schema');
+    this.store = this.owner.lookup('service:store');
+
+    this._m3debugAdapter = M3DebugAdapter.create({
+      store: this.store,
+      schema: this.schema,
+    });
 
     this.wrappedModelTypeObject = {
       name: BOOK_MODEL_TYPE,
@@ -135,12 +134,8 @@ module('integration/debug-adapter', function(hooks) {
     });
   });
 
-  hooks.afterEach(function() {
-    this.sinon.restore();
-  });
-
   test('getModelTypes returns a list of model types', function(assert) {
-    const modelTypes = this.debugAdapter.getModelTypes();
+    const modelTypes = this._m3debugAdapter.getModelTypes();
     const modelTypeArray = [
       {
         klass: 'com.example.bookstore.reader-comment',
@@ -161,7 +156,7 @@ module('integration/debug-adapter', function(hooks) {
 
   test('columnsForType returns attribute names as expected when records exist', function(assert) {
     const bookstore = this.store.peekAll(BOOK_MODEL_TYPE);
-    const columns = this.debugAdapter.columnsForType(bookstore);
+    const columns = this._m3debugAdapter.columnsForType(bookstore);
 
     assert.equal(columns.length, 6, 'A column is added for each attribute on the record');
     assert.deepEqual(columns[0], { name: 'id', desc: 'id' });
@@ -174,7 +169,7 @@ module('integration/debug-adapter', function(hooks) {
 
   test('columnsForType returns attribute names as expected when records have different attribute values', function(assert) {
     const readerComments = this.store.peekAll('com.example.bookstore.ReaderComment');
-    const columns = this.debugAdapter.columnsForType(readerComments);
+    const columns = this._m3debugAdapter.columnsForType(readerComments);
 
     assert.equal(columns.length, 5, 'A column is added for each attribute on the record');
     assert.deepEqual(columns[0], { name: 'id', desc: 'id' });
@@ -186,12 +181,12 @@ module('integration/debug-adapter', function(hooks) {
 
   test('getRecordColumnValues returns attribute values as expected when records exist', function(assert) {
     const bookstore = this.store.peekRecord(BOOK_MODEL_TYPE, 'urn:bookstore:1');
-    const bookValuesObject = this.debugAdapter.getRecordColumnValues(bookstore);
+    const bookValuesObject = this._m3debugAdapter.getRecordColumnValues(bookstore);
     const readerComment = this.store.peekRecord(
       'com.example.bookstore.ReaderComment',
       'urn:comment:2'
     );
-    const readerValuesObject = this.debugAdapter.getRecordColumnValues(readerComment);
+    const readerValuesObject = this._m3debugAdapter.getRecordColumnValues(readerComment);
 
     assert.deepEqual(
       bookValuesObject,
@@ -232,7 +227,7 @@ module('integration/debug-adapter', function(hooks) {
   });
 
   test('getRecords returns list of records for a specific model type', function(assert) {
-    const records = this.debugAdapter.getRecords(BOOK_MODEL_TYPE);
+    const records = this._m3debugAdapter.getRecords(BOOK_MODEL_TYPE);
     assert.equal(
       get(records, 'modelName'),
       'com.example.bookstore.book',
@@ -241,51 +236,8 @@ module('integration/debug-adapter', function(hooks) {
     assert.equal(get(records, 'length'), 1, 'Correct number of models is returned');
   });
 
-  test('It handles adding new types dynamically', async function(assert) {
-    this.debugAdapter.addedType = this.sinon.stub();
-
-    this.owner.lookup('service:m3-schema').watchModelTypes = true;
-
-    this.store.pushPayload('com.example.newModel', {
-      data: {
-        id: 'urn:model:1',
-        type: 'com.example.newModel',
-        attributes: {
-          $type: 'com.example.newModel',
-          name: 'This is a new model',
-        },
-      },
-    });
-    await settled();
-
-    assert.ok(
-      this.debugAdapter.addedType.calledWithExactly('com.example.new-model'),
-      'addedType is called when new model types are pushed into the store'
-    );
-  });
-
-  test('addedType wraps model and notifies Ember Inspector of new types', async function(assert) {
-    this.debugAdapter.typesAddedCallback = this.sinon.stub();
-    this.debugAdapter.typesUpdatedCallback = this.sinon.stub();
-    this.debugAdapter.localReleaseMethods = A([]);
-
-    this.debugAdapter.addedType(BOOK_MODEL_TYPE);
-
-    assert.ok(
-      this.debugAdapter.typesAddedCallback.calledWithExactly([this.wrappedModelTypeObject]),
-      'addedType processes and wraps new model types when they are pushed into the store'
-    );
-
-    this.debugAdapter.addedType(BOOK_MODEL_TYPE);
-
-    assert.ok(
-      this.debugAdapter.typesAddedCallback.calledOnce,
-      'typesAddedCallback is not executed again if same model type is passed into addedType'
-    );
-  });
-
   test('wrapModelType returns wrapper object that includes record information', function(assert) {
-    const wrappedModelType = this.debugAdapter.wrapModelType(BOOK_MODEL_TYPE);
+    const wrappedModelType = this._m3debugAdapter.wrapModelType(BOOK_MODEL_TYPE);
 
     assert.deepEqual(
       this.wrappedModelTypeObject,
