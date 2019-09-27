@@ -285,4 +285,5 @@ export default class DebugAdapter extends DataAdapter {
   }
 }
 
+defineProperty(DebugAdapter.prototype, 'store', inject('store'));
 defineProperty(DebugAdapter.prototype, 'schema', inject('m3-schema'));
