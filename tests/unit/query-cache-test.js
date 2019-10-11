@@ -289,6 +289,21 @@ module('unit/query-cache', function(hooks) {
     });
   });
 
+  test('.queryURL can resolve model with meta', function(assert) {
+    let payload = {
+      data: [],
+      meta: {
+        paging: true,
+      },
+    };
+
+    this.adapterAjax.returns(resolve(payload));
+
+    return this.queryCache.queryURL('/uwot').then(model => {
+      assert.ok(model.get('meta.paging'));
+    });
+  });
+
   test('.queryURL resolves with record arrays that have unloaded records removed', function(assert) {
     let payload = {
       data: [
