@@ -1,6 +1,7 @@
 import { Promise as RSVPPromise } from 'rsvp';
 import { assert } from '@ember/debug';
 import { get } from '@ember/object';
+import { assign } from '@ember/polyfills';
 
 import MegamorphicModel from './model';
 import M3QueryArray from './query-array';
@@ -207,7 +208,7 @@ export default class QueryCache {
       }
       return array;
     } else if (Array.isArray(internalModelOrModels)) {
-      return this._createQueryArray(internalModelOrModels, query);
+      return this._createQueryArray(internalModelOrModels, query, payload);
     } else {
       if (CUSTOM_MODEL_CLASS) {
         return internalModelOrModels;
@@ -239,7 +240,7 @@ export default class QueryCache {
     cacheKeys.push(cacheKey);
   }
 
-  _createQueryArray(internalModelsOrModels, query) {
+  _createQueryArray(internalModelsOrModels, query, payload) {
     let array = M3QueryArray.create({
       modelName: '-ember-m3',
       store: this._store,
@@ -247,6 +248,7 @@ export default class QueryCache {
 
       queryCache: this,
       query,
+      meta: assign({}, payload.meta),
     });
 
     if (CUSTOM_MODEL_CLASS) {
