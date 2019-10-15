@@ -1,22 +1,23 @@
 import { A, isArray } from '@ember/array';
 import DataAdapter from '@ember/debug/data-adapter';
-import { get } from '@ember/object';
+import { get, defineProperty } from '@ember/object';
+import { inject } from '@ember/service';
 import seenTypesPerStore from '../utils/seen-types-per-store';
 import { default as MegamorphicModel } from '../model';
 
 /*
   Extend `Ember.DataAdapter` with m3 specific code
 
-  @class M3DebugAdapter
+  @class DebugAdapter
   @extends Ember.DataAdapter
   @private
 */
 
 // TODO: implement getFilters/getRecordColor/getRecordFilterValues (for record state in the cache)
 // and getRecordKeywords (for search)
-export default class M3DebugAdapter extends DataAdapter {
-  init(options = {}) {
-    super.init(options, ...arguments);
+export default class DebugAdapter extends DataAdapter {
+  init() {
+    super.init(...arguments);
     // This keeps track of all model types the debug adapter has seen already (so we don't watch for changes twice)
     this.seenTypesInAdapter = new Set();
     // This is the same attribute limit value that is set in Ember Inspector
@@ -88,7 +89,7 @@ export default class M3DebugAdapter extends DataAdapter {
   */
   getModelTypes() {
     let modelTypes = [];
-    let allModelNames = seenTypesPerStore.get(this.store);
+    let allModelNames = seenTypesPerStore.get(get(this, 'store'));
 
     allModelNames.forEach(name => {
       // we need to keep klass even though it is not technically needed/correct
@@ -223,6 +224,7 @@ export default class M3DebugAdapter extends DataAdapter {
   */
   addedType(type) {
     // TODO: Store columns in seenType and do a deep equal check to see if they need to be updated
+
     // If a new model type is added, we need to notify Ember Inspector of it
     if (!this.seenTypesInAdapter.has(type)) {
       this.seenTypesInAdapter.add(type);
@@ -264,7 +266,7 @@ export default class M3DebugAdapter extends DataAdapter {
 
     // We set watchModelTypes to true so that the m3 schema service knows when we are in debug mode
     // and needs to notify the debug adapter of new model types added
-    this.schema.watchModelTypes = true;
+    this.get('schema').watchModelTypes = true;
 
     this.typesAddedCallback = typesAdded;
     this.typesUpdatedCallback = typesUpdated;
@@ -282,3 +284,6 @@ export default class M3DebugAdapter extends DataAdapter {
     return release;
   }
 }
+
+defineProperty(DebugAdapter.prototype, 'store', inject('store'));
+defineProperty(DebugAdapter.prototype, 'schema', inject('m3-schema'));

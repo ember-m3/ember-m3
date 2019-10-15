@@ -1,5 +1,5 @@
 import DS from 'ember-data';
-import InteropDebugAdapter from '../adapters/interop-debug-adapter';
+import DebugAdapter from '../adapters/debug-adapter';
 import { inject } from '@ember/service';
 import { get } from '@ember/object';
 import { IS_RECORD_DATA, gte } from 'ember-compatibility-helpers';
@@ -304,7 +304,7 @@ export function extendStore(Store) {
  @param {Ember.Registry} registry
  */
 function initializeDebugAdapter(registry) {
-  registry.register('data-adapter:main', InteropDebugAdapter);
+  registry.register('data-adapter:main', DebugAdapter);
 }
 
 export function initialize(application) {
