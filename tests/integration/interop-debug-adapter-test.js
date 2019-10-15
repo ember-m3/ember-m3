@@ -147,7 +147,7 @@ module('integration/interop-debug-adapter', function(hooks) {
   });
 
   test('watchModelTypes correctly watches both m3 and DS.Model records', async function(assert) {
-    assert.expect(6);
+    assert.expect(7);
 
     let typesAddedCallCount = 0;
     let typesUpdatedCallCount = 0;
@@ -161,13 +161,16 @@ module('integration/interop-debug-adapter', function(hooks) {
       },
     ];
 
-    const dsTypesAdded = [
+    const dsTypesAdded1 = [
       {
         name: 'publisher',
         count: 1,
         columns: generateDSColumns(['id', 'name', 'foundedDate']),
         object: this.owner.factoryFor('model:publisher').class,
       },
+    ];
+
+    const dsTypesAdded2 = [
       {
         columns: generateDSColumns(['id', 'name', 'description']),
         count: 0,
@@ -226,10 +229,16 @@ module('integration/interop-debug-adapter', function(hooks) {
         case 2:
           return assert.deepEqual(
             typesToSend,
-            dsTypesAdded,
+            dsTypesAdded1,
             'Correct type object passed into typesAdded for DS.Model record types'
           );
         case 3:
+          return assert.deepEqual(
+            typesToSend,
+            dsTypesAdded2,
+            'Correct type object passed into typesAdded for DS.Model record types'
+          );
+        case 4:
           return assert.deepEqual(
             typesToSend,
             newM3TypesAdded,
