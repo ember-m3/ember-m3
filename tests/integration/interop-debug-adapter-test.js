@@ -245,6 +245,7 @@ module('integration/interop-debug-adapter', function(hooks) {
           } else {
             // fall through to case 4
           }
+        // eslint-disable-next-line no-fallthrough
         case 4:
           return assert.deepEqual(
             typesToSend,
