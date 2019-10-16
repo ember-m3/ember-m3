@@ -1,8 +1,15 @@
-import { DebugAdapter } from 'ember-data/-private';
 import M3DebugAdapter from './m3-debug-adapter';
 import { get, defineProperty } from '@ember/object';
 import { inject } from '@ember/service';
 import { default as MegamorphicModel } from '../model';
+import require, { has } from 'require';
+
+let DebugAdapter;
+if (has('@ember-data/debug')) {
+  DebugAdapter = require('@ember-data/debug').default;
+} else {
+  DebugAdapter = require('ember-data/-private').DebugAdapter;
+}
 
 /*
   Extend Ember Data's `DebugAdapter` to handle both m3 and DS.Model model types
@@ -61,14 +68,27 @@ export default class InteropDebugAdapter extends DebugAdapter {
     @return {Function} Method to call to remove all observers from m3 and DS.Model model types
   */
   watchModelTypes(typesAdded, typesUpdated) {
+    const schema = this.schema;
     let releaseM3 = this._m3DebugAdapter.watchModelTypes(typesAdded, typesUpdated);
-    let releaseSuper = super.watchModelTypes(typesAdded, typesUpdated);
+    let releaseSuper = super.watchModelTypes(
+      interceptDataTypes(schema, typesAdded),
+      interceptDataTypes(schema, typesUpdated)
+    );
 
     return () => {
       releaseSuper();
       releaseM3();
     };
   }
+}
+
+function interceptDataTypes(schema, method) {
+  return types => {
+    const dataTypes = types.filter(type => !schema.includesModel(type.name));
+    if (dataTypes.length) {
+      method(dataTypes);
+    }
+  };
 }
 
 defineProperty(InteropDebugAdapter.prototype, 'schema', inject('m3-schema'));

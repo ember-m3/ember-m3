@@ -7,6 +7,9 @@ import { capitalize, underscore } from '@ember/string';
 import { A } from '@ember/array';
 import InteropDebugAdapter from 'ember-m3/adapters/interop-debug-adapter';
 import DefaultSchema from 'ember-m3/services/m3-schema';
+import { has } from 'require';
+
+const HasDebugAdapterPackage = has('@ember-data/debug');
 
 const BOOK_MODEL_TYPE = 'com.example.bookstore.Book';
 const NEW_MODEL_TYPE = 'com.example.newModel';
@@ -147,7 +150,7 @@ module('integration/interop-debug-adapter', function(hooks) {
   });
 
   test('watchModelTypes correctly watches both m3 and DS.Model records', async function(assert) {
-    assert.expect(6);
+    assert.expect(HasDebugAdapterPackage ? 7 : 6);
 
     let typesAddedCallCount = 0;
     let typesUpdatedCallCount = 0;
@@ -161,13 +164,16 @@ module('integration/interop-debug-adapter', function(hooks) {
       },
     ];
 
-    const dsTypesAdded = [
+    const dsTypesAdded1 = [
       {
         name: 'publisher',
         count: 1,
         columns: generateDSColumns(['id', 'name', 'foundedDate']),
         object: this.owner.factoryFor('model:publisher').class,
       },
+    ];
+
+    const dsTypesAdded2 = [
       {
         columns: generateDSColumns(['id', 'name', 'description']),
         count: 0,
@@ -226,10 +232,21 @@ module('integration/interop-debug-adapter', function(hooks) {
         case 2:
           return assert.deepEqual(
             typesToSend,
-            dsTypesAdded,
+            HasDebugAdapterPackage ? dsTypesAdded1 : dsTypesAdded1.concat(dsTypesAdded2),
             'Correct type object passed into typesAdded for DS.Model record types'
           );
         case 3:
+          if (HasDebugAdapterPackage) {
+            return assert.deepEqual(
+              typesToSend,
+              dsTypesAdded2,
+              'Correct type object passed into typesAdded for DS.Model record types'
+            );
+          } else {
+            // fall through to case 4
+          }
+        // eslint-disable-next-line no-fallthrough
+        case 4:
           return assert.deepEqual(
             typesToSend,
             newM3TypesAdded,
