@@ -475,10 +475,13 @@ export default class MegamorphicModel extends EmberObject {
     this._schema.setAttribute(this._modelName, attr, value, schemaInterface);
     schemaInterface._suppressNotifications = priorSuppressNotifications;
 
-    const isDirty = recordData.hasDirtyAttr();
+    const hasDirtyAttr = recordData.hasDirtyAttr();
+    const isDirty = get(this, 'isDirty');
 
-    if (isDirty && !this.get('isDirty')) {
+    if (hasDirtyAttr && !isDirty) {
       this._updateCurrentState(updatedUncommitted);
+    } else if (!hasDirtyAttr && isDirty) {
+      this._updateCurrentState(loadedSaved);
     }
   }
 

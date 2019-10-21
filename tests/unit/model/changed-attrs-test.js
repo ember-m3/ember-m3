@@ -80,6 +80,12 @@ module('unit/model/changed-attrs', function(hooks) {
       assert.equal(currentState(model), 'root.loaded.saved', 'model.state loaded.saved');
     }
     run(() => {
+      const originalValue = get(model, 'rating');
+      set(model, 'rating', null);
+      set(model, 'rating', originalValue);
+    });
+    assert.ok(!get(model, 'isDirty'), 'model is clean when changed back to original value');
+    run(() => {
       model.set('name', 'Alice in Wonderland');
       model.set('rating', null);
       model.set('expectedPubDate', undefined);
