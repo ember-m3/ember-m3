@@ -285,7 +285,10 @@ module('unit/query-cache', function(hooks) {
     this.adapterAjax.returns(resolve(payload));
 
     return this.queryCache.queryURL('/uwot').then(fulfilledValue => {
-      assert.deepEqual(fulfilledValue.toArray().map(x => x.id), ['1', '2']);
+      assert.deepEqual(
+        fulfilledValue.toArray().map(x => x.id),
+        ['1', '2']
+      );
     });
   });
 
@@ -325,15 +328,24 @@ module('unit/query-cache', function(hooks) {
     return this.queryCache
       .queryURL('/uwot')
       .then(fulfilledValue => {
-        assert.deepEqual(fulfilledValue.toArray().map(x => x.id), ['1', '2']);
+        assert.deepEqual(
+          fulfilledValue.toArray().map(x => x.id),
+          ['1', '2']
+        );
 
         run(() => fulfilledValue.objectAt(0).unloadRecord());
-        assert.deepEqual(fulfilledValue.toArray().map(x => x.id), ['2']);
+        assert.deepEqual(
+          fulfilledValue.toArray().map(x => x.id),
+          ['2']
+        );
 
         let newRecord = this.store.createRecord('something', { id: '3' });
         fulfilledValue.pushObject(newRecord);
 
-        assert.deepEqual(fulfilledValue.toArray().map(x => x.id), ['2', '3']);
+        assert.deepEqual(
+          fulfilledValue.toArray().map(x => x.id),
+          ['2', '3']
+        );
 
         run(() => {
           newRecord.deleteRecord();
@@ -343,7 +355,10 @@ module('unit/query-cache', function(hooks) {
         return fulfilledValue;
       })
       .then(fulfilledValue => {
-        assert.deepEqual(fulfilledValue.toArray().map(x => x.id), ['2']);
+        assert.deepEqual(
+          fulfilledValue.toArray().map(x => x.id),
+          ['2']
+        );
       });
   });
 
@@ -604,7 +619,11 @@ module('unit/query-cache', function(hooks) {
         return this.queryCache.queryURL('/uwot', options);
       })
       .then(models => {
-        assert.deepEqual(models.map(x => x.id), ['3'], 'cache can be used after being cleared');
+        assert.deepEqual(
+          models.map(x => x.id),
+          ['3'],
+          'cache can be used after being cleared'
+        );
         assert.equal(this.adapterAjax.callCount, 2, 'adapter.ajax is not called again');
       });
   });
@@ -799,7 +818,11 @@ module('unit/query-cache', function(hooks) {
     this.adapterAjax.returns(resolve(firstPayload));
 
     return this.queryCache.queryURL('/ohai').then(models => {
-      assert.deepEqual(models.toArray().map(x => x.id), ['1', '2'], 'models are initially correct');
+      assert.deepEqual(
+        models.toArray().map(x => x.id),
+        ['1', '2'],
+        'models are initially correct'
+      );
 
       this.adapterAjax.returns(resolve(secondPayload));
 
@@ -812,7 +835,11 @@ module('unit/query-cache', function(hooks) {
         assert.equal(models.get('isLoaded'), true, 'record array is loaded after update');
         assert.equal(models.get('isUpdating'), false, 'record array is not updating after update');
 
-        assert.deepEqual(models.toArray().map(x => x.id), ['1', '3'], 'models are updated');
+        assert.deepEqual(
+          models.toArray().map(x => x.id),
+          ['1', '3'],
+          'models are updated'
+        );
       });
     });
   });

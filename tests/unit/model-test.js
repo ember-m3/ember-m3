@@ -428,10 +428,10 @@ module('unit/model', function(hooks) {
       });
     });
 
-    assert.deepEqual(get(model, 'chapters').map(x => get(x, 'name')), [
-      'The Boy Who Lived',
-      'The Vanishing Glass',
-    ]);
+    assert.deepEqual(
+      get(model, 'chapters').map(x => get(x, 'name')),
+      ['The Boy Who Lived', 'The Vanishing Glass']
+    );
   });
 
   test('.unknownProperty resolves heterogenous arrays of m3-references, ds-references and nested objects', function(assert) {
@@ -1414,9 +1414,13 @@ module('unit/model', function(hooks) {
       });
     });
 
-    assert.deepEqual(zip(propChange.thisValues.map(x => x + ''), propChange.args), [
-      [model + '', ['name']],
-    ]);
+    assert.deepEqual(
+      zip(
+        propChange.thisValues.map(x => x + ''),
+        propChange.args
+      ),
+      [[model + '', ['name']]]
+    );
   });
 
   test('omitted attributes do not trigger changes', function(assert) {
@@ -1456,7 +1460,10 @@ module('unit/model', function(hooks) {
     );
 
     assert.deepEqual(
-      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      zip(
+        propChange.thisValues.map(x => x + ''),
+        propChange.args
+      ),
       [],
       'omitted attributes do not trigger changes'
     );
@@ -1492,7 +1499,10 @@ module('unit/model', function(hooks) {
     });
 
     assert.deepEqual(
-      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      zip(
+        propChange.thisValues.map(x => x + ''),
+        propChange.args
+      ),
       [[model + '', ['name']]],
       'nulled attributes are treated as changed'
     );
@@ -1558,7 +1568,10 @@ module('unit/model', function(hooks) {
     });
 
     assert.deepEqual(
-      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      zip(
+        propChange.thisValues.map(x => x + ''),
+        propChange.args
+      ),
       [
         [doubleNested + '', ['name']],
         [doubleNested + '', ['number']],
@@ -1625,7 +1638,10 @@ module('unit/model', function(hooks) {
     });
 
     assert.deepEqual(
-      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      zip(
+        propChange.thisValues.map(x => x + ''),
+        propChange.args
+      ),
       [],
       'nulled attributes in nested models are detected as changed'
     );
@@ -1668,7 +1684,10 @@ module('unit/model', function(hooks) {
     });
 
     assert.deepEqual(
-      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      zip(
+        propChange.thisValues.map(x => x + ''),
+        propChange.args
+      ),
       [[model + '', ['chapterCount']]],
       'new attributes are treated as changes'
     );
@@ -1715,7 +1734,10 @@ module('unit/model', function(hooks) {
     });
 
     assert.deepEqual(
-      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      zip(
+        propChange.thisValues.map(x => x + ''),
+        propChange.args
+      ),
       [[nested + '', ['number']]],
       'new attributes in nested models are treated as changes'
     );
@@ -1779,8 +1801,14 @@ module('unit/model', function(hooks) {
     });
 
     assert.deepEqual(
-      zip(propChange.thisValues.map(x => x + ''), propChange.args),
-      [[nested + '', ['name']], [doubleNested + '', ['name']]],
+      zip(
+        propChange.thisValues.map(x => x + ''),
+        propChange.args
+      ),
+      [
+        [nested + '', ['name']],
+        [doubleNested + '', ['name']],
+      ],
       'property changes are called for changed attributes on nested models, but not for unchanged attributes'
     );
   });
@@ -1825,7 +1853,10 @@ module('unit/model', function(hooks) {
 
     assert.equal(init.callCount, 1, 'nested models are not eaagerly created from changes');
     assert.deepEqual(
-      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      zip(
+        propChange.thisValues.map(x => x + ''),
+        propChange.args
+      ),
       [[model + '', ['nextChapter']]],
       'nested model from null is treated as a change'
     );
@@ -1872,7 +1903,10 @@ module('unit/model', function(hooks) {
 
     assert.equal(init.callCount, 1, 'nested models are not eaagerly created from changes');
     assert.deepEqual(
-      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      zip(
+        propChange.thisValues.map(x => x + ''),
+        propChange.args
+      ),
       [[model + '', ['nextChapter']]],
       'nested model from null is treated as a change'
     );
@@ -1918,7 +1952,10 @@ module('unit/model', function(hooks) {
 
     assert.equal(init.callCount, 2, 'no additional models created');
     assert.deepEqual(
-      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      zip(
+        propChange.thisValues.map(x => x + ''),
+        propChange.args
+      ),
       [[model + '', ['nextChapter']]],
       'nested model -> null is a change'
     );
@@ -1963,7 +2000,10 @@ module('unit/model', function(hooks) {
 
     assert.equal(init.callCount, 2, 'no additional models created');
     assert.deepEqual(
-      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      zip(
+        propChange.thisValues.map(x => x + ''),
+        propChange.args
+      ),
       [[model + '', ['nextChapter']]],
       'nested model -> primitive is a change'
     );
@@ -2007,7 +2047,10 @@ module('unit/model', function(hooks) {
 
     assert.equal(init.callCount, 1, 'no additional models created');
     assert.deepEqual(
-      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      zip(
+        propChange.thisValues.map(x => x + ''),
+        propChange.args
+      ),
       [[model + '', ['nextChapter']]],
       'nested model -> null is a change'
     );
@@ -2062,7 +2105,10 @@ module('unit/model', function(hooks) {
 
     assert.equal(init.callCount, 3, 'new model has been created for the update');
     assert.deepEqual(
-      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      zip(
+        propChange.thisValues.map(x => x + ''),
+        propChange.args
+      ),
       [[model + '', ['nextPart']]],
       'nested model change has been triggered if type has changed'
     );
@@ -2114,7 +2160,10 @@ module('unit/model', function(hooks) {
 
     assert.equal(init.callCount, 3, 'new model has been created for the update');
     assert.deepEqual(
-      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      zip(
+        propChange.thisValues.map(x => x + ''),
+        propChange.args
+      ),
       [[model + '', ['nextChapter']]],
       'nested model change has been triggered if id has changed'
     );
@@ -2166,7 +2215,10 @@ module('unit/model', function(hooks) {
 
     assert.equal(init.callCount, 2, 'no new models should be created');
     assert.deepEqual(
-      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      zip(
+        propChange.thisValues.map(x => x + ''),
+        propChange.args
+      ),
       [],
       'no property change should be triggered'
     );
@@ -2211,7 +2263,10 @@ module('unit/model', function(hooks) {
 
     assert.equal(init.callCount, 1, 'no additional models created');
     assert.deepEqual(
-      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      zip(
+        propChange.thisValues.map(x => x + ''),
+        propChange.args
+      ),
       [[model + '', ['nextChapter']]],
       'nested pojo -> pojo change is not triggered if the values are the same'
     );
@@ -2260,7 +2315,10 @@ module('unit/model', function(hooks) {
 
     assert.equal(init.callCount, 2, 'no additional models created');
     assert.deepEqual(
-      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      zip(
+        propChange.thisValues.map(x => x + ''),
+        propChange.args
+      ),
       [],
       'nested pojo -> pojo change is not triggered if the values are the same and the nested model is reified'
     );
@@ -2315,7 +2373,10 @@ module('unit/model', function(hooks) {
 
     assert.equal(init.callCount, 3, 'no additional models created');
     assert.deepEqual(
-      zip(propChange.thisValues.map(x => x + ''), propChange.args),
+      zip(
+        propChange.thisValues.map(x => x + ''),
+        propChange.args
+      ),
       [[model + '', ['chapters']]],
       'nested array -> array change even if the values are deep equal'
     );
@@ -2541,16 +2602,22 @@ module('unit/model', function(hooks) {
 
     let warnSpy = this.sinon.stub(Ember, 'warn');
     nestedModel.unloadRecord();
-    assert.deepEqual(zip(warnSpy.thisValues.map(x => x + ''), warnSpy.args), [
+    assert.deepEqual(
+      zip(
+        warnSpy.thisValues.map(x => x + ''),
+        warnSpy.args
+      ),
       [
-        'Ember',
         [
-          "Nested models cannot be directly unloaded.  Perhaps you meant to unload the top level model, 'com.example.bookstore.book:1'",
-          false,
-          { id: 'ember-m3.nested-model-unloadRecord' },
+          'Ember',
+          [
+            "Nested models cannot be directly unloaded.  Perhaps you meant to unload the top level model, 'com.example.bookstore.book:1'",
+            false,
+            { id: 'ember-m3.nested-model-unloadRecord' },
+          ],
         ],
-      ],
-    ]);
+      ]
+    );
     assert.equal(
       this.store.hasRecordForId('com.example.bookstore.book', '1'),
       true,
