@@ -32,7 +32,12 @@ module('unit/utils/notify-changes', function(hooks) {
     flushChanges(this.store);
     assert.deepEqual(
       changes,
-      [[a, 'foo'], [a, 'bar'], [b, 'foo'], [b, 'bar']],
+      [
+        [a, 'foo'],
+        [a, 'bar'],
+        [b, 'foo'],
+        [b, 'bar'],
+      ],
       'changes triggered in order'
     );
   });

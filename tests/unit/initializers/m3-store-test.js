@@ -100,7 +100,10 @@ module('unit/initializers/m3-store', function(hooks) {
     this.store.adapterFor('non-matching-type');
 
     assert.deepEqual(
-      zip(this.adapterForStub.thisValues.map(x => x + ''), this.adapterForStub.args),
+      zip(
+        this.adapterForStub.thisValues.map(x => x + ''),
+        this.adapterForStub.args
+      ),
       [[this.store + '', ['non-matching-type']]],
       'non-matching types are passed through'
     );
@@ -108,8 +111,14 @@ module('unit/initializers/m3-store', function(hooks) {
     this.store.adapterFor('com.example.bookstore.Book');
 
     assert.deepEqual(
-      zip(this.adapterForStub.thisValues.map(x => x + ''), this.adapterForStub.args),
-      [[this.store + '', ['non-matching-type']], [this.store + '', ['-ember-m3']]],
+      zip(
+        this.adapterForStub.thisValues.map(x => x + ''),
+        this.adapterForStub.args
+      ),
+      [
+        [this.store + '', ['non-matching-type']],
+        [this.store + '', ['-ember-m3']],
+      ],
       'matching types use the -ember-m3 adapter'
     );
   });
@@ -118,7 +127,10 @@ module('unit/initializers/m3-store', function(hooks) {
     this.store.serializerFor('non-matching-type');
 
     assert.deepEqual(
-      zip(this.serializerForStub.thisValues.map(x => x + ''), this.serializerForStub.args),
+      zip(
+        this.serializerForStub.thisValues.map(x => x + ''),
+        this.serializerForStub.args
+      ),
       [[this.store + '', ['non-matching-type']]],
       'non-matching types are passed through'
     );
@@ -126,8 +138,14 @@ module('unit/initializers/m3-store', function(hooks) {
     this.store.serializerFor('com.example.bookstore.Book');
 
     assert.deepEqual(
-      zip(this.serializerForStub.thisValues.map(x => x + ''), this.serializerForStub.args),
-      [[this.store + '', ['non-matching-type']], [this.store + '', ['-ember-m3']]],
+      zip(
+        this.serializerForStub.thisValues.map(x => x + ''),
+        this.serializerForStub.args
+      ),
+      [
+        [this.store + '', ['non-matching-type']],
+        [this.store + '', ['-ember-m3']],
+      ],
       'matching types use the -ember-m3 serializer'
     );
   });
@@ -136,7 +154,10 @@ module('unit/initializers/m3-store', function(hooks) {
     this.store._modelFactoryFor('non-matching-type');
 
     assert.deepEqual(
-      zip(this.modelFactoryForStub.thisValues.map(x => x + ''), this.modelFactoryForStub.args),
+      zip(
+        this.modelFactoryForStub.thisValues.map(x => x + ''),
+        this.modelFactoryForStub.args
+      ),
       [[this.store + '', ['non-matching-type']]],
       'non-matching types are passed through'
     );
@@ -148,7 +169,10 @@ module('unit/initializers/m3-store', function(hooks) {
     );
 
     assert.deepEqual(
-      zip(this.modelFactoryForStub.thisValues.map(x => x + ''), this.modelFactoryForStub.args),
+      zip(
+        this.modelFactoryForStub.thisValues.map(x => x + ''),
+        this.modelFactoryForStub.args
+      ),
       [[this.store + '', ['non-matching-type']]],
       'matching types do not require a call to super'
     );

@@ -89,10 +89,10 @@ module('unit/model/reference-array', function(hooks) {
       get(model, 'relatedBooks') instanceof M3ReferenceArray,
       'resolved arrays are reference arrays'
     );
-    assert.deepEqual(get(model, 'relatedBooks').map(x => get(x, 'name')), [
-      'Harry Potter and the Chamber of Secrets',
-      'Harry Potter and the Prisoner of Azkaban',
-    ]);
+    assert.deepEqual(
+      get(model, 'relatedBooks').map(x => get(x, 'name')),
+      ['Harry Potter and the Chamber of Secrets', 'Harry Potter and the Prisoner of Azkaban']
+    );
   });
 
   test('.unknownProperty resolves arrays of id-matched values against the global cache', function(assert) {
@@ -129,10 +129,10 @@ module('unit/model/reference-array', function(hooks) {
       get(model, 'relatedBooks') instanceof M3ReferenceArray,
       'resolved arrays are reference arrays'
     );
-    assert.deepEqual(get(model, 'relatedBooks').map(x => get(x, 'name')), [
-      'Harry Potter and the Chamber of Secrets',
-      'Harry Potter and the Prisoner of Azkaban',
-    ]);
+    assert.deepEqual(
+      get(model, 'relatedBooks').map(x => get(x, 'name')),
+      ['Harry Potter and the Chamber of Secrets', 'Harry Potter and the Prisoner of Azkaban']
+    );
   });
 
   test('.unknownProperty resolves reference arrays', function(assert) {
@@ -450,10 +450,10 @@ module('unit/model/reference-array', function(hooks) {
       });
     });
 
-    assert.deepEqual(get(model, 'relatedBooks').map(x => get(x, 'name')), [
-      'Harry Potter and the Chamber of Secrets',
-      'Harry Potter and the Prisoner of Azkaban',
-    ]);
+    assert.deepEqual(
+      get(model, 'relatedBooks').map(x => get(x, 'name')),
+      ['Harry Potter and the Chamber of Secrets', 'Harry Potter and the Prisoner of Azkaban']
+    );
 
     run(() => {
       this.store.push({
@@ -468,7 +468,11 @@ module('unit/model/reference-array', function(hooks) {
       });
     });
 
-    assert.deepEqual(get(model, 'relatedBooks').map(x => get(x, 'name')), [], 'array empty');
+    assert.deepEqual(
+      get(model, 'relatedBooks').map(x => get(x, 'name')),
+      [],
+      'array empty'
+    );
   });
 
   test('updated reference arrays resolve their new references lazily when using the global cache', function(assert) {

@@ -795,7 +795,10 @@ module('unit/record-data', function(hooks) {
         'changed attributes are returned'
       );
       assert.deepEqual(
-        zip(pushDataSpy.thisValues.slice(1).map(x => x + ''), pushDataSpy.args.slice(1)),
+        zip(
+          pushDataSpy.thisValues.slice(1).map(x => x + ''),
+          pushDataSpy.args.slice(1)
+        ),
         [
           [
             this.child1RecordData + '',
@@ -892,7 +895,10 @@ module('unit/record-data', function(hooks) {
         'changed attributes are returned'
       );
       assert.deepEqual(
-        zip(didCommitSpy.thisValues.slice(1).map(x => x + ''), didCommitSpy.args.slice(1)),
+        zip(
+          didCommitSpy.thisValues.slice(1).map(x => x + ''),
+          didCommitSpy.args.slice(1)
+        ),
         [
           [this.child2RecordData + '', []],
           [
