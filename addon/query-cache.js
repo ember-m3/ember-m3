@@ -126,6 +126,9 @@ export default class QueryCache {
     if (options.params) {
       ajaxOptions.data = options.params;
     }
+    if (options.adapterOptions && options.adapterOptions.headers) {
+      ajaxOptions.headers = options.adapterOptions.headers;
+    }
     return adapter.ajax(url, method, ajaxOptions);
   }
 

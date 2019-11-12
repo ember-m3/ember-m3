@@ -192,6 +192,29 @@ module('unit/query-cache', function(hooks) {
     });
   });
 
+  test('.queryURL can accept headers', function(assert) {
+    assert.equal(this.adapterAjax.callCount, 0, 'initial callCount 0');
+
+    this.adapterAjax.returns(
+      resolve({
+        data: {
+          id: 123,
+          type: 'my-synthetic-type',
+        },
+      })
+    );
+
+    return this.queryCache
+      .queryURL('/uwot', { adapterOptions: { headers: { param: 'value' } } })
+      .then(() => {
+        assert.deepEqual(
+          stubCalls(this.adapterAjax),
+          [[this.adapter + '', ['/uwot', 'GET', { headers: { param: 'value' } }]]],
+          'adapter.ajax called with right headers'
+        );
+      });
+  });
+
   test('a custom -ember-m3 adapter can be registered', function(assert) {
     let payload = {
       data: {
@@ -247,6 +270,34 @@ module('unit/query-cache', function(hooks) {
     this.adapterAjax.returns(resolve(payload));
 
     return this.queryCache.queryURL('/uwot');
+  });
+
+  test('a custom -ember-m3 adapter can accept headers', function(assert) {
+    const payload = {
+      data: {
+        id: 2,
+        type: 'my-type',
+      },
+    };
+    const customAdapter = EmberObject.create({
+      queryURL: this.sinon.stub().returns(resolve(payload)),
+      toString: () => 'my-adapter',
+    });
+
+    this.owner.register('adapter:-ember-m3', customAdapter, {
+      singleton: true,
+      instantiate: false,
+    });
+
+    return this.queryCache
+      .queryURL('/uwot', { adapterOptions: { headers: { param: 'value' } } })
+      .then(() => {
+        assert.deepEqual(
+          stubCalls(customAdapter.queryURL),
+          [['my-adapter', ['/uwot', 'GET', { adapterOptions: { headers: { param: 'value' } } }]]],
+          'adapter.queryURL called with right headers'
+        );
+      });
   });
 
   test('.queryURL can resolve with individual models', function(assert) {
