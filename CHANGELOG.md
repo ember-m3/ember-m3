@@ -1,5 +1,14 @@
 # ember-m3 changelog
 
+## 0.11.8
+
+- feat: Add support for Ember Data custom model classes (thanks @igort)
+- feat: Add support for displaying models in ember inspector (thanks @syu15)
+- feat: Add `meta` support in `queryURL` (thanks @2hu12)
+- feat: Add headers support in `queryURL` (thanks @pyuan)
+- fix: Fix `isDirty` when setting an attr to its previous value (thanks @2hu12)
+- feat: Various updates to maintain compatibility with Ember Data canary (thanks @runspired)
+
 ## 0.11.7
 
 - fix: Do not cause build errors with ember-cli-babel@7 (#386 thanks @rwjblue)
