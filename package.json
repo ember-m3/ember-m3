@@ -98,7 +98,7 @@
     "lint-staged": "^9.4.3",
     "loader.js": "^4.2.3",
     "prettier": "^1.19.1",
-    "testem": "^2.9.0"
+    "testem": "^3.0.0"
   },
   "engines": {
     "node": "^4.5 || 6.* || >= 7.*"
