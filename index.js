@@ -28,7 +28,7 @@ module.exports = {
 
     let features;
     try {
-      features = this.project.require('@ember-data/private-build-infra/src/features');
+      features = this.project.require('@ember-data/private-build-infra/src/features')();
     } catch (e) {
       features = { CUSTOM_MODEL_CLASS: false };
     }
