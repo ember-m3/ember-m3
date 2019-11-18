@@ -35,9 +35,11 @@ module.exports = {
 
     this.options = this.options || {};
     this.options.babel = this.options.babel || {};
+
+    let plugins = this.options.babel.plugins || [];
     // this ensures that the same `@ember-data/canary-features` processing that the various
     // ember-data addons do is done in the dummy app
-    this.options.babel.plugins = [...debugMacros(features)];
+    this.options.babel.plugins = [...plugins, ...debugMacros(features)];
 
     this.options.babel.loose = true;
   },
