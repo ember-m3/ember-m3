@@ -249,9 +249,10 @@ module('integration/interop-debug-adapter', function(hooks) {
               'Added Case 4: Correct type object passed into typesAdded for DS.Model record types'
             );
           } else {
-            // eslint-disable-next-line no-fallthrough
+            // pre-the debug package EmberData would add all types by scanning for models/ so we
+            // would never add this type
           }
-
+        // eslint-disable-next-line no-fallthrough
         default:
           throw new Error(`Unexpected typesAdded call`);
       }
