@@ -222,34 +222,36 @@ module('integration/interop-debug-adapter', function(hooks) {
       typesAddedCallCount++;
       switch (typesAddedCallCount) {
         case 1:
+          // triggered due pushPayload in beforeEach
           return assert.deepEqual(
             typesToSend,
             m3TypesAdded,
-            'Correct type object passed into typesAdded initially for m3 record types'
+            'Added Case 1: Correct type object passed into typesAdded initially for m3 record types'
           );
         case 2:
+          // triggered due to push in beforeEach
           return assert.deepEqual(
             typesToSend,
             HasDebugAdapterPackage ? dsTypesAdded1 : dsTypesAdded1.concat(dsTypesAdded2),
-            'Correct type object passed into typesAdded for DS.Model record types'
+            'Added Case 2: Correct type object passed into typesAdded for DS.Model record types'
           );
         case 3:
+          return assert.deepEqual(
+            typesToSend,
+            newM3TypesAdded,
+            'Added Case 3: Correct type object passed into typesAdded for new m3 record types'
+          );
+        case 4:
           if (HasDebugAdapterPackage) {
             return assert.deepEqual(
               typesToSend,
               dsTypesAdded2,
-              'Correct type object passed into typesAdded for DS.Model record types'
+              'Added Case 4: Correct type object passed into typesAdded for DS.Model record types'
             );
           } else {
-            // fall through to case 4
+            // eslint-disable-next-line no-fallthrough
           }
-        // eslint-disable-next-line no-fallthrough
-        case 4:
-          return assert.deepEqual(
-            typesToSend,
-            newM3TypesAdded,
-            'Correct type object passed into typesAdded for new m3 record types'
-          );
+
         default:
           throw new Error(`Unexpected typesAdded call`);
       }
@@ -262,19 +264,19 @@ module('integration/interop-debug-adapter', function(hooks) {
           return assert.deepEqual(
             updatedTypesToSend,
             newDSTypesUpdated,
-            'Correct type object passed into typesUpdated when new DS.Model records are added'
+            'Update Case 1: Correct type object passed into typesUpdated when new DS.Model records are added'
           );
         case 2:
           return assert.deepEqual(
             updatedTypesToSend,
             m3TypesUpdated,
-            'Correct type object passed into typesUpdated initially for m3 record types'
+            'Update Case 2: Correct type object passed into typesUpdated initially for m3 record types'
           );
         case 3:
           return assert.deepEqual(
             updatedTypesToSend,
             newM3TypesUpdated,
-            'Correct type object passed into typesUpdated for new m3 record types'
+            'Update Case 3: Correct type object passed into typesUpdated for new m3 record types'
           );
         default:
           throw new Error(`Unexpected typesUpdated call`);
@@ -283,9 +285,11 @@ module('integration/interop-debug-adapter', function(hooks) {
 
     this.interopDebugAdapter.watchModelTypes(typesAdded, typesUpdated);
 
+    // typesAdded case 3
     this.store.pushPayload(NEW_MODEL_TYPE, NEW_MODEL_DATA);
     await settled();
 
+    // typesUpdated case 1 & typesAdded case 4
     this.store.push({
       data: {
         id: 'urn:genre:1',
@@ -296,8 +300,10 @@ module('integration/interop-debug-adapter', function(hooks) {
         },
       },
     });
+
     await settled();
 
+    // typesUpdated case 2
     this.store.pushPayload(BOOK_MODEL_TYPE, {
       data: {
         id: 'urn:bookstore:2',
@@ -313,6 +319,7 @@ module('integration/interop-debug-adapter', function(hooks) {
     });
     await settled();
 
+    // types updated case 3
     this.store.unloadAll(NEW_MODEL_TYPE);
     await settled();
   });
