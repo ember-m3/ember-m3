@@ -1,15 +1,16 @@
-import { test } from 'qunit';
-import moduleForAcceptance from '../../tests/helpers/module-for-acceptance';
+import { module, test } from 'qunit';
+import { setupTest } from 'ember-qunit';
 import IndexPage from '../pages/index';
+import { click, currentURL } from '@ember/test-helpers';
 
-moduleForAcceptance('acceptance/m3');
+module('acceptance/m3', function(hooks) {
+  setupTest(hooks);
 
-test('payloads can be rendered as m3 models', function(assert) {
-  const page = new IndexPage();
+  test('payloads can be rendered as m3 models', async function(assert) {
+    const page = new IndexPage();
 
-  page.visit();
+    await page.visit();
 
-  andThen(() => {
     assert.equal(currentURL(), '/', 'navigated to right page');
 
     assert.deepEqual(
@@ -36,22 +37,18 @@ test('payloads can be rendered as m3 models', function(assert) {
       'able to read embedded arrays through reference arrays'
     );
   });
-});
 
-test('m3 models can be updated', function(assert) {
-  const page = new IndexPage();
+  test('m3 models can be updated', async function(assert) {
+    const page = new IndexPage();
 
-  page.visit();
+    await page.visit();
 
-  andThen(() => {
     assert.equal(currentURL(), '/', 'navigated to right page');
 
     assert.equal(page.books()[0].name(), 'The Birth of Britain');
-  });
 
-  click('button.update-data');
+    await click('button.update-data');
 
-  andThen(() => {
     assert.equal(page.books()[0].name(), 'Vol I. The Birth of Britain');
   });
 });

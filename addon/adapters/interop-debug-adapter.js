@@ -3,6 +3,7 @@ import { get, defineProperty } from '@ember/object';
 import { inject } from '@ember/service';
 import { default as MegamorphicModel } from '../model';
 import require, { has } from 'require';
+import { run } from '@ember/runloop';
 
 let DebugAdapter;
 if (has('@ember-data/debug')) {
@@ -79,6 +80,11 @@ export default class InteropDebugAdapter extends DebugAdapter {
       releaseSuper();
       releaseM3();
     };
+  }
+
+  destroy() {
+    run(this._m3DebugAdapter, 'destroy');
+    super.destroy(...arguments);
   }
 }
 

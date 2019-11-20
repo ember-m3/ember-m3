@@ -1,3 +1,5 @@
+import { visit } from '@ember/test-helpers';
+
 class PageObject {
   constructor({ scope }) {
     this.scope = scope;
@@ -66,7 +68,7 @@ export default class IndexPage extends PageObject {
   }
 
   visit() {
-    visit('/');
+    return visit('/');
   }
 
   books() {

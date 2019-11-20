@@ -16,7 +16,7 @@ import { default as MegamorphicModel } from '../model';
 // and getRecordKeywords (for search)
 export default class M3DebugAdapter extends DataAdapter {
   init(options = {}) {
-    super.init(options, ...arguments);
+    super.init(options);
     // This keeps track of all model types the debug adapter has seen already (so we don't watch for changes twice)
     this.seenTypesInAdapter = new Set();
     // This is the same attribute limit value that is set in Ember Inspector

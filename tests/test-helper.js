@@ -1,5 +1,6 @@
-import resolver from './helpers/resolver';
-import { setResolver } from '@ember/test-helpers';
+import Application from '../app';
+import { setApplication } from '@ember/test-helpers';
+import config from '../config/environment';
 import { start } from 'ember-qunit';
 import './helpers/watch-property';
 import QUnit from 'qunit';
@@ -9,7 +10,7 @@ QUnit.config.urlConfig.push({
   label: 'Enable Opt Features',
 });
 
-setResolver(resolver);
+setApplication(Application.create(config.APP));
 start({
   setupTestIsolationValidation: true,
 });

@@ -200,13 +200,11 @@ module('integration/interop-debug-adapter', function(hooks) {
       },
     ];
 
-    // TODO: Fix test to ensure `typesUpdated` gets called with resolved m3 records
-    // accessing attributes on the record and using the run loop does not work
     const m3TypesUpdated = [
       {
         name: 'com.example.bookstore.book',
-        count: 0,
-        columns: generateM3Columns(['id']),
+        count: 2,
+        columns: generateM3Columns(['id', '$type', 'name', 'author', 'pubDate', 'readerComments']),
         object: 'com.example.bookstore.book',
       },
     ];
@@ -253,7 +251,7 @@ module('integration/interop-debug-adapter', function(hooks) {
             'Correct type object passed into typesAdded for new m3 record types'
           );
         default:
-          return null;
+          throw new Error(`Unexpected typesAdded call`);
       }
     };
 
@@ -279,13 +277,14 @@ module('integration/interop-debug-adapter', function(hooks) {
             'Correct type object passed into typesUpdated for new m3 record types'
           );
         default:
-          return null;
+          throw new Error(`Unexpected typesUpdated call`);
       }
     };
 
     this.interopDebugAdapter.watchModelTypes(typesAdded, typesUpdated);
 
     this.store.pushPayload(NEW_MODEL_TYPE, NEW_MODEL_DATA);
+    await settled();
 
     this.store.push({
       data: {
@@ -297,6 +296,25 @@ module('integration/interop-debug-adapter', function(hooks) {
         },
       },
     });
+    await settled();
+
+    this.store.pushPayload(BOOK_MODEL_TYPE, {
+      data: {
+        id: 'urn:bookstore:2',
+        type: BOOK_MODEL_TYPE,
+        attributes: {
+          $type: BOOK_MODEL_TYPE,
+          name: 'The Best Book',
+          author: 'urn:author:2',
+          pubDate: 'Feb 2019',
+          readerComments: ['urn:comment:3', 'urn:comment:4'],
+        },
+      },
+    });
+    await settled();
+
+    this.store.unloadAll(NEW_MODEL_TYPE);
+    await settled();
   });
 
   test('typesUpdated is called when new m3 and DS.Model records are added of an existing type', async function(assert) {
