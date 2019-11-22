@@ -200,13 +200,11 @@ module('integration/interop-debug-adapter', function(hooks) {
       },
     ];
 
-    // TODO: Fix test to ensure `typesUpdated` gets called with resolved m3 records
-    // accessing attributes on the record and using the run loop does not work
     const m3TypesUpdated = [
       {
         name: 'com.example.bookstore.book',
-        count: 0,
-        columns: generateM3Columns(['id']),
+        count: 2,
+        columns: generateM3Columns(['id', '$type', 'name', 'author', 'pubDate', 'readerComments']),
         object: 'com.example.bookstore.book',
       },
     ];
@@ -224,36 +222,39 @@ module('integration/interop-debug-adapter', function(hooks) {
       typesAddedCallCount++;
       switch (typesAddedCallCount) {
         case 1:
+          // triggered due pushPayload in beforeEach
           return assert.deepEqual(
             typesToSend,
             m3TypesAdded,
-            'Correct type object passed into typesAdded initially for m3 record types'
+            'Added Case 1: Correct type object passed into typesAdded initially for m3 record types'
           );
         case 2:
+          // triggered due to push in beforeEach
           return assert.deepEqual(
             typesToSend,
             HasDebugAdapterPackage ? dsTypesAdded1 : dsTypesAdded1.concat(dsTypesAdded2),
-            'Correct type object passed into typesAdded for DS.Model record types'
+            'Added Case 2: Correct type object passed into typesAdded for DS.Model record types'
           );
         case 3:
+          return assert.deepEqual(
+            typesToSend,
+            newM3TypesAdded,
+            'Added Case 3: Correct type object passed into typesAdded for new m3 record types'
+          );
+        case 4:
           if (HasDebugAdapterPackage) {
             return assert.deepEqual(
               typesToSend,
               dsTypesAdded2,
-              'Correct type object passed into typesAdded for DS.Model record types'
+              'Added Case 4: Correct type object passed into typesAdded for DS.Model record types'
             );
           } else {
-            // fall through to case 4
+            // pre-the debug package EmberData would add all types by scanning for models/ so we
+            // would never add this type
           }
         // eslint-disable-next-line no-fallthrough
-        case 4:
-          return assert.deepEqual(
-            typesToSend,
-            newM3TypesAdded,
-            'Correct type object passed into typesAdded for new m3 record types'
-          );
         default:
-          return null;
+          throw new Error(`Unexpected typesAdded call`);
       }
     };
 
@@ -264,29 +265,32 @@ module('integration/interop-debug-adapter', function(hooks) {
           return assert.deepEqual(
             updatedTypesToSend,
             newDSTypesUpdated,
-            'Correct type object passed into typesUpdated when new DS.Model records are added'
+            'Update Case 1: Correct type object passed into typesUpdated when new DS.Model records are added'
           );
         case 2:
           return assert.deepEqual(
             updatedTypesToSend,
             m3TypesUpdated,
-            'Correct type object passed into typesUpdated initially for m3 record types'
+            'Update Case 2: Correct type object passed into typesUpdated initially for m3 record types'
           );
         case 3:
           return assert.deepEqual(
             updatedTypesToSend,
             newM3TypesUpdated,
-            'Correct type object passed into typesUpdated for new m3 record types'
+            'Update Case 3: Correct type object passed into typesUpdated for new m3 record types'
           );
         default:
-          return null;
+          throw new Error(`Unexpected typesUpdated call`);
       }
     };
 
     this.interopDebugAdapter.watchModelTypes(typesAdded, typesUpdated);
 
+    // typesAdded case 3
     this.store.pushPayload(NEW_MODEL_TYPE, NEW_MODEL_DATA);
+    await settled();
 
+    // typesUpdated case 1 & typesAdded case 4
     this.store.push({
       data: {
         id: 'urn:genre:1',
@@ -297,6 +301,28 @@ module('integration/interop-debug-adapter', function(hooks) {
         },
       },
     });
+
+    await settled();
+
+    // typesUpdated case 2
+    this.store.pushPayload(BOOK_MODEL_TYPE, {
+      data: {
+        id: 'urn:bookstore:2',
+        type: BOOK_MODEL_TYPE,
+        attributes: {
+          $type: BOOK_MODEL_TYPE,
+          name: 'The Best Book',
+          author: 'urn:author:2',
+          pubDate: 'Feb 2019',
+          readerComments: ['urn:comment:3', 'urn:comment:4'],
+        },
+      },
+    });
+    await settled();
+
+    // types updated case 3
+    this.store.unloadAll(NEW_MODEL_TYPE);
+    await settled();
   });
 
   test('typesUpdated is called when new m3 and DS.Model records are added of an existing type', async function(assert) {

@@ -34,13 +34,10 @@ module('integration/m3-debug-adapter', function(hooks) {
         }
       }
     );
+    this.owner.register('data-adapter:main', M3DebugAdapter);
     this.schema = this.owner.lookup('service:m3-schema');
     this.store = this.owner.lookup('service:store');
-
-    this._m3debugAdapter = M3DebugAdapter.create({
-      store: this.store,
-      schema: this.schema,
-    });
+    this._m3debugAdapter = this.owner.lookup('data-adapter:main');
 
     this.wrappedModelTypeObject = {
       name: BOOK_MODEL_TYPE,
