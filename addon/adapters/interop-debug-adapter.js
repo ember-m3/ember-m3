@@ -21,8 +21,6 @@ if (has('@ember-data/debug')) {
 */
 
 export default class InteropDebugAdapter extends DebugAdapter {
-  @inject('store') store;
-
   init() {
     super.init(...arguments);
     const store = get(this, 'store');
@@ -100,3 +98,4 @@ function interceptDataTypes(schema, method) {
 }
 
 defineProperty(InteropDebugAdapter.prototype, 'schema', inject('m3-schema'));
+defineProperty(InteropDebugAdapter.prototype, 'store', inject('store'));

@@ -1,7 +1,7 @@
 import { A, isArray } from '@ember/array';
 import DataAdapter from '@ember/debug/data-adapter';
 import { get } from '@ember/object';
-import { inject } from '@ember/service';
+import { inject, defineProperty } from '@ember/service';
 import seenTypesPerStore from '../utils/seen-types-per-store';
 import { default as MegamorphicModel } from '../model';
 
@@ -16,8 +16,6 @@ import { default as MegamorphicModel } from '../model';
 // TODO: implement getFilters/getRecordColor/getRecordFilterValues (for record state in the cache)
 // and getRecordKeywords (for search)
 export default class M3DebugAdapter extends DataAdapter {
-  @inject('store') store;
-
   init(options = {}) {
     super.init(options);
     // This keeps track of all model types the debug adapter has seen already (so we don't watch for changes twice)
@@ -285,3 +283,5 @@ export default class M3DebugAdapter extends DataAdapter {
     return release;
   }
 }
+
+defineProperty(M3DebugAdapter.prototype, 'store', inject('store'));
