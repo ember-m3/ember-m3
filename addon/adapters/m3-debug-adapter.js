@@ -1,7 +1,7 @@
 import { A, isArray } from '@ember/array';
 import DataAdapter from '@ember/debug/data-adapter';
-import { get } from '@ember/object';
-import { inject, defineProperty } from '@ember/service';
+import { get, defineProperty } from '@ember/object';
+import { inject } from '@ember/service';
 import seenTypesPerStore from '../utils/seen-types-per-store';
 import { default as MegamorphicModel } from '../model';
 
