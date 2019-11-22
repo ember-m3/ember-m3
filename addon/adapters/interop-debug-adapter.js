@@ -21,6 +21,8 @@ if (has('@ember-data/debug')) {
 */
 
 export default class InteropDebugAdapter extends DebugAdapter {
+  @inject('store') store;
+
   init() {
     super.init(...arguments);
     const store = get(this, 'store');
