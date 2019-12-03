@@ -396,4 +396,24 @@ module('integration/interop-debug-adapter', function(hooks) {
       },
     });
   });
+
+  test('watchModelTypes keeps track of modelTypes and clears them out on release', async function(assert) {
+    const releaseMethod = this.interopDebugAdapter.watchModelTypes(
+      () => {},
+      () => {}
+    );
+    assert.deepEqual(
+      this.interopDebugAdapter._m3DebugAdapter.seenTypesInAdapter,
+      new Set(['com.example.bookstore.book']),
+      'seenTypesInAdapter is populated in the m3 debug adapter'
+    );
+
+    await releaseMethod();
+
+    assert.deepEqual(
+      this.interopDebugAdapter._m3DebugAdapter.seenTypesInAdapter,
+      new Set(),
+      'seenTypesInAdapter is cleared out in the m3 debug adapter when the release method is called'
+    );
+  });
 });
