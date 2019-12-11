@@ -78,7 +78,7 @@ export default class MegamorphicModel extends EmberObject {
 
     this._topModel = this._topModel || this;
     this._parentModel = this._parentModel || null;
-    this._errors = DS.Errors.create();
+    this._errors = null;
     this._init = true;
     if (!CUSTOM_MODEL_CLASS) {
       this._internalModel = properties._internalModel;
@@ -487,16 +487,16 @@ export default class MegamorphicModel extends EmberObject {
 
   _removeError(key) {
     // Remove errors for the property
-    this._errors.remove(key);
+    this.errors.remove(key);
     if (CUSTOM_MODEL_CLASS) {
-      if (get(this._errors, 'length') === 0) {
+      if (get(this.errors, 'length') === 0) {
         this._clearInvalidRequestErrors();
       }
     } else {
       if (
         this._internalModel.currentState &&
         !this._internalModel.currentState.isValid &&
-        get(this._errors, 'length') === 0
+        get(this.errors, 'length') === 0
       ) {
         this._updateCurrentState(updatedUncommitted);
       }
@@ -514,6 +514,9 @@ export default class MegamorphicModel extends EmberObject {
   // Errors hash that will get update,
   // upon validation errors
   get errors() {
+    if (this._errors === null) {
+      this._errors = DS.Errors.create();
+    }
     return this._errors;
   }
 }
