@@ -8,7 +8,7 @@ import { deprecate } from '@ember/debug';
 import { CUSTOM_MODEL_CLASS } from './feature-flags';
 import MegamorphicModel from './model';
 import require from 'require';
-import { recordDataToRecordMap } from './initializers/m3-store';
+import { recordDataToRecordMap } from './mixins/store';
 
 let recordIdentifierFor;
 if (require.has('@ember-data/store')) {

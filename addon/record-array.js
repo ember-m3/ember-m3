@@ -11,7 +11,7 @@ import {
   flushChanges,
 } from './utils/notify-changes';
 import { CUSTOM_MODEL_CLASS } from './feature-flags';
-import { recordDataToRecordMap, recordToRecordArrayMap } from './initializers/m3-store';
+import { recordDataToRecordMap, recordToRecordArrayMap } from './mixins/store';
 import require from 'require';
 
 let recordIdentifierFor;
