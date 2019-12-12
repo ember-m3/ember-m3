@@ -1,5 +1,5 @@
 import { dasherize } from '@ember/string';
-import { recordDataToRecordMap } from '../initializers/m3-store';
+import { recordDataToRecordMap } from '../mixins/store';
 import { CUSTOM_MODEL_CLASS } from '../feature-flags';
 
 export function computeAttributeReference(key, value, modelName, schemaInterface, schema) {

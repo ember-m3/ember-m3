@@ -5,7 +5,7 @@ import { copy } from './utils/copy';
 import { assert } from '@ember/debug';
 import Ember from 'ember';
 import { IS_RECORD_DATA, gte } from 'ember-compatibility-helpers';
-import { recordDataToRecordMap, recordDataToQueryCache } from './initializers/m3-store';
+import { recordDataToRecordMap, recordDataToQueryCache } from './mixins/store';
 import { CUSTOM_MODEL_CLASS } from './feature-flags';
 
 const emberAssign = assign || merge;

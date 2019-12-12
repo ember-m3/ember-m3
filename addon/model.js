@@ -7,7 +7,7 @@ import EmberObject, { computed, get, set, defineProperty } from '@ember/object';
 import { isArray } from '@ember/array';
 import { assert, warn } from '@ember/debug';
 import { readOnly } from '@ember/object/computed';
-import { recordDataToRecordMap } from './initializers/m3-store';
+import { recordDataToRecordMap } from './mixins/store';
 
 import { recordDataFor } from './-private';
 import M3RecordArray from './record-array';
