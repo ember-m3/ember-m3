@@ -730,11 +730,13 @@ this.store.findRecord('com.example.bookstore.book', 1, { url: '/book/from/surpri
 ember-m3 supports three Ember.js and Ember Data versions
 
 - The [latest release](https://emberjs.com/releases/release/)
+- The [previous release](https://emberjs.com/releases/release/)
 - The current LTS version
 - The previous LTS version
 
-As of 23 September (ie when Ember 3.13.0 ships) this will mean
+As of 12 December this means:
 
-- 3.13.x (the latest release)
+- 3.15.x (the latest release)
+- 3.14.x (the previous release)
 - 3.12.x (the current LTS)
 - 3.8.x (the previous LTS)
