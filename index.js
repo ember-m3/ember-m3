@@ -23,14 +23,14 @@ function debugMacros(features) {
 module.exports = {
   name: 'ember-m3',
 
-  init() {
-    this._super.init.apply(this, arguments);
+  included() {
+    this._super.included.apply(this, arguments);
 
     let features;
     try {
       features = this.project.require('@ember-data/private-build-infra/src/features')();
     } catch (e) {
-      features = { CUSTOM_MODEL_CLASS: false };
+      features = { CUSTOM_MODEL_CLASS: this.isDevelopingAddon() ? null : false };
     }
 
     this.options = this.options || {};
