@@ -35,6 +35,16 @@ module.exports = function() {
           },
         },
         {
+          name: 'release-n-1',
+          npm: {
+            devDependencies: {
+              // TODO: automate this
+              'ember-source': '3.14.3',
+              'ember-data': '3.14.0',
+            },
+          },
+        },
+        {
           name: 'release-channel',
           npm: {
             devDependencies: {
