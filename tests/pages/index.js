@@ -2,61 +2,63 @@ import { visit } from '@ember/test-helpers';
 
 class PageObject {
   constructor({ scope }) {
-    this.scope = scope;
+    if (typeof scope === 'string') {
+      this.scope = document.querySelector(scope);
+    } else {
+      this.scope = scope;
+    }
   }
 
-  $(...args) {
-    if (args.length > 0) {
-      return self.jQuery(this.scope).find(...args);
-    } else {
-      return self.jQuery(this.scope);
-    }
+  querySelector(selector) {
+    return this.scope.querySelector(selector);
+  }
+
+  querySelectorAll(selector) {
+    return Array.from(this.scope.querySelectorAll(selector));
   }
 }
 
 class CommentOnPage extends PageObject {
   body() {
-    return this.$('.comment-body')
-      .text()
-      .replace(/\s+/g, ' ')
-      .replace(/^\s*/, '')
-      .replace(/\s*$/, '');
+    let commentBody = this.querySelector('.comment-body');
+
+    return commentBody === null
+      ? ''
+      : commentBody.innerText
+          .replace(/\s+/g, ' ')
+          .replace(/^\s*/, '')
+          .replace(/\s*$/, '');
   }
 
   parts() {
-    return this.$('.comment-parts li')
-      .map((x, y) => self.jQuery(y).text())
-      .toArray()
-      .map(x =>
-        x
-          .replace(/\s+/g, ' ')
-          .replace(/^\s*/, '')
-          .replace(/\s*$/, '')
-      );
+    return this.querySelectorAll('.comment-parts li').map(x =>
+      x.innerText
+        .replace(/\s+/g, ' ')
+        .replace(/^\s*/, '')
+        .replace(/\s*$/, '')
+    );
   }
 }
 
 class BookOnPage extends PageObject {
   id() {
-    return this.$('.id').text();
+    return this.querySelector('.id').innerText;
   }
 
   name() {
-    return this.$('.name').text();
+    return this.querySelector('.name').innerText;
   }
 
   authorName() {
-    return this.$('.author').text();
+    return this.querySelector('.author').innerText;
   }
 
   pubMonth() {
-    return parseInt(this.$('.pubmonth').text(), 10);
+    return parseInt(this.querySelector('.pubmonth').innerText, 10);
   }
 
   comments() {
-    return this.$('ul.comments > li')
-      .toArray()
-      .map(x => new CommentOnPage({ scope: x }));
+    return this.querySelectorAll('ul.comments > li').map(x => new CommentOnPage({ scope: x }));
   }
 }
 
@@ -72,8 +74,6 @@ export default class IndexPage extends PageObject {
   }
 
   books() {
-    return this.$('ul.books > li')
-      .toArray()
-      .map(x => new BookOnPage({ scope: x }));
+    return this.querySelectorAll('ul.books > li').map(x => new BookOnPage({ scope: x }));
   }
 }
