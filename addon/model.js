@@ -683,6 +683,21 @@ export class EmbeddedMegamorphicModel extends MegamorphicModel {
     );
   }
 
+  _updateCurrentState(state) {
+    if (state === loadedSaved) {
+      let topRecordData = recordDataFor(this._topModel);
+      if (topRecordData.hasDirtyAttr()) {
+        // Nested models maintain state with their parents; this makes sense
+        // until we let people save nested models independently.  However, it
+        // means that nested models should not reset their parents to "not
+        // dirty" when their last changed attribute is set to its original
+        // value, if their parent has some other dirty attribute
+        return;
+      }
+    }
+    return super._updateCurrentState(state);
+  }
+
   // no special behaviour for ids of embedded/nested models
   get id() {
     return this.unknownProperty('id');
