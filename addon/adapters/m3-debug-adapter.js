@@ -278,6 +278,9 @@ export default class M3DebugAdapter extends DataAdapter {
     let release = () => {
       this.localReleaseMethods.forEach(fn => fn());
       this.releaseMethods.removeObject(release);
+
+      // Clear out the model types in seenTypesInAdapter so they can be added again if the inspector is re-opened
+      this.seenTypesInAdapter.clear();
     };
     this.releaseMethods.pushObject(release);
     return release;
