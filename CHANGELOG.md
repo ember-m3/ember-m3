@@ -1,5 +1,3 @@
-# ember-m3 changelog
-
 ## 0.11.8
 
 - feat: Add support for Ember Data custom model classes (thanks @igort)
