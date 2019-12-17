@@ -7,7 +7,15 @@
     "ember-data",
     "ember-data-addon"
   ],
+  "repository": "https://github.com/hjdivad/ember-m3",
   "license": "MIT",
+  "scripts": {
+    "build": "ember build",
+    "format": "eslint --fix .",
+    "lint:js": "eslint .",
+    "start": "ember server --no-live-reload --port=0",
+    "test": "ember test"
+  },
   "author": "David J. Hamilton <dhamilton@linkedin.com>",
   "contributors": [
     "Dinesh Nalagatla <dinu.nalagatla@gmail.com> (https://www.linkedin.com/in/dineshnalagatla)",
@@ -21,18 +29,6 @@
     "Danail Nachev (http://www.linkedin.com/in/danailnachev)",
     "Ibraheem Abdul-Malik"
   ],
-  "directories": {
-    "doc": "doc",
-    "test": "tests"
-  },
-  "repository": "https://github.com/hjdivad/ember-m3",
-  "scripts": {
-    "build": "ember build",
-    "start": "ember server --no-live-reload --port=0",
-    "test": "ember test",
-    "lint:js": "eslint .",
-    "format": "eslint --fix ."
-  },
   "files": [
     "package.json",
     "CHANGELOG.md",
@@ -45,6 +41,10 @@
     "blueprints",
     "config"
   ],
+  "directories": {
+    "doc": "doc",
+    "test": "tests"
+  },
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged",
@@ -62,9 +62,6 @@
     "ember-cli-babel": "^7.13.2",
     "ember-compatibility-helpers": "^1.2.0-beta.1",
     "resolve": "^1.13.1"
-  },
-  "peerDependencies": {
-    "ember-data": ">= 3.5.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.2.0",
@@ -100,15 +97,41 @@
     "lint-staged": "^9.5.0",
     "loader.js": "^4.2.3",
     "prettier": "^1.19.1",
+    "release-it": "^12.2.1",
+    "release-it-lerna-changelog": "^1.0.3",
     "testem": "^3.0.2"
+  },
+  "peerDependencies": {
+    "ember-data": ">= 3.5.1"
   },
   "engines": {
     "node": "^4.5 || 6.* || >= 7.*"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
   },
   "ember-addon": {
     "configPath": "tests/dummy/config",
     "defaultBlueprint": "schema",
     "after": "ember-data"
+  },
+  "release-it": {
+    "plugins": {
+      "release-it-lerna-changelog": {
+        "infile": "CHANGELOG.md"
+      }
+    },
+    "git": {
+      "tagName": "v${version}"
+    },
+    "github": {
+      "release": true
+    }
+  },
+  "changelog": {
+    "ignoreCommitters": [
+      "dependabot"
+    ]
   },
   "volta": {
     "node": "10.16.0",
