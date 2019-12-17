@@ -124,5 +124,20 @@ module('unit/model/state', function(hooks) {
 
     assert.equal(record.get('isDirty'), true, 'record shares state with nested record');
     assert.equal(record.get('rating.isDirty'), true, 'nested record dirty');
+
+    record.rollbackAttributes();
+
+    record.set('name', 'The Winds of Never Published');
+    assert.equal(record.get('isDirty'), true, 'record is dirty from outside nested record');
+
+    record.set('rating.avg', 11);
+    assert.equal(record.get('rating.isDirty'), true, 'nested record dirty from its own attr');
+
+    record.set('rating.avg', 10);
+    assert.equal(
+      record.get('isDirty'),
+      true,
+      'record is not un-dirtied from resetting nested value'
+    );
   });
 });
