@@ -2,10 +2,14 @@ import Ember from 'ember';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
-import { CUSTOM_MODEL_CLASS } from 'ember-m3/feature-flags';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
+import {
+  HAS_EMBER_DATA_PACKAGE,
+  HAS_MODEL_PACKAGE,
+  HAS_ADAPTER_PACKAGE,
+} from 'ember-m3/-infra/packages';
 import { recordDataFor } from 'ember-m3/-private';
-
-import DS from 'ember-data';
+import require from 'require';
 import { zip } from 'lodash';
 
 import EmberObject, { get, set, computed } from '@ember/object';
@@ -16,29 +20,51 @@ import { isArray } from '@ember/array';
 import MegamorphicModel from 'ember-m3/model';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 
-import { gte } from 'ember-compatibility-helpers';
+let Errors;
+if (HAS_EMBER_DATA_PACKAGE) {
+  Errors = require('ember-data/-private').Errors;
+} else {
+  /*
+    Get access to the Private Errors class
+  */
+  if (HAS_MODEL_PACKAGE) {
+    // Errors is supposed to live in the model package
+    // This is true for version 3.15+
+    Errors = require('@ember-data/model/-private').Errors;
+    if (!Errors) {
+      // it is possible Errors still lives in the store package
+      // This was versions 3.12 -> 3.14
+      Errors = require('@ember-data/store/-private').Errors;
+    }
+  } else {
+    // it is possible Errors still lives in the store package
+    // This was versions 3.12 -> 3.14
+    Errors = require('@ember-data/store/-private').Errors;
+  }
+}
+
+let InvalidError;
+if (HAS_EMBER_DATA_PACKAGE) {
+  InvalidError = require('ember-data/adapters/errors').InvalidError;
+} else if (HAS_ADAPTER_PACKAGE) {
+  InvalidError = require('@ember-data/adapter/error').InvalidError;
+}
 
 const UrnWithTypeRegex = /^urn:([a-zA-Z.]+):(.*)/;
 const UrnWithoutTypeRegex = /^urn:(.*)/;
 
-module('unit/model', function(hooks) {
+module('unit/m3-model', function(hooks) {
   setupTest(hooks);
 
   hooks.beforeEach(function() {
     this.sinon = sinon.createSandbox();
     this.store = this.owner.lookup('service:store');
 
-    this.Author = DS.Model.extend({
-      name: DS.attr('string'),
-      publishedBooks: DS.hasMany('com.example.bookstore.Book', {
-        async: false,
-      }),
-    });
-    this.Author.toString = () => 'Author';
-    this.owner.register('model:author', this.Author);
-
     class TestSchema extends DefaultSchema {
       includesModel(modelName) {
+        if (modelName === 'author') {
+          return true;
+        }
         return /^com.example.bookstore\./i.test(modelName);
       }
 
@@ -103,6 +129,7 @@ module('unit/model', function(hooks) {
       }
     }
     TestSchema.prototype.models = {
+      'com.example.bookstore.author': {},
       'com.example.bookstore.book': {
         aliases: {
           title: 'name',
@@ -333,33 +360,6 @@ module('unit/model', function(hooks) {
   // stores occur regularly during tests, fastboot &c.
   testGlobalCacheUnloading('global m3 cache unloading works across subsequent stores');
 
-  test('.unknownProperty resolves id-matched values to external DS.models', function(assert) {
-    let model = run(() => {
-      return this.store.push({
-        data: {
-          id: 'isbn:9780439708180',
-          type: 'com.example.bookstore.Book',
-          attributes: {
-            name: `Harry Potter and the Sorcerer's Stone`,
-            author: 'urn:author:3',
-          },
-        },
-        included: [
-          {
-            id: '3',
-            type: 'author',
-            attributes: {
-              name: `JK Rowling`,
-            },
-          },
-        ],
-      });
-    });
-
-    assert.equal(get(model, 'author.name'), 'JK Rowling');
-    assert.equal(get(model, 'author').constructor, this.Author);
-  });
-
   test('.unknownProperty resolves nested-matched values as nested m3-models', function(assert) {
     let model = run(() => {
       return this.store.push({
@@ -389,8 +389,8 @@ module('unit/model', function(hooks) {
             },
           },
           {
-            id: '3',
             type: 'author',
+            id: '3',
             attributes: {
               name: `JK Rowling`,
             },
@@ -401,7 +401,7 @@ module('unit/model', function(hooks) {
 
     assert.equal(get(model, 'relatedToAuthor.relation'), 'She wrote it');
     assert.equal(get(model, 'relatedToAuthor.value.name'), 'JK Rowling');
-    assert.equal(get(model, 'relatedToAuthor.value').constructor, this.Author);
+    assert.equal(get(model, 'relatedToAuthor.value').constructor, MegamorphicModel);
     assert.equal(get(model, 'relatedToBook.relation'), 'Next in series');
     assert.equal(get(model, 'relatedToBook.value.name'), 'Harry Potter and the Chamber of Secrets');
     assert.equal(get(model, 'relatedToBook.value').constructor, MegamorphicModel);
@@ -434,7 +434,7 @@ module('unit/model', function(hooks) {
     );
   });
 
-  test('.unknownProperty resolves heterogenous arrays of m3-references, ds-references and nested objects', function(assert) {
+  test('.unknownProperty resolves heterogenous arrays of m3-references and nested objects', function(assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -447,7 +447,6 @@ module('unit/model', function(hooks) {
                 name: 'Chapter 1: The Boy Who Lived',
               },
               'isbn:9780439064873',
-              'urn:author:3',
             ],
           },
         },
@@ -459,26 +458,18 @@ module('unit/model', function(hooks) {
               name: `Harry Potter and the Chamber of Secrets`,
             },
           },
-          {
-            id: '3',
-            type: 'author',
-            attributes: {
-              name: `JK Rowling`,
-            },
-          },
         ],
       });
     });
 
     let relatedItems = get(model, 'relatedItems').content;
-    assert.equal(relatedItems.length, 3, 'array has right length');
+    assert.equal(relatedItems.length, 2, 'array has right length');
     assert.equal(get(relatedItems[0], 'name'), 'Chapter 1: The Boy Who Lived', 'array nested');
     assert.equal(
       get(relatedItems[1], 'name'),
       'Harry Potter and the Chamber of Secrets',
       'array ref-to-m3'
     );
-    assert.equal(get(relatedItems[2], 'name'), 'JK Rowling', 'array ref-to-ds.model');
   });
 
   test('.unknownProperty supports default values', function(assert) {
@@ -1184,98 +1175,6 @@ module('unit/model', function(hooks) {
       'cahe is updated as soon as resolved value is set'
     );
   });
-
-  test('tracked arrays with DS.Model', function(assert) {
-    let model = run(() => {
-      return this.store.push({
-        data: {
-          id: 'isbn:9780439708180',
-          type: 'com.example.bookstore.Book',
-          attributes: {
-            name: `Harry Potter and the Sorcerer's Stone`,
-            relatedItems: [
-              {
-                name: 'Chapter 1: The Boy Who Lived',
-              },
-              'isbn:9780439064873',
-            ],
-          },
-        },
-        included: [
-          {
-            id: 'isbn:9780439064873',
-            type: 'com.example.bookstore.Book',
-            attributes: {
-              name: `Harry Potter and the Chamber of Secrets`,
-            },
-          },
-          {
-            id: '3',
-            type: 'author',
-            attributes: {
-              name: `JK Rowling`,
-            },
-          },
-        ],
-      });
-    });
-
-    let relatedItems = get(model, 'relatedItems');
-    //let dsModel = relatedItems.objectAt(2);
-    let dsModel = this.store.peekRecord('author', '3');
-    run(() => {
-      relatedItems.pushObject(dsModel);
-    });
-    assert.equal(get(relatedItems, 'length'), 3, 'array has right length');
-    run(() => {
-      dsModel.unloadRecord();
-    });
-    assert.equal(get(relatedItems, 'length'), 2, 'array has right length');
-  });
-
-  if (gte('ember-data', '3.5.1')) {
-    test('DS.Models can have relationships into m3 models', function(assert) {
-      let model = run(() => {
-        return this.store.push({
-          data: {
-            id: '3',
-            type: 'author',
-            attributes: {
-              name: 'JK Rowling',
-            },
-            relationships: {
-              publishedBooks: {
-                data: [
-                  {
-                    id: 'isbn:9780439708180',
-                    // Ember-Data requires model-name normalized types in relationship portions of a jsonapi resource
-                    type: 'com.example.bookstore.book',
-                  },
-                ],
-              },
-            },
-          },
-
-          included: [
-            {
-              id: 'isbn:9780439708180',
-              type: 'com.example.bookstore.Book',
-              attributes: {
-                name: `Harry Potter and the Sorcerer's Stone`,
-              },
-            },
-          ],
-        });
-      });
-
-      assert.equal(get(model, 'name'), 'JK Rowling', 'ds.model loaded');
-      assert.equal(
-        get(model, 'publishedBooks.firstObject.name'),
-        `Harry Potter and the Sorcerer's Stone`,
-        'ds.model can access m3 model via relationship'
-      );
-    });
-  }
 
   test('nested models are created lazily', function(assert) {
     let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
@@ -2924,9 +2823,7 @@ module('unit/model', function(hooks) {
   test('store.modelFor', function(assert) {
     let bookModel = this.store.modelFor('com.example.bookstore.Book');
     let chapterModel = this.store.modelFor('com.example.bookstore.Chapter');
-    let authorModel = this.store.modelFor('author');
 
-    assert.equal(authorModel, this.Author, 'modelFor DS.Model');
     assert.equal(bookModel, MegamorphicModel, 'modelFor schema-matching');
     assert.equal(chapterModel, MegamorphicModel, 'modelFor other schema-matching');
   });
@@ -3162,23 +3059,34 @@ module('unit/model', function(hooks) {
     );
 
     // Testing errors is getting set and is an instance
-    // of DS.Errors
+    // of Errors from @ember-data/model/-private
     const errors = get(model, 'errors');
     assert.ok(errors);
-    assert.ok(errors instanceof DS.Errors);
+    assert.ok(errors instanceof Errors);
   });
 
   test('.save errors getting updated via the store and removed upon setting a new value', function(assert) {
     assert.expect(10);
 
     const modelName = 'com.example.bookstore.Book';
+    function makeInvalidError(errors) {
+      if (InvalidError) {
+        return new InvalidError(errors);
+      }
+      const error = new Error('The adapter rejected the commit because it was invalid');
+      error.code = 'InvalidError';
+      error.isAdapterError = true;
+      error.errors = errors;
+      return error;
+    }
+
     this.owner.register(
       'adapter:-ember-m3',
       EmberObject.extend({
         updateRecord(store, type, snapshot) {
           assert.equal(snapshot.record.get('isSaving'), true, 'record is saving');
           return Promise.reject(
-            new DS.InvalidError([
+            makeInvalidError([
               {
                 source: 'estimatedPubDate',
                 detail: 'Please enter valid estimated publish date',

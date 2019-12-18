@@ -1,10 +1,9 @@
-import require, { has } from 'require';
-import StoreMixin from '../mixins.store';
+import require from 'require';
+import StoreMixin from '../mixins/store';
+import { HAS_EMBER_DATA_PACKAGE } from 'ember-m3/-infra/packages';
 
 let Store;
 let ExportedStore;
-
-const HAS_EMBER_DATA_PACKAGE = has('ember-data');
 
 if (!HAS_EMBER_DATA_PACKAGE) {
   Store = require('@ember-data/store').default;

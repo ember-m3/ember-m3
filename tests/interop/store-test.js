@@ -4,12 +4,31 @@ import sinon from 'sinon';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import { addObserver } from '@ember/object/observers';
 import { resolve } from 'rsvp';
+import { HAS_MODEL_PACKAGE } from 'ember-m3/-infra/packages';
+import require from 'require';
 
-module('unit/store', function(hooks) {
+let Model, attr;
+if (HAS_MODEL_PACKAGE) {
+  let ModelPackage = require('@ember-data/model');
+  Model = ModelPackage.default;
+  attr = ModelPackage.attr;
+} else {
+  let DSPackage = require('ember-data').default;
+  Model = DSPackage.Model;
+  attr = DSPackage.attr;
+}
+
+module('unit/store (interop with @ember-data/model)', function(hooks) {
   setupTest(hooks);
 
   hooks.beforeEach(function() {
     this.sinon = sinon.createSandbox();
+
+    this.Author = Model.extend({
+      name: attr('string'),
+    });
+    this.Author.toString = () => 'Author';
+    this.owner.register('model:author', this.Author);
 
     this.owner.register(
       'service:m3-schema',

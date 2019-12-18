@@ -196,7 +196,7 @@ module('unit/model/reference-array', function(hooks) {
     assert.deepEqual(
       otherBooksInSeries.mapBy('id'),
       ['isbn:9780439064873', 'isbn:9780439139601'],
-      'ref arrays can be "set" like DS.hasMany'
+      'ref arrays can be "set" like @ember-data/model hasMany'
     );
 
     // Need to rollback to detect the changes from the server

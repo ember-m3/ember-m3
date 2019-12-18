@@ -1,13 +1,12 @@
 // This lint error disables "this.attrs" everywhere.  What could go wrong?
 /* eslint-disable ember/no-attrs-in-components */
 
-import DS from 'ember-data';
-import { RootState } from 'ember-data/-private';
 import EmberObject, { computed, get, set, defineProperty } from '@ember/object';
 import { isArray } from '@ember/array';
 import { assert, warn } from '@ember/debug';
 import { readOnly } from '@ember/object/computed';
 import { recordDataToRecordMap } from './mixins/store';
+import require from 'require';
 
 import { recordDataFor } from './-private';
 import M3RecordArray from './record-array';
@@ -21,20 +20,122 @@ import {
   flushChanges,
 } from './utils/notify-changes';
 import { DEBUG } from '@glimmer/env';
-import { CUSTOM_MODEL_CLASS } from './feature-flags';
-const {
-  deleted: { uncommitted: deletedUncommitted, saved: deletedSaved },
-  loaded: {
-    saved: loadedSaved,
-    updated: { uncommitted: updatedUncommitted },
-  },
-} = RootState;
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
+import {
+  HAS_EMBER_DATA_PACKAGE,
+  HAS_ADAPTER_PACKAGE,
+  HAS_MODEL_PACKAGE,
+} from 'ember-m3/-infra/packages';
 
 let retrieveFromCurrentState;
 if (!CUSTOM_MODEL_CLASS) {
   retrieveFromCurrentState = computed('_topModel.currentState', function(key) {
     return this._topModel._internalModel.currentState[key];
   }).readOnly();
+}
+
+let Errors;
+let RootState;
+let InvalidError;
+
+if (HAS_EMBER_DATA_PACKAGE) {
+  // consumer brings all of EmberData, possibly a pre 3.12 version
+  InvalidError = require('ember-data/adapters/errors').InvalidError;
+} else if (HAS_ADAPTER_PACKAGE) {
+  // consumer brings only part of EmberData in a post 3.12 version
+  InvalidError = require('@ember-data/adapter/error').InvalidError;
+}
+
+if (HAS_EMBER_DATA_PACKAGE) {
+  // consumer brings all of EmberData, possibly a pre 3.12 version
+  let metaPackage = require('ember-data/-private');
+  Errors = metaPackage.Errors;
+  if (!CUSTOM_MODEL_CLASS) {
+    RootState = metaPackage.RootState;
+  }
+} else {
+  // consumer brings only part of EmberData
+
+  /*
+    Get access to the Private Errors class
+  */
+  if (HAS_MODEL_PACKAGE) {
+    // Errors is supposed to live in the model package
+    // but in some versions is not yet in it's home.
+    // It reached the model package in 3.15
+    Errors = require('@ember-data/model/-private').Errors;
+    if (!Errors) {
+      // it is possible Errors still lives in the store package
+      // Before migrating to the model package Errors was within the store
+      // This was versions 3.12 -> 3.14
+      Errors = require('@ember-data/store/-private').Errors;
+    }
+    if (DEBUG && !Errors) {
+      throw new Error(`ember-m3 requires the @ember-data/model package to import Errors`);
+    }
+  } else {
+    // it is possible Errors still lives in the store package
+    // Before migrating to the model package Errors was within the store
+    // This was versions 3.12 -> 3.14
+    Errors = require('@ember-data/store/-private').Errors;
+    if (DEBUG && !Errors) {
+      throw new Error(`ember-m3 requires the @ember-data/model package to import Errors`);
+    }
+  }
+
+  /*
+    Get access to the Private State Machine via RootState
+  */
+  if (!CUSTOM_MODEL_CLASS) {
+    if (HAS_MODEL_PACKAGE) {
+      // RootState is supposed to live in the model package
+      // but in some versions is not yet in it's home.
+      // What version this becomes true in is TBD, likely to be 3.17
+      RootState = require('@ember-data/model/-private').RootState;
+      if (!RootState) {
+        // it is possible RootState still lives in the store package
+        // Before migrating to the model package RootState was within the store
+        // This was versions 3.12 -> ~3.16 (TBD)
+        RootState = require('@ember-data/store/-private').RootState;
+      }
+      if (DEBUG && !RootState) {
+        throw new Error(`ember-m3 requires the @ember-data/model package to import RootState`);
+      }
+    } else {
+      // it is possible RootState still lives in the store package
+      // Before migrating to the model package RootState was within the store
+      // This was versions 3.12 -> ~3.16 (TBD)
+      RootState = require('@ember-data/store/-private').RootState;
+      if (!RootState) {
+        throw new Error(`ember-m3 requires the @ember-data/model package to import RootState`);
+      }
+    }
+  }
+}
+
+let deletedSaved, deletedUncommitted, loadedSaved, updatedUncommitted;
+
+if (!CUSTOM_MODEL_CLASS) {
+  let {
+    deleted: { uncommitted: dUncommitted, saved: dSaved },
+    loaded: {
+      saved: lSaved,
+      updated: { uncommitted: upUncommitted },
+    },
+  } = RootState;
+
+  deletedSaved = dSaved;
+  deletedUncommitted = dUncommitted;
+  loadedSaved = lSaved;
+  updatedUncommitted = upUncommitted;
+}
+
+function isInvalidError(error) {
+  if (HAS_ADAPTER_PACKAGE) {
+    return error && error instanceof InvalidError;
+  } else {
+    return error && error.isAdapterError === true && error.code === 'InvalidError';
+  }
 }
 
 class YesManAttributesSingletonClass {
@@ -94,7 +195,7 @@ export default class MegamorphicModel extends EmberObject {
         if (request.state === 'rejected') {
           // TODO filter out queries
           this._lastErrorRequest = request;
-          if (!(request.result && request.result.error instanceof DS.InvalidError)) {
+          if (!(request.result && isInvalidError(request.result.error))) {
             this._errorRequests.push(request);
           } else {
             this._invalidRequests.push(request);
@@ -171,7 +272,7 @@ export default class MegamorphicModel extends EmberObject {
       // TODO need to walk the chain down as well to notify changes
     }
     if (this !== this._topModel) {
-      this._topModel._updateCurrentState(state);
+      this._topModel._updateCurrentState(!CUSTOM_MODEL_CLASS && state);
       return;
     }
     // assert we don't need this anymore
@@ -278,7 +379,7 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   save(options) {
-    // TODO: we could return a PromiseObject as DS.Model does
+    // TODO: we could return a PromiseObject as @ember-data/model does
     if (CUSTOM_MODEL_CLASS) {
       return this._store.saveRecord(this, options).then(() => this);
     } else {
@@ -287,7 +388,7 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   reload(options = {}) {
-    // passing in options here is something you can't actually do with DS.Model
+    // passing in options here is something you can't actually do with @ember-data/model
     // but there isn't a good reason for this; that support should be added in
     // ember-data
     options.reload = true;
@@ -320,7 +421,7 @@ export default class MegamorphicModel extends EmberObject {
     }
 
     let dirtyKeys = recordDataFor(this).rollbackAttributes();
-    this._updateCurrentState(loadedSaved);
+    this._updateCurrentState(!CUSTOM_MODEL_CLASS && loadedSaved);
 
     if (dirtyKeys && dirtyKeys.length > 0) {
       this._notifyProperties(dirtyKeys);
@@ -423,7 +524,7 @@ export default class MegamorphicModel extends EmberObject {
       const cachedValue = this._cache[key];
       if (cachedValue instanceof M3RecordArray) {
         // We update record arrays in-place to match the semantics of setting a
-        // `hasMany` attribute on a `DS.Model`.
+        // `hasMany` attribute on a @ember-data/model
         this._setRecordArray(key, value);
         notifyPropertyChange(this, key);
         return;
@@ -479,9 +580,9 @@ export default class MegamorphicModel extends EmberObject {
     const isDirty = get(this, 'isDirty');
 
     if (hasDirtyAttr && !isDirty) {
-      this._updateCurrentState(updatedUncommitted);
+      this._updateCurrentState(!CUSTOM_MODEL_CLASS && updatedUncommitted);
     } else if (!hasDirtyAttr && isDirty) {
-      this._updateCurrentState(loadedSaved);
+      this._updateCurrentState(!CUSTOM_MODEL_CLASS && loadedSaved);
     }
   }
 
@@ -498,7 +599,7 @@ export default class MegamorphicModel extends EmberObject {
         !this._internalModel.currentState.isValid &&
         get(this.errors, 'length') === 0
       ) {
-        this._updateCurrentState(updatedUncommitted);
+        this._updateCurrentState(!CUSTOM_MODEL_CLASS && updatedUncommitted);
       }
     }
   }
@@ -515,7 +616,7 @@ export default class MegamorphicModel extends EmberObject {
   // upon validation errors
   get errors() {
     if (this._errors === null) {
-      this._errors = DS.Errors.create();
+      this._errors = Errors.create();
     }
     return this._errors;
   }

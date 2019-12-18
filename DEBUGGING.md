@@ -2,7 +2,7 @@
 
 ## Debugging
 
-If you are used to interacting with `DS.Model` records, it can be intimidating to see
+If you are used to interacting with `@ember-data/model` records, it can be intimidating to see
 a proxy object wrapping an `m3` model in the console:
 ![Proxy object screenshot](screenshots/proxy.png)
 

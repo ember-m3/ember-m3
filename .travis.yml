@@ -39,6 +39,7 @@ jobs:
       script:
         - yarn test
         - yarn lint:js
+        - yarn test:node
 
     - stage: feature flagged features
       script: node_modules/.bin/ember try:one canary-channel --- ember test  --query enableoptionalfeatures
@@ -48,7 +49,10 @@ jobs:
     - env: EMBER_TRY_SCENARIO=release-n-1
     - env: EMBER_TRY_SCENARIO=ember-lts-3.12
     - env: EMBER_TRY_SCENARIO=ember-lts-3.8
-    - env: EMBER_TRY_SCENARIO=beta-channel
+    - env: EMBER_TRY_SCENARIO=ember-data-packages-3.14
+    - env: EMBER_TRY_SCENARIO=ember-data-packages-latest
+    - env: EMBER_TRY_SCENARIO=ember-data-packages-beta
+    - env: EMBER_TRY_SCENARIO=ember-data-packages-canary
 
     # runs tests against future Ember versions
     - stage: advance warning tests

@@ -1,6 +1,6 @@
 import { dasherize } from '@ember/string';
 import { recordDataToRecordMap } from '../mixins/store';
-import { CUSTOM_MODEL_CLASS } from '../feature-flags';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 
 export function computeAttributeReference(key, value, modelName, schemaInterface, schema) {
   schemaInterface._beginDependentKeyResolution(key);

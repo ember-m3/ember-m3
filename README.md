@@ -246,15 +246,16 @@ or, more likely, a `RecordArray` of `MegamorphicModel`s.
 
 ---
 
-It is possible to do the same thing in stock Ember Data by making a `DS.Model`
+It is possible to do the same thing in stock Ember Data by making a `@ember-data/model`
 class to wrap your search results and querying via:
 
 ```js
 // app/models/news-feed.js
-import DS from 'ember-data';
-export DS.Model.extend({
-  feedItems: DS.hasMany('feed-item'),
-});
+import Model, { hasMany } from '@ember-data/model';
+export class NewsFeed extends Model {
+  @hasMany('feed-item')
+  feedItems;
+}
 
 // somewhere, presumably in a route
 store.findRecord('news-feed', 'latest', { backgroundReload: true });
@@ -520,7 +521,9 @@ classes. For example:
 
 ```js
 // app/models/my-model.js
-export DS.Model.extend({
+import Model from '@ember-data/model';
+
+export Model.extend({
   myConstant: 24601,
 });
 
@@ -546,8 +549,10 @@ often they can be read only.
 
 ```js
 // app/models/my-model.js
-export DS.Model.extend({
-  name: DS.attr(),
+import Model, { attr } from '@ember-data/model';
+
+export Model.extend({
+  name: attr(),
   aliasName: Ember.computed.reads('name'),
 });
 
@@ -571,8 +576,10 @@ Let's say you are converting the following `Museum` model:
 
 ```js
 // models/museum.js
-export DS.Model.extend({
-  name: DS.attr(),
+import Model, { attr } from '@ember-data/model';
+
+export Model.extend({
+  name: attr(),
 })
 ```
 
@@ -642,8 +649,10 @@ pattern is to define a helper that exports both.
 
 ```js
 // app/models/my-model.js
-export DS.Model.extend({
-  name: DS.attr('string'),
+import Model, { attr } from '@ember-data/model';
+
+export Model.extend({
+  name: attr('string'),
   sillyName: Ember.computed('name', function() {
     return `silly ${this.get('name')}`;
   }).readOnly(),

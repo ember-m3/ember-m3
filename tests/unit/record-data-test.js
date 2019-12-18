@@ -7,7 +7,7 @@ import { setupTest } from 'ember-qunit';
 import M3RecordData from 'ember-m3/record-data';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import { recordDataToRecordMap } from 'ember-m3/mixins/store';
-import { CUSTOM_MODEL_CLASS } from 'ember-m3/feature-flags';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 
 const recordDataKey = ({ modelName, id }) => `${modelName}:${id}`;
 

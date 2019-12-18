@@ -1,6 +1,5 @@
 import { inject } from '@ember/service';
 import { get } from '@ember/object';
-import { IS_RECORD_DATA, gte } from 'ember-compatibility-helpers';
 import M3RecordData from '../record-data';
 import MegamorphicModelFactory from '../factory';
 import QueryCache from '../query-cache';
@@ -10,12 +9,13 @@ import { getOwner } from '@ember/application';
 import seenTypesPerStore from '../utils/seen-types-per-store';
 import { next } from '@ember/runloop';
 import { assign, merge } from '@ember/polyfills';
-import { CUSTOM_MODEL_CLASS } from '../feature-flags';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
+import { HAS_EMBER_DATA_PACKAGE } from 'ember-m3/-infra/packages';
+import { GTE_VERSION_3_12, IS_RECORD_DATA } from 'ember-m3/-infra/versions';
 import MegamorphicModel from '../model';
-import require, { has } from 'require';
+import require from 'require';
 
 const emberAssign = assign || merge;
-const HAS_EMBER_DATA_PACKAGE = has('ember-data');
 
 export const recordDataToRecordMap = new WeakMap();
 export const recordDataToQueryCache = new WeakMap();
@@ -70,7 +70,7 @@ const StoreMixin = {
     this._queryCache = new QueryCache({ store: this });
     seenTypesPerStore.set(this, new Set());
 
-    if (gte('ember-data', '3.12.0-alpha.0')) {
+    if (GTE_VERSION_3_12) {
       this._modifiedInternalModelMapProto = undefined;
     }
     if (CUSTOM_MODEL_CLASS) {
@@ -212,7 +212,7 @@ const StoreMixin = {
         }
       }
 
-      if (gte('ember-data', '3.12.0-alpha.0')) {
+      if (GTE_VERSION_3_12) {
         if (this._modifiedInternalModelMapProto === undefined) {
           let store = this;
           // set this up for removals
@@ -235,7 +235,7 @@ const StoreMixin = {
   },
 
   willDestroy() {
-    if (gte('ember-data', '3.12.0-alpha.0')) {
+    if (GTE_VERSION_3_12) {
       if (this._modifiedInternalModelMapProto !== undefined) {
         let proto = this._modifiedInternalModelMapProto;
         proto.remove = proto.__originalRemove;
@@ -246,7 +246,7 @@ const StoreMixin = {
   },
 };
 
-if (!gte('ember-data', '3.12.0-alpha.0')) {
+if (!GTE_VERSION_3_12) {
   StoreMixin._removeFromIdMap = function _removeFromIdMap(internalModel) {
     delete this._globalM3Cache[internalModel.id];
     return this._super(internalModel);
@@ -279,7 +279,9 @@ function createRecordDataFor(modelName, id, clientId, storeWrapper) {
     );
   }
 
-  return this._super(modelName, id, clientId, storeWrapper);
+  if (HAS_EMBER_DATA_PACKAGE) {
+    return this._super(modelName, id, clientId, storeWrapper);
+  }
 }
 
 if (IS_RECORD_DATA) {

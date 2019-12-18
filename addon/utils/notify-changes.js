@@ -19,9 +19,9 @@ if (HasNotifyPropertyChange) {
 // re-issuing the property changes in order, but Ember already triggers array
 // changes eagerly, even within `changeProperties`
 
-// WeakMap<DS.Store, [obj, startIdx: number, removeCount: number, addCount: number]>
+// WeakMap<Store, [obj, startIdx: number, removeCount: number, addCount: number]>
 const StoreToArrayChanges = new WeakMap();
-// WeakMap<DS.Store, [obj, property: string]>
+// WeakMap<Store, [obj, property: string]>
 const StoreToPropChanges = new WeakMap();
 
 function getPropertyChanges(store) {

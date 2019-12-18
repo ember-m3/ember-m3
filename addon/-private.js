@@ -1,5 +1,5 @@
-import { IS_RECORD_DATA } from 'ember-compatibility-helpers';
-import { CUSTOM_MODEL_CLASS } from './feature-flags';
+import { IS_RECORD_DATA } from 'ember-m3/-infra/versions';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 
 export function recordDataFor(recordOrInternalModel) {
   if (CUSTOM_MODEL_CLASS) {
