@@ -1,3 +1,33 @@
+## v0.11.9 (2019-12-18)
+
+#### :rocket: Enhancement
+
+- [#477](https://github.com/hjdivad/ember-m3/pull/477) perf: instantiate errors lazily ([@runspired](https://github.com/runspired))
+
+#### :bug: Bug Fix
+
+- [#490](https://github.com/hjdivad/ember-m3/pull/490) Fix isDirty regression ([@hjdivad](https://github.com/hjdivad))
+- [#472](https://github.com/hjdivad/ember-m3/pull/472) fix: remove seen model types in debug-adapter when inspector is closed ([@SYU15](https://github.com/SYU15))
+- [#458](https://github.com/hjdivad/ember-m3/pull/458) fix: don't overwrite existing babel plugins ([@hjdivad](https://github.com/hjdivad))
+
+#### :memo: Documentation
+
+- [#484](https://github.com/hjdivad/ember-m3/pull/484) Update support policy ([@hjdivad](https://github.com/hjdivad))
+
+#### :house: Internal
+
+- [#485](https://github.com/hjdivad/ember-m3/pull/485) dx: Fix ember data feature import ([@hjdivad](https://github.com/hjdivad))
+- [#483](https://github.com/hjdivad/ember-m3/pull/483) dx: Fix CUSTOM_MODEL_CLASS fallback ([@hjdivad](https://github.com/hjdivad))
+- [#460](https://github.com/hjdivad/ember-m3/pull/460) chore: cleanup deprecations ([@runspired](https://github.com/runspired))
+- [#459](https://github.com/hjdivad/ember-m3/pull/459) Fix canary feature imports ([@igorT](https://github.com/igorT))
+
+#### Committers: 4
+
+- Chris Thoburn ([@runspired](https://github.com/runspired))
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- Igor Terzic ([@igorT](https://github.com/igorT))
+- Sarah Yu ([@SYU15](https://github.com/SYU15))
+
 ## 0.11.8
 
 - feat: Add support for Ember Data custom model classes (thanks @igort)
