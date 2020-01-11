@@ -475,7 +475,7 @@ export default class MegamorphicModel extends EmberObject {
     this._schema.setAttribute(this._modelName, attr, value, schemaInterface);
     schemaInterface._suppressNotifications = priorSuppressNotifications;
 
-    const hasDirtyAttr = recordData.hasDirtyAttr();
+    const hasDirtyAttr = recordData.hasChangedAttributes();
     const isDirty = get(this, 'isDirty');
 
     if (hasDirtyAttr && !isDirty) {
@@ -686,7 +686,7 @@ export class EmbeddedMegamorphicModel extends MegamorphicModel {
   _updateCurrentState(state) {
     if (state === loadedSaved) {
       let topRecordData = recordDataFor(this._topModel);
-      if (topRecordData.hasDirtyAttr()) {
+      if (topRecordData.hasChangedAttributes()) {
         // Nested models maintain state with their parents; this makes sense
         // until we let people save nested models independently.  However, it
         // means that nested models should not reset their parents to "not
