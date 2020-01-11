@@ -10,7 +10,7 @@ const pkg = require('./package.json');
  addon init so does not have access to
  the host application instance.
 */
-let requiredDataPackages = ['@ember-data/model', '@ember-data/store', '@ember-data/debug'];
+let requiredDataPackages = ['@ember-data/model', '@ember-data/store', 'ember-inflector'];
 let allDataPackages = [
   '@ember-data/adapter',
   '@ember-data/debug',
@@ -19,7 +19,7 @@ let allDataPackages = [
   '@ember-data/serializer',
   '@ember-data/store',
 ];
-let minVersionForUsingOwnPackages = '3.15.0';
+let minVersionForUsingOwnPackages = '3.14.0';
 
 function hasDataPackage(addon) {
   let addons = addon.project.addonPackages;
@@ -56,13 +56,14 @@ function assertOwnDataPackagesValid(addon) {
   }
 
   for (let i = 0; i < allDataPackages.length; i++) {
-    let addon = addons[allDataPackages[i]];
+    let addonName = allDataPackages[i];
+    let addon = addons[addonName];
 
-    if (addon) {
-      let pkgVersion = addons[allDataPackages[i]].pkg.version;
+    if (addon && addonName !== 'ember-inflector') {
+      let pkgVersion = addons[addonName].pkg.version;
       if (pkgVersion !== storeVersion) {
         throw new Error(
-          `All @ember-data/<pkg> packages must have matching versions. Found ${allDataPackages[i]} ${pkgVersion} which does not match @ember-data/store's version of ${storeVersion}.`
+          `All @ember-data/<pkg> packages must have matching versions. Found ${addonName} ${pkgVersion} which does not match @ember-data/store's version of ${storeVersion}.`
         );
       }
     }
@@ -91,7 +92,7 @@ module.exports = {
     if (!hasDataPackage(this) && !hasOwnDataPackages(this)) {
       return true;
     }
-    if (addon.name.startsWith('@ember-data')) {
+    if (addon.name.startsWith('@ember-data') || addon.name === 'ember-inflector') {
       /*
       console.log(
         `⚠️  ember-m3 is excluding ${addon.name} version ${addon.pkg.version} from the build`
