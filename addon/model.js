@@ -106,7 +106,7 @@ if (HAS_EMBER_DATA_PACKAGE) {
       // Before migrating to the model package RootState was within the store
       // This was versions 3.12 -> ~3.16 (TBD)
       RootState = require('@ember-data/store/-private').RootState;
-      if (!RootState) {
+      if (DEBUG && !RootState) {
         throw new Error(`ember-m3 requires the @ember-data/model package to import RootState`);
       }
     }
