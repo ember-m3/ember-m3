@@ -94,6 +94,43 @@ module('unit/model/projections/changed-attrs', function(hooks) {
     );
   });
 
+  test('resetting a property on parent model while nested model is dirty keeps parent model dirty', function(assert) {
+    this.store.push({
+      data: [
+        {
+          id: 'urn:book:1',
+          type: 'com.bookstore.Book',
+          attributes: {
+            title: 'A History of the English Speaking Peoples Vol I',
+            randomChapter: {
+              position: 2,
+              title: 'Not actually a chapter in this book',
+            },
+          },
+        },
+      ],
+    });
+
+    let record = this.store.peekRecord('com.bookstore.Book', 'urn:book:1');
+
+    assert.equal(
+      record.get('randomChapter.title'),
+      'Not actually a chapter in this book',
+      'read randomChapter.title (nested record)'
+    );
+
+    record.set('title', 'something');
+    record.get('randomChapter').set('position', 3);
+    record.set('title', 'A History of the English Speaking Peoples Vol I');
+    assert.equal(record.get('isDirty'), true, 'record is still dirty');
+    record.get('randomChapter').set('position', 2);
+    assert.equal(
+      record.get('isDirty'),
+      false,
+      'record is not dirty after nested record becomes clean'
+    );
+  });
+
   test('Can set a many embedded property to a semi resolved array containing a mix of pojos and megamorphic models - projections', async function(assert) {
     assert.expect(4);
     this.owner.register(
