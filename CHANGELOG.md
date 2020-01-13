@@ -1,3 +1,18 @@
+## v0.11.10 (2020-01-13)
+
+#### :rocket: Enhancement
+
+- [#478](https://github.com/hjdivad/ember-m3/pull/478) feat: support @ember-data packages and trimming ([@runspired](https://github.com/runspired))
+
+#### :bug: Bug Fix
+
+- [#513](https://github.com/hjdivad/ember-m3/pull/513) Fix isDirty check for parents of nested models ([@igorT](https://github.com/igorT))
+
+#### Committers: 2
+
+- Chris Thoburn ([@runspired](https://github.com/runspired))
+- Igor Terzic ([@igorT](https://github.com/igorT))
+
 ## v0.11.9 (2019-12-18)
 
 #### :rocket: Enhancement
