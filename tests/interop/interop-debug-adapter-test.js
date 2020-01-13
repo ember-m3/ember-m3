@@ -1,15 +1,24 @@
 import { module, test } from 'qunit';
 import sinon from 'sinon';
 import { setupTest } from 'ember-qunit';
-import DS from 'ember-data';
 import { settled } from '@ember/test-helpers';
 import { capitalize, underscore } from '@ember/string';
 import { A } from '@ember/array';
 import InteropDebugAdapter from 'ember-m3/adapters/interop-debug-adapter';
 import DefaultSchema from 'ember-m3/services/m3-schema';
-import { has } from 'require';
+import { HAS_DEBUG_PACKAGE, HAS_MODEL_PACKAGE } from 'ember-m3/-infra/packages';
+import require from 'require';
 
-const HasDebugAdapterPackage = has('@ember-data/debug');
+let Model, attr;
+if (HAS_MODEL_PACKAGE) {
+  let ModelPackage = require('@ember-data/model');
+  Model = ModelPackage.default;
+  attr = ModelPackage.attr;
+} else {
+  let DSPackage = require('ember-data').default;
+  Model = DSPackage.Model;
+  attr = DSPackage.attr;
+}
 
 const BOOK_MODEL_TYPE = 'com.example.bookstore.Book';
 const NEW_MODEL_TYPE = 'com.example.newModel';
@@ -43,17 +52,17 @@ module('integration/interop-debug-adapter', function(hooks) {
   hooks.beforeEach(function() {
     this.sinon = sinon.createSandbox();
 
-    this.Publisher = DS.Model.extend({
-      name: DS.attr('string'),
-      foundedDate: DS.attr('string'),
+    this.Publisher = Model.extend({
+      name: attr('string'),
+      foundedDate: attr('string'),
     });
 
     this.Publisher.toString = () => 'Publisher';
     this.owner.register('model:publisher', this.Publisher);
 
-    this.Genre = DS.Model.extend({
-      name: DS.attr('string'),
-      description: DS.attr('string'),
+    this.Genre = Model.extend({
+      name: attr('string'),
+      description: attr('string'),
     });
 
     this.Genre.toString = () => 'Genre';
@@ -89,7 +98,7 @@ module('integration/interop-debug-adapter', function(hooks) {
       class ExtendedInteropDataAdapter extends InteropDebugAdapter {
         init() {
           super.init(...arguments);
-          // This pattern is to ensure DS.Model types are being catalogued correctly in the test environment:
+          // This pattern is to ensure @ember-data/model types are being catalogued correctly in the test environment:
           // https://github.com/emberjs/ember.js/blob/91656e1154afe39791514cbe937ada954eab8d11/packages/%40ember/-internals/extension-support/tests/data_adapter_test.js#L18
           this.containerDebugAdapter = {
             canCatalogEntriesByType() {
@@ -149,8 +158,8 @@ module('integration/interop-debug-adapter', function(hooks) {
     );
   });
 
-  test('watchModelTypes correctly watches both m3 and DS.Model records', async function(assert) {
-    assert.expect(HasDebugAdapterPackage ? 7 : 6);
+  test('watchModelTypes correctly watches both m3 and @ember-data/model records', async function(assert) {
+    assert.expect(HAS_DEBUG_PACKAGE ? 7 : 6);
 
     let typesAddedCallCount = 0;
     let typesUpdatedCallCount = 0;
@@ -232,8 +241,8 @@ module('integration/interop-debug-adapter', function(hooks) {
           // triggered due to push in beforeEach
           return assert.deepEqual(
             typesToSend,
-            HasDebugAdapterPackage ? dsTypesAdded1 : dsTypesAdded1.concat(dsTypesAdded2),
-            'Added Case 2: Correct type object passed into typesAdded for DS.Model record types'
+            HAS_DEBUG_PACKAGE ? dsTypesAdded1 : dsTypesAdded1.concat(dsTypesAdded2),
+            'Added Case 2: Correct type object passed into typesAdded for @ember-data/model record types'
           );
         case 3:
           return assert.deepEqual(
@@ -242,11 +251,11 @@ module('integration/interop-debug-adapter', function(hooks) {
             'Added Case 3: Correct type object passed into typesAdded for new m3 record types'
           );
         case 4:
-          if (HasDebugAdapterPackage) {
+          if (HAS_DEBUG_PACKAGE) {
             return assert.deepEqual(
               typesToSend,
               dsTypesAdded2,
-              'Added Case 4: Correct type object passed into typesAdded for DS.Model record types'
+              'Added Case 4: Correct type object passed into typesAdded for @ember-data/model record types'
             );
           } else {
             // pre-the debug package EmberData would add all types by scanning for models/ so we
@@ -265,7 +274,7 @@ module('integration/interop-debug-adapter', function(hooks) {
           return assert.deepEqual(
             updatedTypesToSend,
             newDSTypesUpdated,
-            'Update Case 1: Correct type object passed into typesUpdated when new DS.Model records are added'
+            'Update Case 1: Correct type object passed into typesUpdated when new @ember-data/model records are added'
           );
         case 2:
           return assert.deepEqual(
@@ -325,7 +334,7 @@ module('integration/interop-debug-adapter', function(hooks) {
     await settled();
   });
 
-  test('typesUpdated is called when new m3 and DS.Model records are added of an existing type', async function(assert) {
+  test('typesUpdated is called when new m3 and @ember-data/model records are added of an existing type', async function(assert) {
     assert.expect(2);
 
     let typesUpdatedCallCount = 0;
@@ -360,7 +369,7 @@ module('integration/interop-debug-adapter', function(hooks) {
           return assert.deepEqual(
             updatedTypesToSend,
             newDSTypesUpdated,
-            'Correct type object passed into typesUpdated when DS.Model records are added'
+            'Correct type object passed into typesUpdated when @ember-data/model records are added'
           );
         default:
           return null;

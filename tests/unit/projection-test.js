@@ -7,7 +7,7 @@ import { run } from '@ember/runloop';
 import { Promise } from 'rsvp';
 import EmberObject from '@ember/object';
 import DefaultSchema from 'ember-m3/services/m3-schema';
-import { CUSTOM_MODEL_CLASS } from 'ember-m3/feature-flags';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 /*
   Ember Data currently dasherizes modelNames for use within the store, in these tests
   payloads given to the store use non-normalized modelNames while schemas and

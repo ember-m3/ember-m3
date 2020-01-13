@@ -10,12 +10,13 @@ import {
   deferPropertyChange,
   flushChanges,
 } from './utils/notify-changes';
-import { CUSTOM_MODEL_CLASS } from './feature-flags';
-import { recordDataToRecordMap, recordToRecordArrayMap } from './initializers/m3-store';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
+import { HAS_STORE_PACKAGE } from 'ember-m3/-infra/packages';
+import { recordDataToRecordMap, recordToRecordArrayMap } from './mixins/store';
 import require from 'require';
 
 let recordIdentifierFor;
-if (require.has('@ember-data/store')) {
+if (HAS_STORE_PACKAGE) {
   recordIdentifierFor = require('@ember-data/store').recordIdentifierFor;
 }
 
@@ -23,7 +24,6 @@ if (require.has('@ember-data/store')) {
  * M3RecordArray
  *
  * @class M3RecordArray
- * @extends DS.RecordArray
  */
 let M3RecordArray;
 
@@ -32,7 +32,6 @@ if (CUSTOM_MODEL_CLASS) {
    * M3RecordArray
    *
    * @class M3RecordArray
-   * @extends DS.RecordArray
    */
   M3RecordArray = class M3RecordArray extends EmberObject {
     // public RecordArray API

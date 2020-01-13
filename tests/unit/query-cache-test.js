@@ -6,12 +6,8 @@ import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
 import stubCalls from '../helpers/stub-calls';
 
-import DS from 'ember-data';
-
 import MegamorphicModel from 'ember-m3/model';
 import DefaultSchema from 'ember-m3/services/m3-schema';
-
-const { Serializer } = DS;
 
 module('unit/query-cache', function(hooks) {
   setupTest(hooks);
@@ -935,7 +931,7 @@ module('unit/query-cache', function(hooks) {
 
     this.owner.register(
       'serializer:application',
-      Serializer.extend({
+      class AppSerializer extends EmberObject {
         normalizeResponse(store, modelClass, payload /*, id, requestType */) {
           return {
             data: {
@@ -944,8 +940,8 @@ module('unit/query-cache', function(hooks) {
               attributes: payload,
             },
           };
-        },
-      })
+        }
+      }
     );
 
     this.adapterAjax.returns(resolve(payload));

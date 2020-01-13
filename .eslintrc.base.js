@@ -29,13 +29,21 @@ module.exports = {
         './blueprints/*/index.js',
         './config/**/*.js',
         './tests/dummy/config/**/*.js',
+        'bin/**/*.js',
+        'node-tests/**/*.js',
+        'src/**/*.js',
       ],
-      env: {
-        node: true,
-      },
       parserOptions: {
         sourceType: 'script',
+        ecmaVersion: 2015,
       },
+      env: {
+        browser: false,
+        node: true,
+        es6: true,
+      },
+      plugins: ['node'],
+      extends: 'plugin:node/recommended',
     },
   ],
 };

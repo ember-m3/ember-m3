@@ -2,18 +2,22 @@ import M3DebugAdapter from './m3-debug-adapter';
 import { get, defineProperty } from '@ember/object';
 import { inject } from '@ember/service';
 import { default as MegamorphicModel } from '../model';
-import require, { has } from 'require';
+import require from 'require';
 import { run } from '@ember/runloop';
+import DataAdapter from '@ember/debug/data-adapter';
+import { HAS_DEBUG_PACKAGE, HAS_EMBER_DATA_PACKAGE } from 'ember-m3/-infra/packages';
 
 let DebugAdapter;
-if (has('@ember-data/debug')) {
+if (HAS_DEBUG_PACKAGE) {
   DebugAdapter = require('@ember-data/debug').default;
-} else {
+} else if (HAS_EMBER_DATA_PACKAGE) {
   DebugAdapter = require('ember-data/-private').DebugAdapter;
+} else {
+  DebugAdapter = DataAdapter;
 }
 
 /*
-  Extend Ember Data's `DebugAdapter` to handle both m3 and DS.Model model types
+  Extend Ember Data's `DebugAdapter` to handle both m3 and @ember-data/model model types
 
   @class InteropDebugAdapter
   @extends DebugAdapter
@@ -48,7 +52,7 @@ export default class InteropDebugAdapter extends DebugAdapter {
     or Ember Data's debug adapter depending on the record type
     @public
     @method getRecordColumnValues
-    @param {MegamorphicModel|DS.Model} record to get values from
+    @param {MegamorphicModel|Model} record to get values from
     @return {Object} Keys should match column names defined by the model type
   */
   getRecordColumnValues(record) {
@@ -66,7 +70,7 @@ export default class InteropDebugAdapter extends DebugAdapter {
     Takes an array of objects containing wrapped types
     @param {Function} typesUpdated Callback to call when a type has changed
     Takes an array of objects containing wrapped types
-    @return {Function} Method to call to remove all observers from m3 and DS.Model model types
+    @return {Function} Method to call to remove all observers from m3 and @ember-data/model model types
   */
   watchModelTypes(typesAdded, typesUpdated) {
     const schema = this.schema;

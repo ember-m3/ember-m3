@@ -6,7 +6,7 @@ import { zip } from 'lodash';
 
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import MegamorphicModelFactory from 'ember-m3/factory';
-import { extendStore } from 'ember-m3/initializers/m3-store';
+import { extendStore } from 'ember-m3/mixins/store';
 
 module('unit/initializers/m3-store', function(hooks) {
   setupTest(hooks);

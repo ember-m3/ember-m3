@@ -5,12 +5,12 @@ export default DefaultSchema.extend({
    * Determines whether an attribute is a reference.
    * If it is not, return `null` or `undefined`.
    * Otherwise return an object with properties:
-   *  - `id` The id of the referenced model (either m3 or `DS.Model`)
-   *  - `type` The type of the referenced model (either m3 or `DS.Model`)
+   *  - `id` The id of the referenced model (either m3 or `@ember-data/model`)
+   *  - `type` The type of the referenced model (either m3 or `@ember-data/model`)
    * `null` is also a valid type in which case `id` will be looked up in a global cache.
    *
    * Note that attribute references are all treated as synchronous.
-   * There is no ember-m3 analogue to `DS.Model` async relationships.
+   * There is no ember-m3 analogue to `@ember-data/model` async relationships.
    *
    * @param {string} key
    * @param {Object} value

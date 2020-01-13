@@ -1,11 +1,18 @@
-import DS from 'ember-data';
+import { assign } from '@ember/polyfills';
 
-export default DS.JSONAPISerializer.extend({
+export default class ApplicationSerializer {
+  constructor(createArgs) {
+    assign(this, createArgs);
+  }
   normalizeResponse(store, primaryModelClass, payload /*, id, requestType */) {
     return payload;
-  },
+  }
 
   pushPayload(store, payload) {
-    return this.store.push(payload);
-  },
-});
+    return store.push(payload);
+  }
+
+  static create(createArgs) {
+    return new this(createArgs);
+  }
+}

@@ -4,9 +4,9 @@ import { assign, merge } from '@ember/polyfills';
 import { copy } from './utils/copy';
 import { assert } from '@ember/debug';
 import Ember from 'ember';
-import { IS_RECORD_DATA, gte } from 'ember-compatibility-helpers';
-import { recordDataToRecordMap, recordDataToQueryCache } from './initializers/m3-store';
-import { CUSTOM_MODEL_CLASS } from './feature-flags';
+import { recordDataToRecordMap, recordDataToQueryCache } from './mixins/store';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
+import { GTE_VERSION_3_13, IS_RECORD_DATA } from 'ember-m3/-infra/versions';
 
 const emberAssign = assign || merge;
 
@@ -125,7 +125,7 @@ export default class M3RecordData {
    * @param {string} modelName
    * @param {string} id
    * @param {number} [clientId]
-   * @param {DS.Store} storeWrapper
+   * @param {Store} storeWrapper
    * @param {SchemaManager} schemaManager
    * @param {M3RecordData} [parentRecordData]
    * @param {M3RecordData} [baseRecordData]
@@ -799,7 +799,7 @@ export default class M3RecordData {
       }
 
       if (IS_RECORD_DATA) {
-        if (gte('ember-data', '3.13.0')) {
+        if (GTE_VERSION_3_13) {
           this._baseRecordData = this.storeWrapper.recordDataFor(dasherize(baseModelName), this.id);
         } else {
           this._baseRecordData = this.storeWrapper.recordDataFor(

@@ -53,7 +53,7 @@ export default class DefaultSchema extends Service {
   includesModel(/* modelName */) {
     // Return true if modelName should be provided by a MegamorphicModel,
     // false if it should be handled via the store default (probably a
-    // DS.Model)
+    // @ember-data/model)
     return false;
   }
 

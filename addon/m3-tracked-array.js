@@ -5,13 +5,14 @@ import { isResolvedValue } from './utils/resolve';
 import { associateRecordWithRecordArray } from './record-array';
 import { recordDataFor } from './-private';
 import { deprecate } from '@ember/debug';
-import { CUSTOM_MODEL_CLASS } from './feature-flags';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import MegamorphicModel from './model';
 import require from 'require';
-import { recordDataToRecordMap } from './initializers/m3-store';
+import { recordDataToRecordMap } from './mixins/store';
+import { HAS_STORE_PACKAGE } from 'ember-m3/-infra/packages';
 
 let recordIdentifierFor;
-if (require.has('@ember-data/store')) {
+if (HAS_STORE_PACKAGE) {
   recordIdentifierFor = require('@ember-data/store').recordIdentifierFor;
 }
 

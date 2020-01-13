@@ -210,7 +210,8 @@
 
 ## 0.7.5
 
-- Model supports client validation errors. `errors` an instance of DS.Errors provides list of vaidation errors.
+- Model supports client validation errors. For convenience with migrating from @ember-data/model, `errors` an instance of same `Errors` class used by
+  `@ember-data/model`, which provides list of vaidation errors.
 
 ## 0.7.4
 

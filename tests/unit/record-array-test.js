@@ -6,7 +6,7 @@ import M3RecordArray from 'ember-m3/record-array';
 import { flushChanges } from 'ember-m3/utils/notify-changes';
 import { isArray } from '@ember/array';
 import MutableArray from '@ember/array/mutable';
-import { CUSTOM_MODEL_CLASS } from 'ember-m3/feature-flags';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 
 module('unit/record-array', function(hooks) {
   setupTest(hooks);

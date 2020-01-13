@@ -5,7 +5,7 @@ import { assign } from '@ember/polyfills';
 
 import MegamorphicModel from './model';
 import M3QueryArray from './query-array';
-import { CUSTOM_MODEL_CLASS } from './feature-flags';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 
 function stripSlash(str, stripLeading, stripTrailing) {
   let startSlash = stripLeading && str.charAt(0) === '/';

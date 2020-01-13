@@ -11,7 +11,7 @@ import M3RecordArray from 'ember-m3/record-array';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 
 import { recordDataFor } from 'ember-m3/-private';
-import { CUSTOM_MODEL_CLASS } from 'ember-m3/feature-flags';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 
 function currentState(model) {
   if (CUSTOM_MODEL_CLASS) {

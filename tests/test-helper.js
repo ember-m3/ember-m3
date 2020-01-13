@@ -4,6 +4,7 @@ import config from '../config/environment';
 import { start } from 'ember-qunit';
 import './helpers/watch-property';
 import QUnit from 'qunit';
+import 'ember-m3/initializers/m3-store';
 
 QUnit.config.urlConfig.push({
   id: 'enableoptionalfeatures',
