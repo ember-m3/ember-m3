@@ -947,14 +947,22 @@
     ember-cli-babel "^7.13.0"
     ember-cli-typescript "^3.1.1"
 
-"@ember-data/debug@^3.16.0-alpha.3":
-  version "3.16.0-alpha.3"
-  resolved "https://registry.npmjs.org/@ember-data/debug/-/debug-3.16.0-alpha.3.tgz#0ad3c1bd0cb06ed61d1cd9953220d642df9d40fb"
-  integrity sha512-Gx8IbC/p7HAZqKJcX0OzkKCYfMvLhsBbfwCCqW/eDa3/mc1ExZJ6m0ozHbS0G4ttz4t9lIMBt3TJ0y/6vU6k9w==
+"@ember-data/canary-features@3.16.0-beta.0":
+  version "3.16.0-beta.0"
+  resolved "https://registry.yarnpkg.com/@ember-data/canary-features/-/canary-features-3.16.0-beta.0.tgz#e327fca91f631455755628349198bc9fcb4010a0"
+  integrity sha512-jPqSQBYaYtuTcN55HkwZnGGdtZPM9Lz5Sq+0zLXngx1n9s5LPpZOHlsaxw4gr00uK0OH1M/EKpfTFqsnlPSr1Q==
   dependencies:
-    "@ember-data/private-build-infra" "3.16.0-alpha.3"
+    ember-cli-babel "^7.13.2"
+    ember-cli-typescript "^3.1.1"
+
+"@ember-data/debug@^3.16.0-beta.0":
+  version "3.16.0-beta.0"
+  resolved "https://registry.yarnpkg.com/@ember-data/debug/-/debug-3.16.0-beta.0.tgz#fd689a519a72a8c7a1cf7de9ee2a8a7a184c66ae"
+  integrity sha512-YdToJXZQ2/L+VZC5DTZ/lAnD/FKlZJm/7JYAalmdbGjSaZY0ofXRhMKT54TQAkvWZWobY0tOJDK/n5P6Lv56TQ==
+  dependencies:
+    "@ember-data/private-build-infra" "3.16.0-beta.0"
     "@ember/edition-utils" "^1.2.0"
-    ember-cli-babel "^7.13.0"
+    ember-cli-babel "^7.13.2"
     ember-cli-test-info "^1.0.0"
     ember-cli-typescript "^3.1.1"
 
@@ -993,6 +1001,38 @@
     calculate-cache-key-for-tree "^2.0.0"
     chalk "^3.0.0"
     ember-cli-babel "^7.13.0"
+    ember-cli-path-utils "^1.0.0"
+    ember-cli-string-utils "^1.1.0"
+    ember-cli-typescript "^3.1.1"
+    ember-cli-version-checker "^3.1.2"
+    esm "^3.2.25"
+    git-repo-info "^2.1.1"
+    glob "^7.1.6"
+    npm-git-info "^1.0.3"
+    rimraf "^3.0.0"
+    rsvp "^4.8.5"
+    semver "^6.3.0"
+    silent-error "^1.1.1"
+
+"@ember-data/private-build-infra@3.16.0-beta.0":
+  version "3.16.0-beta.0"
+  resolved "https://registry.yarnpkg.com/@ember-data/private-build-infra/-/private-build-infra-3.16.0-beta.0.tgz#eebe3e9d602861292f441d0c340724bec32e96ed"
+  integrity sha512-Cp+XPYT74PGHvyncsGJIX3CNicTLHIGbPLXFnq/9cy2bAqc9rYtfNFwk2hFoDPye/aj7Ft/nvd6HJ1SSKnMPwg==
+  dependencies:
+    "@babel/plugin-transform-block-scoping" "^7.7.4"
+    "@ember-data/canary-features" "3.16.0-beta.0"
+    "@ember/edition-utils" "^1.2.0"
+    babel-plugin-debug-macros "^0.3.3"
+    babel-plugin-filter-imports "^4.0.0"
+    babel6-plugin-strip-class-callcheck "^6.0.0"
+    broccoli-debug "^0.6.5"
+    broccoli-file-creator "^2.1.1"
+    broccoli-funnel "^2.0.2"
+    broccoli-merge-trees "^3.0.2"
+    broccoli-rollup "^4.1.1"
+    calculate-cache-key-for-tree "^2.0.0"
+    chalk "^3.0.0"
+    ember-cli-babel "^7.13.2"
     ember-cli-path-utils "^1.0.0"
     ember-cli-string-utils "^1.1.0"
     ember-cli-typescript "^3.1.1"
@@ -3996,34 +4036,7 @@ ember-cli-babel@^6.16.0, ember-cli-babel@^6.6.0, ember-cli-babel@^6.8.1, ember-c
     ember-cli-version-checker "^2.1.2"
     semver "^5.5.0"
 
-ember-cli-babel@^7.0.0, ember-cli-babel@^7.1.2, ember-cli-babel@^7.11.0, ember-cli-babel@^7.12.0, ember-cli-babel@^7.7.3:
-  version "7.13.0"
-  resolved "https://registry.yarnpkg.com/ember-cli-babel/-/ember-cli-babel-7.13.0.tgz#3f2c2ba7a44d7948ec927d41cf072673330f62cd"
-  integrity sha512-VjagtumwQP+3jsjLR64gpca5iq2o0PS1MT0PdC90COtAYqpOqNM9axYEYBamNLIuv+3vJpAoFKu8EMBC1ZlWGQ==
-  dependencies:
-    "@babel/core" "^7.7.0"
-    "@babel/plugin-proposal-class-properties" "^7.7.0"
-    "@babel/plugin-proposal-decorators" "^7.7.0"
-    "@babel/plugin-transform-modules-amd" "^7.5.0"
-    "@babel/plugin-transform-runtime" "^7.6.0"
-    "@babel/polyfill" "^7.7.0"
-    "@babel/preset-env" "^7.7.0"
-    "@babel/runtime" "^7.7.0"
-    amd-name-resolver "^1.2.1"
-    babel-plugin-debug-macros "^0.3.0"
-    babel-plugin-ember-modules-api-polyfill "^2.12.0"
-    babel-plugin-module-resolver "^3.1.1"
-    broccoli-babel-transpiler "^7.3.0"
-    broccoli-debug "^0.6.4"
-    broccoli-funnel "^2.0.1"
-    broccoli-source "^1.1.0"
-    clone "^2.1.2"
-    ember-cli-babel-plugin-helpers "^1.1.0"
-    ember-cli-version-checker "^2.1.2"
-    ensure-posix-path "^1.0.2"
-    semver "^5.5.0"
-
-ember-cli-babel@^7.13.0, ember-cli-babel@^7.13.2:
+ember-cli-babel@^7.0.0, ember-cli-babel@^7.1.2, ember-cli-babel@^7.11.0, ember-cli-babel@^7.12.0, ember-cli-babel@^7.13.0, ember-cli-babel@^7.13.2, ember-cli-babel@^7.7.3:
   version "7.13.2"
   resolved "https://registry.npmjs.org/ember-cli-babel/-/ember-cli-babel-7.13.2.tgz#6b6f4d508cc3bb300c5711d3d02c59ba80f0f686"
   integrity sha512-VH2tMXaRFkbQEyVJnxUtAyta5bAKjtcLwJ4lStW/iRk/NIlNFNJh1uOd7uL9H9Vm0f4/xR7Mc0Q7ND9ezKOo+A==
