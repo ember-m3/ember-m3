@@ -1,5 +1,5 @@
-import ArrayProxy from '@ember/array/proxy';
-import { get } from '@ember/object';
+import MutableArray from '@ember/array/mutable';
+import EmberObject, { get } from '@ember/object';
 import { resolveValue } from './resolve-attribute-util';
 import { isResolvedValue } from './utils/resolve';
 import { associateRecordWithRecordArray } from './record-array';
@@ -22,7 +22,7 @@ if (HAS_STORE_PACKAGE) {
  * @class M3TrackedArray
  * @extends {Ember.ArrayProxy}
  */
-export default class M3TrackedArray extends ArrayProxy {
+export default class M3TrackedArray extends EmberObject.extend(MutableArray) {
   init() {
     super.init(...arguments);
     this._key = get(this, 'key');
@@ -42,6 +42,10 @@ export default class M3TrackedArray extends ArrayProxy {
 
   replace(idx, removeAmt, newItems) {
     this.replaceContent(idx, removeAmt, newItems);
+  }
+
+  objectAt(idx) {
+    return this.content[idx];
   }
 
   replaceContent(idx, removeAmt, newItems) {
@@ -87,7 +91,9 @@ export default class M3TrackedArray extends ArrayProxy {
     });
 
     // Update content
+    this.arrayContentWillChange(idx, removeAmt, newItems.length);
     this.content.replace(idx, removeAmt, newItems);
+    this.arrayContentDidChange(idx, removeAmt, newItems.length);
 
     // Set attribute in recordData and update model state and changedAttributes
     // object
