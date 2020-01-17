@@ -5,6 +5,7 @@ import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import M3TrackedArray from 'ember-m3/m3-tracked-array';
 import DefaultSchema from 'ember-m3/services/m3-schema';
+import { A } from '@ember/array';
 
 module('unit/model/tracked-array', function(hooks) {
   setupTest(hooks);
@@ -259,5 +260,32 @@ module('unit/model/tracked-array', function(hooks) {
       book2.get('chapters').objectAt(1),
       'embedded model can be shared between tracked arrays'
     );
+  });
+
+  test('tracked array interop with Ember Arrays', function(assert) {
+    let model = run(() =>
+      this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            chapters: [
+              {
+                name: 'The Boy Who Lived',
+              },
+            ],
+          },
+        },
+      })
+    );
+
+    let chapters = model.get('chapters');
+    assert.equal(chapters instanceof M3TrackedArray, true, 'chapters is a tracked array');
+    let objectAt = chapters.objectAt;
+    let push = chapters.push;
+    assert.equal(chapters, A(chapters), 'Ember.A doesnt replace the tracked array');
+    assert.equal(push, A(chapters).push, 'Ember.A doesnt modify native array methods');
+    assert.equal(objectAt, A(chapters).objectAt, 'Ember.A doesnt modify ember array methods');
   });
 });
