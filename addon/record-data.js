@@ -301,7 +301,7 @@ export default class M3RecordData {
             isDirty = true;
           }
         } else {
-          isDirty = child.some(rd => rd.hasChangedAttributes());
+          isDirty = isDirty || child.some(rd => rd.hasChangedAttributes());
         }
       });
       return isDirty;

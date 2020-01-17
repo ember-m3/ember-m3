@@ -246,6 +246,43 @@ module('unit/record-data', function(hooks) {
     assert.equal(rollbackAttributesSpy.getCalls().length, 0, 'rollbackAttributes was not called');
   });
 
+  test('hasChangedAttributes works with multiple arrays of nested models', function(assert) {
+    assert.expect(3);
+    let recordData = new M3RecordData(
+      'com.exmaple.bookstore.book',
+      '1',
+      null,
+      this.storeWrapper,
+      this.schemaManager,
+      null,
+      null,
+      {}
+    );
+    recordData.pushData({
+      attributes: {
+        nestedColors: [{ color: 'blue' }, { color: 'red' }],
+        nestedShapes: [{ shape: 'triangle' }, { shape: 'square' }],
+      },
+    });
+    assert.equal(
+      recordData.hasChangedAttributes(),
+      false,
+      'hasChangedAttributes is false with freshly pushed data'
+    );
+    let colorBlue = recordData._getChildRecordData('nestedColors', 0, 'color');
+    let shape = recordData._getChildRecordData('nestedShapes', 0, 'shape');
+    assert.ok(
+      shape,
+      'we need to read the shape to materialize the childRecordData for this bug to mnanifest'
+    );
+    colorBlue.setAttr('color', 'purple');
+    assert.equal(
+      recordData.hasChangedAttributes(),
+      true,
+      'hasChangedAttributes is true after a nested property has been set'
+    );
+  });
+
   module('base record data delegates', function() {
     const baseDelegates = {
       pushData: [{ id: 'test-resource', attributes: {} }, false, false, false],
