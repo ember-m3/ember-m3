@@ -1,3 +1,13 @@
+- Fix hasChangedAttributes with arrays of nested models (8990e02)
+- Merge pull request #528 from hjdivad/dependabot/npm_and_yarn/ember-cli-htmlbars-4.2.2 (659ee08)
+- chore(deps-dev): bump ember-cli-htmlbars from 4.2.0 to 4.2.2 (c286f45)
+- Merge pull request #526 from hjdivad/dependabot/npm_and_yarn/commitlint/travis-cli-8.3.5 (1c06c40)
+- chore(deps-dev): bump @commitlint/travis-cli from 8.3.4 to 8.3.5 (c8c1cd0)
+- Merge pull request #525 from hjdivad/dependabot/npm_and_yarn/commitlint/cli-8.3.5 (a92d9d3)
+- chore(deps-dev): bump @commitlint/cli from 8.3.4 to 8.3.5 (7ea7863)
+- Merge pull request #495 from hjdivad/dependabot/npm_and_yarn/ember-resolver-7.0.0 (24eaa35)
+- chore(deps-dev): bump ember-resolver from 6.0.1 to 7.0.0 (d20046a)
+
 ## v0.11.10 (2020-01-13)
 
 #### :rocket: Enhancement
