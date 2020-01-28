@@ -3201,4 +3201,21 @@ module('unit/m3-model', function(hooks) {
 
     assert.deepEqual(bookRecord.debugJSON(), expectedJSON, 'The JSON returned is correct');
   });
+
+  test('Calling .toString on the record prototype correctly returns MegamorphicModel', function(assert) {
+    let model = run(() =>
+      this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+          },
+        },
+        included: [],
+      })
+    );
+
+    assert.equal(Object.getPrototypeOf(model).toString(), 'MegamorphicModel');
+  });
 });
