@@ -102,7 +102,7 @@
     "husky": "^3.1.0",
     "lint-staged": "^10.0.7",
     "loader.js": "^4.2.3",
-    "pretender": "^3.2.0",
+    "pretender": "^3.3.1",
     "prettier": "^1.19.1",
     "release-it": "^12.2.1",
     "release-it-lerna-changelog": "^1.0.3",

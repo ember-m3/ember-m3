@@ -8545,10 +8545,10 @@ prepend-http@^2.0.0:
   resolved "https://registry.yarnpkg.com/prepend-http/-/prepend-http-2.0.0.tgz#e92434bfa5ea8c19f41cdfd401d741a3c819d897"
   integrity sha1-6SQ0v6XqjBn0HN/UAddBo8gZ2Jc=
 
-pretender@^3.2.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/pretender/-/pretender-3.2.0.tgz#3e653009462f737c1184ca8b7b8d2f03cf47421b"
-  integrity sha512-YnqYFZ9JKcpseQnYE5iR1y1gBATtJTXzI/SXtTFt4mvXabg6U4AIzvNzJok9IhxP5lIyQ9OeWCsg2DkjhQJSKg==
+pretender@^3.3.1:
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/pretender/-/pretender-3.3.1.tgz#74a188b0786601959ee8ffaefc9230d24fa7fa5b"
+  integrity sha512-fFtl0bfW1ay6zMGqok2Lkhpz8yjm8Pdk+fsQAX+Aeqw0LKZNaDs2VQt8qEKTNWvs5UKVUwNfcuHjVmuG7rZKhQ==
   dependencies:
     fake-xml-http-request "^2.1.1"
     route-recognizer "^0.3.3"
