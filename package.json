@@ -99,7 +99,7 @@
     "eslint-config-prettier": "^6.10.0",
     "eslint-plugin-ember": "^7.7.2",
     "eslint-plugin-prettier": "^3.1.2",
-    "husky": "^3.1.0",
+    "husky": "^4.2.2",
     "lint-staged": "^10.0.7",
     "loader.js": "^4.2.3",
     "pretender": "^3.3.1",
