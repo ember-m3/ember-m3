@@ -609,6 +609,12 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   toString() {
+    // Check needed for Ember Inspector support:
+    // https://github.com/emberjs/ember-inspector/blob/545e3c1c7a47f7a033025037f6f1e8d1d4c60624/ember_debug/object-inspector.js#L622
+    if (this === this.constructor.prototype) {
+      return 'MegamorphicModel';
+    }
+
     return `<MegamorphicModel:${this.id}>`;
   }
 
