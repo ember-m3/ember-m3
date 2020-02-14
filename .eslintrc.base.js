@@ -45,5 +45,14 @@ module.exports = {
       plugins: ['node'],
       extends: 'plugin:node/recommended',
     },
+    {
+      files: ['tests/**/*.js'],
+      env: {
+        embertest: true,
+      },
+      rules: {
+        'ember/no-observers': 0,
+      },
+    },
   ],
 };

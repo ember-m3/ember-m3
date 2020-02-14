@@ -24,6 +24,7 @@
     "Sang Mercado <sang.mercado@gmail.com> (http://linkedin.com/in/sangmercado)",
     "Chris Thoburn <runspired@gmail.com> (https://twitter.com/runspired)",
     "Steve Calvert <steve.calvert@gmail.com> (https://www.twitter.com/scalvert)",
+    "Stefan Penner <stefan.penner@gmail.com> (https://iamstef.net)",
     "Robert Jackson <me@rwjblue.com> (https://www.rwjblue.com)",
     "Alan Guo",
     "Igor Terzic",
@@ -60,16 +61,15 @@
     ]
   },
   "dependencies": {
-    "@ember-data/debug": "^3.16.0-alpha.3",
-    "@ember-data/model": "^3.16.0-alpha.3",
-    "@ember-data/store": "^3.16.0-alpha.3",
+    "@ember-data/debug": "^3.16.0",
+    "@ember-data/model": "^3.16.0",
+    "@ember-data/store": "^3.16.0",
     "babel-plugin-debug-macros": "^0.3.3",
-    "broccoli-funnel": "^2.0.2",
+    "broccoli-funnel": "^3.0.1",
     "ember-cli-babel": "^7.18.0",
     "ember-inflector": "^3.0.1",
-    "eslint-plugin-node": "^10.0.0",
     "esm": "^3.2.25",
-    "semver": "^6.3.0"
+    "semver": "^7.1.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.3.5",
@@ -92,15 +92,16 @@
     "ember-qunit-assert-helpers": "^0.2.1",
     "ember-resolver": "^7.0.0",
     "ember-sinon": "^4.1.1",
-    "ember-source": "~3.15.0",
+    "ember-source": "~3.16.0",
     "ember-source-channel-url": "^2.0.1",
     "ember-try": "^1.4.0",
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.10.0",
-    "eslint-plugin-ember": "^7.7.2",
+    "eslint-plugin-ember": "^7.8.0",
+    "eslint-plugin-node": "^11.0.0",
     "eslint-plugin-prettier": "^3.1.2",
-    "husky": "^3.1.0",
-    "lint-staged": "^10.0.8",
+    "husky": "^4.2.3",
+    "lint-staged": "^10.0.7",
     "loader.js": "^4.2.3",
     "pretender": "^3.3.1",
     "prettier": "^1.19.1",
@@ -113,7 +114,7 @@
     "ember-data": ">= 3.5.1"
   },
   "engines": {
-    "node": ">= 10.0.0"
+    "node": "10.* || >= 12.*"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"

@@ -37,8 +37,8 @@ jobs:
     - stage: test
       env: NAME=test # used only to make Travis UI show description
       script:
-        - yarn test
         - yarn lint:js
+        - yarn test
         - yarn test:node
 
     - stage: feature flagged features
