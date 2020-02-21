@@ -16,7 +16,7 @@ module.exports = function() {
           name: 'default',
           bower: {},
           npm: {
-            dependencies: {
+            devDependencies: {
               'ember-data': 'latest',
               '@ember-data/store': null,
               '@ember-data/debug': null,
@@ -33,8 +33,6 @@ module.exports = function() {
           npm: {
             devDependencies: {
               'ember-source': '~3.8.0',
-            },
-            dependencies: {
               'ember-data': '~3.8.0',
               '@ember-data/store': null,
               '@ember-data/debug': null,
@@ -51,8 +49,6 @@ module.exports = function() {
           npm: {
             devDependencies: {
               'ember-source': '~3.12.0',
-            },
-            dependencies: {
               'ember-data': '~3.12.0',
               '@ember-data/store': null,
               '@ember-data/debug': null,
@@ -71,8 +67,6 @@ module.exports = function() {
           npm: {
             devDependencies: {
               'ember-source': '~3.14.0',
-            },
-            dependencies: {
               'ember-data': null,
               '@ember-data/store': '~3.14.0',
               '@ember-data/debug': null, // available in 3.15
@@ -89,8 +83,6 @@ module.exports = function() {
           npm: {
             devDependencies: {
               'ember-source': 'latest',
-            },
-            dependencies: {
               'ember-data': null,
               '@ember-data/store': 'latest',
               '@ember-data/debug': null, // available in 3.15
@@ -107,8 +99,6 @@ module.exports = function() {
           npm: {
             devDependencies: {
               'ember-source': 'latest',
-            },
-            dependencies: {
               'ember-data': null,
               '@ember-data/store': 'beta',
               '@ember-data/debug': 'beta',
@@ -125,8 +115,6 @@ module.exports = function() {
           npm: {
             devDependencies: {
               'ember-source': 'latest',
-            },
-            dependencies: {
               'ember-data': null,
               '@ember-data/store': 'canary',
               '@ember-data/debug': 'canary',
@@ -142,10 +130,7 @@ module.exports = function() {
           name: 'release-n-1',
           npm: {
             devDependencies: {
-              // TODO: automate this
               'ember-source': '~3.14.3',
-            },
-            dependencies: {
               'ember-data': '~3.14.0',
               '@ember-data/store': null,
               '@ember-data/debug': null,
@@ -162,8 +147,6 @@ module.exports = function() {
           npm: {
             devDependencies: {
               'ember-source': urls[0],
-            },
-            dependencies: {
               'ember-data': 'latest',
               '@ember-data/store': null,
               '@ember-data/debug': null,
@@ -180,8 +163,6 @@ module.exports = function() {
           npm: {
             devDependencies: {
               'ember-source': urls[1],
-            },
-            dependencies: {
               'ember-data': 'beta',
               '@ember-data/store': null,
               '@ember-data/debug': null,
@@ -198,8 +179,6 @@ module.exports = function() {
           npm: {
             devDependencies: {
               'ember-source': urls[2],
-            },
-            dependencies: {
               'ember-data': 'canary',
               '@ember-data/store': null,
               '@ember-data/debug': null,
