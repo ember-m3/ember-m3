@@ -1,10 +1,11 @@
 import { module, test } from 'qunit';
-import { setupTest } from 'ember-qunit';
+import { setupApplicationTest } from 'ember-qunit';
 import IndexPage from '../pages/index';
-import { click, currentURL } from '@ember/test-helpers';
+import { click, currentURL, visit } from '@ember/test-helpers';
+import InteropDebugAdapter from 'ember-m3/adapters/interop-debug-adapter';
 
 module('acceptance/m3', function(hooks) {
-  setupTest(hooks);
+  setupApplicationTest(hooks);
 
   test('payloads can be rendered as m3 models', async function(assert) {
     const page = new IndexPage();
@@ -50,5 +51,11 @@ module('acceptance/m3', function(hooks) {
     await click('button.update-data');
 
     assert.equal(page.books()[0].name(), 'Vol I. The Birth of Britain');
+  });
+
+  test('InteropDebugAdapter is registered as data-adapter:main', async function(assert) {
+    await visit('/');
+
+    assert.ok(this.owner.lookup('data-adapter:main') instanceof InteropDebugAdapter);
   });
 });

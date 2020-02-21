@@ -121,7 +121,10 @@
   "ember-addon": {
     "configPath": "tests/dummy/config",
     "defaultBlueprint": "schema",
-    "after": "ember-data"
+    "after": [
+      "ember-data",
+      "@ember-data/debug"
+    ]
   },
   "release-it": {
     "plugins": {
