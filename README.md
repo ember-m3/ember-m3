@@ -749,3 +749,5 @@ As of 12 December this means:
 - 3.14.x (the previous release)
 - 3.12.x (the current LTS)
 - 3.8.x (the previous LTS)
+
+On the build side, a [supported version of node](https://nodejs.org/en/about/releases/) is required.
