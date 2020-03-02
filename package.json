@@ -104,7 +104,7 @@
     "loader.js": "^4.2.3",
     "pretender": "^3.3.1",
     "prettier": "^1.19.1",
-    "release-it": "^12.2.1",
+    "release-it": "^12.6.2",
     "release-it-lerna-changelog": "^1.0.3",
     "qunit": "^2.9.3",
     "testem": "^3.0.2"
