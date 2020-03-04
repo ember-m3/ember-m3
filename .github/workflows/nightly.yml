@@ -1,0 +1,31 @@
+# https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions
+name: Nightly
+
+on:
+  schedule:
+    - cron: '* 14 * * *' # 1400 UTC / 0600 PT
+
+jobs:
+  test-canaries:
+    name: "t:" # rely on matrix for most of name
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        try-scenario: [beta-channel, canary-channel]
+        node: [10.x, 12.x, 13.x] # LTS + current + next
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{matrix.node}}
+      - name: yarn install
+        run: yarn --frozen-lockfile --install
+      - name: try ${{matrix.try-scenario}}
+        run: yarn run ember try:one ${{matrix.try-scenario}}
+      - name: create issue
+        if: failure()
+        run: node ./bin/report-nightly-failure.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
