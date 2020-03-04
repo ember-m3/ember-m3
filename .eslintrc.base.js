@@ -44,6 +44,10 @@ module.exports = {
       },
       plugins: ['node'],
       extends: 'plugin:node/recommended',
+      rules: {
+        // really we want to disable all the rules for plugin:ember/recommended but it's kinda ugly
+        'ember/no-invalid-debug-function-arguments': 'off',
+      },
     },
     {
       files: ['tests/**/*.js'],
