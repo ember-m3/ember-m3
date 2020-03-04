@@ -1,3 +1,26 @@
+## v1.0.0 (2020-03-04)
+
+#### :boom: Breaking Change
+
+- [#563](https://github.com/hjdivad/ember-m3/pull/563) Drop node 8 & upgrade all dependencies ([@stefanpenner](https://github.com/stefanpenner))
+- [#573](https://github.com/hjdivad/ember-m3/pull/573) Drop node 8, like everybody else ([@hjdivad](https://github.com/hjdivad))
+
+#### :bug: Bug Fix
+
+- [#567](https://github.com/hjdivad/ember-m3/pull/567) Drop direct dependencies on Ember Data ([@hjdivad](https://github.com/hjdivad))
+- [#570](https://github.com/hjdivad/ember-m3/pull/570) Re-export interop-debug-adapter in app as data-adapter ([@SYU15](https://github.com/SYU15))
+- [#544](https://github.com/hjdivad/ember-m3/pull/544) Allow .toString to be called on record prototype ([@SYU15](https://github.com/SYU15))
+
+#### :house: Internal
+
+- [#582](https://github.com/hjdivad/ember-m3/pull/582) action time ([@hjdivad](https://github.com/hjdivad))
+
+#### Committers: 3
+
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- Sarah Yu ([@SYU15](https://github.com/SYU15))
+- Stefan Penner ([@stefanpenner](https://github.com/stefanpenner))
+
 ## v0.11.11 (2020-01-17)
 
 #### :bug: Bug Fix
