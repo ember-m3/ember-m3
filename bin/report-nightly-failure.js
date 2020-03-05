@@ -1,12 +1,7 @@
 // https://octokit.github.io/rest.js/v17#issues-list
 const { Octokit } = require('@octokit/rest');
 const m = require('moment');
-
-function assert(test, msg) {
-  if (!test) {
-    throw new Error(msg);
-  }
-}
+const assert = require('assert');
 
 function getIssueTitle(runId) {
   return `Nightly Run Failure: ${runId}`;
@@ -42,8 +37,9 @@ async function main({ env }) {
   global.g = github;
 
   let issueTitle = getIssueTitle(runId);
+  // https://help.github.com/en/github/searching-for-information-on-github/searching-issues-and-pull-requests
   let issueSearch = await github.search.issuesAndPullRequests({
-    q: `repo:hjdivad/ember-m3 is:issue in:title ${issueTitle}`,
+    q: `repo:hjdivad/ember-m3 is:issue label:CI in:title ${issueTitle}`,
   });
 
   if (issueSearch.data.total_count > 0) {
@@ -55,4 +51,10 @@ async function main({ env }) {
   createIssue({ github, runId });
 }
 
-main({ env: process.env });
+module.exports = {
+  _main: main,
+};
+
+if (require.main === module) {
+  main({ env: process.env });
+}

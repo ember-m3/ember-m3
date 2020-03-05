@@ -51,20 +51,37 @@ jobs:
       - name: test:feature-flags
         run: yarn run ember try:one canary-channel --- ember test --query enableoptionalfeatures
 
-  test-regressions:
-    name: "t:" # rely on matrix for most of name
+  test-node:
+    name: 't:' # rely on matrix for most of name
     needs: [lint, test, test-feature-flags]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        try-scenario: [release-channel, release-n-1, ember-lts-3.12, ember-lts-3.8, ember-data-packages-latest]
         node: [10.x, 12.x, 13.x] # LTS + current
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: ${{matrix.node}}
+      - name: yarn install
+        run: yarn --frozen-lockfile --install
+      - name: test
+        run: yarn test
+
+  test-ember:
+    name: 't:' # rely on matrix for most of name
+    needs: [lint, test, test-feature-flags]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        try-scenario: [release-channel, release-n-1, ember-lts-3.12, ember-lts-3.8, ember-data-packages-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 10.x
       - name: yarn install
         run: yarn --frozen-lockfile --install
       - name: try ${{matrix.try-scenario}}
