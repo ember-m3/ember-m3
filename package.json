@@ -109,7 +109,7 @@
     "moment": "^2.24.0",
     "pretender": "^3.3.1",
     "prettier": "^1.19.1",
-    "release-it": "^12.6.3",
+    "release-it": "^13.0.0",
     "qunit": "^2.9.3",
     "release-it-lerna-changelog": "^1.0.3",
     "testem": "^3.0.2"
