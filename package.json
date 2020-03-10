@@ -109,9 +109,9 @@
     "moment": "^2.24.0",
     "pretender": "^3.3.1",
     "prettier": "^1.19.1",
-    "release-it": "^12.6.3",
     "qunit": "^2.9.3",
-    "release-it-lerna-changelog": "^1.0.3",
+    "release-it": "^13.0.2",
+    "release-it-lerna-changelog": "^2.0.0",
     "testem": "^3.0.2"
   },
   "peerDependencies": {
@@ -134,14 +134,16 @@
   "release-it": {
     "plugins": {
       "release-it-lerna-changelog": {
-        "infile": "CHANGELOG.md"
+        "infile": "CHANGELOG.md",
+        "launchEditor": true
       }
     },
     "git": {
       "tagName": "v${version}"
     },
     "github": {
-      "release": true
+      "release": true,
+      "tokenRef": "GITHUB_AUTH"
     }
   },
   "changelog": {
