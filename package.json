@@ -70,12 +70,11 @@
     "semver": "^7.1.3"
   },
   "devDependencies": {
-    "@ember-data/debug": "^3.16.0-alpha.3",
-    "@ember-data/model": "^3.16.0-alpha.3",
-    "@ember-data/store": "^3.16.0-alpha.3",
-    "ember-inflector": "^3.0.1",
     "@commitlint/cli": "^8.3.5",
     "@commitlint/travis-cli": "^8.3.5",
+    "@ember-data/debug": "^3.17.0",
+    "@ember-data/model": "^3.17.0",
+    "@ember-data/store": "^3.17.0",
     "@ember/optional-features": "^1.3.0",
     "@octokit/rest": "^17.0.1",
     "babel-eslint": "^10.1.0",
@@ -89,6 +88,7 @@
     "ember-cli-uglify": "^3.0.0",
     "ember-disable-prototype-extensions": "^1.1.2",
     "ember-export-application-global": "^2.0.1",
+    "ember-inflector": "^3.0.1",
     "ember-load-initializers": "^2.1.1",
     "ember-lodash": "^4.17.5",
     "ember-qunit": "^4.6.0",
