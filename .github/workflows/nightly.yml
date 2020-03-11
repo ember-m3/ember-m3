@@ -3,7 +3,8 @@ name: Nightly
 
 on:
   schedule:
-    - cron: '* 14 * * *' # 1400 UTC / 0600 PT
+    # minute hour day-of-month month day-of-week
+    - cron: '0 14 * * *' # 1400 UTC / 0600 PT
 
 jobs:
   test-floating-deps:
