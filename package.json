@@ -79,7 +79,7 @@
     "@octokit/rest": "^17.1.0",
     "babel-eslint": "^10.1.0",
     "broccoli-asset-rev": "^3.0.0",
-    "ember-cli": "~3.14.0",
+    "ember-cli": "~3.16.0",
     "ember-cli-dependency-checker": "^3.0.0",
     "ember-cli-htmlbars": "^4.2.3",
     "ember-cli-inject-live-reload": "^2.0.2",
