@@ -38,7 +38,10 @@ jobs:
         run: yarn run ember try:one ${{matrix.try-scenario}}
       - name: create issue
         if: failure()
-        run: node ./bin/report-nightly-failure.js
+        # TODO: can't run via yarn script due to bug in nyx@0.2.0
+        run: node ./node_modules/.bin/nyx report-failure
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUN_ID: ${{ github.run_id }}
+          OWNER: hjdivad
+          REPO: ember-m3
