@@ -234,7 +234,6 @@ module('unit/record-array', function(hooks) {
         recordArray._pushInternalModels([book1._internalModel, book2._internalModel]);
 
         assert.deepEqual(recordArray.toArray().mapBy('id'), ['isbn:1', 'isbn:2'], '_pushObjects');
-
         recordArray._removeInternalModels([book1._internalModel]);
 
         assert.deepEqual(recordArray.toArray().mapBy('id'), ['isbn:2'], '_removeObjects');

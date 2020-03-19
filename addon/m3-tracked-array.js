@@ -114,7 +114,9 @@ export default class M3TrackedArray extends EmberObject.extend(MutableArray) {
           for (let j = 0; j < internalModels.length; ++j) {
             let internalModel = internalModels[j];
             if (internalModel === item._internalModel) {
+              this.arrayContentWillChange(i, 1, 0);
               this.content.removeAt(i);
+              this.arrayContentDidChange(i, 1, 0);
               break;
             }
           }
@@ -124,7 +126,12 @@ export default class M3TrackedArray extends EmberObject.extend(MutableArray) {
   }
 
   _removeObject(record) {
-    this.content.removeObject(record);
+    let index = this.content.indexOf(record);
+    if (index > -1) {
+      this.arrayContentWillChange(index, 1, 0);
+      this.content.removeObject(record);
+      this.arrayContentDidChange(index, 1, 0);
+    }
   }
 
   _removeRecordData(recordData) {
@@ -135,7 +142,9 @@ export default class M3TrackedArray extends EmberObject.extend(MutableArray) {
     for (let i = this.content.length; i >= 0; --i) {
       let item = this.content.objectAt(i);
       if (recordToMatch === item) {
+        this.arrayContentWillChange(i, 1, 0);
         this.content.removeAt(i);
+        this.arrayContentDidChange(i, 1, 0);
         break;
       }
     }
