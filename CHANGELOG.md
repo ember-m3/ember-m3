@@ -1,3 +1,19 @@
+## v1.0.1 (2020-03-19)
+
+#### :bug: Bug Fix
+
+- [#611](https://github.com/hjdivad/ember-m3/pull/611) Fix trackedNotifications for destroying records ([@igorT](https://github.com/igorT))
+
+#### :house: Internal
+
+- [#595](https://github.com/hjdivad/ember-m3/pull/595) Update automated release setup. ([@rwjblue](https://github.com/rwjblue))
+
+#### Committers: 3
+
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- Igor Terzic ([@igorT](https://github.com/igorT))
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
 ## v1.0.0 (2020-03-04)
 
 #### :boom: Breaking Change
