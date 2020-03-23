@@ -108,7 +108,7 @@
     "lint-staged": "^10.0.7",
     "loader.js": "^4.2.3",
     "moment": "^2.24.0",
-    "pretender": "^3.3.1",
+    "pretender": "^3.4.0",
     "prettier": "^1.19.1",
     "qunit": "^2.9.3",
     "release-it": "^13.1.2",
