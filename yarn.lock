@@ -8643,14 +8643,13 @@ prepend-http@^2.0.0:
   resolved "https://registry.yarnpkg.com/prepend-http/-/prepend-http-2.0.0.tgz#e92434bfa5ea8c19f41cdfd401d741a3c819d897"
   integrity sha1-6SQ0v6XqjBn0HN/UAddBo8gZ2Jc=
 
-pretender@^3.3.1:
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/pretender/-/pretender-3.3.1.tgz#74a188b0786601959ee8ffaefc9230d24fa7fa5b"
-  integrity sha512-fFtl0bfW1ay6zMGqok2Lkhpz8yjm8Pdk+fsQAX+Aeqw0LKZNaDs2VQt8qEKTNWvs5UKVUwNfcuHjVmuG7rZKhQ==
+pretender@^3.4.0:
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/pretender/-/pretender-3.4.0.tgz#0ccd943eccff48126bcbb912acaf9c33b0829785"
+  integrity sha512-BxmCnuVOchuP1am8p038XhSDDrRXX0bNqp6GRJPu/VcnWNFssy/BIHBefMcB535lHfMeelonkIP1ETtHEHjOVQ==
   dependencies:
     fake-xml-http-request "^2.1.1"
     route-recognizer "^0.3.3"
-    whatwg-fetch "^3.0.0"
 
 prettier-linter-helpers@^1.0.0:
   version "1.0.0"
@@ -10769,11 +10768,6 @@ websocket-extensions@>=0.1.1:
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/websocket-extensions/-/websocket-extensions-0.1.3.tgz#5d2ff22977003ec687a4b87073dfbbac146ccf29"
   integrity sha512-nqHUnMXmBzT0w570r2JpJxfiSD1IzoI+HGVdd3aZ0yNi3ngvQ4jv1dtHt5VGxfI2yj5yqImPhOK4vmIh2xMbGg==
-
-whatwg-fetch@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/whatwg-fetch/-/whatwg-fetch-3.0.0.tgz#fc804e458cc460009b1a2b966bc8817d2578aefb"
-  integrity sha512-9GSJUgz1D4MfyKU7KRqwOjXCXTqWdFNvEr7eUBYchQiVc744mqK/MzXPNR2WsPkmkOa4ywfg8C2n8h+13Bey1Q==
 
 which-module@^2.0.0:
   version "2.0.0"
