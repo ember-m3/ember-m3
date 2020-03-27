@@ -1158,10 +1158,10 @@
   resolved "https://registry.yarnpkg.com/@octokit/plugin-request-log/-/plugin-request-log-1.0.0.tgz#eef87a431300f6148c39a7f75f8cfeb218b2547e"
   integrity sha512-ywoxP68aOT3zHCLgWZgwUJatiENeHE7xJzYjfz8WI0goynp96wETBF+d95b8g/uL4QmS6owPVlaxiz3wyMAzcw==
 
-"@octokit/plugin-rest-endpoint-methods@3.3.3", "@octokit/plugin-rest-endpoint-methods@^3.3.0":
-  version "3.3.3"
-  resolved "https://registry.yarnpkg.com/@octokit/plugin-rest-endpoint-methods/-/plugin-rest-endpoint-methods-3.3.3.tgz#df55905a3f6f87ea943ecfa93b2dd68807f21b7b"
-  integrity sha512-5YTXjsX2UzJvrDc7wU+Ectv8sUnxQSSTmcxYT91lm2E2pwy2SEyFa1AkiwWYftUnHG+mm7zouet5hrgUkU7Kcw==
+"@octokit/plugin-rest-endpoint-methods@3.4.0", "@octokit/plugin-rest-endpoint-methods@^3.3.0":
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/@octokit/plugin-rest-endpoint-methods/-/plugin-rest-endpoint-methods-3.4.0.tgz#27b1dac7fba4d0d6e488967919b6a5bd3595ffbc"
+  integrity sha512-Tvctk0u5SVrSLAzi8SLo0KrLSBl5biAHBgWy3L65vsbO/2fjzr62HVkoDPyr+WRT+eHhhqpKAERF3dQWOIUOvQ==
   dependencies:
     "@octokit/types" "^2.0.1"
     deprecation "^2.3.1"
@@ -1199,15 +1199,15 @@
     "@octokit/plugin-request-log" "^1.0.0"
     "@octokit/plugin-rest-endpoint-methods" "^3.3.0"
 
-"@octokit/rest@^17.1.0", "@octokit/rest@^17.1.3":
-  version "17.1.3"
-  resolved "https://registry.yarnpkg.com/@octokit/rest/-/rest-17.1.3.tgz#4a47361e8257e2dbbbd020e1dc3cd5a444a069ae"
-  integrity sha512-wh0Eqf/0HWR0woTIsrYZfjqoxknfUWbT5CrCrHGLpr9HrAnrow64bW8EacXh71/7YYENu7CdoFm+2v6J08TVyg==
+"@octokit/rest@^17.1.0", "@octokit/rest@^17.1.4":
+  version "17.1.4"
+  resolved "https://registry.yarnpkg.com/@octokit/rest/-/rest-17.1.4.tgz#b03eb97635de62b48428f998ad1cb9244edd2d10"
+  integrity sha512-LGghhepxoXyvi7ew0OdedrlwXQog8gvTbcdXoQ6RDKnzoYW2rBpcqeWC4fTuPUp9K0UEykcMix8kFnQ5b+64JQ==
   dependencies:
     "@octokit/core" "^2.4.3"
     "@octokit/plugin-paginate-rest" "^2.0.0"
     "@octokit/plugin-request-log" "^1.0.0"
-    "@octokit/plugin-rest-endpoint-methods" "3.3.3"
+    "@octokit/plugin-rest-endpoint-methods" "3.4.0"
 
 "@octokit/types@^2.0.0", "@octokit/types@^2.0.1":
   version "2.3.1"
