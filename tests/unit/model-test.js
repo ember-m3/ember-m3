@@ -133,6 +133,7 @@ module('unit/m3-model', function(hooks) {
       'com.example.bookstore.book': {
         aliases: {
           title: 'name',
+          firstChapter: 'chapters.one.title',
           cost: 'price',
           pub: 'publisher',
           releaseDate: 'pubDate',
@@ -504,6 +505,11 @@ module('unit/m3-model', function(hooks) {
           attributes: {
             name: `Harry Potter and the Sorcerer's Stone`,
             pubDate: 'September 1989',
+            chapters: {
+              one: {
+                title: 'The Boy Who Lived',
+              },
+            },
           },
         },
       })
@@ -526,6 +532,7 @@ module('unit/m3-model', function(hooks) {
       `Harry Potter and the Sorcerer's Stone`,
       'alias to value present after caching'
     );
+    assert.equal(get(model, 'firstChapter'), `The Boy Who Lived`, 'nested alias');
     assert.equal(get(model, 'cost'), undefined, 'alias to missing');
     assert.equal(get(model, 'hb'), true, 'alias to missing with default');
 
