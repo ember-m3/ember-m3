@@ -21,10 +21,21 @@ export const recordDataToRecordMap = new WeakMap();
 export const recordDataToQueryCache = new WeakMap();
 export const recordToRecordArrayMap = new WeakMap();
 
+function internalModelFactoryRemoveMonkeyPatch(internalModel) {
+  if (typeof internalModel.store._globalM3Cache !== 'undefined') {
+    delete internalModel.store._globalM3Cache[internalModel.id];
+  }
+
+  return this.__originalRemove(internalModel);
+}
+
+let internalModelFactoryRemoveMonkeyPatched = false;
+
 class SchemaDefinition {
   constructor(store, dsModelSchema) {
     this.store = store;
     this.dsModelSchema = dsModelSchema;
+    this._internalModelMapModified = false;
   }
   attributesDefinitionFor(identifier) {
     let modelName;
@@ -213,36 +224,22 @@ const StoreMixin = {
       }
 
       if (GTE_VERSION_3_12) {
-        if (this._modifiedInternalModelMapProto === undefined) {
-          let store = this;
+        if (internalModelFactoryRemoveMonkeyPatched === false) {
           // set this up for removals
-          let proto = (this._modifiedInternalModelMapProto = Object.getPrototypeOf(
-            this._internalModelsFor(self.modelName)
-          ));
+          let internalModelFactory = this._internalModelsFor(internalModel.modelName);
+          let modelFactoryPrototype = Object.getPrototypeOf(internalModelFactory);
 
-          let originalRemove = proto.remove;
-          proto.__originalRemove = originalRemove;
-          proto.remove = function remove(internalModel) {
-            delete store._globalM3Cache[internalModel.id];
-            return originalRemove.apply(this, arguments);
-          };
-          this._internalModelMapModified = true;
+          if (modelFactoryPrototype.remove !== internalModelFactoryRemoveMonkeyPatch) {
+            modelFactoryPrototype.__originalRemove = modelFactoryPrototype.remove;
+            modelFactoryPrototype.remove = internalModelFactoryRemoveMonkeyPatch;
+
+            internalModelFactoryRemoveMonkeyPatched = true;
+          }
         }
       }
 
       return internalModel;
     }
-  },
-
-  willDestroy() {
-    if (GTE_VERSION_3_12) {
-      if (this._modifiedInternalModelMapProto !== undefined) {
-        let proto = this._modifiedInternalModelMapProto;
-        proto.remove = proto.__originalRemove;
-        this._modifiedInternalModelMapProto = undefined;
-      }
-    }
-    return this._super();
   },
 };
 
