@@ -1,3 +1,15 @@
+## v1.0.2 (2020-04-03)
+
+#### :bug: Bug Fix
+
+- [#642](https://github.com/hjdivad/ember-m3/pull/642) Fix memory leak in fastboot caused by modifying class prototype ([@igorT](https://github.com/igorT))
+
+#### Committers: 3
+
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- Igor Terzic ([@igorT](https://github.com/igorT))
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
 ## v1.0.1 (2020-03-19)
 
 #### :bug: Bug Fix
