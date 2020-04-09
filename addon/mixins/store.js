@@ -26,7 +26,7 @@ function internalModelFactoryRemoveMonkeyPatch(internalModel) {
     delete internalModel.store._globalM3Cache[internalModel.id];
   }
 
-  return this.__originalRemove(internalModel);
+  return this.__originalRemove.apply(this, arguments);
 }
 
 let internalModelFactoryRemoveMonkeyPatched = false;
