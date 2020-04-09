@@ -61,6 +61,22 @@ module.exports = function() {
           },
         },
         {
+          name: 'ember-lts-3.16',
+          npm: {
+            devDependencies: {
+              'ember-source': '~3.16.0',
+              'ember-data': '~3.16.0',
+              '@ember-data/store': null,
+              '@ember-data/debug': null,
+              '@ember-data/model': null,
+              '@ember-data/serializer': null,
+              '@ember-data/adapter': null,
+              '@ember-data/record-data': null,
+              'ember-inflector': null,
+            },
+          },
+        },
+        {
           // EmberData 3.14 is the first version in which we allow
           // consumers to begin consuming individual packages
           name: 'ember-data-packages-3.14',
