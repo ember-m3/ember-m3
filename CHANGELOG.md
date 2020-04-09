@@ -1,3 +1,13 @@
+## v1.0.3 (2020-04-09)
+
+#### :bug: Bug Fix
+
+- [#651](https://github.com/hjdivad/ember-m3/pull/651) Fix monkeypatching logic for memory leak ([@igorT](https://github.com/igorT))
+
+#### Committers: 1
+
+- Igor Terzic ([@igorT](https://github.com/igorT))
+
 ## v1.0.2 (2020-04-03)
 
 #### :bug: Bug Fix
