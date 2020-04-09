@@ -76,7 +76,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        try-scenario: [release-channel, release-n-1, ember-lts-3.12, ember-lts-3.8, ember-data-packages-latest]
+        try-scenario: [release-channel, release-n-1, ember-lts-3.16, ember-lts-3.12, ember-lts-3.8, ember-data-packages-latest]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
