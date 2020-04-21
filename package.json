@@ -109,7 +109,7 @@
     "loader.js": "^4.2.3",
     "moment": "^2.24.0",
     "pretender": "^3.4.1",
-    "prettier": "^1.19.1",
+    "prettier": "^2.0.4",
     "qunit": "^2.9.3",
     "release-it": "^13.5.4",
     "release-it-lerna-changelog": "^2.2.0",
