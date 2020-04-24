@@ -69,6 +69,20 @@ jobs:
       - name: test
         run: yarn test
 
+  test-dependency-management:
+    name: 'Dependency Management' # rely on matrix for most of name
+    needs: [lint, test, test-feature-flags]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '10.x' # min node version
+      - name: yarn install
+        run: yarn --frozen-lockfile --install
+      - name: test
+        run: yarn test:dependency-management
+
   test-ember:
     name: 't:' # rely on matrix for most of name
     needs: [lint, test, test-feature-flags]

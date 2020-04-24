@@ -30,8 +30,8 @@ module.exports = {
         './config/**/*.js',
         './tests/dummy/config/**/*.js',
         'bin/**/*.js',
-        'node-tests/**/*.js',
         'src/**/*.js',
+        'dependency-tests/*.js',
       ],
       parserOptions: {
         sourceType: 'script',
