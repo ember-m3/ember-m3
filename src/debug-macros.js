@@ -2,7 +2,7 @@
 'use strict';
 const requireEsm = require('esm')(module);
 const semver = require('semver');
-const buildProjectHelper = require('./utils/project-package-helper');
+const VersionChecker = require('ember-cli-version-checker');
 
 function gte(availableVersion, compatVersion) {
   return semver.gte(semver.minVersion(availableVersion), semver.minVersion(compatVersion));
@@ -56,11 +56,16 @@ function getFlags(app, isDevelopingAddon) {
   if (_flags) {
     return _flags;
   }
-  const projectHelper = buildProjectHelper(app.project);
+  const checker = new VersionChecker(app);
   let isProd = process.env.EMBER_ENV === 'production';
-  let dataPackage = projectHelper.getAddon('ember-data');
-  let storePackage = projectHelper.getAddon('@ember-data/store');
-  let version = dataPackage ? dataPackage.pkg.version : storePackage.pkg.version;
+  let dataPackage = checker.for('ember-data');
+  let storePackage = checker.for('@ember-data/store');
+  let version = dataPackage.exists() ? dataPackage.version : storePackage.version;
+
+  // the parent doesn't bring ember-data or @ember-data/store
+  if (!version) {
+    version = require('@ember-data/store/package.json').version;
+  }
 
   let features;
   let packages;
@@ -95,7 +100,7 @@ function getFlags(app, isDevelopingAddon) {
 
     Object.keys(potentialPackages).map(flag => {
       let packageName = potentialPackages[flag];
-      packages[flag] = projectHelper.hasAddon(packageName);
+      packages[flag] = checker.for(packageName).exists();
     });
   }
 

@@ -15,9 +15,9 @@
     "lint": "yarn lint:js",
     "lint:js": "eslint .",
     "start": "ember server --no-live-reload --port=0",
-    "test": "yarn test:ember && yarn test:node",
+    "test": "yarn test:ember",
     "test:ember": "ember test",
-    "test:node": "qunit node-tests/run.js"
+    "test:dependency-management": "node dependency-tests/test-all.js"
   },
   "author": "David J. Hamilton <dhamilton@linkedin.com>",
   "contributors": [
@@ -65,21 +65,26 @@
   "dependencies": {
     "babel-plugin-debug-macros": "^0.3.3",
     "broccoli-funnel": "^3.0.1",
+    "debug": "^4.1.1",
     "ember-cli-babel": "^7.19.0",
+    "ember-cli-version-checker": "^5.0.2",
     "esm": "^3.2.25",
-    "semver": "^7.3.2"
+    "semver": "^7.3.2",
+    "@ember-data/debug": "^3.17.0",
+    "@ember-data/model": "^3.17.0",
+    "@ember-data/store": "^3.17.0",
+    "ember-inflector": "^3.0.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.3.5",
     "@commitlint/travis-cli": "^8.3.5",
-    "@ember-data/debug": "^3.17.0",
-    "@ember-data/model": "^3.17.0",
-    "@ember-data/store": "^3.17.0",
     "@ember/optional-features": "^1.3.0",
     "@malleatus/nyx": "^0.2.0",
     "@octokit/rest": "^17.5.2",
     "babel-eslint": "^10.1.0",
     "broccoli-asset-rev": "^3.0.0",
+    "chalk": "^4.0.0",
+    "diff": "^4.0.2",
     "ember-cli": "~3.14.0",
     "ember-cli-dependency-checker": "^3.0.0",
     "ember-cli-htmlbars": "^4.3.1",
@@ -89,7 +94,6 @@
     "ember-cli-uglify": "^3.0.0",
     "ember-disable-prototype-extensions": "^1.1.2",
     "ember-export-application-global": "^2.0.1",
-    "ember-inflector": "^3.0.1",
     "ember-load-initializers": "^2.1.1",
     "ember-lodash": "^4.17.5",
     "ember-qunit": "^4.6.0",
@@ -104,6 +108,7 @@
     "eslint-plugin-ember": "^7.11.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.1.3",
+    "execa": "~4.0.0",
     "husky": "^4.2.5",
     "lint-staged": "^10.1.7",
     "loader.js": "^4.2.3",
@@ -153,7 +158,7 @@
     ]
   },
   "volta": {
-    "node": "13.9.0",
-    "yarn": "1.12.1"
+    "node": "13.12.0",
+    "yarn": "1.22.4"
   }
 }
