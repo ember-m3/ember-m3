@@ -1,6 +1,8 @@
 const debug = require('debug')('ember-m3');
 const pkg = require('../package.json');
 const semver = require('semver');
+
+// build a list of all data deps this version of ember-m3 brings
 const M3DataDeps = Object.keys(pkg.dependencies).filter(
   k => k.indexOf('ember-data') !== -1 || k === 'ember-inflector'
 );
@@ -57,28 +59,53 @@ class VersionChecker {
   }
 }
 
+/**
+ * Helper for the function checkForPackage. Does the heavy lifting to
+ * filter versions of a package into something more useful
+ *
+ * - ignores one copy matching ember-m3's copy: because we are determining
+ *   whether to bring this at all
+ * - ignores one copy matching ember-data's copy if ember-data is present:
+ *   because treating it as a cohesive unit simplifies our checks later
+ * - filters out duplicates: because we care if different versions are present,
+ *   but we don't care if multiple of the same version are present
+ *
+ * @param {*} deps an array of all available PackageInfos for a given package name
+ * @param {*} m3Version the version of this dependency ember-m3 brings
+ * @param {*} dataInfo info about the available ember-data package if that package is present
+ */
 function extractVersionsFromDeps(deps, m3Version, dataInfo) {
   let hasFullEmberData = dataInfo && dataInfo.uniqueDeps.length === 1;
   let fullEmberDataVersion = hasFullEmberData ? dataInfo.uniqueDeps[0].pkg.version : null;
 
   let seenVersions = {};
-  let hasSeenM3Version = false;
-  let hasSeenDataVersion = false;
+
+  // we don't care about the copies of packages brought
+  // by ourself (ember-m3) or by a full copy of ember-data
+  // (which we've already asserted is singleton by this point
+  //  if present)
+  let hasSkippedM3Version = false;
+  let hasSkippedDataVersion = false;
+
   let uniqueDeps = deps.filter(i => {
     let pkgVersion = i.pkg.version;
     let seen = !!seenVersions[pkgVersion];
 
     // filter out the m3Version from uniqueDeps
     if (m3Version && pkgVersion === m3Version) {
-      if (!seen && !hasSeenM3Version) {
-        hasSeenM3Version = true;
+      if (!seen && !hasSkippedM3Version) {
+        // skip this copy (treat as unseen)
+        hasSkippedM3Version = true;
         return false;
-      } else if (!seen && hasSeenM3Version) {
+      } else if (!seen && hasSkippedM3Version) {
+        // only mark as seen if it doesn't match the fullEmberDataVersion
+        // otherwise allow the fullEmberDataVersion check to filter if needed
         if (m3Version !== fullEmberDataVersion) {
           seenVersions[pkgVersion] = 1;
           return true;
         }
       } else {
+        // increment how many times we have seen (sometimes useful)
         seenVersions[pkgVersion]++;
         return false;
       }
@@ -86,13 +113,16 @@ function extractVersionsFromDeps(deps, m3Version, dataInfo) {
 
     // filter out the EmberData version from uniqueDeps
     if (hasFullEmberData && pkgVersion === fullEmberDataVersion) {
-      if (!seen && !hasSeenDataVersion) {
-        hasSeenDataVersion = true;
+      if (!seen && !hasSkippedDataVersion) {
+        // skip this copy (treat as unseen)
+        hasSkippedDataVersion = true;
         return false;
-      } else if (!seen && hasSeenDataVersion) {
+      } else if (!seen && hasSkippedDataVersion) {
+        // treat this as the first copy seen
         seenVersions[pkgVersion] = 1;
         return true;
       } else {
+        // increment how many times we have seen (sometimes useful)
         seenVersions[pkgVersion]++;
         return false;
       }
@@ -110,15 +140,25 @@ function extractVersionsFromDeps(deps, m3Version, dataInfo) {
 }
 
 /**
- * Return
- * @param {*} checker
- * @param {*} pkgName
+ * Finds all versions of a package
+ *
+ * - ignores one copy matching ember-m3's copy
+ * - ignores one copy matching ember-data's copy if ember-data is present
+ * - filters out duplicates
+ *
+ * @param {*} checker instance of a (ProjectWide) VersionChecker
+ * @param {*} pkgName the name of the package to look for
+ * @param {*} m3Versions the versions of packages brought by ember-m3 itself
+ * @param {*} dataInfo if the full ember-data package is present, info about it
  */
 function checkForPackage(checker, pkgName, m3Versions, dataInfo) {
   let depInstances = checker.filterAddonsByName(pkgName);
   let m3Version = m3Versions[pkgName];
 
   // if ember-m3 brings all of ember-data, fall back
+  // e.g. ember-m3 may not bring `@ember-data/adapter` but if
+  // it brings `ember-data` then it does indirectly at
+  // the same version
   if (!m3Version & (pkgName.indexOf('@ember-data') !== -1)) {
     m3Version = m3Versions['ember-data'];
   }
@@ -164,6 +204,20 @@ function consumerHasOwnDataPackages(checker, m3Versions, dataInfo) {
   return false;
 }
 
+/**
+ * Runs various assertions to ensure that consuming applications
+ * don't have multiple or invalid versions of data dependencies.
+ *
+ * This enforces lockstep for ember-data & @ember-data/* packages
+ * as well as the highlander rule for these packages + ember-inflector
+ *
+ * It also ensures that @ember-data/* packages are not used prior
+ * to ember-m3's ability to use them {minVersionForUsingOwnPackages}
+ *
+ * @param {*} checker
+ * @param {*} m3Versions
+ * @param {*} dataInfo
+ */
 function assertConsumerDataPackagesValid(checker, m3Versions, dataInfo) {
   let hasFullEmberData = dataInfo.uniqueDeps.length === 1;
   let fullEmberDataVersion = hasFullEmberData ? dataInfo.uniqueDeps[0].pkg.version : null;
@@ -231,6 +285,12 @@ function assertConsumerDataPackagesValid(checker, m3Versions, dataInfo) {
   hasSingleVersionIfPresent(addons['ember-inflector']);
 }
 
+/**
+ * retrieve the installed versions of M3 dependencies
+ * (@ember-data/* | ember-inflector | ember-data)
+ *
+ * We do this because the entry in package.json may allow semver drift
+ */
 function getOwnVersions() {
   let versions = {};
   M3DataDeps.forEach(name => {
