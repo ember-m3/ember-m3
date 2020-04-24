@@ -8,6 +8,10 @@ const M3DataDeps = Object.keys(pkg.dependencies).filter(
 );
 
 const REQUIRED_DATA_PACKAGES = ['@ember-data/model', '@ember-data/store', 'ember-inflector'];
+
+// we do not include ember-inflector here because a user specifying ember-inflector
+// does not opt them out of ember-m3 bringing EmberData.
+// the highlander rule for ember-inflector will still be enforced though
 const ALL_DATA_PACKAGES = [
   '@ember-data/adapter',
   '@ember-data/debug',
@@ -301,7 +305,9 @@ function getOwnVersions() {
 }
 
 /**
- * Throws errors if invalid ember-data or ember-m3 configurations are detected.
+ * Throws errors if invalid ember-inflector, ember-data or ember-m3
+ * configurations are detected.
+ *
  * Returns a boolean `true` if the consuming app brings it's own versions of
  * ember-data or ember-data packages. `false` otherwise.
  */
