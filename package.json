@@ -112,7 +112,7 @@
     "prettier": "^1.19.1",
     "qunit": "^2.9.3",
     "release-it": "^13.5.6",
-    "release-it-lerna-changelog": "^2.2.0",
+    "release-it-lerna-changelog": "^2.3.0",
     "testem": "^3.1.0"
   },
   "peerDependencies": {
