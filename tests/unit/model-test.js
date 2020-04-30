@@ -3,14 +3,10 @@ import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
-import {
-  HAS_EMBER_DATA_PACKAGE,
-  HAS_MODEL_PACKAGE,
-  HAS_ADAPTER_PACKAGE,
-} from 'ember-m3/-infra/packages';
 import { recordDataFor } from 'ember-m3/-private';
-import require from 'require';
 import { zip } from 'lodash';
+import { Errors as ModelErrors } from '@ember-data/model/-private';
+import { Errors as StoreErrors } from '@ember-data/store/-private';
 
 import EmberObject, { get, set, computed } from '@ember/object';
 import { Promise } from 'rsvp';
@@ -19,41 +15,14 @@ import { isArray } from '@ember/array';
 
 import MegamorphicModel from 'ember-m3/model';
 import DefaultSchema from 'ember-m3/services/m3-schema';
+import require from 'require';
 
-let Errors;
-if (HAS_EMBER_DATA_PACKAGE) {
-  Errors = require('ember-data/-private').Errors;
-} else {
-  /*
-    Get access to the Private Errors class
-  */
-  if (HAS_MODEL_PACKAGE) {
-    // Errors is supposed to live in the model package
-    // This is true for version 3.15+
-    Errors = require('@ember-data/model/-private').Errors;
-    if (!Errors) {
-      // it is possible Errors still lives in the store package
-      // This was versions 3.12 -> 3.14
-      Errors = require('@ember-data/store/-private').Errors;
-    }
-  } else {
-    // it is possible Errors still lives in the store package
-    // This was versions 3.12 -> 3.14
-    Errors = require('@ember-data/store/-private').Errors;
-  }
-}
-
-let InvalidError;
-if (HAS_EMBER_DATA_PACKAGE) {
-  InvalidError = require('ember-data/adapters/errors').InvalidError;
-} else if (HAS_ADAPTER_PACKAGE) {
-  InvalidError = require('@ember-data/adapter/error').InvalidError;
-}
+const Errors = ModelErrors || StoreErrors;
 
 const UrnWithTypeRegex = /^urn:([a-zA-Z.]+):(.*)/;
 const UrnWithoutTypeRegex = /^urn:(.*)/;
 
-module('unit/m3-model', function(hooks) {
+module('unit/model', function(hooks) {
   setupTest(hooks);
 
   hooks.beforeEach(function() {
@@ -3077,7 +3046,9 @@ module('unit/m3-model', function(hooks) {
 
     const modelName = 'com.example.bookstore.Book';
     function makeInvalidError(errors) {
-      if (InvalidError) {
+      // TODO: This is only used for ember-data 3.12
+      if (require.has('ember-data/adapters/errors')) {
+        const InvalidError = require('ember-data/adapters/errors').InvalidError;
         return new InvalidError(errors);
       }
       const error = new Error('The adapter rejected the commit because it was invalid');

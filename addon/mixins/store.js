@@ -11,9 +11,8 @@ import { next } from '@ember/runloop';
 import { assign, merge } from '@ember/polyfills';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import { HAS_EMBER_DATA_PACKAGE } from 'ember-m3/-infra/packages';
-import { GTE_VERSION_3_12, IS_RECORD_DATA } from 'ember-m3/-infra/versions';
 import MegamorphicModel from '../model';
-import require from 'require';
+import Store from '@ember-data/store';
 
 const emberAssign = assign || merge;
 
@@ -81,9 +80,7 @@ const StoreMixin = {
     this._queryCache = new QueryCache({ store: this });
     seenTypesPerStore.set(this, new Set());
 
-    if (GTE_VERSION_3_12) {
-      this._modifiedInternalModelMapProto = undefined;
-    }
+    this._modifiedInternalModelMapProto = undefined;
     if (CUSTOM_MODEL_CLASS) {
       this._globalM3RecordDataCache = new Object(null);
       this._recordDataToRecordMap = recordDataToRecordMap;
@@ -128,7 +125,7 @@ const StoreMixin = {
       let createOptions = emberAssign({ _recordData: recordData, store: this }, createRecordArgs);
       // TODO remove the megamorphicModelFactory
       let record = MegamorphicModelFactory.create(createOptions);
-      notificationManager.subscribe(identifier, (identifier, value) => {
+      notificationManager.subscribe(identifier, (_identifier, value) => {
         if (value === 'state') {
           record.notifyPropertyChange('isNew');
           record.notifyPropertyChange('isDeleted');
@@ -223,18 +220,16 @@ const StoreMixin = {
         }
       }
 
-      if (GTE_VERSION_3_12) {
-        if (internalModelFactoryRemoveMonkeyPatched === false) {
-          // set this up for removals
-          let internalModelFactory = this._internalModelsFor(internalModel.modelName);
-          let modelFactoryPrototype = Object.getPrototypeOf(internalModelFactory);
+      if (internalModelFactoryRemoveMonkeyPatched === false) {
+        // set this up for removals
+        let internalModelFactory = this._internalModelsFor(internalModel.modelName);
+        let modelFactoryPrototype = Object.getPrototypeOf(internalModelFactory);
 
-          if (modelFactoryPrototype.remove !== internalModelFactoryRemoveMonkeyPatch) {
-            modelFactoryPrototype.__originalRemove = modelFactoryPrototype.remove;
-            modelFactoryPrototype.remove = internalModelFactoryRemoveMonkeyPatch;
+        if (modelFactoryPrototype.remove !== internalModelFactoryRemoveMonkeyPatch) {
+          modelFactoryPrototype.__originalRemove = modelFactoryPrototype.remove;
+          modelFactoryPrototype.remove = internalModelFactoryRemoveMonkeyPatch;
 
-            internalModelFactoryRemoveMonkeyPatched = true;
-          }
+          internalModelFactoryRemoveMonkeyPatched = true;
         }
       }
 
@@ -242,13 +237,6 @@ const StoreMixin = {
     }
   },
 };
-
-if (!GTE_VERSION_3_12) {
-  StoreMixin._removeFromIdMap = function _removeFromIdMap(internalModel) {
-    delete this._globalM3Cache[internalModel.id];
-    return this._super(internalModel);
-  };
-}
 
 function createRecordDataFor(modelName, id, clientId, storeWrapper) {
   let schemaManager = get(this, '_schemaManager');
@@ -276,21 +264,14 @@ function createRecordDataFor(modelName, id, clientId, storeWrapper) {
     );
   }
 
+  // TODO: what is the purpose of this check?
   if (HAS_EMBER_DATA_PACKAGE) {
     return this._super(modelName, id, clientId, storeWrapper);
   }
 }
 
-if (IS_RECORD_DATA) {
-  StoreMixin.createRecordDataFor = createRecordDataFor;
-} else {
-  StoreMixin.createModelDataFor = createRecordDataFor;
-}
-
-if (HAS_EMBER_DATA_PACKAGE) {
-  const Store = require('ember-data/store').default;
-  extendStore(Store);
-}
+StoreMixin.createRecordDataFor = createRecordDataFor;
+extendStore(Store);
 
 /**
  * @param {DS.Store} Store ember-data Store to be extended

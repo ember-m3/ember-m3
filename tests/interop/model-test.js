@@ -1,7 +1,6 @@
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
-import { GTE_VERSION_3_5_1 } from 'ember-m3/-infra/versions';
 
 import { get } from '@ember/object';
 import { run } from '@ember/runloop';
@@ -316,49 +315,47 @@ module('unit/m3-model (interop with @ember-data/model)', function(hooks) {
     assert.equal(get(relatedItems, 'length'), 2, 'array has right length');
   });
 
-  if (GTE_VERSION_3_5_1) {
-    test('DS.Models can have relationships into m3 models', function(assert) {
-      let model = run(() => {
-        return this.store.push({
-          data: {
-            id: '3',
-            type: 'author',
-            attributes: {
-              name: 'JK Rowling',
-            },
-            relationships: {
-              publishedBooks: {
-                data: [
-                  {
-                    id: 'isbn:9780439708180',
-                    // Ember-Data requires model-name normalized types in relationship portions of a jsonapi resource
-                    type: 'com.example.bookstore.book',
-                  },
-                ],
-              },
+  test('DS.Models can have relationships into m3 models', function(assert) {
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: '3',
+          type: 'author',
+          attributes: {
+            name: 'JK Rowling',
+          },
+          relationships: {
+            publishedBooks: {
+              data: [
+                {
+                  id: 'isbn:9780439708180',
+                  // Ember-Data requires model-name normalized types in relationship portions of a jsonapi resource
+                  type: 'com.example.bookstore.book',
+                },
+              ],
             },
           },
+        },
 
-          included: [
-            {
-              id: 'isbn:9780439708180',
-              type: 'com.example.bookstore.Book',
-              attributes: {
-                name: `Harry Potter and the Sorcerer's Stone`,
-              },
+        included: [
+          {
+            id: 'isbn:9780439708180',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Sorcerer's Stone`,
             },
-          ],
-        });
+          },
+        ],
       });
-
-      assert.equal(get(model, 'name'), 'JK Rowling', 'ds.model loaded');
-      assert.equal(
-        get(model, 'publishedBooks.firstObject.name'),
-        `Harry Potter and the Sorcerer's Stone`,
-        'ds.model can access m3 model via relationship'
-      );
     });
-  }
+
+    assert.equal(get(model, 'name'), 'JK Rowling', 'ds.model loaded');
+    assert.equal(
+      get(model, 'publishedBooks.firstObject.name'),
+      `Harry Potter and the Sorcerer's Stone`,
+      'ds.model can access m3 model via relationship'
+    );
+  });
 
   test('store.modelFor', function(assert) {
     let bookModel = this.store.modelFor('com.example.bookstore.Book');

@@ -1,5 +1,4 @@
 import '../mixins/store';
-import { HAS_EMBER_DATA_PACKAGE } from 'ember-m3/-infra/packages';
 import { DEBUG } from '@glimmer/env';
 import require from 'require';
 
@@ -20,10 +19,13 @@ function initializeDebugAdapter(registry) {
 }
 
 export function initialize(application) {
-  if (!HAS_EMBER_DATA_PACKAGE) {
-    application.inject('route', 'store', 'service:store');
-    application.inject('controller', 'store', 'service:store');
-  }
+  // This should be unnecessary
+  // it is done by the meta package
+  // but it should be done by the store package
+  // https://github.com/emberjs/data/issues/7158
+  application.inject('route', 'store', 'service:store');
+  application.inject('controller', 'store', 'service:store');
+
   initializeDebugAdapter(application);
 }
 

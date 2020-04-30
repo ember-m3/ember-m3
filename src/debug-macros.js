@@ -65,10 +65,7 @@ function getFlags(app, isDevelopingAddon) {
   let features;
   let packages;
   let versions = {
-    GTE_VERSION_3_12: gte(version, '3.12.0-alpha.0'),
-    GTE_VERSION_3_5_1: dataPackage ? gte(version, '3.5.1') : true,
     GTE_VERSION_3_13: gte(version, '3.13.0'),
-    IS_RECORD_DATA: dataPackage ? gte(version, '3.5.0') : true,
   };
   try {
     features = app.project.require('@ember-data/private-build-infra/src/features')(isProd);
@@ -109,5 +106,4 @@ function debugMacros(app, isDevelopingAddon) {
 
 module.exports = {
   debugMacros,
-  getFlags,
 };

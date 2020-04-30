@@ -6,7 +6,6 @@ import { isArray } from '@ember/array';
 import { assert, warn } from '@ember/debug';
 import { readOnly } from '@ember/object/computed';
 import { recordDataToRecordMap } from './mixins/store';
-import require from 'require';
 
 import { recordDataFor } from './-private';
 import M3RecordArray from './record-array';
@@ -21,96 +20,20 @@ import {
 } from './utils/notify-changes';
 import { DEBUG } from '@glimmer/env';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
-import {
-  HAS_EMBER_DATA_PACKAGE,
-  HAS_ADAPTER_PACKAGE,
-  HAS_MODEL_PACKAGE,
-} from 'ember-m3/-infra/packages';
+import { RootState, Errors as StoreErrors } from '@ember-data/store/-private';
+import { Errors as ModelErrors } from '@ember-data/model/-private';
+
+// Errors moved from @ember-data/store to @ember-data/model as of 3.15.0
+const Errors = ModelErrors || StoreErrors;
+if (Errors === undefined) {
+  throw new Error('Unable to find @ember-data Errors in any @ember-data package');
+}
 
 let retrieveFromCurrentState;
 if (!CUSTOM_MODEL_CLASS) {
   retrieveFromCurrentState = computed('_topModel.currentState', function(key) {
     return this._topModel._internalModel.currentState[key];
   }).readOnly();
-}
-
-let Errors;
-let RootState;
-let InvalidError;
-
-if (HAS_EMBER_DATA_PACKAGE) {
-  // consumer brings all of EmberData, possibly a pre 3.12 version
-  InvalidError = require('ember-data/adapters/errors').InvalidError;
-} else if (HAS_ADAPTER_PACKAGE) {
-  // consumer brings only part of EmberData in a post 3.12 version
-  InvalidError = require('@ember-data/adapter/error').InvalidError;
-}
-
-if (HAS_EMBER_DATA_PACKAGE) {
-  // consumer brings all of EmberData, possibly a pre 3.12 version
-  let metaPackage = require('ember-data/-private');
-  Errors = metaPackage.Errors;
-  if (!CUSTOM_MODEL_CLASS) {
-    RootState = metaPackage.RootState;
-  }
-} else {
-  // consumer brings only part of EmberData
-
-  /*
-    Get access to the Private Errors class
-  */
-  if (HAS_MODEL_PACKAGE) {
-    // Errors is supposed to live in the model package
-    // but in some versions is not yet in it's home.
-    // It reached the model package in 3.15
-    Errors = require('@ember-data/model/-private').Errors;
-    if (!Errors) {
-      // it is possible Errors still lives in the store package
-      // Before migrating to the model package Errors was within the store
-      // This was versions 3.12 -> 3.14
-      Errors = require('@ember-data/store/-private').Errors;
-    }
-    if (DEBUG && !Errors) {
-      throw new Error(`ember-m3 requires the @ember-data/model package to import Errors`);
-    }
-  } else {
-    // it is possible Errors still lives in the store package
-    // Before migrating to the model package Errors was within the store
-    // This was versions 3.12 -> 3.14
-    Errors = require('@ember-data/store/-private').Errors;
-    if (DEBUG && !Errors) {
-      throw new Error(`ember-m3 requires the @ember-data/model package to import Errors`);
-    }
-  }
-
-  /*
-    Get access to the Private State Machine via RootState
-  */
-  if (!CUSTOM_MODEL_CLASS) {
-    if (HAS_MODEL_PACKAGE) {
-      // RootState is supposed to live in the model package
-      // but in some versions is not yet in it's home.
-      // What version this becomes true in is TBD, likely to be 3.17
-      RootState = require('@ember-data/model/-private').RootState;
-      if (!RootState) {
-        // it is possible RootState still lives in the store package
-        // Before migrating to the model package RootState was within the store
-        // This was versions 3.12 -> ~3.16 (TBD)
-        RootState = require('@ember-data/store/-private').RootState;
-      }
-      if (DEBUG && !RootState) {
-        throw new Error(`ember-m3 requires the @ember-data/model package to import RootState`);
-      }
-    } else {
-      // it is possible RootState still lives in the store package
-      // Before migrating to the model package RootState was within the store
-      // This was versions 3.12 -> ~3.16 (TBD)
-      RootState = require('@ember-data/store/-private').RootState;
-      if (DEBUG && !RootState) {
-        throw new Error(`ember-m3 requires the @ember-data/model package to import RootState`);
-      }
-    }
-  }
 }
 
 let deletedSaved, deletedUncommitted, loadedSaved, updatedUncommitted;
@@ -131,11 +54,7 @@ if (!CUSTOM_MODEL_CLASS) {
 }
 
 function isInvalidError(error) {
-  if (HAS_ADAPTER_PACKAGE) {
-    return error && error instanceof InvalidError;
-  } else {
-    return error && error.isAdapterError === true && error.code === 'InvalidError';
-  }
+  return error && error.isAdapterError === true && error.code === 'InvalidError';
 }
 
 class YesManAttributesSingletonClass {

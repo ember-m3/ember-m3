@@ -743,11 +743,11 @@ ember-m3 supports three Ember.js and Ember Data versions
 - The current LTS version
 - The previous LTS version
 
-As of 12 December this means:
+As of 30 April this means:
 
-- 3.15.x (the latest release)
-- 3.14.x (the previous release)
-- 3.12.x (the current LTS)
-- 3.8.x (the previous LTS)
+- 3.18.x (the latest release)
+- 3.17.x (the previous release)
+- 3.16.x (the current LTS)
+- 3.12.x (the previous LTS)
 
 On the build side, a [supported version of node](https://nodejs.org/en/about/releases/) is required.

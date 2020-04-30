@@ -10,8 +10,5 @@
   The file itself is stripped from production builds.
 */
 export default {
-  GTE_VERSION_3_12: true,
-  GTE_VERSION_3_5_1: true,
   GTE_VERSION_3_13: true,
-  IS_RECORD_DATA: true,
 };
