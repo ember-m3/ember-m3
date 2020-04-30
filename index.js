@@ -2,70 +2,69 @@
 'use strict';
 const Funnel = require('broccoli-funnel');
 const getDebugMacros = require('./src/debug-macros').debugMacros;
-const semver = require('semver');
-const pkg = require('./package.json');
 
-/*
- shouldIncludeChildAddon runs during
- addon init so does not have access to
- the host application instance.
-*/
-let requiredDataPackages = ['@ember-data/model', '@ember-data/store', 'ember-inflector'];
-let allDataPackages = [
-  '@ember-data/adapter',
-  '@ember-data/debug',
-  '@ember-data/model',
-  '@ember-data/record-data',
-  '@ember-data/serializer',
-  '@ember-data/store',
-];
-let minVersionForUsingOwnPackages = '3.14.0';
+const VersionChecker = require('ember-cli-version-checker');
 
-function hasDataPackage(addon) {
-  let addons = addon.project.addonPackages;
-  return addons['ember-data'] !== undefined;
-}
-function hasOwnDataPackages(addon) {
-  let addons = addon.project.addonPackages;
+function assertValidEmberData(addon) {
+  let checker = VersionChecker.forProject(addon.project);
+  let emberDataFound = false;
+  let emberDataVersionsFound = [];
+  let emberDataModelFound = false;
+  let emberDataModelVersionsFound = [];
+  let emberDataStoreFound = false;
+  let emberDataStoreVersionsFound = [];
+  let emberInflectorFound = false;
+  let emberInflectorVersionsFound = [];
 
-  for (let i = 0; i < allDataPackages.length; i++) {
-    if (addons[allDataPackages[i]] !== undefined) {
-      return true;
-    }
-  }
-  return false;
-}
-function assertOwnDataPackagesValid(addon) {
-  let addons = addon.project.addonPackages;
-
-  for (let i = 0; i < requiredDataPackages.length; i++) {
-    let requiredPackageName = requiredDataPackages[i];
-    if (addons[requiredPackageName] === undefined) {
-      throw new Error(
-        `ember-m3 ${pkg.version} requires the peerDependency ${requiredPackageName} to be installed.`
-      );
+  for (let { name, pkg } of checker.allAddons()) {
+    switch (name) {
+      case 'ember-data':
+        emberDataFound = true;
+        emberDataVersionsFound.push(pkg.version);
+        break;
+      case '@ember-data/model':
+        emberDataModelFound = true;
+        emberDataModelVersionsFound.push(pkg.version);
+        break;
+      case '@ember-data/store':
+        emberDataStoreFound = true;
+        emberDataStoreVersionsFound.push(pkg.version);
+        break;
+      case 'ember-inflector':
+        emberInflectorFound = true;
+        emberInflectorVersionsFound.push(pkg.version);
+        break;
     }
   }
 
-  let storeVersion = addons['@ember-data/store'].pkg.version;
-
-  if (semver.lt(storeVersion, minVersionForUsingOwnPackages)) {
-    throw new Error(
-      `To use your own @ember-data/<pkg> versions with ember-m3 their versions must be at least ${minVersionForUsingOwnPackages}. Found @ember-data/store with version ${storeVersion}.`
-    );
-  }
-
-  for (let i = 0; i < allDataPackages.length; i++) {
-    let addonName = allDataPackages[i];
-    let addon = addons[addonName];
-
-    if (addon && addonName !== 'ember-inflector') {
-      let pkgVersion = addons[addonName].pkg.version;
-      if (pkgVersion !== storeVersion) {
-        throw new Error(
-          `All @ember-data/<pkg> packages must have matching versions. Found ${addonName} ${pkgVersion} which does not match @ember-data/store's version of ${storeVersion}.`
-        );
+  // Here we only check that the addons installed are conceivably valid
+  // ember-data's packages should make themselves highlanders and throw if duplicates are found
+  //
+  // TODO: consider extracting this to ember-cli-version-checker
+  if (!emberDataFound) {
+    if (![emberDataModelFound, emberDataStoreFound, emberInflectorFound].every(Boolean)) {
+      let versionsFound = [];
+      if (emberDataFound) {
+        versionsFound.push(`\n  - ember-data: ${emberDataVersionsFound.join(', ')}`);
       }
+
+      if (emberDataModelFound) {
+        versionsFound.push(`\n  - @ember-data/model: ${emberDataModelVersionsFound.join(', ')}`);
+      }
+
+      if (emberDataStoreFound) {
+        versionsFound.push(`\n  - @ember-data/store: ${emberDataStoreVersionsFound.join(', ')}`);
+      }
+
+      if (emberInflectorFound) {
+        versionsFound.push(`\n  - ember-inflector: ${emberInflectorVersionsFound.join(', ')}`);
+      }
+
+      throw new Error(
+        `\nember-m3 requires either:\n\n  - ember-data: >= 3.12.0\n\nor all of:\n\n  - @ember-data/model: >= 3.12.0\n  - @ember-data/store: >= 3.12.0\n  - ember-inflector: >= 3.0.0\n\nversions found:\n${versionsFound.join(
+          ''
+        )}\n`
+      );
     }
   }
 }
@@ -73,34 +72,12 @@ function assertOwnDataPackagesValid(addon) {
 module.exports = {
   name: 'ember-m3',
 
-  init() {
-    let ret = this._super.init.call(this, ...arguments);
-
-    if (!hasDataPackage(this) && hasOwnDataPackages(this)) {
-      assertOwnDataPackagesValid(this);
-    }
-
-    return ret;
-  },
-
   included() {
     this._super.included.call(this, ...arguments);
-    this.configureBabelOptions();
-  },
 
-  shouldIncludeChildAddon(addon) {
-    if (!hasDataPackage(this) && !hasOwnDataPackages(this)) {
-      return true;
-    }
-    if (addon.name.startsWith('@ember-data') || addon.name === 'ember-inflector') {
-      /*
-      console.log(
-        `⚠️  ember-m3 is excluding ${addon.name} version ${addon.pkg.version} from the build`
-      );
-      */
-      return false;
-    }
-    return true;
+    assertValidEmberData(this);
+
+    this.configureBabelOptions();
   },
 
   treeForAddon(tree) {
