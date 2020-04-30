@@ -1057,7 +1057,7 @@
     ember-cli-babel "^7.18.0"
     ember-cli-typescript "^3.1.3"
 
-"@ember-data/debug@^3.17.0":
+"@ember-data/debug@^3.18.0":
   version "3.18.0"
   resolved "https://registry.yarnpkg.com/@ember-data/debug/-/debug-3.18.0.tgz#3ce284ce89e83b05ceae81a5be03248a341591fb"
   integrity sha512-9g/ghkq8SLmbOG0UUTyeX0ZAmQ3j3us2Ajkg8u3pVDKEpNdbQLhU5Npd9rf5gJe1TKmLcH7AcDpu85ZPLbb69w==
@@ -1068,7 +1068,7 @@
     ember-cli-test-info "^1.0.0"
     ember-cli-typescript "^3.1.3"
 
-"@ember-data/model@^3.17.0":
+"@ember-data/model@^3.18.0":
   version "3.18.0"
   resolved "https://registry.yarnpkg.com/@ember-data/model/-/model-3.18.0.tgz#f2aebb34005dd2926cf11810d3b3cf7f2cc6c5ff"
   integrity sha512-faFCpBl6VBzPl6tcJKi7FVEnC9xcx3qnle70tJWTAC++MK+GHlpQofNPWVu6cCebfDojHrLszfxjrDzmjvizqQ==
@@ -1121,7 +1121,7 @@
   resolved "https://registry.yarnpkg.com/@ember-data/rfc395-data/-/rfc395-data-0.0.4.tgz#ecb86efdf5d7733a76ff14ea651a1b0ed1f8a843"
   integrity sha512-tGRdvgC9/QMQSuSuJV45xoyhI0Pzjm7A9o/MVVA3HakXIImJbbzx/k/6dO9CUEQXIyS2y0fW6C1XaYOG7rY0FQ==
 
-"@ember-data/store@3.18.0", "@ember-data/store@^3.17.0":
+"@ember-data/store@3.18.0", "@ember-data/store@^3.18.0":
   version "3.18.0"
   resolved "https://registry.yarnpkg.com/@ember-data/store/-/store-3.18.0.tgz#04f7734a1f654c4eaf999f94f5a1451e763b7670"
   integrity sha512-FBfXqRct3khpUsdusdFVFt8qNrWDPpqT/V0wFnwjSje5uX+DSwZ247SrtCYkwf6OziSzOfWR/w286O+0nawAyQ==
