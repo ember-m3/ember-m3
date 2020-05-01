@@ -29,23 +29,7 @@ module.exports = function() {
           },
         },
         {
-          name: 'ember-lts-3.8',
-          npm: {
-            devDependencies: {
-              'ember-source': '~3.8.0',
-              'ember-data': '~3.8.0',
-              '@ember-data/store': null,
-              '@ember-data/debug': null,
-              '@ember-data/model': null,
-              '@ember-data/serializer': null,
-              '@ember-data/adapter': null,
-              '@ember-data/record-data': null,
-              'ember-inflector': null,
-            },
-          },
-        },
-        {
-          name: 'ember-lts-3.12',
+          name: 'ember-lts-n-1',
           npm: {
             devDependencies: {
               'ember-source': '~3.12.0',
@@ -61,7 +45,7 @@ module.exports = function() {
           },
         },
         {
-          name: 'ember-lts-3.16',
+          name: 'ember-lts',
           npm: {
             devDependencies: {
               'ember-source': '~3.16.0',
@@ -73,24 +57,6 @@ module.exports = function() {
               '@ember-data/adapter': null,
               '@ember-data/record-data': null,
               'ember-inflector': null,
-            },
-          },
-        },
-        {
-          // EmberData 3.14 is the first version in which we allow
-          // consumers to begin consuming individual packages
-          name: 'ember-data-packages-3.14',
-          npm: {
-            devDependencies: {
-              'ember-source': '~3.14.0',
-              'ember-data': null,
-              '@ember-data/store': '~3.14.0',
-              '@ember-data/debug': null, // available in 3.15
-              '@ember-data/model': '~3.14.0', // not yet droppable (Errors)
-              '@ember-data/serializer': null,
-              '@ember-data/adapter': null,
-              '@ember-data/record-data': null,
-              'ember-inflector': '^3.0.1',
             },
           },
         },
@@ -146,8 +112,8 @@ module.exports = function() {
           name: 'release-n-1',
           npm: {
             devDependencies: {
-              'ember-source': '~3.14.3',
-              'ember-data': '~3.14.0',
+              'ember-source': '~3.17.0',
+              'ember-data': '~3.17.0',
               '@ember-data/store': null,
               '@ember-data/debug': null,
               '@ember-data/model': null,

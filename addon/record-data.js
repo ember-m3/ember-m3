@@ -6,7 +6,7 @@ import { assert } from '@ember/debug';
 import Ember from 'ember';
 import { recordDataToRecordMap, recordDataToQueryCache } from './mixins/store';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
-import { GTE_VERSION_3_13, IS_RECORD_DATA } from 'ember-m3/-infra/versions';
+import { GTE_VERSION_3_13 } from 'ember-m3/-infra/versions';
 
 const emberAssign = assign || merge;
 
@@ -798,18 +798,11 @@ export default class M3RecordData {
         return;
       }
 
-      if (IS_RECORD_DATA) {
-        if (GTE_VERSION_3_13) {
-          this._baseRecordData = this.storeWrapper.recordDataFor(dasherize(baseModelName), this.id);
-        } else {
-          this._baseRecordData = this.storeWrapper.recordDataFor(
-            dasherize(baseModelName),
-            this.id,
-            this.clientId
-          );
-        }
+      // TODO: investigate whether this branch is necessary
+      if (GTE_VERSION_3_13) {
+        this._baseRecordData = this.storeWrapper.recordDataFor(dasherize(baseModelName), this.id);
       } else {
-        this._baseRecordData = this.storeWrapper.modelDataFor(
+        this._baseRecordData = this.storeWrapper.recordDataFor(
           dasherize(baseModelName),
           this.id,
           this.clientId

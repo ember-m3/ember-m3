@@ -11,14 +11,8 @@ import {
   flushChanges,
 } from './utils/notify-changes';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
-import { HAS_STORE_PACKAGE } from 'ember-m3/-infra/packages';
 import { recordDataToRecordMap, recordToRecordArrayMap } from './mixins/store';
-import require from 'require';
-
-let recordIdentifierFor;
-if (HAS_STORE_PACKAGE) {
-  recordIdentifierFor = require('@ember-data/store').recordIdentifierFor;
-}
+import { recordIdentifierFor } from '@ember-data/store';
 
 /**
  * M3RecordArray

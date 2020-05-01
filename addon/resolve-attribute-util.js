@@ -12,7 +12,6 @@ import {
   getOrCreateRecordFromRecordData,
   resolveReferencesWithInternalModels,
 } from './utils/resolve';
-import { IS_RECORD_DATA } from 'ember-m3/-infra/versions';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 
 let EmbeddedInternalModel;
@@ -35,10 +34,6 @@ if (!CUSTOM_MODEL_CLASS) {
         this
       );
       this._recordData = recordData;
-
-      if (!IS_RECORD_DATA) {
-        this._modelData = recordData;
-      }
 
       this.parentInternalModel = parentInternalModel;
 
