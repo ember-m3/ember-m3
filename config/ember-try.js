@@ -33,7 +33,7 @@ module.exports = function() {
           npm: {
             devDependencies: {
               'ember-source': '~3.12.0',
-              'ember-data': '~3.12.0',
+              'ember-data': '~3.16.0',
               '@ember-data/store': null,
               '@ember-data/debug': null,
               '@ember-data/model': null,
