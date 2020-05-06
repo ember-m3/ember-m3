@@ -1,5 +1,4 @@
 import require, { has } from 'require';
-import PotentialFeatures from './potential-features';
 
 /**
   ⚠️ This file exists ONLY for DEV ergonomics to ensure
@@ -14,7 +13,7 @@ import PotentialFeatures from './potential-features';
 */
 
 function flagState(flagName) {
-  let value = PotentialFeatures[flagName];
+  let value;
   if (has('@ember-data/canary-features')) {
     value = require('@ember-data/canary-features')[flagName];
   }

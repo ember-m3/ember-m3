@@ -1,27 +1,8 @@
 /* eslint-env node */
 'use strict';
-const requireEsm = require('esm')(module);
-const semver = require('semver');
-const buildProjectHelper = require('./utils/project-package-helper');
-
-function gte(availableVersion, compatVersion) {
-  return semver.gte(semver.minVersion(availableVersion), semver.minVersion(compatVersion));
-}
 
 function buildDebugMacros(flags) {
   let plugins = [
-    [
-      require.resolve('babel-plugin-debug-macros'),
-      {
-        flags: [
-          {
-            source: 'ember-m3/-infra/versions',
-            flags: flags.versions,
-          },
-        ],
-      },
-      'ember-m3/ember-data-version-stripping',
-    ],
     [
       require.resolve('babel-plugin-debug-macros'),
       {
@@ -56,26 +37,13 @@ function getFlags(app, isDevelopingAddon) {
   if (_flags) {
     return _flags;
   }
-  const projectHelper = buildProjectHelper(app.project);
   let isProd = process.env.EMBER_ENV === 'production';
-  let dataPackage = projectHelper.getAddon('ember-data');
-  let storePackage = projectHelper.getAddon('@ember-data/store');
-  let version = dataPackage ? dataPackage.pkg.version : storePackage.pkg.version;
 
   let features;
   let packages;
-  let versions = {
-    GTE_VERSION_3_13: gte(version, '3.13.0'),
-  };
-  try {
-    features = app.project.require('@ember-data/private-build-infra/src/features')(isProd);
-  } catch (e) {
-    try {
-      features = app.project.require('@ember-data/-build-infra/src/features');
-    } catch (e) {
-      features = requireEsm('../addon/-infra/potential-features.js').default;
-    }
-  }
+
+  // >= 3.15.0.beta
+  features = app.project.require('@ember-data/private-build-infra/src/features')(isProd);
 
   features = Object.assign({ CUSTOM_MODEL_CLASS: false }, features);
 
@@ -84,19 +52,10 @@ function getFlags(app, isDevelopingAddon) {
     features[flag] = features[flag] || (allowRuntimeEnable ? null : false);
   });
 
-  try {
-    packages = app.project.require('@ember-data/private-build-infra/src/packages')(app);
-  } catch (e) {
-    let potentialPackages = requireEsm('../addon/-infra/potential-packages.js').default;
-    packages = {};
+  // >= 3.16
+  packages = app.project.require('@ember-data/private-build-infra/src/packages')(app);
 
-    Object.keys(potentialPackages).map(flag => {
-      let packageName = potentialPackages[flag];
-      packages[flag] = projectHelper.hasAddon(packageName);
-    });
-  }
-
-  _flags = { features, packages, versions };
+  _flags = { features, packages };
   return _flags;
 }
 
