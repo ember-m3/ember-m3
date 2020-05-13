@@ -7,66 +7,19 @@ const VersionChecker = require('ember-cli-version-checker');
 
 function assertValidEmberData(addon) {
   let checker = VersionChecker.forProject(addon.project);
-  let emberDataFound = false;
-  let emberDataVersionsFound = [];
-  let emberDataModelFound = false;
-  let emberDataModelVersionsFound = [];
-  let emberDataStoreFound = false;
-  let emberDataStoreVersionsFound = [];
-  let emberInflectorFound = false;
-  let emberInflectorVersionsFound = [];
 
-  for (let { name, pkg } of checker.allAddons()) {
-    switch (name) {
-      case 'ember-data':
-        emberDataFound = true;
-        emberDataVersionsFound.push(pkg.version);
-        break;
-      case '@ember-data/model':
-        emberDataModelFound = true;
-        emberDataModelVersionsFound.push(pkg.version);
-        break;
-      case '@ember-data/store':
-        emberDataStoreFound = true;
-        emberDataStoreVersionsFound.push(pkg.version);
-        break;
-      case 'ember-inflector':
-        emberInflectorFound = true;
-        emberInflectorVersionsFound.push(pkg.version);
-        break;
-    }
-  }
+  // full ember-data brings store and model starting in 3.16
+  // so we do not need to check for full ember-data, just the specific packages
+  // we care about since our current support is 3.16+
+  let check = checker.check({
+    '@ember-data/store': '>= 3.16.0',
+    '@ember-data/model': '>= 3.16.0',
+    'ember-inflector': '>= 3.0.0',
+  });
 
-  // Here we only check that the addons installed are conceivably valid
-  // ember-data's packages should make themselves highlanders and throw if duplicates are found
-  //
-  // TODO: consider extracting this to ember-cli-version-checker
-  if (!emberDataFound) {
-    if (![emberDataModelFound, emberDataStoreFound, emberInflectorFound].every(Boolean)) {
-      let versionsFound = [];
-      if (emberDataFound) {
-        versionsFound.push(`\n  - ember-data: ${emberDataVersionsFound.join(', ')}`);
-      }
-
-      if (emberDataModelFound) {
-        versionsFound.push(`\n  - @ember-data/model: ${emberDataModelVersionsFound.join(', ')}`);
-      }
-
-      if (emberDataStoreFound) {
-        versionsFound.push(`\n  - @ember-data/store: ${emberDataStoreVersionsFound.join(', ')}`);
-      }
-
-      if (emberInflectorFound) {
-        versionsFound.push(`\n  - ember-inflector: ${emberInflectorVersionsFound.join(', ')}`);
-      }
-
-      throw new Error(
-        `\nember-m3 requires either:\n\n  - ember-data: >= 3.12.0\n\nor all of:\n\n  - @ember-data/model: >= 3.12.0\n  - @ember-data/store: >= 3.12.0\n  - ember-inflector: >= 3.0.0\n\nversions found:\n${versionsFound.join(
-          ''
-        )}\n`
-      );
-    }
-  }
+  check.assert(
+    '[ember-m3] requires either "ember-data" be installed (which brings the below packages) or at least the following versions of them.'
+  );
 }
 
 module.exports = {
