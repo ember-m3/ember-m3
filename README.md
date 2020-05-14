@@ -742,10 +742,22 @@ ember-m3 supports three Ember.js and Ember Data versions
 - The [previous release](https://emberjs.com/releases/release/)
 - The current LTS version
 
-As of 30 April this means:
+As of 30 April 2020 this means:
 
 - 3.18.x (the latest release)
 - 3.17.x (the previous release)
 - 3.16.x (the current LTS)
 
 On the build side, a [supported version of node](https://nodejs.org/en/about/releases/) is required.
+
+## Utilizing less of EmberData
+
+ember-m3 does not require all of EmberData to function properly, and if your app does not need
+all of EmberData either then you can choose to use ember-m3 with only the subset of EmberData
+packages ember-m3 currently requires.
+
+As of 13 May 2020 this means:
+
+- @ember-data/store >= 3.16
+- @ember-data/model >= 3.16
+- ember-inflector >= 3.0

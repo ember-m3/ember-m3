@@ -15,9 +15,8 @@
     "lint": "yarn lint:js",
     "lint:js": "eslint .",
     "start": "ember server --no-live-reload --port=0",
-    "test": "yarn test:ember && yarn test:node",
-    "test:ember": "ember test",
-    "test:node": "qunit node-tests/run.js"
+    "test": "yarn test:ember",
+    "test:ember": "ember test"
   },
   "author": "David J. Hamilton <dhamilton@linkedin.com>",
   "contributors": [
