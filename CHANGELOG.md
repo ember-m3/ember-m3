@@ -1,3 +1,32 @@
+## v2.0.0 (2020-05-18)
+
+#### :boom: Breaking Change
+
+- [#695](https://github.com/hjdivad/ember-m3/pull/695) utilize ember-data's project trim ([@hjdivad](https://github.com/hjdivad))
+- [#705](https://github.com/hjdivad/ember-m3/pull/705) cleanup: BREAKING drop EmberData<3.16 support for 2.0 ([@runspired](https://github.com/runspired))
+- [#693](https://github.com/hjdivad/ember-m3/pull/693) Dropping support for < ember-data 3.12 ([@hjdivad](https://github.com/hjdivad))
+
+#### :rocket: Enhancement
+
+- [#695](https://github.com/hjdivad/ember-m3/pull/695) utilize ember-data's project trim ([@hjdivad](https://github.com/hjdivad))
+
+#### :memo: Documentation
+
+- [#719](https://github.com/hjdivad/ember-m3/pull/719) updates readme with tests/dummy example and fix dummy ([@betocantu93](https://github.com/betocantu93))
+
+#### :house: Internal
+
+- [#655](https://github.com/hjdivad/ember-m3/pull/655) Unpin `ember-source` version in `package.json` ([@rwjblue](https://github.com/rwjblue))
+- [#656](https://github.com/hjdivad/ember-m3/pull/656) Add ember-lts-3.16 ember-try scenario. ([@rwjblue](https://github.com/rwjblue))
+
+#### Committers: 5
+
+- Alberto Cantú Gómez ([@betocantu93](https://github.com/betocantu93))
+- Chris Thoburn ([@runspired](https://github.com/runspired))
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+- Stefan Penner ([@stefanpenner](https://github.com/stefanpenner))
+
 ## v1.0.3 (2020-04-09)
 
 #### :bug: Bug Fix
