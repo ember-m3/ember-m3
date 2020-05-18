@@ -27,7 +27,7 @@ export default class Schema extends DefaultSchema {
     }
     if (typeof value === 'object' && value !== null && typeof value.$type === 'string') {
       return {
-        id: value.isbn,
+        id: value.id,
         type: value.$type,
         attributes: value,
       };
