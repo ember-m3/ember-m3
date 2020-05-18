@@ -45,11 +45,7 @@ npm install --global release-it
 - Second, ensure that you have installed your projects dependencies:
 
 ```
-# using yarn
 yarn install
-
-# using npm
-npm install
 ```
 
 - And last (but not least 😁) do your release. It requires a

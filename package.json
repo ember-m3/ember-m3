@@ -9,15 +9,6 @@
   ],
   "repository": "https://github.com/hjdivad/ember-m3",
   "license": "MIT",
-  "scripts": {
-    "build": "ember build",
-    "format": "eslint --fix .",
-    "lint": "yarn lint:js",
-    "lint:js": "eslint .",
-    "start": "ember server --no-live-reload --port=0",
-    "test": "yarn test:ember",
-    "test:ember": "ember test"
-  },
   "author": "David J. Hamilton <dhamilton@linkedin.com>",
   "contributors": [
     "Dinesh Nalagatla <dinu.nalagatla@gmail.com> (https://www.linkedin.com/in/dineshnalagatla)",
@@ -32,6 +23,10 @@
     "Danail Nachev (http://www.linkedin.com/in/danailnachev)",
     "Ibraheem Abdul-Malik"
   ],
+  "directories": {
+    "doc": "doc",
+    "test": "tests"
+  },
   "files": [
     "package.json",
     "CHANGELOG.md",
@@ -45,9 +40,14 @@
     "blueprints",
     "config"
   ],
-  "directories": {
-    "doc": "doc",
-    "test": "tests"
+  "scripts": {
+    "build": "ember build",
+    "format": "eslint --fix .",
+    "lint": "yarn lint:js",
+    "lint:js": "eslint .",
+    "start": "ember server --no-live-reload --port=0",
+    "test": "yarn test:ember",
+    "test:ember": "ember test"
   },
   "husky": {
     "hooks": {
@@ -120,6 +120,11 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
   },
+  "changelog": {
+    "ignoreCommitters": [
+      "dependabot"
+    ]
+  },
   "ember-addon": {
     "configPath": "tests/dummy/config",
     "defaultBlueprint": "schema",
@@ -142,11 +147,6 @@
       "release": true,
       "tokenRef": "GITHUB_AUTH"
     }
-  },
-  "changelog": {
-    "ignoreCommitters": [
-      "dependabot"
-    ]
   },
   "volta": {
     "node": "13.9.0",
