@@ -60,45 +60,37 @@ You could support it with the following schema:
 // generated via `ember generate service m3-schema`
 import DefaultSchema from 'ember-m3/services/m3-schema';
 
-const BookstoreRegExp = /^com\.example\.bookstore\.*/;
-const ISBNRegExp = /^isbn:.*/;
-const URNRegExp = /^urn:(\w+):(.*)/;
+const BookStoreRegExp = /^com\.example\.bookstore\./;
+const ISBNRegExp = /^isbn:/;
+const URNRegExp = /^urn:/;
 
-export default class MySchema extends DefaultSchema {
-  includesModel(modelName) {
-    return BookstoreRegExp.test(modelName);
-  },
-
-  computeAttributeReference(key, value, modelName, schemaInterface) {
-    if (!value) {
-      return;
-    }
-
-    let match;
-
-    if (ISBNRegExp.test(value)) {
+export default class Schema extends DefaultSchema {
+  computeAttributeReference(key, value) {
+    if (typeof value === 'string' && (ISBNRegExp.test(value) || URNRegExp.test(value))) {
       return {
+        type: null,
         id: value,
-        type: 'com.example.bookstore.Book',
-      };
-    } else if ((match = URNRegExp.exec(value))) {
-      return {
-        id: match[2],
-        type: `com.example.bookstore.${match[1]}`,
       };
     }
-  },
+  }
 
-  computeNestedModel(key, value, modelName, schemaInterface) {
-    if (value && typeof value === 'object') {
+  includesModel(modelName) {
+    return BookStoreRegExp.test(modelName);
+  }
+
+  computeNestedModel(key, value) {
+    if (Array.isArray(value)) {
+      return null;
+    }
+    if (typeof value === 'object' && value !== null && typeof value.$type === 'string') {
       return {
-        id: value.id,
-        type: value.type,
+        id: value.isbn,
+        type: value.$type,
         attributes: value,
       };
     }
-  },
-});
+  }
+}
 ```
 
 Notice that in this case, the schema doesn't specify anything model-specific and

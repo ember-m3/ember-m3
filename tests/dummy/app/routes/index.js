@@ -33,7 +33,7 @@ export default Route.extend({
       this.store.pushPayload('com.example.bookstore.ReaderComment', {
         data: {
           id: 'urn:comment:3',
-          type: 'com.example.bookstore.Commenter',
+          type: 'com.example.bookstore.ReaderComment',
           attributes: {
             commenter: {
               $type: 'com.example.bookstore.Commenter',
