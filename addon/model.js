@@ -730,7 +730,7 @@ export class EmbeddedMegamorphicModel extends MegamorphicModel {
   }
 
   set id(value) {
-    return this.setUnknownProperty('id', value);
+    this.setUnknownProperty('id', value);
   }
 
   static toString() {
