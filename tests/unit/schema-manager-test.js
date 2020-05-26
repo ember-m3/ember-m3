@@ -146,4 +146,23 @@ module('unit/schema-manager', function(hooks) {
       'jeff'
     );
   });
+
+  test('computeBaseModelName asserts the input is not returned', function(assert) {
+    this.registerSchema(
+      class TestSchema extends DefaultSchema {
+        computeBaseModelName(/* modelName */) {
+          return 'com.example.BaseType';
+        }
+      }
+    );
+
+    assert.equal(
+      this.schemaManager.computeBaseModelName('x'),
+      'com.example.BaseType',
+      'computeBaseModel(projection)'
+    );
+    assert.throws(() => {
+      this.schemaManager.computeBaseModelName('com.example.BaseType');
+    }, /projection cycle/);
+  });
 });

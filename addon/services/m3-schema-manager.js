@@ -1,5 +1,6 @@
 import Service, { inject } from '@ember/service';
 import { defineProperty } from '@ember/object';
+import { assert } from '@ember/debug';
 
 export default class SchemaManager extends Service {
   /**
@@ -48,15 +49,22 @@ export default class SchemaManager extends Service {
   }
 
   /**
-   * If the `projectionModelName` represents a projection over some base type,
-   * return the model name of the base type to maintain shared data
-   * between all projections of the same type
+   * If the model name is a projection over some base type, return that base
+   * type.  If the model name is not a projection, return null.
+   *
+   * Indicating that a model type is a projection over another means that any
+   * attributes they have in common will be kept cache-consistent.
    *
    * @param {string} projectionModelName
    * @returns {string}
    */
   computeBaseModelName(projectionModelName) {
-    return this.get('schema').computeBaseModelName(projectionModelName);
+    let result = this.get('schema').computeBaseModelName(projectionModelName);
+    assert(
+      `computeBaseModelName('${projectionModelName}') === '${result}'.  This creates a projection cycle.  If ${projectionModelName} is not a projection, return null from computeBaseModelName.`,
+      typeof result !== 'string' || result !== projectionModelName
+    );
+    return result;
   }
 
   isAttributeIncluded(modelName, attrName) {
