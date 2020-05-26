@@ -64,6 +64,38 @@ module('unit/query-cache', function(hooks) {
     });
   });
 
+  test('.queryURL handles empty responses', async function(assert) {
+    assert.equal(this.adapterAjax.callCount, 0, 'initial callCount 0');
+
+    this.owner.register(
+      'serializer:-ember-m3',
+      class TestSerializer {
+        static create() {
+          return new TestSerializer();
+        }
+
+        normalizeResponse(_store, _model, payload) {
+          return payload;
+        }
+      }
+    );
+
+    this.adapterAjax.returns(resolve(null));
+
+    this.queryCache._buildUrl = this.sinon.stub().returns('/the-url');
+
+    await this.queryCache.queryURL('/the-url');
+
+    this.adapterAjax.returns(resolve(undefined));
+
+    let key = '🔑';
+    assert.equal(this.queryCache.contains(key), false, 'key is initially not in the cache');
+    await this.queryCache.queryURL('/the-url', { cacheKey: '🔑' });
+    assert.equal(this.queryCache.contains(key), true, 'empty result populates cache');
+
+    assert.ok(true, 'queryURL does not throw on side-effect only requests with no response');
+  });
+
   test('._buildUrl uses the adapter host if no host in the URL', function(assert) {
     this.adapter.host = 'http://library.gg';
 
