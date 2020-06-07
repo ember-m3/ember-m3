@@ -1,3 +1,17 @@
+## v2.1.0 (2020-06-07)
+
+#### :rocket: Enhancement
+
+- [#727](https://github.com/hjdivad/ember-m3/pull/727) Assert against projection cycles ([@hjdivad](https://github.com/hjdivad))
+
+#### :bug: Bug Fix
+
+- [#732](https://github.com/hjdivad/ember-m3/pull/732) queryURL learns to tolerate empty responses ([@hjdivad](https://github.com/hjdivad))
+
+#### Committers: 1
+
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+
 ## v2.0.0 (2020-05-18)
 
 #### :boom: Breaking Change
