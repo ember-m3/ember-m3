@@ -977,14 +977,6 @@
     babel-runtime "6.26.0"
     execa "0.11.0"
 
-"@ember-data/canary-features@3.18.0":
-  version "3.18.0"
-  resolved "https://registry.yarnpkg.com/@ember-data/canary-features/-/canary-features-3.18.0.tgz#cc94867a8d6309d7dff48143c79497c43fd301d2"
-  integrity sha512-NRddFSlqdN5D86MKBgJ4MQzAzKHGQasDOWCEoGJHMF/Muh3I1NqAVAtI/I68wPr/k1j5hP1wMT6/tBsBMJXb/Q==
-  dependencies:
-    ember-cli-babel "^7.18.0"
-    ember-cli-typescript "^3.1.3"
-
 "@ember-data/canary-features@3.19.0":
   version "3.19.0"
   resolved "https://registry.yarnpkg.com/@ember-data/canary-features/-/canary-features-3.19.0.tgz#88757a66eadd269662c3960486c75e7200248624"
@@ -1004,14 +996,14 @@
     ember-cli-test-info "^1.0.0"
     ember-cli-typescript "^3.1.3"
 
-"@ember-data/model@^3.18.0":
-  version "3.18.0"
-  resolved "https://registry.yarnpkg.com/@ember-data/model/-/model-3.18.0.tgz#f2aebb34005dd2926cf11810d3b3cf7f2cc6c5ff"
-  integrity sha512-faFCpBl6VBzPl6tcJKi7FVEnC9xcx3qnle70tJWTAC++MK+GHlpQofNPWVu6cCebfDojHrLszfxjrDzmjvizqQ==
+"@ember-data/model@^3.19.0":
+  version "3.19.0"
+  resolved "https://registry.yarnpkg.com/@ember-data/model/-/model-3.19.0.tgz#c71d6ce9c2e561d996a41e0c0bf4fb4798b4f172"
+  integrity sha512-OzQwzqk0NQRqHnGT1ZjSQBESfRJdqRFGTXIImxmGv4Mwb3I+3dpVETt/E2wPKP0GyhZqEUCg8X6Z4itY5ATKtw==
   dependencies:
-    "@ember-data/canary-features" "3.18.0"
-    "@ember-data/private-build-infra" "3.18.0"
-    "@ember-data/store" "3.18.0"
+    "@ember-data/canary-features" "3.19.0"
+    "@ember-data/private-build-infra" "3.19.0"
+    "@ember-data/store" "3.19.0"
     "@ember/edition-utils" "^1.2.0"
     ember-cli-babel "^7.18.0"
     ember-cli-string-utils "^1.1.0"
@@ -1019,38 +1011,6 @@
     ember-cli-typescript "^3.1.3"
     ember-compatibility-helpers "^1.2.0"
     inflection "1.12.0"
-
-"@ember-data/private-build-infra@3.18.0":
-  version "3.18.0"
-  resolved "https://registry.yarnpkg.com/@ember-data/private-build-infra/-/private-build-infra-3.18.0.tgz#4420c375fa2462946ad6f9c62f73b79bba4d0e87"
-  integrity sha512-iQ4TzYdDCm0awv7S0Xg0AfQCDfwkl5pTCk7G8DfzbA3IIGJ0sFR19cq1IZkNKxqTUzU5ecb+394YybHjz81hMQ==
-  dependencies:
-    "@babel/plugin-transform-block-scoping" "^7.8.3"
-    "@ember-data/canary-features" "3.18.0"
-    "@ember/edition-utils" "^1.2.0"
-    babel-plugin-debug-macros "^0.3.3"
-    babel-plugin-filter-imports "^4.0.0"
-    babel6-plugin-strip-class-callcheck "^6.0.0"
-    broccoli-debug "^0.6.5"
-    broccoli-file-creator "^2.1.1"
-    broccoli-funnel "^2.0.2"
-    broccoli-merge-trees "^4.1.0"
-    broccoli-rollup "^4.1.1"
-    calculate-cache-key-for-tree "^2.0.0"
-    chalk "^3.0.0"
-    ember-cli-babel "^7.18.0"
-    ember-cli-path-utils "^1.0.0"
-    ember-cli-string-utils "^1.1.0"
-    ember-cli-typescript "^3.1.3"
-    ember-cli-version-checker "^4.1.0"
-    esm "^3.2.25"
-    git-repo-info "^2.1.1"
-    glob "^7.1.6"
-    npm-git-info "^1.0.3"
-    rimraf "^3.0.2"
-    rsvp "^4.8.5"
-    semver "^7.1.3"
-    silent-error "^1.1.1"
 
 "@ember-data/private-build-infra@3.19.0":
   version "3.19.0"
@@ -1089,19 +1049,7 @@
   resolved "https://registry.yarnpkg.com/@ember-data/rfc395-data/-/rfc395-data-0.0.4.tgz#ecb86efdf5d7733a76ff14ea651a1b0ed1f8a843"
   integrity sha512-tGRdvgC9/QMQSuSuJV45xoyhI0Pzjm7A9o/MVVA3HakXIImJbbzx/k/6dO9CUEQXIyS2y0fW6C1XaYOG7rY0FQ==
 
-"@ember-data/store@3.18.0":
-  version "3.18.0"
-  resolved "https://registry.yarnpkg.com/@ember-data/store/-/store-3.18.0.tgz#04f7734a1f654c4eaf999f94f5a1451e763b7670"
-  integrity sha512-FBfXqRct3khpUsdusdFVFt8qNrWDPpqT/V0wFnwjSje5uX+DSwZ247SrtCYkwf6OziSzOfWR/w286O+0nawAyQ==
-  dependencies:
-    "@ember-data/canary-features" "3.18.0"
-    "@ember-data/private-build-infra" "3.18.0"
-    ember-cli-babel "^7.18.0"
-    ember-cli-path-utils "^1.0.0"
-    ember-cli-typescript "^3.1.3"
-    heimdalljs "^0.3.0"
-
-"@ember-data/store@^3.19.0":
+"@ember-data/store@3.19.0", "@ember-data/store@^3.19.0":
   version "3.19.0"
   resolved "https://registry.yarnpkg.com/@ember-data/store/-/store-3.19.0.tgz#b3651b76b8490222ede5aa30442482aaab686925"
   integrity sha512-4/sOvUd4oeAzB+k57qkbBy9ssUU7MjyNiQZwqYxmlPU9k/1T2/gUKZVmZtDIab1zInIFzLsFpS0PYv9Gt1mz3Q==
@@ -2957,7 +2905,7 @@ broccoli-merge-trees@^3.0.0, broccoli-merge-trees@^3.0.1, broccoli-merge-trees@^
     broccoli-plugin "^1.3.0"
     merge-trees "^2.0.0"
 
-broccoli-merge-trees@^4.1.0, broccoli-merge-trees@^4.2.0:
+broccoli-merge-trees@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/broccoli-merge-trees/-/broccoli-merge-trees-4.2.0.tgz#692d3c163ecea08c5714a9434d664e628919f47c"
   integrity sha512-nTrQe5AQtCrW4enLRvbD/vTLHqyW2tz+vsLXQe4IEaUhepuMGVKJJr+I8n34Vu6fPjmPLwTjzNC8izMIDMtHPw==
