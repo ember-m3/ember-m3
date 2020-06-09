@@ -11,7 +11,7 @@ import {
   flushChanges,
 } from './utils/notify-changes';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
-import { recordDataToRecordMap, recordToRecordArrayMap } from './mixins/store';
+import { recordDataToRecordMap, recordToRecordArrayMap } from './utils/caches';
 import { recordIdentifierFor } from '@ember-data/store';
 
 /**

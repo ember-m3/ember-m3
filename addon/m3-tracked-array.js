@@ -7,7 +7,7 @@ import { recordDataFor } from './-private';
 import { deprecate } from '@ember/debug';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import MegamorphicModel from './model';
-import { recordDataToRecordMap } from './mixins/store';
+import { recordDataToRecordMap } from './utils/caches';
 import { recordIdentifierFor } from '@ember-data/store';
 
 /**
