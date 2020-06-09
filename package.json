@@ -131,7 +131,8 @@
     "defaultBlueprint": "schema",
     "after": [
       "ember-data",
-      "@ember-data/debug"
+      "@ember-data/debug",
+      "@ember-data/store"
     ]
   },
   "release-it": {
