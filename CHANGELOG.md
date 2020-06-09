@@ -1,3 +1,52 @@
+## v3.0.0 (2020-06-09)
+
+#### :boom: Breaking Change
+
+- [#760](https://github.com/hjdivad/ember-m3/pull/760) fix: flag store reopen and extend store properly ([@runspired](https://github.com/runspired))
+
+**Migrating**
+
+If your app or addon previously used `extendStore` or directly applied the store mixin, you will need to migrate your app or addon to extend from the ember-m3 store.
+
+**before with extendStore**
+
+```js
+import { extendStore } from 'ember-m3/mixins/store';
+import Store from '@ember-data/store';
+
+class AppStore extends Store {}
+extendStore(AppStore);
+
+export default AppStore;
+```
+
+**before with Mixin**
+
+```js
+import StoreMixin from 'ember-m3/mixins/store';
+import Store from '@ember-data/store';
+
+class AppStore extends Store.extend(StoreMixin) {}
+
+export default AppStore;
+```
+
+**after**
+
+```js
+import Store from 'ember-m3/services/store';
+
+export default class AppStore extends Store {}
+```
+
+#### :bug: Bug Fix
+
+- [#760](https://github.com/hjdivad/ember-m3/pull/760) fix: flag store reopen and extend store properly ([@runspired](https://github.com/runspired))
+
+#### Committers: 1
+
+- Chris Thoburn ([@runspired](https://github.com/runspired))
+
 ## v2.1.0 (2020-06-07)
 
 #### :rocket: Enhancement
