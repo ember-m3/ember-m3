@@ -1,4 +1,3 @@
-import '../mixins/store';
 import { DEBUG } from '@glimmer/env';
 import require from 'require';
 

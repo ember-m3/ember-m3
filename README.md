@@ -494,6 +494,16 @@ places for this.
 
 To learn how to debug `m3` records, refer to the [debugging documentation](DEBUGGING.md)
 
+## Customizing Store
+
+If your app customizes the store service, it will need to import and extend the store service provided by `ember-m3` instead of the store provided by `@ember-data/store`. Example:
+
+```js
+import M3Store from 'ember-m3/services/store';
+
+export default class AppStore extends M3Store {}
+```
+
 ## Alternative Patterns
 
 If you are converting an application that uses `DS.Model`s (perhaps because it

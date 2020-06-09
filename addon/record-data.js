@@ -4,7 +4,7 @@ import { assign, merge } from '@ember/polyfills';
 import { copy } from './utils/copy';
 import { assert } from '@ember/debug';
 import Ember from 'ember';
-import { recordDataToRecordMap, recordDataToQueryCache } from './mixins/store';
+import { recordDataToRecordMap, recordDataToQueryCache } from './utils/caches';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 
 const emberAssign = assign || merge;
