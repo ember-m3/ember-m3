@@ -6,7 +6,7 @@ import { zip } from 'lodash';
 
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import MegamorphicModelFactory from 'ember-m3/factory';
-import { extendStore } from 'ember-m3/mixins/store';
+import StoreMixin from 'ember-m3/mixins/store';
 
 module('unit/initializers/m3-store', function(hooks) {
   setupTest(hooks);
@@ -28,17 +28,19 @@ module('unit/initializers/m3-store', function(hooks) {
     this.adapterForStub = this.sinon.stub();
     this.serializerForStub = this.sinon.stub();
     this.modelFactoryForStub = this.sinon.stub();
-    let MockStore = EmberObject.extend({
-      adapterFor: this.adapterForStub,
-      serializerFor: this.serializerForStub,
-      _modelFactoryFor: this.modelFactoryForStub,
-      registerSchemaDefinitionService: function() {},
-      getSchemaDefinitionService: function() {
-        return {};
+    let MockStore = EmberObject.extend(
+      {
+        adapterFor: this.adapterForStub,
+        serializerFor: this.serializerForStub,
+        _modelFactoryFor: this.modelFactoryForStub,
+        registerSchemaDefinitionService: function() {},
+        getSchemaDefinitionService: function() {
+          return {};
+        },
       },
-    });
+      StoreMixin
+    );
     MockStore.toString = () => 'MockStore';
-    extendStore(MockStore);
 
     this.store = MockStore.create({
       // required because it cannot be injected in this case

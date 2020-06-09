@@ -10,7 +10,7 @@ import seenTypesPerStore from '../utils/seen-types-per-store';
 import { next } from '@ember/runloop';
 import { assign, merge } from '@ember/polyfills';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
-import { HAS_EMBER_DATA_PACKAGE } from 'ember-m3/-infra/packages';
+import { HAS_EMBER_DATA_PACKAGE, HAS_RECORD_DATA_PACKAGE } from 'ember-m3/-infra/packages';
 import MegamorphicModel from '../model';
 import Store from '@ember-data/store';
 
@@ -88,6 +88,38 @@ const StoreMixin = {
       this.registerSchemaDefinitionService(new SchemaDefinition(this, defaultSchema));
     } else {
       this._globalM3Cache = new Object(null);
+    }
+  },
+
+  createRecordDataFor(modelName, id, clientId, storeWrapper) {
+    let schemaManager = get(this, '_schemaManager');
+    if (schemaManager.includesModel(modelName)) {
+      seenTypesPerStore.get(this).add(modelName);
+
+      if (get(schemaManager, 'schema').watchModelTypes) {
+        next(() => {
+          // We need this to execute in the next task queue so that wrapRecord is not called
+          // before the M3RecordData is created
+          getOwner(this)
+            .lookup('data-adapter:main')
+            .addedType(modelName);
+        });
+      }
+      return new M3RecordData(
+        modelName,
+        id,
+        clientId,
+        storeWrapper,
+        schemaManager,
+        null,
+        null,
+        this._globalM3RecordDataCache
+      );
+    }
+
+    // TODO: what is the purpose of this check?
+    if (HAS_RECORD_DATA_PACKAGE) {
+      return this._super(modelName, id, clientId, storeWrapper);
     }
   },
 
@@ -238,45 +270,7 @@ const StoreMixin = {
   },
 };
 
-function createRecordDataFor(modelName, id, clientId, storeWrapper) {
-  let schemaManager = get(this, '_schemaManager');
-  if (schemaManager.includesModel(modelName)) {
-    seenTypesPerStore.get(this).add(modelName);
-
-    if (get(schemaManager, 'schema').watchModelTypes) {
-      next(() => {
-        // We need this to execute in the next task queue so that wrapRecord is not called
-        // before the M3RecordData is created
-        getOwner(this)
-          .lookup('data-adapter:main')
-          .addedType(modelName);
-      });
-    }
-    return new M3RecordData(
-      modelName,
-      id,
-      clientId,
-      storeWrapper,
-      schemaManager,
-      null,
-      null,
-      this._globalM3RecordDataCache
-    );
-  }
-
-  // TODO: what is the purpose of this check?
-  if (HAS_EMBER_DATA_PACKAGE) {
-    return this._super(modelName, id, clientId, storeWrapper);
-  }
-}
-
-StoreMixin.createRecordDataFor = createRecordDataFor;
-extendStore(Store);
-
-/**
- * @param {DS.Store} Store ember-data Store to be extended
- */
-export function extendStore(Store) {
+if (HAS_EMBER_DATA_PACKAGE) {
   Store.reopen(StoreMixin);
 }
 
