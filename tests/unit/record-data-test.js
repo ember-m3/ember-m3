@@ -38,6 +38,7 @@ module('unit/record-data', function(hooks) {
     let schemaManager = (this.schemaManager = this.owner.lookup('service:m3-schema-manager'));
 
     let storeWrapper = (this.storeWrapper = {
+      _store: {},
       recordDatas: {},
       disconnectedRecordDatas: {},
 

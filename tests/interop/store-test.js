@@ -158,7 +158,7 @@ module('unit/store (interop with @ember-data/model)', function(hooks) {
     await book.save();
   });
 
-  skip('didSave with no included resources flushes changed notifications', async function(assert) {
+  test('didSave with no included resources flushes changed notifications', async function(assert) {
     assert.expect(2);
 
     this.owner.register(

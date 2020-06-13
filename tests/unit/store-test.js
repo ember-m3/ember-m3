@@ -139,8 +139,8 @@ module('unit/store', function(hooks) {
     await book.save();
   });
 
-  skip('didSave with no included resources flushes changed notifications', async function(assert) {
-    assert.expect(2);
+  test('didSave with no included resources flushes changed notifications', async function(assert) {
+    assert.expect(5);
 
     this.owner.register(
       'adapter:application',
@@ -179,11 +179,14 @@ module('unit/store', function(hooks) {
     addObserver(book, 'volume', () => {
       assert.ok(true, 'changes flushed');
     });
-    book.get('volume');
+    assert.equal(book.get('volume'), 1, 'volume initialized');
 
     book.set('author', 'Winston Churchill');
     assert.equal(book.get('isDirty'), true, 'book now dirty');
 
     await book.save();
+
+    assert.equal(book.get('isDirty'), false, 'book now clean');
+    assert.equal(book.get('volume'), 2, 'volume updated');
   });
 });

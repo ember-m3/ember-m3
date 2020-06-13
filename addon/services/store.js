@@ -268,4 +268,15 @@ export default class M3Store extends Store {
       return internalModel;
     }
   }
+
+  // this private hook is used for update/create/delete record responses which don't
+  // take the _push codepath
+  didSaveRecord() {
+    super.didSaveRecord(...arguments);
+    // EmberData wraps the call to didSaveRecord in a run.join of
+    // it's internal backburner, and pushes sideloaded data from
+    // included after calling this hook. So in order to batch alongside
+    // anything in `included` we need to schedule
+    this._backburner.schedule('finished', () => flushChanges(this));
+  }
 }
