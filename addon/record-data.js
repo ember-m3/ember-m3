@@ -549,9 +549,11 @@ export default class M3RecordData {
   }
 
   removeFromRecordArrays() {
-    this._recordArrays.forEach(recordArray => {
-      recordArray._removeRecordData(this);
-    });
+    if (CUSTOM_MODEL_CLASS) {
+      this._recordArrays.forEach(recordArray => {
+        recordArray._removeRecordData(this);
+      });
+    }
   }
   /**
    * @returns {boolean}

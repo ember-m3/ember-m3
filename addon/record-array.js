@@ -27,7 +27,7 @@ if (CUSTOM_MODEL_CLASS) {
    *
    * @class M3RecordArray
    */
-  M3RecordArray = class M3RecordArray extends EmberObject {
+  M3RecordArray = class M3RecordArray extends EmberObject.extend(MutableArray) {
     // public RecordArray API
 
     init() {
@@ -61,15 +61,11 @@ if (CUSTOM_MODEL_CLASS) {
       flushChanges(this.store);
     }
 
-    objectAtContent(idx) {
+    objectAt(idx) {
+      this._resolve();
       // TODO make this lazy again
       let record = this._objects[idx];
       return record;
-    }
-
-    objectAt(idx) {
-      this._resolve();
-      return this.objectAtContent(idx);
     }
 
     _removeObject(object) {
@@ -168,10 +164,8 @@ if (CUSTOM_MODEL_CLASS) {
       return this._resolved ? this._objects.length : this._references.length;
     }
   };
-
-  M3RecordArray.reopen(MutableArray);
 } else {
-  M3RecordArray = class RecordArray extends EmberObject {
+  M3RecordArray = class M3RecordArray extends EmberObject.extend(MutableArray) {
     // public RecordArray API
 
     init() {
@@ -205,16 +199,12 @@ if (CUSTOM_MODEL_CLASS) {
       flushChanges(this.store);
     }
 
-    objectAtContent(idx) {
+    objectAt(idx) {
+      this._resolve();
       let internalModel = this._internalModels[idx];
       return internalModel !== null && internalModel !== undefined
         ? internalModel.getRecord()
         : undefined;
-    }
-
-    objectAt(idx) {
-      this._resolve();
-      return this.objectAtContent(idx);
     }
 
     // RecordArrayManager private api
@@ -309,8 +299,6 @@ if (CUSTOM_MODEL_CLASS) {
       return this._resolved ? this._internalModels.length : this._references.length;
     }
   };
-
-  M3RecordArray.reopen(MutableArray);
 }
 
 export function associateRecordWithRecordArray(record, recordArray) {

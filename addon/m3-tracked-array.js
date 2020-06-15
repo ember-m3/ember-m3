@@ -34,15 +34,11 @@ export default class M3TrackedArray extends EmberObject.extend(MutableArray) {
     return this._value;
   }
 
-  replace(idx, removeAmt, newItems) {
-    this.replaceContent(idx, removeAmt, newItems);
-  }
-
   objectAt(idx) {
     return this.content[idx];
   }
 
-  replaceContent(idx, removeAmt, newItems) {
+  replace(idx, removeAmt, newItems) {
     // Update childRecordDatas array
     // mapping to array of nested models
     recordDataFor(this._record)._resizeChildRecordData(this._key, idx, removeAmt, newItems.length);
@@ -118,27 +114,35 @@ export default class M3TrackedArray extends EmberObject.extend(MutableArray) {
   }
 
   _removeObject(record) {
-    let index = this.content.indexOf(record);
-    if (index > -1) {
-      this.arrayContentWillChange(index, 1, 0);
-      this.content.removeObject(record);
-      this.arrayContentDidChange(index, 1, 0);
+    if (CUSTOM_MODEL_CLASS) {
+      let index = this.content.indexOf(record);
+      if (index > -1) {
+        this.arrayContentWillChange(index, 1, 0);
+        this.content.removeObject(record);
+        this.arrayContentDidChange(index, 1, 0);
+      }
+    } else {
+      throw new Error('Should not be calling _removeObject when CUSTOM_MODEL_CLASS is off');
     }
   }
 
   _removeRecordData(recordData) {
-    let recordToMatch = recordDataToRecordMap.get(recordData);
-    if (!recordToMatch) {
-      return;
-    }
-    for (let i = this.content.length; i >= 0; --i) {
-      let item = this.content.objectAt(i);
-      if (recordToMatch === item) {
-        this.arrayContentWillChange(i, 1, 0);
-        this.content.removeAt(i);
-        this.arrayContentDidChange(i, 1, 0);
-        break;
+    if (CUSTOM_MODEL_CLASS) {
+      let recordToMatch = recordDataToRecordMap.get(recordData);
+      if (!recordToMatch) {
+        return;
       }
+      for (let i = this.content.length; i >= 0; --i) {
+        let item = this.content.objectAt(i);
+        if (recordToMatch === item) {
+          this.arrayContentWillChange(i, 1, 0);
+          this.content.removeAt(i);
+          this.arrayContentDidChange(i, 1, 0);
+          break;
+        }
+      }
+    } else {
+      throw new Error('Should not be calling _removeRecordData when CUSTOM_MODEL_CLASS is off');
     }
   }
 }
