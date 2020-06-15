@@ -138,15 +138,27 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
   }
 
   if (isArray === true) {
-    return M3TrackedArray.create({
-      content: A(content),
-      key,
-      _value: value,
-      modelName,
-      store,
-      schema,
-      model: record,
-    });
+    if (CUSTOM_MODEL_CLASS) {
+      return M3TrackedArray.create({
+        _objects: A(content),
+        key,
+        _value: value,
+        modelName,
+        store,
+        schema,
+        model: record,
+      });
+    } else {
+      return M3TrackedArray.create({
+        content: A(content),
+        key,
+        _value: value,
+        modelName,
+        store,
+        schema,
+        model: record,
+      });
+    }
   }
 
   return content;

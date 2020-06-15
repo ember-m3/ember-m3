@@ -4,7 +4,11 @@ import EmberObject from '@ember/object';
 import MutableArray from '@ember/array/mutable';
 import { A } from '@ember/array';
 import MegamorphicModel, { EmbeddedMegamorphicModel } from './model';
-import { resolveReferencesWithInternalModels, resolveReferencesWithRecords } from './utils/resolve';
+import {
+  resolveReferencesWithInternalModels,
+  resolveReferencesWithRecords,
+  isResolvedValue,
+} from './utils/resolve';
 import {
   deferArrayPropertyChange,
   deferPropertyChange,
@@ -33,7 +37,9 @@ if (CUSTOM_MODEL_CLASS) {
     init() {
       super.init(...arguments);
       this._references = [];
-      this._objects = A();
+      if (!this._objects) {
+        this._objects = A();
+      }
       this._resolved = false;
       this.store = this.store || null;
     }
@@ -50,15 +56,9 @@ if (CUSTOM_MODEL_CLASS) {
       }
 
       this._objects.replace(idx, removeAmt, newObjects);
+      this.arrayContentDidChange(idx, removeAmt, newObjects.length);
       this._registerWithObjects(newObjects);
       this._resolved = true;
-
-      deferArrayPropertyChange(this.store, this, idx, removeAmt, addAmt);
-      deferPropertyChange(this.store, this, '[]');
-      deferPropertyChange(this.store, this, 'length');
-
-      // eager change events on mutation as mutations are user entry points
-      flushChanges(this.store);
     }
 
     objectAt(idx) {
@@ -128,19 +128,17 @@ if (CUSTOM_MODEL_CLASS) {
         if (!record) {
           return;
         }
-        this._objects.removeObjects([record]);
-        deferArrayPropertyChange(this.store, this, 0, 1, 0);
-        deferPropertyChange(this.store, this, '[]');
-        deferPropertyChange(this.store, this, 'length');
-        // eager change events here; we're not processing payloads (that goes
-        // we're doing `unloadRecord`
-        flushChanges(this.store);
+        let index = this._objects.indexOf(record);
+        if (index > -1) {
+          this._objects.removeObject(record);
+          this.arrayContentDidChange(index, 1, 0);
+        }
       }
     }
 
     _registerWithObjects(objects) {
       objects.forEach(object => {
-        if (!object) {
+        if (!object || !isResolvedValue(object)) {
           return;
         }
         associateRecordWithRecordArray(object, this);

@@ -140,7 +140,7 @@ module('unit/model/tracked-array', function(hooks) {
   });
 
   test('unloaded records are automatically removed from tracked arrays', function(assert) {
-    let observerWillChange, observerDidChange;
+    let observerDidChange;
     let model = run(() =>
       this.store.push({
         data: {
@@ -190,16 +190,13 @@ module('unit/model/tracked-array', function(hooks) {
     );
 
     chapters.addArrayObserver(this, {
-      willChange: (array, index, removeCount) => {
-        observerWillChange = removeCount;
-      },
+      willChange: () => {},
       didChange: (array, index, removeCount) => {
         observerDidChange = removeCount;
       },
     });
 
     run(() => chapter2.unloadRecord());
-    assert.equal(observerWillChange, 1, 'removal of the record notified to be removed');
     assert.equal(observerDidChange, 1, 'removal of the record notified that it was removed');
 
     assert.deepEqual(
