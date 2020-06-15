@@ -102,17 +102,15 @@ export default class M3TrackedArray extends EmberObject.extend(MutableArray) {
     if (CUSTOM_MODEL_CLASS) {
       throw new Error('Should not be calling _removeInternalModels when CUSTOM_MODEL_CLASS is on');
     } else {
-      for (let i = this.content.length; i >= 0; --i) {
+      for (let i = this.content.length - 1; i >= 0; i--) {
         let item = this.content.objectAt(i);
-        if (isResolvedValue(item)) {
-          for (let j = 0; j < internalModels.length; ++j) {
-            let internalModel = internalModels[j];
-            if (internalModel === item._internalModel) {
-              this.arrayContentWillChange(i, 1, 0);
-              this.content.removeAt(i);
-              this.arrayContentDidChange(i, 1, 0);
-              break;
-            }
+        for (let j = 0; j < internalModels.length; j++) {
+          let internalModel = internalModels[j];
+          if (internalModel === item._internalModel) {
+            this.arrayContentWillChange(i, 1, 0);
+            this.content.removeAt(i);
+            this.arrayContentDidChange(i, 1, 0);
+            break;
           }
         }
       }
