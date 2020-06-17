@@ -8,7 +8,6 @@ import { readOnly } from '@ember/object/computed';
 import { recordDataToRecordMap } from './utils/caches';
 
 import { recordDataFor } from './-private';
-import M3RecordArray from './record-array';
 import { OWNER_KEY } from './util';
 import { resolveValue } from './resolve-attribute-util';
 import { computeAttributeReference } from './utils/resolve';
@@ -22,6 +21,7 @@ import { DEBUG } from '@glimmer/env';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import { RootState, Errors as StoreErrors } from '@ember-data/store/-private';
 import { Errors as ModelErrors } from '@ember-data/model/-private';
+import M3ReferenceArray from './m3-reference-array';
 
 // Errors moved from @ember-data/store to @ember-data/model as of 3.15.0
 const Errors = ModelErrors || StoreErrors;
@@ -229,7 +229,7 @@ export default class MegamorphicModel extends EmberObject {
     let oldValue = this._cache[key];
     let newValue = recordData.getAttr(key);
 
-    let oldIsRecordArray = oldValue && oldValue instanceof M3RecordArray;
+    let oldIsRecordArray = oldValue && oldValue instanceof M3ReferenceArray;
 
     if (oldIsRecordArray) {
       if (recordData.hasLocalAttr(key)) {
@@ -441,7 +441,7 @@ export default class MegamorphicModel extends EmberObject {
 
     if (isArray(value)) {
       const cachedValue = this._cache[key];
-      if (cachedValue instanceof M3RecordArray) {
+      if (cachedValue instanceof M3ReferenceArray) {
         // We update record arrays in-place to match the semantics of setting a
         // `hasMany` attribute on a @ember-data/model
         this._setRecordArray(key, value);

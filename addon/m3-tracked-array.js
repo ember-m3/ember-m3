@@ -2,12 +2,11 @@ import MutableArray from '@ember/array/mutable';
 import EmberObject, { get } from '@ember/object';
 import { resolveValue } from './resolve-attribute-util';
 import { isResolvedValue } from './utils/resolve';
-import { associateRecordWithRecordArray } from './record-array';
+import M3RecordArray, { associateRecordWithRecordArray } from './record-array';
 import { recordDataFor } from './-private';
 import { deprecate } from '@ember/debug';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import MegamorphicModel from './model';
-import { recordDataToRecordMap } from './utils/caches';
 import { recordIdentifierFor } from '@ember-data/store';
 
 /**
@@ -17,16 +16,23 @@ import { recordIdentifierFor } from '@ember-data/store';
  * @extends {Ember.ArrayProxy}
  */
 let M3TrackedArray;
-
 if (CUSTOM_MODEL_CLASS) {
-  M3TrackedArray = class M3TrackedArray extends EmberObject.extend(MutableArray) {
+  M3TrackedArray = class M3TrackedArray extends M3RecordArray {
     init() {
       super.init(...arguments);
       this._key = get(this, 'key');
       this._modelName = get(this, 'modelName');
-      this._store = get(this, 'store');
       this._schema = get(this, 'schema');
       this._record = get(this, 'model');
+      this._resolved = true;
+    }
+
+    get content() {
+      deprecate('Accessing content on an M3TrackedArray was private and is deprecated.', false, {
+        id: 'm3.tracked-array.value',
+        until: '4.0',
+      });
+      return this._objects;
     }
 
     get value() {
@@ -35,10 +41,6 @@ if (CUSTOM_MODEL_CLASS) {
         until: '1.0',
       });
       return this._value;
-    }
-
-    objectAt(idx) {
-      return this.content[idx];
     }
 
     replace(idx, removeAmt, newItems) {
@@ -53,7 +55,6 @@ if (CUSTOM_MODEL_CLASS) {
 
       newItems = newItems.map((item, index) => {
         if (isResolvedValue(item)) {
-          associateRecordWithRecordArray(item, this);
           let parentRecordData = recordDataFor(this._record);
           let childRecordData;
           if (item instanceof MegamorphicModel) {
@@ -77,50 +78,17 @@ if (CUSTOM_MODEL_CLASS) {
           this._key,
           item,
           this._modelName,
-          this._store,
+          this.store,
           this._schema,
           this._record,
           index + idx
         );
       });
-
-      // Update content
-      this.arrayContentWillChange(idx, removeAmt, newItems.length);
-      this.content.replace(idx, removeAmt, newItems);
-      this.arrayContentDidChange(idx, removeAmt, newItems.length);
+      super.replace(idx, removeAmt, newItems);
 
       // Set attribute in recordData and update model state and changedAttributes
       // object
-      this._record._setAttribute(this._key, this.content, true);
-    }
-
-    get length() {
-      return this.content && this.content.length !== undefined ? this.content.length : 0;
-    }
-
-    _removeObject(record) {
-      let index = this.content.indexOf(record);
-      if (index > -1) {
-        this.arrayContentWillChange(index, 1, 0);
-        this.content.removeObject(record);
-        this.arrayContentDidChange(index, 1, 0);
-      }
-    }
-
-    _removeRecordData(recordData) {
-      let recordToMatch = recordDataToRecordMap.get(recordData);
-      if (!recordToMatch) {
-        return;
-      }
-      for (let i = this.content.length; i >= 0; --i) {
-        let item = this.content.objectAt(i);
-        if (recordToMatch === item) {
-          this.arrayContentWillChange(i, 1, 0);
-          this.content.removeAt(i);
-          this.arrayContentDidChange(i, 1, 0);
-          break;
-        }
-      }
+      this._record._setAttribute(this._key, this._objects, true);
     }
   };
 } else {
