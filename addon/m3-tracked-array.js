@@ -160,21 +160,7 @@ if (CUSTOM_MODEL_CLASS) {
         if (isResolvedValue(item)) {
           associateRecordWithRecordArray(item, this);
           let parentRecordData = recordDataFor(this._record);
-          let childRecordData;
-          if (item instanceof MegamorphicModel) {
-            childRecordData = recordDataFor(item);
-          } else {
-            if (CUSTOM_MODEL_CLASS) {
-              let identifier = recordIdentifierFor(item);
-              childRecordData = parentRecordData.storeWrapper.recordDataFor(
-                identifier.type,
-                identifier.id,
-                identifier.lid
-              );
-            } else {
-              childRecordData = recordDataFor(item);
-            }
-          }
+          let childRecordData = recordDataFor(item);
           // TODO: clean up this ridiculous hack
           // adding a resolved value to a tracked array requires the child model
           // data stitching to be maintained
