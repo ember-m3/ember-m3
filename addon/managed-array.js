@@ -5,7 +5,7 @@ import BaseRecordArray from './base-record-array';
 import { recordDataFor } from './-private';
 import { deprecate } from '@ember/debug';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
-import MegamorphicModel from './model';
+import MegamorphicModel, { EmbeddedMegamorphicModel } from './model';
 import { recordIdentifierFor } from '@ember-data/store';
 
 /**
@@ -43,6 +43,20 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     replace(idx, removeAmt, newItems) {
+      // if we are empty, and haven't affirmed we are a reference array
+      // and somebody gave us records, we need to check whether we should
+      // a reference or a nested array
+      if (!this._isAllReference && this.length === 0) {
+        let firstItem = newItems[0];
+        if (
+          firstItem &&
+          isResolvedValue(firstItem) &&
+          !(firstItem instanceof EmbeddedMegamorphicModel)
+        ) {
+          this._isAllReference = true;
+        }
+      }
+
       if (this._isAllReference) {
         super.replace(idx, removeAmt, newItems);
         // update attr in recordData and model state
@@ -125,6 +139,21 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     replace(idx, removeAmt, newItems) {
+      // if we are empty, and haven't affirmed we are a reference array
+      // and somebody gave us records, we need to check whether we should
+      // a reference or a nested array
+
+      if (!this._isAllReference && this.length === 0) {
+        let firstItem = newItems[0];
+        if (
+          firstItem &&
+          isResolvedValue(firstItem) &&
+          !(firstItem instanceof EmbeddedMegamorphicModel)
+        ) {
+          this._isAllReference = true;
+        }
+      }
+
       if (this._isAllReference) {
         super.replace(idx, removeAmt, newItems);
         // update attr in recordData and model state

@@ -3,6 +3,8 @@ import { isArray } from '@ember/array';
 import { isResolvedValue as _isResolvedValue } from '../utils/resolve';
 
 export default class DefaultSchema extends Service {
+  computeAttribute(/* key, value, modelName, schemaInterface */) {}
+
   computeAttributeReference(/* key, value, modelName, schemaInterface */) {
     // If the attribute with value `value` under key `key` of `modelName` is
     // a reference to another model, return `{ type, id }`.  If it's an array

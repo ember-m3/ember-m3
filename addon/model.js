@@ -10,7 +10,7 @@ import { recordDataToRecordMap } from './utils/caches';
 import { recordDataFor } from './-private';
 import { OWNER_KEY } from './util';
 import { resolveValue } from './resolve-attribute-util';
-import { computeAttributeReference } from './utils/resolve';
+import { computeAttributeReference, computeAttribute } from './utils/resolve';
 import {
   assertNoChanges,
   notifyPropertyChange,
@@ -21,6 +21,7 @@ import { DEBUG } from '@glimmer/env';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import { RootState, Errors as StoreErrors } from '@ember-data/store/-private';
 import { Errors as ModelErrors } from '@ember-data/model/-private';
+import { REFERENCE, schemaTypesInfo } from './utils/schema-types-info';
 
 // Errors moved from @ember-data/store to @ember-data/model as of 3.15.0
 const Errors = ModelErrors || StoreErrors;
@@ -227,19 +228,58 @@ export default class MegamorphicModel extends EmberObject {
 
     let oldValue = this._cache[key];
     let newValue = recordData.getAttr(key);
+    let references, attribute;
 
-    let oldIsRecordArray = oldValue && oldValue._isAllReference;
+    let oldIsReferenceArray = oldValue && oldValue._isAllReference;
+    // If we are empty, we need to figure out whether with the new data
+    // we need to be an array of references or an array of nested records
+    if (oldValue && !oldIsReferenceArray && oldValue.length === 0) {
+      if (this._schema.useComputeAttribute()) {
+        attribute = computeAttribute(key, newValue, this._modelName, schemaInterface, this._schema);
+        if (attribute && schemaTypesInfo.get(attribute[0]) === REFERENCE) {
+          oldIsReferenceArray = true;
+          references = attribute;
+        }
+      } else {
+        references = computeAttributeReference(
+          key,
+          newValue,
+          this._modelName,
+          schemaInterface,
+          this._schema
+        );
+        if (references) {
+          oldIsReferenceArray = true;
+        }
+      }
+    }
 
-    if (oldIsRecordArray) {
+    if (oldIsReferenceArray) {
       if (recordData.hasLocalAttr(key)) {
         // This is a change notification from a `set` on this model, for a
         // resolved record array.  The record array is already updated in-place.
         return;
       }
-      let references =
-        computeAttributeReference(key, newValue, this._modelName, schemaInterface, this._schema) ||
-        [];
-      oldValue._setReferences(references);
+      if (this._schema.useComputeAttribute()) {
+        if (!references) {
+          references = computeAttribute(
+            key,
+            newValue,
+            this._modelName,
+            schemaInterface,
+            this._schema
+          );
+        }
+      } else {
+        references = computeAttributeReference(
+          key,
+          newValue,
+          this._modelName,
+          schemaInterface,
+          this._schema
+        );
+      }
+      oldValue._setReferences(references || []);
     } else {
       // TODO: disconnect recordData -> childRecordData in the case of nested model -> primitive
       // anything -> undefined | primitive

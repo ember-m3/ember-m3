@@ -16,6 +16,13 @@ export function computeNestedModel(key, value, modelName, schemaInterface, schem
   return nestedModel;
 }
 
+export function computeAttribute(key, value, modelName, schemaInterface, schema) {
+  schemaInterface._beginDependentKeyResolution(key);
+  let model = schema.computeAttribute(key, value, modelName, schemaInterface);
+  schemaInterface._endDependentKeyResolution(key);
+  return model;
+}
+
 export function resolveReferencesWithInternalModels(store, references) {
   if (!CUSTOM_MODEL_CLASS) {
     return references.map(reference =>

@@ -3,9 +3,11 @@ import { recordDataFor } from './-private';
 import { EmbeddedMegamorphicModel, EmbeddedSnapshot } from './model';
 import { A } from '@ember/array';
 import ManagedArray from './managed-array';
+import { schemaTypesInfo, NESTED, REFERENCE, MANAGED_ARRAY } from './utils/schema-types-info';
 import {
   computeAttributeReference,
   computeNestedModel,
+  computeAttribute,
   resolveReferencesWithRecords,
   getOrCreateRecordFromRecordData,
   resolveReferencesWithInternalModels,
@@ -52,30 +54,42 @@ if (!CUSTOM_MODEL_CLASS) {
   };
 }
 
-function resolveReference(store, reference) {
-  let { id } = reference;
-  if (reference.type === null) {
-    // for schemas with a global id-space but multiple types, schemas may
-    // report a type of null
-    if (CUSTOM_MODEL_CLASS) {
-      let rd = store._globalM3RecordDataCache[reference.id];
-      return rd ? getOrCreateRecordFromRecordData(rd, store) : null;
+// takes in a single computedValue returned by schema hooks and resolves it as either
+// a reference or a nestedModel
+
+function resolveSingleValue(computedValue, key, store, record, recordData, parentIdx) {
+  // we received a resolved record and need to transfer it to the new record data
+  if (computedValue instanceof EmbeddedMegamorphicModel) {
+    // transfer ownership to the new RecordData
+    recordData._setChildRecordData(key, parentIdx, recordDataFor(computedValue));
+    return computedValue;
+  }
+
+  let valueType = schemaTypesInfo.get(computedValue);
+  if (valueType === REFERENCE) {
+    let reference = computedValue;
+    let { id } = reference;
+    if (reference.type === null) {
+      // for schemas with a global id-space but multiple types, schemas may
+      // report a type of null
+      if (CUSTOM_MODEL_CLASS) {
+        let rd = store._globalM3RecordDataCache[reference.id];
+        return rd ? getOrCreateRecordFromRecordData(rd, store) : null;
+      } else {
+        let internalModel = store._globalM3Cache[id];
+        return internalModel ? internalModel.getRecord() : null;
+      }
     } else {
-      let internalModel = store._globalM3Cache[id];
-      return internalModel ? internalModel.getRecord() : null;
+      // respect the user schema's type if provided
+      return id !== null && id !== undefined
+        ? store.peekRecord(reference.type, reference.id)
+        : null;
     }
+  } else if (valueType === NESTED) {
+    return createNestedModel(store, record, recordData, key, computedValue, parentIdx);
   } else {
-    // respect the user schema's type if provided
-    return id !== null && id !== undefined ? store.peekRecord(reference.type, reference.id) : null;
+    return computedValue;
   }
-}
-
-function resolveReferenceOrReferences(store, model, key, value, reference) {
-  if (Array.isArray(reference)) {
-    return resolveRecordArray(store, model, key, reference);
-  }
-
-  return resolveReference(store, reference);
 }
 
 export function resolveRecordArray(store, record, key, references) {
@@ -115,59 +129,97 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
   const recordData = recordDataFor(record);
   const schemaInterface = recordData.schemaInterface;
 
-  // First check to see if given value is either a reference or an array of references
-  let reference = computeAttributeReference(key, value, modelName, schemaInterface, schema);
-  if (reference !== undefined && reference !== null) {
-    return resolveReferenceOrReferences(store, record, key, value, reference);
-  }
-
-  let nested = computeNestedModel(key, value, modelName, schemaInterface, schema);
-  let content;
-  let isArray = false;
-
-  if (Array.isArray(nested)) {
-    isArray = true;
-    content = nested.map((v, i) => createNestedModel(store, record, recordData, key, v, i));
-  } else if (nested) {
-    content = createNestedModel(store, record, recordData, key, nested, parentIdx);
-  } else if (Array.isArray(value)) {
-    isArray = true;
-    content = value.map((v, i) =>
-      transferOrResolveValue(store, schema, record, recordData, modelName, key, v, i)
-    );
+  let computedValue;
+  if (schema.useComputeAttribute()) {
+    computedValue = computeAttribute(key, value, modelName, schemaInterface, schema);
   } else {
-    content = value;
-  }
+    // TODO remove this if branch once we remove support for old compute hooks
+    // We invoke the old hooks and mark the results with the new apis
 
-  if (isArray === true) {
-    if (CUSTOM_MODEL_CLASS) {
-      return ManagedArray.create({
-        _objects: A(content),
-        key,
-        _value: value,
-        modelName,
-        store,
-        schema,
-        model: record,
-      });
+    let computedReference = computeAttributeReference(
+      key,
+      value,
+      modelName,
+      schemaInterface,
+      schema
+    );
+    // First check to see if given value is either a reference or an array of references
+    if (computedReference) {
+      if (Array.isArray(computedReference)) {
+        computedReference.forEach(v => schemaInterface.reference(v));
+        computedValue = schemaInterface.managedArray(computedReference);
+      } else {
+        computedValue = schemaInterface.reference(computedReference);
+      }
     } else {
-      let array = ManagedArray.create({
-        key,
-        _value: value,
-        modelName,
-        store,
-        schema,
-        model: record,
-      });
-      array._setInternalModels(
-        content.map(c => c._internalModel || c),
-        false
-      );
-      return array;
+      let computedNested = computeNestedModel(key, value, modelName, schemaInterface, schema);
+      computedValue = computedNested;
+      if (Array.isArray(computedNested)) {
+        computedNested.forEach(v => schemaInterface.nested(v));
+        computedValue = schemaInterface.managedArray(computedNested);
+      } else if (computedNested !== null && typeof computedNested === 'object') {
+        schemaInterface.nested(computedNested);
+        // If computeNestedModel returned null, we used to iterate the value array manually
+        // and process each element individually
+      } else if (Array.isArray(value)) {
+        let content = value.map((v, i) =>
+          transferOrResolveValue(store, schema, record, recordData, modelName, key, v, i)
+        );
+        return resolveManagedArray(content, key, value, modelName, store, schema, record);
+      }
     }
   }
 
-  return content;
+  let valueType = schemaTypesInfo.get(computedValue);
+
+  if (valueType === REFERENCE || valueType === NESTED) {
+    return resolveSingleValue(computedValue, key, store, record, recordData, parentIdx);
+  } else if (valueType === MANAGED_ARRAY) {
+    if (schemaTypesInfo.get(computedValue[0]) === REFERENCE) {
+      return resolveRecordArray(store, record, key, computedValue);
+    } else {
+      let content = computedValue.map((v, i) =>
+        resolveSingleValue(v, key, store, record, recordData, i)
+      );
+      return resolveManagedArray(content, key, value, modelName, store, schema, record);
+    }
+  } else if (Array.isArray(computedValue)) {
+    return computedValue.map((v, i) => resolveSingleValue(v, key, store, record, recordData, i));
+  } else if (computedValue) {
+    return computedValue;
+  } else {
+    return value;
+  }
+}
+
+function resolveManagedArray(content, key, value, modelName, store, schema, record) {
+  if (CUSTOM_MODEL_CLASS) {
+    return ManagedArray.create({
+      _objects: A(content),
+      key,
+      _value: value,
+      modelName,
+      store,
+      schema,
+      model: record,
+      record,
+    });
+  } else {
+    let array = ManagedArray.create({
+      key,
+      _value: value,
+      modelName,
+      store,
+      schema,
+      model: record,
+      record,
+    });
+    array._setInternalModels(
+      content.map(c => c._internalModel || c),
+      false
+    );
+    return array;
+  }
 }
 
 function transferOrResolveValue(store, schema, record, recordData, modelName, key, value, index) {

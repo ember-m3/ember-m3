@@ -5,7 +5,9 @@ import { copy } from './utils/copy';
 import { assert } from '@ember/debug';
 import Ember from 'ember';
 import { recordDataToRecordMap, recordDataToQueryCache } from './utils/caches';
+import { computeNestedModel, computeAttribute } from './utils/resolve';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
+import { schemaTypesInfo, NESTED, REFERENCE, MANAGED_ARRAY } from './utils/schema-types-info';
 
 const emberAssign = assign || merge;
 
@@ -40,6 +42,35 @@ class M3SchemaInterface {
     this._keyBeingResolved = null;
     this._refKeyDepkeyMap = {};
     this._suppressNotifications = false;
+  }
+
+  /**
+   * Mark the passed in object as a nested m3 model
+   * @param {Object} object
+   */
+  nested(object) {
+    schemaTypesInfo.set(object, NESTED);
+    return object;
+  }
+
+  /**
+   * Mark the passed in object as a reference to a  m3 or ember data model
+   * @param {Object} object
+   */
+  reference(object) {
+    schemaTypesInfo.set(object, REFERENCE);
+    return object;
+  }
+
+  /**
+   * Mark the passed in object as a m3 managed array that contains
+   * either references, nested models or raw values. You need to
+   * mark each individual object in the array as well.
+   * @param {Object} object
+   */
+  managedArray(object) {
+    schemaTypesInfo.set(object, MANAGED_ARRAY);
+    return object;
   }
 
   /**
@@ -946,12 +977,25 @@ export default class M3RecordData {
     let nested = this._childRecordDatas[key];
 
     // we need to compute the new nested type, hopefully it is not too slow
-    let newNestedDef = this._schema.computeNestedModel(
-      key,
-      newValue,
-      this.modelName,
-      this.schemaInterface
-    );
+    let newNestedDef;
+    if (this._schema.useComputeAttribute()) {
+      newNestedDef = computeAttribute(
+        key,
+        newValue,
+        this.modelName,
+        this.schemaInterface,
+        this._schema
+      );
+    } else {
+      newNestedDef = computeNestedModel(
+        key,
+        newValue,
+        this.modelName,
+        this.schemaInterface,
+        this._schema
+      );
+    }
+
     let newType = newNestedDef && newNestedDef.type && dasherize(newNestedDef.type);
     let isSameType = newType === nested.modelName || (isNone(newType) && isNone(nested.modelName));
 

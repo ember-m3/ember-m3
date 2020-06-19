@@ -6,138 +6,193 @@ import { isArray } from '@ember/array';
 
 import DefaultSchema from 'ember-m3/services/m3-schema';
 
-module('unit/model/state', function(hooks) {
-  setupTest(hooks);
+let computeNestedModel = function computeNestedModel(key, value) {
+  if (value && typeof value === 'object' && !isArray(value)) {
+    return {
+      type: value.type,
+      id: value.id,
+      attributes: value,
+    };
+  }
+};
 
-  hooks.beforeEach(function() {
-    this.store = this.owner.lookup('service:store');
+let computeAttributeReference = function computeAttributeReference(
+  key,
+  value,
+  modelName,
+  schemaInterface
+) {
+  let refValue = schemaInterface.getAttr(`*${key}`);
+  if (typeof refValue === 'string') {
+    return {
+      type: null,
+      id: refValue,
+    };
+  } else if (Array.isArray(refValue)) {
+    return refValue.map(x => ({
+      type: null,
+      id: x,
+    }));
+  }
+  return null;
+};
 
-    class TestSchema extends DefaultSchema {
-      includesModel() {
-        return true;
-      }
+class TestSchema extends DefaultSchema {
+  includesModel() {
+    return true;
+  }
+  computeAttribute(key, value, modelName, schemaInterface) {
+    let reference = computeAttributeReference(key, value, modelName, schemaInterface);
+    if (Array.isArray(reference)) {
+      return schemaInterface.managedArray(reference.map(r => schemaInterface.reference(r)));
+    } else if (reference) {
+      return schemaInterface.reference(reference);
+    }
 
-      computeAttributeReference(key, value, modelName, schemaInterface) {
-        let refValue = schemaInterface.getAttr(`*${key}`);
-        if (typeof refValue === 'string') {
-          return {
-            type: null,
-            id: refValue,
-          };
-        } else if (Array.isArray(refValue)) {
-          return refValue.map(x => ({
-            type: null,
-            id: x,
-          }));
+    if (Array.isArray(value)) {
+      let nested = value.map(v => {
+        if (typeof v === 'object') {
+          return schemaInterface.nested(computeNestedModel(key, v, modelName, schemaInterface));
+        } else {
+          let ref = computeAttributeReference(key, v, modelName, schemaInterface);
+          if (ref) {
+            return schemaInterface.reference(ref);
+          } else {
+            return v;
+          }
         }
-        return null;
-      }
-
-      computeNestedModel(key, value) {
-        if (value && typeof value === 'object' && value.constructor !== Date && !isArray(value)) {
-          return {
-            type: value.type,
-            id: value.id,
-            attributes: value,
-          };
-        }
+      });
+      return schemaInterface.managedArray(nested);
+    } else {
+      let nested = computeNestedModel(key, value, modelName, schemaInterface);
+      if (nested) {
+        return schemaInterface.nested(nested);
       }
     }
-    this.owner.register('service:m3-schema', TestSchema);
-  });
+  }
+}
 
-  skip('isEmpty', function() {});
-  skip('isLoading', function() {});
-  skip('isLoaded', function() {});
-  skip('isSaving', function() {});
-  skip('isDeleted', function() {});
-  skip('isValid', function() {});
+class TestSchemaOldHooks extends DefaultSchema {
+  includesModel() {
+    return true;
+  }
 
-  test('isNew', function(assert) {
-    let existingRecord = run(() =>
-      this.store.push({
-        data: {
-          id: 1,
-          type: 'com.example.bookstore.Book',
-          attributes: {
-            title: 'The Storm Before the Storm',
-            author: 'Mike Duncan',
-          },
-        },
-      })
-    );
+  computeAttributeReference(key, value, modelName, schemaInterface) {
+    return computeAttributeReference(key, value, modelName, schemaInterface);
+  }
+  computeNestedModel(key, value, modelName, schemaInterface) {
+    return computeNestedModel(key, value, modelName, schemaInterface);
+  }
+}
 
-    assert.equal(existingRecord.get('isNew'), false, 'existingRecord.isNew');
+for (let testRun = 0; testRun < 2; testRun++) {
+  module(`unit/model/state with ${testRun === 0 ? 'old hooks' : 'with computeAttribute'}`, function(
+    hooks
+  ) {
+    setupTest(hooks);
 
-    existingRecord.deleteRecord();
-
-    assert.equal(existingRecord.get('isDirty'), true, 'existingRecor.delete() -> isDirty');
-
-    let newRecord = this.store.createRecord('com.example.bookstore.Book', {
-      title: 'Something is Going On',
-      author: 'Just Some Friendly Guy',
+    hooks.beforeEach(function() {
+      if (testRun === 0) {
+        this.owner.register('service:m3-schema', TestSchemaOldHooks);
+      } else if (testRun === 1) {
+        this.owner.register('service:m3-schema', TestSchema);
+      }
+      this.store = this.owner.lookup('service:store');
     });
 
-    assert.equal(newRecord.get('isNew'), true, 'newRecord.isNew');
+    skip('isEmpty', function() {});
+    skip('isLoading', function() {});
+    skip('isLoaded', function() {});
+    skip('isSaving', function() {});
+    skip('isDeleted', function() {});
+    skip('isValid', function() {});
 
-    newRecord.deleteRecord();
-
-    // TODO this seems wrong?
-    // assert.equal(newRecord.get('isDirty'), false, 'newRecord.delete() -> isDirty');
-  });
-
-  test('isDirty', function(assert) {
-    let record = run(() => {
-      return this.store.push({
-        data: {
-          id: 1,
-          type: 'com.example.bookstore.Book',
-          attributes: {
-            name: 'The Winds of Winter',
-            author: 'George R. R. Martin',
-            rating: {
-              avg: 10,
+    test('isNew', function(assert) {
+      let existingRecord = run(() =>
+        this.store.push({
+          data: {
+            id: 1,
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              title: 'The Storm Before the Storm',
+              author: 'Mike Duncan',
             },
           },
-        },
+        })
+      );
+
+      assert.equal(existingRecord.get('isNew'), false, 'existingRecord.isNew');
+
+      existingRecord.deleteRecord();
+
+      assert.equal(existingRecord.get('isDirty'), true, 'existingRecor.delete() -> isDirty');
+
+      let newRecord = this.store.createRecord('com.example.bookstore.Book', {
+        title: 'Something is Going On',
+        author: 'Just Some Friendly Guy',
       });
+
+      assert.equal(newRecord.get('isNew'), true, 'newRecord.isNew');
+
+      newRecord.deleteRecord();
+
+      // TODO this seems wrong?
+      // assert.equal(newRecord.get('isDirty'), false, 'newRecord.delete() -> isDirty');
     });
 
-    assert.equal(record.get('isDirty'), false, 'record not dirty');
-    assert.equal(record.get('rating.isDirty'), false, 'nested record not dirty');
+    test('isDirty', function(assert) {
+      let record = run(() => {
+        return this.store.push({
+          data: {
+            id: 1,
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: 'The Winds of Winter',
+              author: 'George R. R. Martin',
+              rating: {
+                avg: 10,
+              },
+            },
+          },
+        });
+      });
 
-    record.set('author', 'Nobody yet');
+      assert.equal(record.get('isDirty'), false, 'record not dirty');
+      assert.equal(record.get('rating.isDirty'), false, 'nested record not dirty');
 
-    assert.equal(record.get('isDirty'), true, 'record dirty');
-    assert.equal(
-      record.get('rating.isDirty'),
-      true,
-      'nested record shares dirty state with parent'
-    );
+      record.set('author', 'Nobody yet');
 
-    record.rollbackAttributes();
+      assert.equal(record.get('isDirty'), true, 'record dirty');
+      assert.equal(
+        record.get('rating.isDirty'),
+        true,
+        'nested record shares dirty state with parent'
+      );
 
-    assert.equal(record.get('isDirty'), false, 'record no longer dirty');
-    assert.equal(record.get('rating.isDirty'), false, 'nested record no longer dirty');
+      record.rollbackAttributes();
 
-    record.set('rating.avg', 11);
+      assert.equal(record.get('isDirty'), false, 'record no longer dirty');
+      assert.equal(record.get('rating.isDirty'), false, 'nested record no longer dirty');
 
-    assert.equal(record.get('isDirty'), true, 'record shares state with nested record');
-    assert.equal(record.get('rating.isDirty'), true, 'nested record dirty');
+      record.set('rating.avg', 11);
 
-    record.rollbackAttributes();
+      assert.equal(record.get('isDirty'), true, 'record shares state with nested record');
+      assert.equal(record.get('rating.isDirty'), true, 'nested record dirty');
 
-    record.set('name', 'The Winds of Never Published');
-    assert.equal(record.get('isDirty'), true, 'record is dirty from outside nested record');
+      record.rollbackAttributes();
 
-    record.set('rating.avg', 11);
-    assert.equal(record.get('rating.isDirty'), true, 'nested record dirty from its own attr');
+      record.set('name', 'The Winds of Never Published');
+      assert.equal(record.get('isDirty'), true, 'record is dirty from outside nested record');
 
-    record.set('rating.avg', 10);
-    assert.equal(
-      record.get('isDirty'),
-      true,
-      'record is not un-dirtied from resetting nested value'
-    );
+      record.set('rating.avg', 11);
+      assert.equal(record.get('rating.isDirty'), true, 'nested record dirty from its own attr');
+
+      record.set('rating.avg', 10);
+      assert.equal(
+        record.get('isDirty'),
+        true,
+        'record is not un-dirtied from resetting nested value'
+      );
+    });
   });
-});
+}
