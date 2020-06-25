@@ -6,6 +6,7 @@ import { assign } from '@ember/polyfills';
 import MegamorphicModel from './model';
 import M3QueryArray from './query-array';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
+import serializeQueryParams from './utils/serialize-query-params';
 
 function stripSlash(str, stripLeading, stripTrailing) {
   let startSlash = stripLeading && str.charAt(0) === '/';
@@ -27,6 +28,7 @@ export default class QueryCache {
     url,
     {
       params = null,
+      queryParams = null,
       method = 'GET',
       cacheKey = null,
       reload = false,
@@ -44,7 +46,7 @@ export default class QueryCache {
     }
 
     let cachedPromise = cacheKey ? this._queryCache[cacheKey] : undefined;
-    let adapterUrl = this._buildUrl(url);
+    let adapterUrl = this._buildUrl(url, queryParams);
     let loadPromise;
 
     if (backgroundReload || reload || cachedPromise === undefined) {
@@ -135,7 +137,7 @@ export default class QueryCache {
     return adapter.ajax(url, method, ajaxOptions);
   }
 
-  _buildUrl(url) {
+  _buildUrl(url, queryParams) {
     let parts = [];
 
     let needsHost = false;
@@ -195,6 +197,12 @@ export default class QueryCache {
         );
       }
     }
+
+    if (queryParams) {
+      const queryParamDelimiter = url.indexOf('?') > -1 ? '&' : '?';
+      url += `${queryParamDelimiter}${serializeQueryParams(queryParams)}`;
+    }
+
     return url;
   }
 

@@ -194,6 +194,11 @@ normalization to JSON API.
   - `options.params` defaults to `null`. The parameters to include, either in the URL (for `GET`
     requests) or request body (for others).
 
+  - `options.queryParams` defaults to `null`. The parameters that will be
+    converted to query string and appended to the URL, especially useful for
+    `POST` method which needs both URL with query string(`options.queryParams`)
+    and payload data(`options.params`).
+
   - `options.cacheKey` defaults to `null`. A string to uniquely identify this
     request. `null` or `undefined` indicates the result should not be cached.
     It is passed to `serializer.normalizeResponse` as the `id` parameter, but

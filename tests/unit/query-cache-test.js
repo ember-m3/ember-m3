@@ -52,7 +52,7 @@ module('unit/query-cache', function(hooks) {
     return this.queryCache.queryURL('/uwot').then(() => {
       assert.deepEqual(
         stubCalls(this.queryCache._buildUrl),
-        [[this.queryCache + '', ['/uwot']]],
+        [[this.queryCache + '', ['/uwot', null]]],
         'adapter.ajax called with right args'
       );
 
@@ -194,6 +194,54 @@ module('unit/query-cache', function(hooks) {
       assert.deepEqual(
         stubCalls(this.adapterAjax),
         [[this.adapter + '', ['/uwot', 'GET', { data: { param: 'value' } }]]],
+        'adapter.ajax called with right args'
+      );
+    });
+  });
+
+  test('.queryURL can accept queryParams', function(assert) {
+    assert.equal(this.adapterAjax.callCount, 0, 'initial callCount 0');
+
+    this.adapterAjax.returns(
+      resolve({
+        data: {
+          id: 1,
+          type: 'my-type',
+        },
+      })
+    );
+
+    return this.queryCache.queryURL('/uwot', { queryParams: { param: 'value' } }).then(() => {
+      assert.deepEqual(
+        stubCalls(this.adapterAjax),
+        [[this.adapter + '', ['/uwot?param=value', 'GET', {}]]],
+        'adapter.ajax called with right args'
+      );
+    });
+  });
+
+  test('.queryURL can accept params and queryParams', function(assert) {
+    assert.equal(this.adapterAjax.callCount, 0, 'initial callCount 0');
+
+    this.adapterAjax.returns(
+      resolve({
+        data: {
+          id: 1,
+          type: 'my-type',
+        },
+      })
+    );
+
+    let options = {
+      method: 'POST',
+      params: { param: 'value' },
+      queryParams: { queryparam: 'value' },
+    };
+
+    return this.queryCache.queryURL('/uwot', options).then(() => {
+      assert.deepEqual(
+        stubCalls(this.adapterAjax),
+        [[this.adapter + '', ['/uwot?queryparam=value', 'POST', { data: { param: 'value' } }]]],
         'adapter.ajax called with right args'
       );
     });
