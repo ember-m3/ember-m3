@@ -181,7 +181,8 @@ if (CUSTOM_MODEL_CLASS) {
       if (addAmt > 0) {
         let _newRecords = A(newRecords);
         for (let i = 0; i < newInternalModels.length; ++i) {
-          newInternalModels[i] = _newRecords.objectAt(i)._internalModel;
+          let newRecord = _newRecords.objectAt(i);
+          newInternalModels[i] = newRecord._internalModel || newRecord;
         }
       }
 
@@ -189,19 +190,16 @@ if (CUSTOM_MODEL_CLASS) {
       this._registerWithInternalModels(newInternalModels);
       this._resolved = true;
 
-      deferArrayPropertyChange(this.store, this, idx, removeAmt, addAmt);
-      deferPropertyChange(this.store, this, '[]');
-      deferPropertyChange(this.store, this, 'length');
-
-      // eager change events on mutation as mutations are user entry points
-      flushChanges(this.store);
+      this.arrayContentDidChange(idx, removeAmt, newRecords.length);
     }
 
     objectAt(idx) {
       this._resolve();
       let internalModel = this._internalModels[idx];
       return internalModel !== null && internalModel !== undefined
-        ? internalModel.getRecord()
+        ? internalModel.getRecord
+          ? internalModel.getRecord()
+          : internalModel
         : undefined;
     }
 
@@ -274,7 +272,7 @@ if (CUSTOM_MODEL_CLASS) {
 
         // allow refs to point to resources not in the store
         // TODO: instead add a schema missing ref hook; #254
-        if (internalModel !== null && internalModel !== undefined) {
+        if (internalModel !== null && internalModel !== undefined && internalModel._recordArrays) {
           internalModel._recordArrays.add(this);
         }
       }

@@ -40,6 +40,10 @@ if (!CUSTOM_MODEL_CLASS) {
       this.record = null;
     }
 
+    getRecord() {
+      return this.record;
+    }
+
     createSnapshot() {
       return new EmbeddedSnapshot(this.record);
     }
@@ -149,8 +153,7 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
         model: record,
       });
     } else {
-      return M3TrackedArray.create({
-        content: A(content),
+      let array = M3TrackedArray.create({
         key,
         _value: value,
         modelName,
@@ -158,6 +161,11 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
         schema,
         model: record,
       });
+      array._setInternalModels(
+        content.map(c => c._internalModel || c),
+        false
+      );
+      return array;
     }
   }
 
