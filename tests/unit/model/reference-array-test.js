@@ -5,7 +5,6 @@ import { run } from '@ember/runloop';
 import EmberObject, { get, set } from '@ember/object';
 import { resolve } from 'rsvp';
 import DefaultSchema from 'ember-m3/services/m3-schema';
-import M3ReferenceArray from 'ember-m3/m3-reference-array';
 
 function _resolve(urn) {
   let id = urn;
@@ -85,10 +84,7 @@ module('unit/model/reference-array', function(hooks) {
       });
     });
 
-    assert.ok(
-      get(model, 'relatedBooks') instanceof M3ReferenceArray,
-      'resolved arrays are reference arrays'
-    );
+    assert.ok(get(model, 'relatedBooks')._isAllReference, 'resolved arrays are reference arrays');
     assert.deepEqual(
       get(model, 'relatedBooks').map(x => get(x, 'name')),
       ['Harry Potter and the Chamber of Secrets', 'Harry Potter and the Prisoner of Azkaban']
@@ -125,10 +121,7 @@ module('unit/model/reference-array', function(hooks) {
       });
     });
 
-    assert.ok(
-      get(model, 'relatedBooks') instanceof M3ReferenceArray,
-      'resolved arrays are reference arrays'
-    );
+    assert.ok(get(model, 'relatedBooks')._isAllReference, 'resolved arrays are reference arrays');
     assert.deepEqual(
       get(model, 'relatedBooks').map(x => get(x, 'name')),
       ['Harry Potter and the Chamber of Secrets', 'Harry Potter and the Prisoner of Azkaban']

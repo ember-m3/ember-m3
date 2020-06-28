@@ -6,8 +6,6 @@ import DefaultSchema from 'ember-m3/services/m3-schema';
 import Component from '@ember/component';
 import { computed } from '@ember/object';
 import { run } from '@ember/runloop';
-import M3TrackedArray from 'ember-m3/m3-tracked-array';
-import M3ReferenceArray from 'ember-m3/m3-reference-array';
 import { alias } from '@ember/object/computed';
 
 module('integration/chain-watchers', function(hooks) {
@@ -95,7 +93,7 @@ module('integration/chain-watchers', function(hooks) {
     ]);
 
     let resolvedBooks = bookstore.get('books');
-    assert.ok(resolvedBooks instanceof M3TrackedArray, 'initially books is tracked array');
+    assert.ok(!resolvedBooks._isAllReference, 'initially books is tracked array');
     assert.equal(resolvedBooks.length, 2, 'initially 2 books');
 
     this.set('bookstore', bookstore);
@@ -190,7 +188,7 @@ module('integration/chain-watchers', function(hooks) {
     let bookstore = this.store.peekRecord('com.example.Bookstore', 'urn:bookstore:1');
 
     let resolvedBooks = bookstore.get('books');
-    assert.ok(resolvedBooks instanceof M3ReferenceArray, 'initially books is tracked array');
+    assert.ok(resolvedBooks._isAllReference, 'initially books is tracked array');
     assert.equal(resolvedBooks.length, 2, 'initially 2 books');
 
     this.set('bookstore', bookstore);

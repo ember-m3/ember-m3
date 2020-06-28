@@ -1,10 +1,8 @@
 import { dasherize } from '@ember/string';
-import M3ReferenceArray from './m3-reference-array';
-import M3TrackedArray from './m3-tracked-array';
 import { recordDataFor } from './-private';
 import { EmbeddedMegamorphicModel, EmbeddedSnapshot } from './model';
 import { A } from '@ember/array';
-
+import RecordOwnedRecordArray from './record-owned-record-array';
 import {
   computeAttributeReference,
   computeNestedModel,
@@ -83,11 +81,11 @@ function resolveReferenceOrReferences(store, model, key, value, reference) {
 export function resolveRecordArray(store, record, key, references) {
   let recordArrayManager = store._recordArrayManager;
 
-  let array = M3ReferenceArray.create({
+  let array = RecordOwnedRecordArray.create({
     modelName: '-ember-m3',
-    content: A(),
     store: store,
     manager: recordArrayManager,
+    _isAllReference: true,
     key,
     record,
   });
@@ -143,7 +141,7 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
 
   if (isArray === true) {
     if (CUSTOM_MODEL_CLASS) {
-      return M3TrackedArray.create({
+      return RecordOwnedRecordArray.create({
         _objects: A(content),
         key,
         _value: value,
@@ -153,7 +151,7 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
         model: record,
       });
     } else {
-      let array = M3TrackedArray.create({
+      let array = RecordOwnedRecordArray.create({
         key,
         _value: value,
         modelName,
