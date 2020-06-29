@@ -2,7 +2,7 @@ import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import { run } from '@ember/runloop';
-import M3RecordArray from 'ember-m3/record-array';
+import BaseRecordArray from 'ember-m3/base-record-array';
 import { flushChanges } from 'ember-m3/utils/notify-changes';
 import { isArray } from '@ember/array';
 import MutableArray from '@ember/array/mutable';
@@ -43,7 +43,7 @@ module('unit/record-array', function(hooks) {
       });
     });
     this.createRecordArray = function() {
-      let recordArray = M3RecordArray.create();
+      let recordArray = BaseRecordArray.create();
       recordArray.store = this.store;
       return recordArray;
     };

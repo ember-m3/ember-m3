@@ -374,7 +374,7 @@ module('unit/model/reference-array', function(hooks) {
     );
   });
 
-  test('M3RecordArray has length as a property', function(assert) {
+  test('BaseRecordArray has length as a property', function(assert) {
     let model = run(() =>
       this.store.push({
         data: {
@@ -409,7 +409,7 @@ module('unit/model/reference-array', function(hooks) {
     assert.equal(
       relatedBooks.length,
       2,
-      'M3RecordArray instance returns array length upon just checking length property'
+      'BaseRecordArray instance returns array length upon just checking length property'
     );
   });
 

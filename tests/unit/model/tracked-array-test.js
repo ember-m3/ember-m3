@@ -5,7 +5,7 @@ import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import { A } from '@ember/array';
-import RecordOwnedRecordArray from 'ember-m3/record-owned-record-array';
+import ManagedArray from 'ember-m3/managed-array';
 
 module('unit/model/tracked-array', function(hooks) {
   setupTest(hooks);
@@ -53,7 +53,7 @@ module('unit/model/tracked-array', function(hooks) {
 
     let chapters = model.get('chapters');
     assert.ok(!chapters._isAllReference, 'chapters is a tracked array');
-    assert.equal(chapters instanceof RecordOwnedRecordArray, true, 'chapters is a tracked array');
+    assert.equal(chapters instanceof ManagedArray, true, 'chapters is a tracked array');
 
     let chapter1 = chapters.objectAt(0);
     assert.equal(chapter1.constructor.isModel, true, 'chapters has resolved values');
@@ -99,7 +99,7 @@ module('unit/model/tracked-array', function(hooks) {
 
     let chapters = model.get('chapters');
     assert.ok(!chapters._isAllReference, 'chapters is a tracked array');
-    assert.equal(chapters instanceof RecordOwnedRecordArray, true, 'chapters is a tracked array');
+    assert.equal(chapters instanceof ManagedArray, true, 'chapters is a tracked array');
 
     let chapter1 = chapters.objectAt(0);
     assert.equal(chapter1.constructor.isModel, true, 'chapters has resolved values');
@@ -293,7 +293,7 @@ module('unit/model/tracked-array', function(hooks) {
 
     let chapters = model.get('chapters');
     assert.ok(!chapters._isAllReference, 'chapters is a tracked array');
-    assert.equal(chapters instanceof RecordOwnedRecordArray, true, 'chapters is a tracked array');
+    assert.equal(chapters instanceof ManagedArray, true, 'chapters is a tracked array');
     let objectAt = chapters.objectAt;
     let push = chapters.push;
     assert.equal(chapters, A(chapters), 'Ember.A doesnt replace the tracked array');

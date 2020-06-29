@@ -7,7 +7,7 @@ import { run } from '@ember/runloop';
 import { isArray } from '@ember/array';
 
 import MegamorphicModel from 'ember-m3/model';
-import M3RecordArray from 'ember-m3/record-array';
+import BaseRecordArray from 'ember-m3/base-record-array';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 
 import { recordDataFor } from 'ember-m3/-private';
@@ -433,7 +433,7 @@ module('unit/model/changed-attrs', function(hooks) {
     );
 
     assert.ok(
-      get(model.changedAttributes(), 'otherRecordArray')[1] instanceof M3RecordArray,
+      get(model.changedAttributes(), 'otherRecordArray')[1] instanceof BaseRecordArray,
       '.changedAttributes returns changed record arrays and data is instance of RecordArray'
     );
 

@@ -1,7 +1,7 @@
 import { get } from '@ember/object';
 import { resolveValue } from './resolve-attribute-util';
 import { isResolvedValue } from './utils/resolve';
-import M3RecordArray from './record-array';
+import BaseRecordArray from './base-record-array';
 import { recordDataFor } from './-private';
 import { deprecate } from '@ember/debug';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
@@ -11,12 +11,12 @@ import { recordIdentifierFor } from '@ember-data/store';
 /**
  * M3TrackedArray
  *
- * @class RecordOwnedRecordArray
- * @extends {M3RecordArray}
+ * @class ManagedArray
+ * @extends {BaseRecordArray}
  */
-let RecordOwnedRecordArray;
+let ManagedArray;
 if (CUSTOM_MODEL_CLASS) {
-  RecordOwnedRecordArray = class RecordOwnedRecordArray extends M3RecordArray {
+  ManagedArray = class ManagedArray extends BaseRecordArray {
     init() {
       super.init(...arguments);
       this._key = get(this, 'key');
@@ -98,7 +98,7 @@ if (CUSTOM_MODEL_CLASS) {
     }
   };
 } else {
-  RecordOwnedRecordArray = class RecordOwnedRecordArray extends M3RecordArray {
+  ManagedArray = class ManagedArray extends BaseRecordArray {
     init() {
       super.init(...arguments);
       this._key = get(this, 'key');
@@ -171,4 +171,4 @@ if (CUSTOM_MODEL_CLASS) {
   };
 }
 
-export default RecordOwnedRecordArray;
+export default ManagedArray;

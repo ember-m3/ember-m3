@@ -1,6 +1,6 @@
-import M3RecordArray from './record-array';
+import BaseRecordArray from './base-record-array';
 
-export default class QueryArray extends M3RecordArray {
+export default class QueryArray extends BaseRecordArray {
   init(options = {}) {
     super.init(options, ...arguments);
 

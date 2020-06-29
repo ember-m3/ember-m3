@@ -19,19 +19,19 @@ import { recordDataToRecordMap, recordToRecordArrayMap } from './utils/caches';
 import { recordIdentifierFor } from '@ember-data/store';
 
 /**
- * M3RecordArray
+ * BaseRecordArray
  *
- * @class M3RecordArray
+ * @class BaseRecordArray
  */
-let M3RecordArray;
+let BaseRecordArray;
 
 if (CUSTOM_MODEL_CLASS) {
   /**
-   * M3RecordArray
+   * BaseRecordArray
    *
-   * @class M3RecordArray
+   * @class BaseRecordArray
    */
-  M3RecordArray = class M3RecordArray extends EmberObject.extend(MutableArray) {
+  BaseRecordArray = class BaseRecordArray extends EmberObject.extend(MutableArray) {
     // public RecordArray API
 
     init() {
@@ -163,7 +163,7 @@ if (CUSTOM_MODEL_CLASS) {
     }
   };
 } else {
-  M3RecordArray = class M3RecordArray extends EmberObject.extend(MutableArray) {
+  BaseRecordArray = class BaseRecordArray extends EmberObject.extend(MutableArray) {
     // public RecordArray API
 
     init() {
@@ -323,4 +323,4 @@ export function associateRecordWithRecordArray(record, recordArray) {
   }
 }
 
-export default M3RecordArray;
+export default BaseRecordArray;
