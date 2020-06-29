@@ -11,12 +11,12 @@ import { recordIdentifierFor } from '@ember-data/store';
 /**
  * M3TrackedArray
  *
- * @class M3TrackedArray
- * @extends {Ember.ArrayProxy}
+ * @class RecordOwnedRecordArray
+ * @extends {M3RecordArray}
  */
-let M3TrackedArray;
+let RecordOwnedRecordArray;
 if (CUSTOM_MODEL_CLASS) {
-  M3TrackedArray = class M3TrackedArray extends M3RecordArray {
+  RecordOwnedRecordArray = class RecordOwnedRecordArray extends M3RecordArray {
     init() {
       super.init(...arguments);
       this._key = get(this, 'key');
@@ -43,6 +43,13 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     replace(idx, removeAmt, newItems) {
+      if (this._isAllReference) {
+        super.replace(idx, removeAmt, newItems);
+        // update attr in recordData and model state
+        this.record._setAttribute(this.key, this, true);
+        return;
+      }
+
       // Update childRecordDatas array
       // mapping to array of nested models
       recordDataFor(this._record)._resizeChildRecordData(
@@ -91,7 +98,7 @@ if (CUSTOM_MODEL_CLASS) {
     }
   };
 } else {
-  M3TrackedArray = class M3TrackedArray extends M3RecordArray {
+  RecordOwnedRecordArray = class RecordOwnedRecordArray extends M3RecordArray {
     init() {
       super.init(...arguments);
       this._key = get(this, 'key');
@@ -99,7 +106,6 @@ if (CUSTOM_MODEL_CLASS) {
       this._store = get(this, 'store');
       this._schema = get(this, 'schema');
       this._record = get(this, 'model');
-      this._resolved = true;
     }
 
     get value() {
@@ -119,6 +125,12 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     replace(idx, removeAmt, newItems) {
+      if (this._isAllReference) {
+        super.replace(idx, removeAmt, newItems);
+        // update attr in recordData and model state
+        this.record._setAttribute(this.key, this, true);
+        return;
+      }
       // Update childRecordDatas array
       // mapping to array of nested models
       recordDataFor(this._record)._resizeChildRecordData(
@@ -159,4 +171,4 @@ if (CUSTOM_MODEL_CLASS) {
   };
 }
 
-export default M3TrackedArray;
+export default RecordOwnedRecordArray;

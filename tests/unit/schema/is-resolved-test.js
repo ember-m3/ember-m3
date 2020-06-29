@@ -2,7 +2,6 @@ import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
 import DefaultSchema from 'ember-m3/services/m3-schema';
-import M3ReferenceArray from 'ember-m3/m3-reference-array';
 
 module('unit/schema/is-resolved', function(hooks) {
   setupTest(hooks);
@@ -161,10 +160,7 @@ module('unit/schema/is-resolved', function(hooks) {
 
       let mentionedDragons = this.book.get('mentionedDragons');
 
-      assert.ok(
-        mentionedDragons instanceof M3ReferenceArray,
-        'attribute is resolved to a reference array'
-      );
+      assert.ok(mentionedDragons._isAllReference, 'attribute is resolved to a reference array');
       assert.deepEqual(mentionedDragons.length, 0, 'resolved array is empty');
       assert.equal(computeAttrSpy.callCount, 1, 'attribute was not cached (treated as unresolved)');
     });
