@@ -2,7 +2,7 @@ import { dasherize } from '@ember/string';
 import { recordDataFor } from './-private';
 import { EmbeddedMegamorphicModel, EmbeddedSnapshot } from './model';
 import { A } from '@ember/array';
-import RecordOwnedRecordArray from './record-owned-record-array';
+import ManagedArray from './managed-array';
 import {
   computeAttributeReference,
   computeNestedModel,
@@ -81,7 +81,7 @@ function resolveReferenceOrReferences(store, model, key, value, reference) {
 export function resolveRecordArray(store, record, key, references) {
   let recordArrayManager = store._recordArrayManager;
 
-  let array = RecordOwnedRecordArray.create({
+  let array = ManagedArray.create({
     modelName: '-ember-m3',
     store: store,
     manager: recordArrayManager,
@@ -141,7 +141,7 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
 
   if (isArray === true) {
     if (CUSTOM_MODEL_CLASS) {
-      return RecordOwnedRecordArray.create({
+      return ManagedArray.create({
         _objects: A(content),
         key,
         _value: value,
@@ -151,7 +151,7 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
         model: record,
       });
     } else {
-      let array = RecordOwnedRecordArray.create({
+      let array = ManagedArray.create({
         key,
         _value: value,
         modelName,
