@@ -64,24 +64,15 @@ const BookStoreRegExp = /^com\.example\.bookstore\./;
 const ISBNRegExp = /^isbn:/;
 const URNRegExp = /^urn:/;
 
-export default class Schema extends DefaultSchema {
-  computeAttributeReference(key, value) {
+function computeValue(key, value, modelName, schemaInterface) {
+   // the value is a reference
     if (typeof value === 'string' && (ISBNRegExp.test(value) || URNRegExp.test(value))) {
-      return {
+      return schemaInterface.reference({
         type: null,
         id: value,
-      };
+      });
     }
-  }
-
-  includesModel(modelName) {
-    return BookStoreRegExp.test(modelName);
-  }
-
-  computeNestedModel(key, value) {
-    if (Array.isArray(value)) {
-      return null;
-    }
+    // The value is a nested model
     if (typeof value === 'object' && value !== null && typeof value.$type === 'string') {
       return {
         id: value.isbn,
@@ -89,6 +80,21 @@ export default class Schema extends DefaultSchema {
         attributes: value,
       };
     }
+    // Otherwise return the raw value
+    return value;
+}
+
+export default class Schema extends DefaultSchema {
+  includesModel(modelName) {
+    return BookStoreRegExp.test(modelName);
+  }
+
+  computeAttribute(key, value, modelName, schemaInterface) {
+    if (Array.isArray(value)) {
+      return schemaInterface.managedArray(value.map((v) => computeValue(key, v, modelName, schemaInterface)));
+    }
+  } else {
+    return computeValue(key, value, modelName, schemaInterface);
   }
 }
 ```
@@ -324,56 +330,73 @@ have following properties.
   `modelName`. It's fine to just `return true` here but this hook allows
   `ember-m3` to work alongside `DS.Model`.
 
-- `computeAttributeReference(key, value, modelName, schemaInterface)` A function that determines
-  whether an attribute is a reference. If it is not, return `null` or
-  `undefined`.
-  Otherwise return an object with properties:
+- `computeAttribute(key, value, modelName, schemaInterface)` A function that computes
+  the value and type of an attribute.
 
-  - `id` The id of the referenced model (either m3 or `DS.Model`)
-  - `type` The type of the referenced model (either m3 or `DS.Model`),
+An attribute can be:
 
-  `null` is also a valid type in which case `id` will be looked up in a global cache.
+1.  A reference to a record that exists in the identity map
+2.  A nested m3 record that exists as a child of the m3 parent record
+3.  A simple value, like a POJO or a string
+4.  A managedArray of references, nested records or simple values
 
-  Note that attribute references are all treated as synchronous. There is no
-  ember-m3 analogue to `DS.Model` async relationships.
+If the attribute is a reference return:
+`schemaInterface.reference({ id, type })`
+where the object properties are
+`id` The id of the referenced model (either m3 or `@ember-data/model`)
+`type` The type of the referenced model (either m3 or `@ember-data/model`)
+`null` is also a valid type in which case `id` will be looked up in a global cache.
 
-- `computeNestedModel(key, value, modelName, schemaInterface)` Whether `value` should be treated
-  as a nested model. Useful for deeply nested references, eg with the following
-  data:
+Note that attribute references are all treated as synchronous.
+There is no ember-m3 analogue to `@ember-data/model` async relationships.
 
-  ```js
-  {
-    id: 1,
-    type: 'com.example.library.book',
-    attributes: {
+If you are returning a nested m3 model, return:
+`schemaInterface.nested({ id, type, attributes })`
+
+If you are returning a managed array, return:
+`schemaInterface.managedArray([schemaInterface.nested(obj), someOtherValue])`
+  
+ If you are returning the a value you can return the raw value without passing it
+through the schemaInterface call
+
+For example, if we have a book object:
+
+    ```json
+    {
+      id: 'book-id:1',
+      type: 'com.example.library.book',
+      mostSimiliarBook: 'book-id:2'
       bestChapter: {
         number: 7,
+        title: 'My chapter'
         characterPOV: 'urn:character:2'
       }
     }
-  }
-  ```
+    ```
+    We would want  `model.get('mostSimilarBook')` to return the book object and the
 
-  We would want `model.get('bestChapter.characterPOV')` to return the
-  `character` model with id `2`, but this requires that the `bestChapter`
-  attribute is treated as a nested m3 model and not a simple object.
+`model.get('bestChapter.characterPOV')` to return the character model with id `2`
+as an object. This requires us to interpret `mostSimiliarBook` as a reference
+and `bestChapter` a nested m3 model and not a simple object.
 
-  If `value` is a nested model, `computeNestedModel` must return an object with
-  the properties `id`, `type` and `attributes`. It is fine for this to simply
-  treat all objects as nested models (be careful with transforms; you may
-  want to explicitly check `value.constructor`). eg
+    We would write the following method.
 
-  ```js
-  computeNestedModel(key, value, modelName, schemaInterface) {
-    if(value && value.constructor === Object) {
-      return {
-        id: value.id,
-        type: value.type,
-        attributes: value,
-      };
+
+    ```js
+    computeAttribute(key, value, modelName, schemaInterface) {
+      if (key === 'mostSimilarBook') {
+        return schemaInterface.reference({
+          type: 'com.example.library.book',
+          id: value
+        })
+      } else if (key === 'bestChapter') {
+        return schemaInterface.nested({
+          type: 'chapter',
+          attributes: value
+        })
+      }
     }
-  }
-  ```
+    ```
 
 - `setAttribute(modelName, attrName, value, schemaInterface)` A function that can be used
   to update the record-data with raw value instead of resolved value.

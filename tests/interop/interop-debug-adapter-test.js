@@ -71,18 +71,20 @@ module('integration/interop-debug-adapter', function(hooks) {
     this.owner.register(
       'service:m3-schema',
       class TestSchema extends DefaultSchema {
-        computeAttributeReference(key, value, modelName, schemaInterface) {
+        computeAttribute(key, value, modelName, schemaInterface) {
           let refValue = schemaInterface.getAttr(`*${key}`);
           if (typeof refValue === 'string') {
-            return {
+            return schemaInterface.reference({
               type: null,
               id: refValue,
-            };
+            });
           } else if (Array.isArray(refValue)) {
-            return refValue.map(id => ({
-              type: null,
-              id,
-            }));
+            return schemaInterface.reference(
+              refValue.map(id => ({
+                type: null,
+                id,
+              }))
+            );
           }
 
           return undefined;

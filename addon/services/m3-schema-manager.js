@@ -1,6 +1,8 @@
 import Service, { inject } from '@ember/service';
 import { defineProperty } from '@ember/object';
 import { assert } from '@ember/debug';
+import DefaultSchema from './m3-schema';
+let useComputeAttributeCache = new WeakMap();
 
 export default class SchemaManager extends Service {
   /**
@@ -36,6 +38,22 @@ export default class SchemaManager extends Service {
    */
   computeNestedModel(key, value, modelName, schemaInterface) {
     return this.get('schema').computeNestedModel(key, value, modelName, schemaInterface);
+  }
+
+  computeAttribute(key, value, modelName, schemaInterface) {
+    return this.get('schema').computeAttribute(key, value, modelName, schemaInterface);
+  }
+
+  useComputeAttribute() {
+    let schema = this.get('schema');
+    let useComputeAttribute = useComputeAttributeCache.get(schema);
+    if (useComputeAttribute === undefined) {
+      let defaultPrototype = DefaultSchema.prototype;
+      let isComputeAttributeDefault = defaultPrototype.computeAttribute === schema.computeAttribute;
+      useComputeAttribute = schema.computeAttribute && !isComputeAttributeDefault;
+      useComputeAttributeCache.set(schema, useComputeAttribute);
+    }
+    return useComputeAttribute;
   }
 
   /**

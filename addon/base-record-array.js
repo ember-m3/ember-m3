@@ -113,6 +113,7 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     _setReferences(references) {
+      this._isAllReference = true;
       this._references = references;
       this._resolved = false;
       let originalLength = this._objects.length;
@@ -257,6 +258,7 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     _setReferences(references) {
+      this._isAllReference = true;
       this._references = references;
       this._resolved = false;
       let originalLength = this._internalModels.length;

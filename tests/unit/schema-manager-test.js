@@ -165,4 +165,55 @@ module('unit/schema-manager', function(hooks) {
       this.schemaManager.computeBaseModelName('com.example.BaseType');
     }, /projection cycle/);
   });
+
+  test('detects when schema has not defined a computeAttribute hook', function(assert) {
+    this.registerSchema(
+      class TestSchema extends DefaultSchema {
+        includesModel(modelName) {
+          return /com\.example\.bookstore\.*/i.test(modelName);
+        }
+      }
+    );
+
+    assert.equal(this.schemaManager.useComputeAttribute(), false);
+  });
+  test('detects when schema has  defined a computeAttribute hook ', function(assert) {
+    this.registerSchema(
+      class TestSchema extends DefaultSchema {
+        computeAttribute() {
+          return { value: 'a' };
+        }
+        includesModel(modelName) {
+          return /com\.example\.bookstore\.*/i.test(modelName);
+        }
+      }
+    );
+
+    assert.equal(this.schemaManager.useComputeAttribute(), true);
+  });
+  test('detects when schema has not defined a computeAttribute hook - object extend', function(assert) {
+    this.registerSchema(
+      DefaultSchema.extend({
+        includesModel(modelName) {
+          return /com\.example\.bookstore\.*/i.test(modelName);
+        },
+      })
+    );
+
+    assert.equal(this.schemaManager.useComputeAttribute(), false);
+  });
+
+  test('detects when schema has defined a computeAttribute hook - object extend', function(assert) {
+    this.registerSchema(
+      DefaultSchema.extend({
+        includesModel(modelName) {
+          return /com\.example\.bookstore\.*/i.test(modelName);
+        },
+        computeAttribute() {
+          return { value: 'a' };
+        },
+      })
+    );
+    assert.equal(this.schemaManager.useComputeAttribute(), true);
+  });
 });
