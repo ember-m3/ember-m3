@@ -1338,12 +1338,20 @@
     ember-cli-babel "^7.18.0"
     ember-cli-typescript "^3.1.3"
 
-"@ember-data/debug@^3.19.0":
-  version "3.19.0"
-  resolved "https://registry.yarnpkg.com/@ember-data/debug/-/debug-3.19.0.tgz#8efcfe68b3784396dafe52ff0222a369577e04e3"
-  integrity sha512-cTWKMuOiNa9rPAeY/iB4XznVL5Hs11MwLLJ8LgFP3ksZiveo2PQ4XnpxKmNj+p/QVMHRsdWaydg5MsFM7NH/ZQ==
+"@ember-data/canary-features@3.20.0":
+  version "3.20.0"
+  resolved "https://registry.yarnpkg.com/@ember-data/canary-features/-/canary-features-3.20.0.tgz#6e573f11f3f35f8b3fcbbf7ab215b03ff8deea8b"
+  integrity sha512-jOlzBmMdcNNfz5uhgMwiraLNsVFlwRVfz/8uwuzRGElvYzUHM/FlqqbTxs3otoHB9XhtC0WzVCZWpoG+ogJZlw==
   dependencies:
-    "@ember-data/private-build-infra" "3.19.0"
+    ember-cli-babel "^7.18.0"
+    ember-cli-typescript "^3.1.3"
+
+"@ember-data/debug@^3.20.0":
+  version "3.20.0"
+  resolved "https://registry.yarnpkg.com/@ember-data/debug/-/debug-3.20.0.tgz#84cf51e162d253d28926f0770b50c9c943ca0f63"
+  integrity sha512-HSDDheFdxdLLb4vD6SrbYiwG1PI2MR3FtNQOSIi62HePxrMlM+Apa489TsTB4SAkimxWJ27yk7s018aGJ+1Gwg==
+  dependencies:
+    "@ember-data/private-build-infra" "3.20.0"
     "@ember/edition-utils" "^1.2.0"
     ember-cli-babel "^7.18.0"
     ember-cli-test-info "^1.0.0"
@@ -1388,6 +1396,38 @@
     ember-cli-string-utils "^1.1.0"
     ember-cli-typescript "^3.1.3"
     ember-cli-version-checker "^5.0.2"
+    esm "^3.2.25"
+    git-repo-info "^2.1.1"
+    glob "^7.1.6"
+    npm-git-info "^1.0.3"
+    rimraf "^3.0.2"
+    rsvp "^4.8.5"
+    semver "^7.1.3"
+    silent-error "^1.1.1"
+
+"@ember-data/private-build-infra@3.20.0":
+  version "3.20.0"
+  resolved "https://registry.yarnpkg.com/@ember-data/private-build-infra/-/private-build-infra-3.20.0.tgz#847d3d97f089859b88388e2a4f94da7b6a535579"
+  integrity sha512-SygkzxRHSVn/4AwutnjQiuP0fl+tU4Xy3tD34QnKWm6habvoWW//AhHWbc0eP8D04TyQuUG6t81CpHLF/r0bow==
+  dependencies:
+    "@babel/plugin-transform-block-scoping" "^7.8.3"
+    "@ember-data/canary-features" "3.20.0"
+    "@ember/edition-utils" "^1.2.0"
+    babel-plugin-debug-macros "^0.3.3"
+    babel-plugin-filter-imports "^4.0.0"
+    babel6-plugin-strip-class-callcheck "^6.0.0"
+    broccoli-debug "^0.6.5"
+    broccoli-file-creator "^2.1.1"
+    broccoli-funnel "^2.0.2"
+    broccoli-merge-trees "^4.2.0"
+    broccoli-rollup "^4.1.1"
+    calculate-cache-key-for-tree "^2.0.0"
+    chalk "^4.0.0"
+    ember-cli-babel "^7.18.0"
+    ember-cli-path-utils "^1.0.0"
+    ember-cli-string-utils "^1.1.0"
+    ember-cli-typescript "^3.1.3"
+    ember-cli-version-checker "^5.1.1"
     esm "^3.2.25"
     git-repo-info "^2.1.1"
     glob "^7.1.6"
