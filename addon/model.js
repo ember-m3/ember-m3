@@ -31,7 +31,7 @@ if (Errors === undefined) {
 
 let retrieveFromCurrentState;
 if (!CUSTOM_MODEL_CLASS) {
-  retrieveFromCurrentState = computed('_topModel.currentState', function(key) {
+  retrieveFromCurrentState = computed('_topModel.currentState', function (key) {
     return this._topModel._internalModel.currentState[key];
   }).readOnly();
 }
@@ -110,7 +110,7 @@ export default class MegamorphicModel extends EmberObject {
   _setIdentifier(identifier) {
     if (CUSTOM_MODEL_CLASS) {
       this._identifier = identifier;
-      this._store.getRequestStateService().subscribeForRecord(this._identifier, request => {
+      this._store.getRequestStateService().subscribeForRecord(this._identifier, (request) => {
         if (request.state === 'rejected') {
           // TODO filter out queries
           this._lastErrorRequest = request;
@@ -131,7 +131,7 @@ export default class MegamorphicModel extends EmberObject {
 
   _notifyNetworkChanges() {
     if (CUSTOM_MODEL_CLASS) {
-      ['isSaving', 'isValid', 'isError', 'adapterError', 'isReloading'].forEach(key =>
+      ['isSaving', 'isValid', 'isError', 'adapterError', 'isReloading'].forEach((key) =>
         notifyPropertyChange(this, key)
       );
     }
@@ -614,7 +614,7 @@ MegamorphicModel.relationshipsByName = new Map();
   */
 let isValid;
 if (CUSTOM_MODEL_CLASS) {
-  isValid = computed(function() {
+  isValid = computed(function () {
     if (this.get('errors.length') > 0) {
       return false;
     }
@@ -637,7 +637,7 @@ if (CUSTOM_MODEL_CLASS) {
  */
 let isDirty;
 if (CUSTOM_MODEL_CLASS) {
-  isDirty = computed('_topModel.isDirty', function() {
+  isDirty = computed('_topModel.isDirty', function () {
     if (this._topModel !== this) {
       return this._topModel.get('isDirty');
     }
@@ -653,7 +653,7 @@ if (CUSTOM_MODEL_CLASS) {
 
 let isDeleted;
 if (CUSTOM_MODEL_CLASS) {
-  isDeleted = computed(function() {
+  isDeleted = computed(function () {
     return this._recordData.isDeleted();
   });
 } else {
@@ -662,7 +662,7 @@ if (CUSTOM_MODEL_CLASS) {
 
 let isNew;
 if (CUSTOM_MODEL_CLASS) {
-  isNew = computed(function() {
+  isNew = computed(function () {
     return this._recordData.isNew();
   });
 } else {
@@ -671,11 +671,11 @@ if (CUSTOM_MODEL_CLASS) {
 
 let isSaving;
 if (CUSTOM_MODEL_CLASS) {
-  isSaving = computed(function() {
+  isSaving = computed(function () {
     let requests = this._store
       .getRequestStateService()
       .getPendingRequestsForRecord(this._identifier);
-    return !!requests.find(req => req.request.data[0].op === 'saveRecord');
+    return !!requests.find((req) => req.request.data[0].op === 'saveRecord');
   });
 } else {
   isSaving = retrieveFromCurrentState;
@@ -683,7 +683,7 @@ if (CUSTOM_MODEL_CLASS) {
 
 let isLoaded;
 if (CUSTOM_MODEL_CLASS) {
-  isLoaded = computed(function() {
+  isLoaded = computed(function () {
     //TODO this seems untested right now
     return this._recordData._isLoaded;
   });
@@ -693,7 +693,7 @@ if (CUSTOM_MODEL_CLASS) {
 
 let isLoading;
 if (CUSTOM_MODEL_CLASS) {
-  isLoading = computed(function() {
+  isLoading = computed(function () {
     return !this.get('isLoaded');
   });
 } else {
@@ -702,7 +702,7 @@ if (CUSTOM_MODEL_CLASS) {
 
 let dirtyType;
 if (CUSTOM_MODEL_CLASS) {
-  dirtyType = computed(function() {
+  dirtyType = computed(function () {
     if (this._recordData.isNew()) {
       return 'created';
     }
@@ -724,7 +724,7 @@ defineProperty(MegamorphicModel.prototype, 'isLoaded', isLoading);
 defineProperty(MegamorphicModel.prototype, 'dirtyType', dirtyType);
 
 defineProperty(MegamorphicModel.prototype, 'isDirty', isDirty);
-defineProperty(MegamorphicModel.prototype, 'isEmpty', function() {
+defineProperty(MegamorphicModel.prototype, 'isEmpty', function () {
   return false;
 });
 defineProperty(MegamorphicModel.prototype, 'isValid', isValid);
@@ -789,7 +789,7 @@ export class EmbeddedSnapshot {
     this.record = record;
     this.modelName = record._modelName;
     this.attrs = Object.create(null);
-    this.eachAttribute(key => (this.attrs[key] = this.record.get(key)));
+    this.eachAttribute((key) => (this.attrs[key] = this.record.get(key)));
   }
 
   serialize(options) {

@@ -19,7 +19,7 @@ function computeNestedModel(key, value) {
 class TestSchema extends DefaultSchema {
   computeAttribute(key, value, modelName, schemaInterface) {
     if (Array.isArray(value)) {
-      let nested = value.map(v => {
+      let nested = value.map((v) => {
         if (typeof v === 'object') {
           return schemaInterface.nested(computeNestedModel(key, v, modelName, schemaInterface));
         } else {
@@ -55,12 +55,12 @@ class TestSchemaOldHooks extends DefaultSchema {
 }
 
 for (let testRun = 0; testRun < 2; testRun++) {
-  module(`unit/record-data with  ${testRun === 0 ? 'old hooks' : 'computeAttribute'}`, function(
+  module(`unit/record-data with  ${testRun === 0 ? 'old hooks' : 'computeAttribute'}`, function (
     hooks
   ) {
     setupTest(hooks);
 
-    hooks.beforeEach(function() {
+    hooks.beforeEach(function () {
       this.sinon = sinon.createSandbox();
 
       let globalCache = new Object(null);
@@ -113,16 +113,16 @@ for (let testRun = 0; testRun < 2; testRun++) {
         notifyPropertyChange() {},
       });
 
-      this.mockRecordData = function() {
+      this.mockRecordData = function () {
         return this.storeWrapper.recordDataFor('com.bookstore.book', '1');
       };
     });
 
-    hooks.afterEach(function() {
+    hooks.afterEach(function () {
       this.sinon.restore();
     });
 
-    test(`.eachAttribute iterates attributes, in-flight attrs and data`, function(assert) {
+    test(`.eachAttribute iterates attributes, in-flight attrs and data`, function (assert) {
       let recordData = new M3RecordData(
         'com.exmaple.bookstore.book',
         '1',
@@ -149,12 +149,12 @@ for (let testRun = 0; testRun < 2; testRun++) {
       recordData.setAttr('localAttr', 'value');
 
       let attrsIterated = [];
-      recordData.eachAttribute(attr => attrsIterated.push(attr));
+      recordData.eachAttribute((attr) => attrsIterated.push(attr));
 
       assert.deepEqual(attrsIterated, ['localAttr', 'inFlightAttr', 'dataAttr']);
     });
 
-    test(`.getServerAttr returns the server state`, function(assert) {
+    test(`.getServerAttr returns the server state`, function (assert) {
       let recordData = new M3RecordData(
         'com.exmaple.bookstore.book',
         '1',
@@ -197,7 +197,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(recordData.getServerAttr('serverAttr'), 'server', 'server attr read correctly');
     });
 
-    test(`._getChildRecordData returns new recordData`, function(assert) {
+    test(`._getChildRecordData returns new recordData`, function (assert) {
       let topRecordData = new M3RecordData(
         'com.exmaple.bookstore.book',
         '1',
@@ -241,7 +241,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('.schemaInterface can read attributes', function(assert) {
+    test('.schemaInterface can read attributes', function (assert) {
       let recordData = this.mockRecordData();
       let schemaInterface = recordData.schemaInterface;
       recordData.pushData({
@@ -255,7 +255,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(schemaInterface.getAttr('foo'), 'fooVal', 'schemaInterface can read attr');
     });
 
-    test('.schemaInterface cannot write attributes', function(assert) {
+    test('.schemaInterface cannot write attributes', function (assert) {
       let recordData = this.mockRecordData();
       let schemaInterface = recordData.schemaInterface;
 
@@ -266,7 +266,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.ok(typeof schemaInterface.setAttr === 'function', 'schemaInterface can write attr');
     });
 
-    test('.rollbackAttributes does not call notifyPropertyChange with undefined without hasChangedAttributes', function(assert) {
+    test('.rollbackAttributes does not call notifyPropertyChange with undefined without hasChangedAttributes', function (assert) {
       assert.expect(1);
       const rollbackAttributesSpy = this.sinon.spy();
       this.storeWrapper.notifyPropertyChange = rollbackAttributesSpy;
@@ -285,7 +285,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(rollbackAttributesSpy.getCalls().length, 0, 'rollbackAttributes was not called');
     });
 
-    test('hasChangedAttributes works with multiple arrays of nested models', function(assert) {
+    test('hasChangedAttributes works with multiple arrays of nested models', function (assert) {
       assert.expect(3);
       let recordData = new M3RecordData(
         'com.exmaple.bookstore.book',
@@ -322,7 +322,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    module('base record data delegates', function() {
+    module('base record data delegates', function () {
       const baseDelegates = {
         pushData: [{ id: 'test-resource', attributes: {} }, false, false, false],
         willCommit: [],
@@ -344,7 +344,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       for (let method of Object.keys(baseDelegates)) {
         let args = baseDelegates[method];
 
-        test(`${method} delegates to base record data`, function(assert) {
+        test(`${method} delegates to base record data`, function (assert) {
           const projectedRecordData = this.storeWrapper.recordDataFor(
             'com.bookstore.projected-book',
             '1'
@@ -369,7 +369,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       }
     });
 
-    test('.isAttrDirty returns true when the attribute is mutated on a projection', function(assert) {
+    test('.isAttrDirty returns true when the attribute is mutated on a projection', function (assert) {
       assert.expect(2);
       const projectedRecordData = this.storeWrapper.recordDataFor(
         'com.bookstore.projected-book',
@@ -390,7 +390,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('.schemaInterface track dependent keys resolved by ref key', function(assert) {
+    test('.schemaInterface track dependent keys resolved by ref key', function (assert) {
       let recordData = this.mockRecordData();
       let schemaInterface = recordData.schemaInterface;
       recordData.pushData({
@@ -411,7 +411,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('`.didCommit` sets the ID of the record in the store', function(assert) {
+    test('`.didCommit` sets the ID of the record in the store', function (assert) {
       let setRecordId = this.sinon.spy(this.storeWrapper, 'setRecordId');
       let recordData = this.mockRecordData();
 
@@ -427,7 +427,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('`.unloadRecord` disconnects the recordData from the store', function(assert) {
+    test('`.unloadRecord` disconnects the recordData from the store', function (assert) {
       let recordData = this.mockRecordData();
 
       // unload
@@ -440,7 +440,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test(`private API _deleteAttr exists`, function(assert) {
+    test(`private API _deleteAttr exists`, function (assert) {
       let recordData = this.mockRecordData();
       recordData.pushData({
         id: '1',
@@ -471,7 +471,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('projection recordData initializes and register in base recordData', function(assert) {
+    test('projection recordData initializes and register in base recordData', function (assert) {
       let projectedRecordData = this.storeWrapper.recordDataFor(
         'com.bookstore.projected-book',
         '1'
@@ -491,7 +491,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('nested projection model register in the base model nested recordData', function(assert) {
+    test('nested projection model register in the base model nested recordData', function (assert) {
       let projectionRecordData = this.storeWrapper.recordDataFor(
         'com.bookstore.projected-book',
         '1'
@@ -511,12 +511,12 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
       let nestedBase = baseRecordData._getChildRecordData('preface', undefined);
       assert.ok(
-        nestedBase._projections.find(x => x === nestedProjected),
+        nestedBase._projections.find((x) => x === nestedProjected),
         'Expected the nested projection recordData to be registered in the nested base recordData'
       );
     });
 
-    test('setting a nested model to null destroys child recordDatas in all projections', function(assert) {
+    test('setting a nested model to null destroys child recordDatas in all projections', function (assert) {
       let projectionRecordData = this.storeWrapper.recordDataFor(
         'com.bookstore.projected-book',
         '1'
@@ -565,7 +565,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('projection recordData unregister from base recordData and the store on unloadRecord', function(assert) {
+    test('projection recordData unregister from base recordData and the store on unloadRecord', function (assert) {
       let projectionRecordData = this.storeWrapper.recordDataFor(
         'com.bookstore.projected-book',
         '1'
@@ -581,13 +581,13 @@ for (let testRun = 0; testRun < 2; testRun++) {
         'Expected projection recordData to have been disconnected from the store'
       );
       assert.equal(
-        baseRecordData._projections.find(x => x === projectionRecordData),
+        baseRecordData._projections.find((x) => x === projectionRecordData),
         null,
         'Expected projected recordData to have been removed from the projections'
       );
     });
 
-    test('base recordData is disconnected from the store if there are no more projections', function(assert) {
+    test('base recordData is disconnected from the store if there are no more projections', function (assert) {
       let projectionRecordData = this.storeWrapper.recordDataFor(
         'com.bookstore.projected-book',
         '1'
@@ -604,7 +604,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('base recordData is not disconnected from the store if there are other projections', function(assert) {
+    test('base recordData is not disconnected from the store if there are other projections', function (assert) {
       let projectionRecordData = this.storeWrapper.recordDataFor(
         'com.bookstore.projected-book',
         '1'
@@ -622,7 +622,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('base recordData is not disconnected from the store if the record is in use', function(assert) {
+    test('base recordData is not disconnected from the store if the record is in use', function (assert) {
       this.storeWrapper.isRecordInUse = () => true;
 
       let projectionRecordData = this.storeWrapper.recordDataFor(
@@ -641,7 +641,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('projection recordData connects with base recordData when committed with id', function(assert) {
+    test('projection recordData connects with base recordData when committed with id', function (assert) {
       let projectionRecordData = this.storeWrapper.recordDataFor(
         'com.bookstore.projected-book',
         null,
@@ -656,7 +656,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         'Expected base recordData to have been created as well'
       );
       assert.ok(
-        baseRecordData._projections.find(x => x === projectionRecordData),
+        baseRecordData._projections.find((x) => x === projectionRecordData),
         'Expected projection recordData to have been registered'
       );
 
@@ -704,7 +704,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test(`.isAttrDirty check if key is not in inFlight and data and set locally`, function(assert) {
+    test(`.isAttrDirty check if key is not in inFlight and data and set locally`, function (assert) {
       let recordData = new M3RecordData(
         'com.exmaple.bookstore.book',
         '1',
@@ -735,7 +735,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.ok(recordData.isAttrDirty('localAttr'), 'local attr is not dirty');
     });
 
-    test('.schemaInterface can delete attributes', function(assert) {
+    test('.schemaInterface can delete attributes', function (assert) {
       let recordData = this.mockRecordData();
       let schemaInterface = recordData.schemaInterface;
       recordData.pushData({
@@ -760,7 +760,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('.hasLocalAttr validates the existance of key as part of the attributes of the record data', function(assert) {
+    test('.hasLocalAttr validates the existance of key as part of the attributes of the record data', function (assert) {
       let recordData = this.mockRecordData();
       assert.notOk(
         recordData.hasLocalAttr('name'),
@@ -773,7 +773,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('.hasLocalAttr validates the existance of key as part of the attributes of a base record data', function(assert) {
+    test('.hasLocalAttr validates the existance of key as part of the attributes of a base record data', function (assert) {
       const projectedRecordData = this.storeWrapper.recordDataFor(
         'com.bookstore.projected-book',
         '1'
@@ -804,8 +804,8 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    module('with nested models', function(hooks) {
-      hooks.beforeEach(function() {
+    module('with nested models', function (hooks) {
+      hooks.beforeEach(function () {
         this.topRecordData = new M3RecordData(
           'com.exmaple.bookstore.book',
           'top',
@@ -878,7 +878,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         recordDataToRecordMap.set(this.child11RecordData, this.child11Model);
       });
 
-      test('.pushData calls reified child recordDatas recursively', function(assert) {
+      test('.pushData calls reified child recordDatas recursively', function (assert) {
         let pushDataSpy = this.sinon.spy(M3RecordData.prototype, 'pushData');
         let changedKeys = this.topRecordData.pushData(
           {
@@ -903,7 +903,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
         assert.deepEqual(
           zip(
-            pushDataSpy.thisValues.slice(1).map(x => x + ''),
+            pushDataSpy.thisValues.slice(1).map((x) => x + ''),
             pushDataSpy.args.slice(1)
           ),
           [
@@ -939,7 +939,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('.pushData on a child recordData manually notifies changes', function(assert) {
+      test('.pushData on a child recordData manually notifies changes', function (assert) {
         this.topRecordData.pushData(
           {
             attributes: {
@@ -958,7 +958,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
         assert.deepEqual(
           zip(
-            this.child1Model._notifyProperties.thisValues.map(x => x + ''),
+            this.child1Model._notifyProperties.thisValues.map((x) => x + ''),
             this.child1Model._notifyProperties.args
           ),
           [[this.child1Model + '', [['name']]]],
@@ -967,7 +967,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
         assert.deepEqual(
           zip(
-            this.child11Model._notifyProperties.thisValues.map(x => x + ''),
+            this.child11Model._notifyProperties.thisValues.map((x) => x + ''),
             this.child11Model._notifyProperties.args
           ),
           [[this.child11Model + '', [['name']]]],
@@ -981,7 +981,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('.didCommit calls reified child recordDatas recursively', function(assert) {
+      test('.didCommit calls reified child recordDatas recursively', function (assert) {
         let didCommitSpy = this.sinon.spy(M3RecordData.prototype, 'didCommit');
         let changedKeys = this.topRecordData.didCommit({
           attributes: {
@@ -1003,7 +1003,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
         assert.deepEqual(
           zip(
-            didCommitSpy.thisValues.slice(1).map(x => x + ''),
+            didCommitSpy.thisValues.slice(1).map((x) => x + ''),
             didCommitSpy.args.slice(1)
           ),
           [
@@ -1038,7 +1038,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('.didCommit on a child recordData manually notifies changes', function(assert) {
+      test('.didCommit on a child recordData manually notifies changes', function (assert) {
         this.topRecordData.didCommit({
           attributes: {
             name: 'new name',
@@ -1054,7 +1054,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
         assert.deepEqual(
           zip(
-            this.child1Model._notifyProperties.thisValues.map(x => x + ''),
+            this.child1Model._notifyProperties.thisValues.map((x) => x + ''),
             this.child1Model._notifyProperties.args
           ),
           [[this.child1Model + '', [['name']]]],
@@ -1063,7 +1063,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
         assert.deepEqual(
           zip(
-            this.child11Model._notifyProperties.thisValues.map(x => x + ''),
+            this.child11Model._notifyProperties.thisValues.map((x) => x + ''),
             this.child11Model._notifyProperties.args
           ),
           [[this.child11Model + '', [['name']]]],
@@ -1085,14 +1085,14 @@ for (let testRun = 0; testRun < 2; testRun++) {
         }
       });
 
-      test('.commitWasRejected calls reified child recordDatas recursively', function(assert) {
+      test('.commitWasRejected calls reified child recordDatas recursively', function (assert) {
         let commitWasRejectedSpy = this.sinon.spy(M3RecordData.prototype, 'commitWasRejected');
         this.topRecordData.willCommit();
         this.topRecordData.commitWasRejected();
 
         assert.deepEqual(
           zip(
-            commitWasRejectedSpy.thisValues.slice(1).map(x => x + ''),
+            commitWasRejectedSpy.thisValues.slice(1).map((x) => x + ''),
             commitWasRejectedSpy.args.slice(1)
           ),
           [
@@ -1104,13 +1104,13 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('.rollbackAttributes calls reified child recordDatas recursively', function(assert) {
+      test('.rollbackAttributes calls reified child recordDatas recursively', function (assert) {
         let rollbackAttributesSpy = this.sinon.spy(M3RecordData.prototype, 'rollbackAttributes');
         this.topRecordData.rollbackAttributes();
 
         assert.deepEqual(
           zip(
-            rollbackAttributesSpy.thisValues.slice(1).map(x => x + ''),
+            rollbackAttributesSpy.thisValues.slice(1).map((x) => x + ''),
             rollbackAttributesSpy.args.slice(1)
           ),
           [

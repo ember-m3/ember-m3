@@ -35,7 +35,7 @@ class TestSchema extends DefaultSchema {
   computeAttribute(key, value, modelName, schemaInterface) {
     let reference = computeAttributeReference(key, value, modelName, schemaInterface);
     if (Array.isArray(reference)) {
-      return schemaInterface.managedArray(reference.map(r => schemaInterface.reference(r)));
+      return schemaInterface.managedArray(reference.map((r) => schemaInterface.reference(r)));
     } else if (reference) {
       return schemaInterface.reference(reference);
     }
@@ -60,10 +60,10 @@ for (let i = 0; i < 2; i++) {
     `unit/model/references-test (interop with @ember-data/model) ${
       i ? 'old hooks' : 'computeAttribute'
     }`,
-    function(hooks) {
+    function (hooks) {
       setupTest(hooks);
 
-      hooks.beforeEach(function() {
+      hooks.beforeEach(function () {
         this.Publisher = Model.extend({
           name: attr('string'),
         });
@@ -78,7 +78,7 @@ for (let i = 0; i < 2; i++) {
         this.store = this.owner.lookup('service:store');
       });
 
-      test('references with null ids return null records', function(assert) {
+      test('references with null ids return null records', function (assert) {
         this.store.push({
           data: {
             id: 'urn:book:1',
@@ -95,7 +95,7 @@ for (let i = 0; i < 2; i++) {
         assert.strictEqual(book.get('author'), null, 'reference with null id does not error');
       });
 
-      test('references are prioritized over raw values for determining isArray', function(assert) {
+      test('references are prioritized over raw values for determining isArray', function (assert) {
         this.store.push({
           data: {
             id: 'urn:book:1',
@@ -116,7 +116,7 @@ for (let i = 0; i < 2; i++) {
         );
       });
 
-      test('references to @ember-data/model Models', function(assert) {
+      test('references to @ember-data/model Models', function (assert) {
         this.store.push({
           data: {
             id: 'urn:book:1',
@@ -154,7 +154,7 @@ for (let i = 0; i < 2; i++) {
         );
       });
 
-      test('unloading @ember-data/model Models removes them from reference arrays', function(assert) {
+      test('unloading @ember-data/model Models removes them from reference arrays', function (assert) {
         this.store.push({
           data: {
             id: 'urn:book:1',
@@ -198,7 +198,7 @@ for (let i = 0; i < 2; i++) {
         );
       });
 
-      test('unloading unresolved @ember-data/model Models removes them from reference arrays', function(assert) {
+      test('unloading unresolved @ember-data/model Models removes them from reference arrays', function (assert) {
         this.store.push({
           data: {
             id: 'urn:book:1',

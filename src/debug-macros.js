@@ -48,7 +48,7 @@ function getFlags(app, isDevelopingAddon) {
   features = Object.assign({ CUSTOM_MODEL_CLASS: false }, features);
 
   let allowRuntimeEnable = !isProd && isDevelopingAddon;
-  Object.keys(features).forEach(flag => {
+  Object.keys(features).forEach((flag) => {
     features[flag] = features[flag] || (allowRuntimeEnable ? null : false);
   });
 

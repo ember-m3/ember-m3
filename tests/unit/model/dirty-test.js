@@ -2,10 +2,10 @@ import { test, module } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 
-module('unit/model/dirty', function(hooks) {
+module('unit/model/dirty', function (hooks) {
   setupTest(hooks);
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     this.store = this.owner.lookup('service:store');
 
     class TestSchema extends DefaultSchema {
@@ -31,7 +31,7 @@ module('unit/model/dirty', function(hooks) {
     });
   });
 
-  test('setAttribute dirties the model if any attribute changes', function(assert) {
+  test('setAttribute dirties the model if any attribute changes', function (assert) {
     let book = this.store.peekRecord('com.example.bookstore.Book', 'urn:li:book:1');
 
     assert.equal(book.get('isDirty'), false, 'initially not dirty');
@@ -39,7 +39,7 @@ module('unit/model/dirty', function(hooks) {
     assert.equal(book.get('isDirty'), true, 'dirty after set');
   });
 
-  test('setAttribute does not dirty the model if no attribute changes', function(assert) {
+  test('setAttribute does not dirty the model if no attribute changes', function (assert) {
     let book = this.store.peekRecord('com.example.bookstore.Book', 'urn:li:book:1');
 
     assert.equal(book.get('isDirty'), false, 'initially not dirty');

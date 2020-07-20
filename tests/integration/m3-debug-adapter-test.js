@@ -15,7 +15,7 @@ class TestSchema extends DefaultSchema {
       });
     } else if (Array.isArray(refValue)) {
       return schemaInterface.reference(
-        refValue.map(id => ({
+        refValue.map((id) => ({
           type: null,
           id,
         }))
@@ -38,7 +38,7 @@ class TestSchemaOldHooks extends DefaultSchema {
         id: refValue,
       };
     } else if (Array.isArray(refValue)) {
-      return refValue.map(id => ({
+      return refValue.map((id) => ({
         type: null,
         id,
       }));
@@ -52,10 +52,10 @@ class TestSchemaOldHooks extends DefaultSchema {
 }
 
 for (let i = 0; i < 2; i++) {
-  module(`integration/m3-debug-adapter ${i ? 'old hooks' : 'computeAttribute'}`, function(hooks) {
+  module(`integration/m3-debug-adapter ${i ? 'old hooks' : 'computeAttribute'}`, function (hooks) {
     setupTest(hooks);
 
-    hooks.beforeEach(function() {
+    hooks.beforeEach(function () {
       if (i === 0) {
         this.owner.register('service:m3-schema', TestSchemaOldHooks);
       } else if (i === 1) {
@@ -158,7 +158,7 @@ for (let i = 0; i < 2; i++) {
       });
     });
 
-    test('getModelTypes returns a list of model types', function(assert) {
+    test('getModelTypes returns a list of model types', function (assert) {
       const modelTypes = this._m3debugAdapter.getModelTypes();
       const modelTypeArray = [
         {
@@ -178,7 +178,7 @@ for (let i = 0; i < 2; i++) {
       assert.deepEqual(modelTypes, modelTypeArray, 'Correct list of m3 model types is returned');
     });
 
-    test('columnsForType returns attribute names as expected when records exist', function(assert) {
+    test('columnsForType returns attribute names as expected when records exist', function (assert) {
       const bookstore = this.store.peekAll(BOOK_MODEL_TYPE);
       const columns = this._m3debugAdapter.columnsForType(bookstore);
 
@@ -191,7 +191,7 @@ for (let i = 0; i < 2; i++) {
       assert.deepEqual(columns[5], { name: 'readerComments', desc: 'readerComments' });
     });
 
-    test('columnsForType returns attribute names as expected when records have different attribute values', function(assert) {
+    test('columnsForType returns attribute names as expected when records have different attribute values', function (assert) {
       const readerComments = this.store.peekAll('com.example.bookstore.ReaderComment');
       const columns = this._m3debugAdapter.columnsForType(readerComments);
 
@@ -203,7 +203,7 @@ for (let i = 0; i < 2; i++) {
       assert.deepEqual(columns[4], { name: 'metadata', desc: 'metadata' });
     });
 
-    test('getRecordColumnValues returns attribute values as expected when records exist', function(assert) {
+    test('getRecordColumnValues returns attribute values as expected when records exist', function (assert) {
       const bookstore = this.store.peekRecord(BOOK_MODEL_TYPE, 'urn:bookstore:1');
       const bookValuesObject = this._m3debugAdapter.getRecordColumnValues(bookstore);
       const readerComment = this.store.peekRecord(
@@ -250,7 +250,7 @@ for (let i = 0; i < 2; i++) {
       );
     });
 
-    test('getRecords returns list of records for a specific model type', function(assert) {
+    test('getRecords returns list of records for a specific model type', function (assert) {
       const records = this._m3debugAdapter.getRecords(BOOK_MODEL_TYPE);
       assert.equal(
         get(records, 'modelName'),
@@ -260,7 +260,7 @@ for (let i = 0; i < 2; i++) {
       assert.equal(get(records, 'length'), 1, 'Correct number of models is returned');
     });
 
-    test('wrapModelType returns wrapper object that includes record information', function(assert) {
+    test('wrapModelType returns wrapper object that includes record information', function (assert) {
       const wrappedModelType = this._m3debugAdapter.wrapModelType(BOOK_MODEL_TYPE);
 
       assert.deepEqual(

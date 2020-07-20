@@ -82,7 +82,7 @@ export function watchProperties(obj, propertyNames) {
   }
 
   function unwatch() {
-    propertyNames.forEach(propertyName => {
+    propertyNames.forEach((propertyName) => {
       watchers[propertyName].unwatch();
     });
   }

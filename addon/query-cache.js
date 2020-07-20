@@ -51,7 +51,7 @@ export default class QueryCache {
 
     if (backgroundReload || reload || cachedPromise === undefined) {
       loadPromise = this._adapterQueryURL(adapterUrl, method, options)
-        .then(rawPayload => {
+        .then((rawPayload) => {
           let payload = this._serializer.normalizeResponse(
             this._store,
             MegamorphicModel,
@@ -69,7 +69,7 @@ export default class QueryCache {
           }
           return result;
         })
-        .catch(error => {
+        .catch((error) => {
           // If the Promise rejects, evict the query cache to allow for retries.
           if (cacheKey) {
             this.unloadURL(cacheKey);

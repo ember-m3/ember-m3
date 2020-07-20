@@ -310,7 +310,7 @@ export default class M3RecordData {
         if (!Array.isArray(childRecordData)) {
           childRecordData.willCommit();
         } else {
-          childRecordData.forEach(child => child.willCommit());
+          childRecordData.forEach((child) => child.willCommit());
         }
       }
     }
@@ -324,14 +324,16 @@ export default class M3RecordData {
       if (isDirty) {
         return true;
       }
-      let recordDatas = Object.keys(this._childRecordDatas).map(key => this._childRecordDatas[key]);
-      recordDatas.forEach(child => {
+      let recordDatas = Object.keys(this._childRecordDatas).map(
+        (key) => this._childRecordDatas[key]
+      );
+      recordDatas.forEach((child) => {
         if (!Array.isArray(child)) {
           if (child.hasChangedAttributes()) {
             isDirty = true;
           }
         } else {
-          isDirty = isDirty || child.some(rd => rd.hasChangedAttributes());
+          isDirty = isDirty || child.some((rd) => rd.hasChangedAttributes());
         }
       });
       return isDirty;
@@ -581,7 +583,7 @@ export default class M3RecordData {
 
   removeFromRecordArrays() {
     if (CUSTOM_MODEL_CLASS) {
-      this._recordArrays.forEach(recordArray => {
+      this._recordArrays.forEach((recordArray) => {
         recordArray._removeRecordData(this);
       });
     }
@@ -636,7 +638,7 @@ export default class M3RecordData {
   // things more so this is not required
   attributesDefinition() {
     let attrs = {};
-    this.eachAttribute(attr => {
+    this.eachAttribute((attr) => {
       attrs[attr] = { key: attr };
     });
     return attrs;
@@ -1132,7 +1134,7 @@ export default class M3RecordData {
     }
     let attrs = this._attributes;
 
-    return changedKeys.filter(key => attrs[key] === undefined);
+    return changedKeys.filter((key) => attrs[key] === undefined);
   }
 
   _areAllProjectionsDestroyed() {
@@ -1235,7 +1237,7 @@ export default class M3RecordData {
   _syncNestedModelUpdates(attributes) {
     // Iterate through the children and call didCommit on it to ensure the childRecordData has the correct state.
     const childRecordDatas = this._getChildRecordDatas();
-    childRecordDatas.forEach(childRecordData => {
+    childRecordDatas.forEach((childRecordData) => {
       // Don't do anything if the key is inside the server payload
       if (attributes && childRecordData.key in attributes) {
         return;
@@ -1244,7 +1246,7 @@ export default class M3RecordData {
       if (!Array.isArray(childRecordData.data)) {
         childRecordData.data.didCommit();
       } else {
-        childRecordData.data.forEach(child => child.didCommit());
+        childRecordData.data.forEach((child) => child.didCommit());
       }
     });
   }
@@ -1255,11 +1257,11 @@ export default class M3RecordData {
   _mergeNestedModelData() {
     // We need to recursively copy the childRecordDatas into data, to ensure the top level model knows about the change.
     const childRecordDatas = this._getChildRecordDatas();
-    childRecordDatas.forEach(childRecordData => {
+    childRecordDatas.forEach((childRecordData) => {
       if (!Array.isArray(childRecordData.data)) {
         this._data[childRecordData.key] = childRecordData.data._data;
       } else {
-        this._data[childRecordData.key] = childRecordData.data.map(child => child._data);
+        this._data[childRecordData.key] = childRecordData.data.map((child) => child._data);
       }
     });
   }
@@ -1271,7 +1273,7 @@ export default class M3RecordData {
   _getChildRecordDatas() {
     if (this.__childRecordDatas) {
       let nestedKeys = Object.keys(this._childRecordDatas);
-      return nestedKeys.map(nestedKey => {
+      return nestedKeys.map((nestedKey) => {
         return {
           key: nestedKey,
           data: this._childRecordDatas[nestedKey],

@@ -5,10 +5,10 @@ import DefaultSchema from 'ember-m3/services/m3-schema';
 import { addObserver } from '@ember/object/observers';
 import { resolve } from 'rsvp';
 
-module('unit/store', function(hooks) {
+module('unit/store', function (hooks) {
   setupTest(hooks);
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     this.sinon = sinon.createSandbox();
 
     this.owner.register(
@@ -22,11 +22,11 @@ module('unit/store', function(hooks) {
     this.store = this.owner.lookup('service:store');
   });
 
-  hooks.afterEach(function() {
+  hooks.afterEach(function () {
     this.sinon.restore();
   });
 
-  test('pushPayload batches change notifications', function(assert) {
+  test('pushPayload batches change notifications', function (assert) {
     this.store.pushPayload('com.example.bookstore.Book', {
       data: {
         id: 'book:1',
@@ -69,7 +69,7 @@ module('unit/store', function(hooks) {
     });
   });
 
-  test('didSaveRecord with included resources effectively batches change notifications', async function(assert) {
+  test('didSaveRecord with included resources effectively batches change notifications', async function (assert) {
     assert.expect(2);
 
     this.owner.register(
@@ -139,7 +139,7 @@ module('unit/store', function(hooks) {
     await book.save();
   });
 
-  skip('didSave with no included resources flushes changed notifications', async function(assert) {
+  skip('didSave with no included resources flushes changed notifications', async function (assert) {
     assert.expect(2);
 
     this.owner.register(

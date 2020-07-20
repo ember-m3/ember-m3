@@ -6,10 +6,10 @@ import DefaultSchema from 'ember-m3/services/m3-schema';
 import Component from '@ember/component';
 import { gt } from '@ember/object/computed';
 
-module('integration/reference-array', function(hooks) {
+module('integration/reference-array', function (hooks) {
   setupRenderingTest(hooks);
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     this.owner.register(
       'service:m3-schema',
       class TestSchema extends DefaultSchema {
@@ -22,7 +22,7 @@ module('integration/reference-array', function(hooks) {
             });
           } else if (Array.isArray(refValue)) {
             return schemaInterface.managedArray(
-              refValue.map(id =>
+              refValue.map((id) =>
                 schemaInterface.reference({
                   type: null,
                   id,
@@ -41,7 +41,7 @@ module('integration/reference-array', function(hooks) {
     this.store = this.owner.lookup('service:store');
   });
 
-  test('mutating reference arrays cause re-renders', async function(assert) {
+  test('mutating reference arrays cause re-renders', async function (assert) {
     this.store.pushPayload('com.example.Bookstore', {
       data: {
         id: 'urn:bookstore:1',
@@ -113,7 +113,7 @@ module('integration/reference-array', function(hooks) {
     assert.equal(renderedLength, '3', 'length rerenders again');
   });
 
-  test('reference arrays trigger rerenders on unload', async function(assert) {
+  test('reference arrays trigger rerenders on unload', async function (assert) {
     this.store.pushPayload('com.example.Bookstore', {
       data: {
         id: 'urn:bookstore:1',
@@ -186,7 +186,7 @@ module('integration/reference-array', function(hooks) {
     assert.equal(renderedLength, '0', 'length === 0');
   });
 
-  test('mutating reference arrays causes length cps to invalidate', async function(assert) {
+  test('mutating reference arrays causes length cps to invalidate', async function (assert) {
     this.store.pushPayload('com.example.Bookstore', {
       data: {
         id: 'urn:bookstore:1',

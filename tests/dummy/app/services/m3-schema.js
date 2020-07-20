@@ -30,13 +30,13 @@ export default class Schema extends DefaultSchema {
   computeAttribute(key, value, modelName, schemaInterface) {
     let ref = computeAttributeReference(key, value, modelName, schemaInterface);
     if (Array.isArray(ref)) {
-      return schemaInterface.managedArray(ref.map(v => schemaInterface.reference(v)));
+      return schemaInterface.managedArray(ref.map((v) => schemaInterface.reference(v)));
     } else if (ref) {
       return schemaInterface.reference(ref);
     }
 
     if (Array.isArray(value)) {
-      let nested = value.map(v => {
+      let nested = value.map((v) => {
         if (typeof v === 'object') {
           let computed = computeNestedModel(key, v, modelName, schemaInterface);
           return computed ? schemaInterface.nested(computed) : v;

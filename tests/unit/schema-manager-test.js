@@ -2,18 +2,18 @@ import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 
-module('unit/schema-manager', function(hooks) {
+module('unit/schema-manager', function (hooks) {
   setupTest(hooks);
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     this.schemaManager = this.owner.lookup('service:m3-schema-manager');
-    this.registerSchema = schema => {
+    this.registerSchema = (schema) => {
       this.owner.register('service:m3-schema', schema);
     };
   });
 
-  module('schemas', function() {
-    test('can specify what models the schema handles', function(assert) {
+  module('schemas', function () {
+    test('can specify what models the schema handles', function (assert) {
       this.registerSchema(
         class TestSchema extends DefaultSchema {
           includesModel(modelName) {
@@ -26,7 +26,7 @@ module('unit/schema-manager', function(hooks) {
       assert.equal(this.schemaManager.includesModel('com.example.petstore.Pet'), false);
     });
 
-    test('can specify what fields refer to other models in the store', function(assert) {
+    test('can specify what fields refer to other models in the store', function (assert) {
       this.registerSchema(
         class TestSchema extends DefaultSchema {
           computeAttributeReference(key, value) {
@@ -48,7 +48,7 @@ module('unit/schema-manager', function(hooks) {
       assert.deepEqual(this.schemaManager.computeAttributeReference('foo', 70), null);
     });
 
-    test('can specify a nested model matcher', function(assert) {
+    test('can specify a nested model matcher', function (assert) {
       this.registerSchema(
         class TestSchema extends DefaultSchema {
           computeNestedModel(key) {
@@ -61,12 +61,12 @@ module('unit/schema-manager', function(hooks) {
       assert.equal(this.schemaManager.computeNestedModel('name'), false);
     });
 
-    test('can specify per-modelName transforms', function(assert) {
+    test('can specify per-modelName transforms', function (assert) {
       class TestSchema extends DefaultSchema {}
       TestSchema.prototype.models = {
         'com.example.bookstore.Book': {
           transforms: {
-            name: function(value) {
+            name: function (value) {
               return `${value} OMG!`;
             },
           },
@@ -88,7 +88,7 @@ module('unit/schema-manager', function(hooks) {
       );
     });
 
-    test('can specify per-modelName whitelisted attributes', function(assert) {
+    test('can specify per-modelName whitelisted attributes', function (assert) {
       class TestSchema extends DefaultSchema {}
       TestSchema.prototype.models = {
         'com.example.bookstore.Book': {
@@ -136,18 +136,18 @@ module('unit/schema-manager', function(hooks) {
     });
   });
 
-  test('.isAttributeIncluded does not error when no schema is registered', function(assert) {
+  test('.isAttributeIncluded does not error when no schema is registered', function (assert) {
     assert.equal(this.schemaManager.isAttributeIncluded('com.example.movies.Movie', 'name'), true);
   });
 
-  test('.transformValue does not error when no schema is registered', function(assert) {
+  test('.transformValue does not error when no schema is registered', function (assert) {
     assert.equal(
       this.schemaManager.transformValue('com.example.moves.Movie', 'name', 'jeff'),
       'jeff'
     );
   });
 
-  test('computeBaseModelName asserts the input is not returned', function(assert) {
+  test('computeBaseModelName asserts the input is not returned', function (assert) {
     this.registerSchema(
       class TestSchema extends DefaultSchema {
         computeBaseModelName(/* modelName */) {
@@ -166,7 +166,7 @@ module('unit/schema-manager', function(hooks) {
     }, /projection cycle/);
   });
 
-  test('detects when schema has not defined a computeAttribute hook', function(assert) {
+  test('detects when schema has not defined a computeAttribute hook', function (assert) {
     this.registerSchema(
       class TestSchema extends DefaultSchema {
         includesModel(modelName) {
@@ -177,7 +177,7 @@ module('unit/schema-manager', function(hooks) {
 
     assert.equal(this.schemaManager.useComputeAttribute(), false);
   });
-  test('detects when schema has  defined a computeAttribute hook ', function(assert) {
+  test('detects when schema has  defined a computeAttribute hook ', function (assert) {
     this.registerSchema(
       class TestSchema extends DefaultSchema {
         computeAttribute() {
@@ -191,7 +191,7 @@ module('unit/schema-manager', function(hooks) {
 
     assert.equal(this.schemaManager.useComputeAttribute(), true);
   });
-  test('detects when schema has not defined a computeAttribute hook - object extend', function(assert) {
+  test('detects when schema has not defined a computeAttribute hook - object extend', function (assert) {
     this.registerSchema(
       DefaultSchema.extend({
         includesModel(modelName) {
@@ -203,7 +203,7 @@ module('unit/schema-manager', function(hooks) {
     assert.equal(this.schemaManager.useComputeAttribute(), false);
   });
 
-  test('detects when schema has defined a computeAttribute hook - object extend', function(assert) {
+  test('detects when schema has defined a computeAttribute hook - object extend', function (assert) {
     this.registerSchema(
       DefaultSchema.extend({
         includesModel(modelName) {

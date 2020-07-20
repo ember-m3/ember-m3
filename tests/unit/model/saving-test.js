@@ -35,10 +35,10 @@ class TestSchemaOldHooks extends DefaultSchema {
 for (let testRun = 0; testRun < 2; testRun++) {
   module(
     `unit/model/saving with  ${testRun === 0 ? 'old hooks' : 'with computeAttribute'}`,
-    function(hooks) {
+    function (hooks) {
       setupTest(hooks);
 
-      hooks.beforeEach(function() {
+      hooks.beforeEach(function () {
         if (testRun === 0) {
           this.owner.register('service:m3-schema', TestSchemaOldHooks);
         } else if (testRun === 1) {
@@ -47,7 +47,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         this.store = this.owner.lookup('service:store');
       });
 
-      test('.save saves via the store', function(assert) {
+      test('.save saves via the store', function (assert) {
         assert.expect(4);
 
         this.owner.register(
@@ -106,7 +106,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         });
       });
 
-      test('.save disallows saving embedded models', function(assert) {
+      test('.save disallows saving embedded models', function (assert) {
         assert.expect(1);
 
         this.owner.register(
@@ -145,7 +145,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('.reload calls findRecord with reload: true and passes adapterOptions', function(assert) {
+      test('.reload calls findRecord with reload: true and passes adapterOptions', function (assert) {
         assert.expect(3);
 
         this.owner.register(
@@ -198,7 +198,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         return run(() => record.reload({ adapterOptions: { doAdapterThings: true } }));
       });
 
-      test('.deleteRecord works', function(assert) {
+      test('.deleteRecord works', function (assert) {
         assert.expect(2);
 
         this.owner.register(
@@ -231,7 +231,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         assert.equal(record.get('isDeleted'), true, 'record deleted');
       });
 
-      test('.destroyRecord works for existing records', function(assert) {
+      test('.destroyRecord works for existing records', function (assert) {
         assert.expect(4);
 
         this.owner.register(
@@ -280,7 +280,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('.destroyRecord works for new records', function(assert) {
+      test('.destroyRecord works for new records', function (assert) {
         assert.expect(2);
 
         this.owner.register(

@@ -33,23 +33,19 @@ const NEW_MODEL_DATA = {
   },
 };
 
-const generateM3Columns = columnArray =>
-  columnArray.map(attribute => ({ name: attribute, desc: attribute }));
+const generateM3Columns = (columnArray) =>
+  columnArray.map((attribute) => ({ name: attribute, desc: attribute }));
 
-const generateDSColumns = columnArray =>
-  columnArray.map(attribute => {
-    const desc = capitalize(
-      underscore(attribute)
-        .replace(/_/g, ' ')
-        .trim()
-    );
+const generateDSColumns = (columnArray) =>
+  columnArray.map((attribute) => {
+    const desc = capitalize(underscore(attribute).replace(/_/g, ' ').trim());
     return { name: attribute, desc };
   });
 
-module('integration/interop-debug-adapter', function(hooks) {
+module('integration/interop-debug-adapter', function (hooks) {
   setupTest(hooks);
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     this.sinon = sinon.createSandbox();
 
     this.Publisher = Model.extend({
@@ -80,7 +76,7 @@ module('integration/interop-debug-adapter', function(hooks) {
             });
           } else if (Array.isArray(refValue)) {
             return schemaInterface.reference(
-              refValue.map(id => ({
+              refValue.map((id) => ({
                 type: null,
                 id,
               }))
@@ -143,11 +139,11 @@ module('integration/interop-debug-adapter', function(hooks) {
     });
   });
 
-  hooks.afterEach(function() {
+  hooks.afterEach(function () {
     this.sinon.restore();
   });
 
-  test('It handles adding new types dynamically', async function(assert) {
+  test('It handles adding new types dynamically', async function (assert) {
     this.interopDebugAdapter.addedType = this.sinon.stub();
 
     this.owner.lookup('service:m3-schema').watchModelTypes = true;
@@ -160,7 +156,7 @@ module('integration/interop-debug-adapter', function(hooks) {
     );
   });
 
-  test('watchModelTypes correctly watches both m3 and @ember-data/model records', async function(assert) {
+  test('watchModelTypes correctly watches both m3 and @ember-data/model records', async function (assert) {
     assert.expect(HAS_DEBUG_PACKAGE ? 7 : 6);
 
     let typesAddedCallCount = 0;
@@ -229,7 +225,7 @@ module('integration/interop-debug-adapter', function(hooks) {
       },
     ];
 
-    const typesAdded = typesToSend => {
+    const typesAdded = (typesToSend) => {
       typesAddedCallCount++;
       switch (typesAddedCallCount) {
         case 1:
@@ -269,7 +265,7 @@ module('integration/interop-debug-adapter', function(hooks) {
       }
     };
 
-    const typesUpdated = updatedTypesToSend => {
+    const typesUpdated = (updatedTypesToSend) => {
       typesUpdatedCallCount++;
       switch (typesUpdatedCallCount) {
         case 1:
@@ -336,7 +332,7 @@ module('integration/interop-debug-adapter', function(hooks) {
     await settled();
   });
 
-  test('typesUpdated is called when new m3 and @ember-data/model records are added of an existing type', async function(assert) {
+  test('typesUpdated is called when new m3 and @ember-data/model records are added of an existing type', async function (assert) {
     assert.expect(2);
 
     let typesUpdatedCallCount = 0;
@@ -358,7 +354,7 @@ module('integration/interop-debug-adapter', function(hooks) {
       },
     ];
 
-    const typesUpdated = updatedTypesToSend => {
+    const typesUpdated = (updatedTypesToSend) => {
       typesUpdatedCallCount++;
       switch (typesUpdatedCallCount) {
         case 1:
@@ -408,7 +404,7 @@ module('integration/interop-debug-adapter', function(hooks) {
     });
   });
 
-  test('watchModelTypes keeps track of modelTypes and clears them out on release', async function(assert) {
+  test('watchModelTypes keeps track of modelTypes and clears them out on release', async function (assert) {
     const releaseMethod = this.interopDebugAdapter.watchModelTypes(
       () => {},
       () => {}

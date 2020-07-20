@@ -1,8 +1,8 @@
 import { module, test } from 'qunit';
 import serializeQueryParams from 'ember-m3/utils/serialize-query-params';
 
-module('unit/utils/serialize-query-params', function() {
-  test('simple object with only one property serialization', function(assert) {
+module('unit/utils/serialize-query-params', function () {
+  test('simple object with only one property serialization', function (assert) {
     let queryParms = {
       a: 'b',
     };
@@ -11,7 +11,7 @@ module('unit/utils/serialize-query-params', function() {
     assert.equal(serializedQueryParams, 'a=b', 'one property serialization');
   });
 
-  test('simple object with multiple properties serialization', function(assert) {
+  test('simple object with multiple properties serialization', function (assert) {
     let queryParms = {
       a: 'b',
       c: 123,

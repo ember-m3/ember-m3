@@ -18,7 +18,7 @@ class TestSchema extends DefaultSchema {
       });
     } else if (Array.isArray(refValue)) {
       return schemaInterface.managedArray(
-        refValue.map(id =>
+        refValue.map((id) =>
           schemaInterface.reference({
             type: null,
             id,
@@ -45,7 +45,7 @@ class TestSchemaOldHooks extends DefaultSchema {
         id: refValue,
       };
     } else if (Array.isArray(refValue)) {
-      return refValue.map(id => ({
+      return refValue.map((id) => ({
         type: null,
         id,
       }));
@@ -59,10 +59,10 @@ class TestSchemaOldHooks extends DefaultSchema {
 }
 
 for (let i = 0; i < 2; i++) {
-  module(`integration/chain-watchers ${i ? 'old hooks' : 'computeAttribute'}`, function(hooks) {
+  module(`integration/chain-watchers ${i ? 'old hooks' : 'computeAttribute'}`, function (hooks) {
     setupRenderingTest(hooks);
 
-    hooks.beforeEach(function() {
+    hooks.beforeEach(function () {
       if (i === 0) {
         this.owner.register('service:m3-schema', TestSchemaOldHooks);
       } else if (i === 1) {
@@ -82,14 +82,14 @@ for (let i = 0; i < 2; i++) {
         </ul>
       `,
           bookstore: null,
-          bookstoreAuthors: computed('bookstore.books.[]', function() {
+          bookstoreAuthors: computed('bookstore.books.[]', function () {
             return this.get('bookstore.books').mapBy('author');
           }),
           authors: alias('bookstoreAuthors'),
           // this cp depends on books.[]
           // so when it's rendered in a template we'll have a chain watcher with
           // parent `books`, a property from an m3 record
-          authorNames: computed('authors.[]', function() {
+          authorNames: computed('authors.[]', function () {
             let authors = this.get('authors');
             return authors.mapBy('name');
           }),
@@ -97,7 +97,7 @@ for (let i = 0; i < 2; i++) {
       );
     });
 
-    test('properties can update when chain watchers are active', async function(assert) {
+    test('properties can update when chain watchers are active', async function (assert) {
       this.store.pushPayload('com.example.Bookstore', {
         data: {
           id: 'urn:bookstore:1',
@@ -135,7 +135,7 @@ for (let i = 0; i < 2; i++) {
 
       let renderedItems = this.element.querySelectorAll('ul li');
       assert.equal(renderedItems.length, 2, '2 initial authors');
-      let renderedAuthorNames = Array.from(renderedItems).map(n => n.textContent);
+      let renderedAuthorNames = Array.from(renderedItems).map((n) => n.textContent);
       assert.deepEqual(
         renderedAuthorNames,
         ['Edward Gibbons', 'Winston Churchill'],
@@ -178,7 +178,7 @@ for (let i = 0; i < 2; i++) {
 
       renderedItems = this.element.querySelectorAll('ul li');
       assert.equal(renderedItems.length, 2, '2 updated authors');
-      renderedAuthorNames = Array.from(renderedItems).map(n => n.textContent);
+      renderedAuthorNames = Array.from(renderedItems).map((n) => n.textContent);
       assert.deepEqual(
         renderedAuthorNames,
         ['George R. R. Martin', 'Orson Scott Card'],
@@ -186,7 +186,7 @@ for (let i = 0; i < 2; i++) {
       );
     });
 
-    test('properties can update through reference arrays when chain watchers are active', async function(assert) {
+    test('properties can update through reference arrays when chain watchers are active', async function (assert) {
       this.store.pushPayload('com.example.Bookstore', {
         data: {
           id: 'urn:bookstore:1',
@@ -230,7 +230,7 @@ for (let i = 0; i < 2; i++) {
 
       let renderedItems = this.element.querySelectorAll('ul li');
       assert.equal(renderedItems.length, 2, '2 initial authors');
-      let renderedAuthorNames = Array.from(renderedItems).map(n => n.textContent);
+      let renderedAuthorNames = Array.from(renderedItems).map((n) => n.textContent);
       assert.deepEqual(
         renderedAuthorNames,
         ['Edward Gibbons', 'Winston Churchill'],
@@ -273,7 +273,7 @@ for (let i = 0; i < 2; i++) {
 
       renderedItems = this.element.querySelectorAll('ul li');
       assert.equal(renderedItems.length, 2, '2 updated authors');
-      renderedAuthorNames = Array.from(renderedItems).map(n => n.textContent);
+      renderedAuthorNames = Array.from(renderedItems).map((n) => n.textContent);
       assert.deepEqual(
         renderedAuthorNames,
         ['George R. R. Martin', 'Orson Scott Card'],

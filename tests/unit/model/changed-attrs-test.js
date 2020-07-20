@@ -33,7 +33,7 @@ let computeAttributeReference = function computeAttributeReference(
       id: refValue,
     };
   } else if (Array.isArray(refValue)) {
-    return refValue.map(x => ({
+    return refValue.map((x) => ({
       type: null,
       id: x,
     }));
@@ -58,13 +58,13 @@ class TestSchema extends DefaultSchema {
   computeAttribute(key, value, modelName, schemaInterface) {
     let ref = computeAttributeReference(key, value, modelName, schemaInterface);
     if (Array.isArray(ref)) {
-      return schemaInterface.managedArray(ref.map(v => schemaInterface.reference(v)));
+      return schemaInterface.managedArray(ref.map((v) => schemaInterface.reference(v)));
     } else if (ref) {
       return schemaInterface.reference(ref);
     }
 
     if (Array.isArray(value)) {
-      let nested = value.map(v => {
+      let nested = value.map((v) => {
         if (typeof v === 'object') {
           let computed = computeNestedModel(key, v, modelName, schemaInterface);
           return computed ? schemaInterface.nested(computed) : v;
@@ -102,10 +102,10 @@ class TestSchemaOldHooks extends DefaultSchema {
 for (let testRun = 0; testRun < 2; testRun++) {
   module(
     `unit/model/changed-attr  ${testRun === 0 ? 'old hooks' : 'with computeAttribute'}`,
-    function(hooks) {
+    function (hooks) {
       setupTest(hooks);
 
-      hooks.beforeEach(function() {
+      hooks.beforeEach(function () {
         if (testRun === 0) {
           this.owner.register('service:m3-schema', TestSchemaOldHooks);
         } else if (testRun === 1) {
@@ -114,7 +114,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         this.store = this.owner.lookup('service:store');
       });
 
-      test('.changedAttributes returns the dirty attributes', function(assert) {
+      test('.changedAttributes returns the dirty attributes', function (assert) {
         let model = run(() => {
           return this.store.push({
             data: {
@@ -163,7 +163,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('nested models can report their own changed attributes', function(assert) {
+      test('nested models can report their own changed attributes', function (assert) {
         let model = run(() => {
           return this.store.push({
             data: {
@@ -184,7 +184,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         });
       });
 
-      test('.changedAttributes returns nested dirty attributes within an object', function(assert) {
+      test('.changedAttributes returns nested dirty attributes within an object', function (assert) {
         let model = run(() => {
           return this.store.push({
             data: {
@@ -270,7 +270,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         }
       });
 
-      test('.changedAttributes returns [ undefined, object ] for newly created nested models', function(assert) {
+      test('.changedAttributes returns [ undefined, object ] for newly created nested models', function (assert) {
         assert.expect(2);
 
         let model = run(() => {
@@ -300,7 +300,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('.changedAttributes returns [ null, object ] for nested models that were previously set to null by the server', function(assert) {
+      test('.changedAttributes returns [ null, object ] for nested models that were previously set to null by the server', function (assert) {
         assert.expect(2);
 
         let model = run(() => {
@@ -330,7 +330,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('.changedAttributes returns dirty attributes for arrays of primitive values', function(assert) {
+      test('.changedAttributes returns dirty attributes for arrays of primitive values', function (assert) {
         let model = run(() => {
           return this.store.push({
             data: {
@@ -373,7 +373,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         }
       });
 
-      test('.changedAttributes returns dirty attributes for arrays of primitive values upon updating the array', function(assert) {
+      test('.changedAttributes returns dirty attributes for arrays of primitive values upon updating the array', function (assert) {
         let model = run(() => {
           return this.store.push({
             data: {
@@ -440,7 +440,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         }
       });
 
-      test('.changedAttributes returns dirty attributes for record array upon updating the array', function(assert) {
+      test('.changedAttributes returns dirty attributes for record array upon updating the array', function (assert) {
         let model = run(() =>
           this.store.push({
             data: {
@@ -506,7 +506,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         }
       });
 
-      test('.changedAttributes returns nested dirty attributes within arrays of nested models', function(assert) {
+      test('.changedAttributes returns nested dirty attributes within arrays of nested models', function (assert) {
         let model = run(() => {
           return this.store.push({
             data: {
@@ -548,7 +548,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('.rollbackAttributes resets state from dirty (uncached)', function(assert) {
+      test('.rollbackAttributes resets state from dirty (uncached)', function (assert) {
         let model = run(() => {
           return this.store.push({
             data: {
@@ -592,7 +592,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('.rollbackAttributes resets state from dirty (cached)', function(assert) {
+      test('.rollbackAttributes resets state from dirty (cached)', function (assert) {
         let model = run(() => {
           return this.store.push({
             data: {
@@ -630,7 +630,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('.rollbackAttributes rolls back nested dirty attributes', function(assert) {
+      test('.rollbackAttributes rolls back nested dirty attributes', function (assert) {
         let model = run(() => {
           return this.store.push({
             data: {
@@ -668,7 +668,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('.rollbackAttributes rolls back nested dirty attributes after a rejected save', function(assert) {
+      test('.rollbackAttributes rolls back nested dirty attributes after a rejected save', function (assert) {
         this.owner.register(
           'adapter:-ember-m3',
           EmberObject.extend({
@@ -700,7 +700,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
 
         return run(() => model.save()).then(
-          value => {
+          (value) => {
             throw new Error(`unexpected promise fulfillment with value ${value}`);
           },
           () => {
@@ -721,7 +721,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('updates from .save do not overwrite attributes  or nested attributes set after .save is called', function(assert) {
+      test('updates from .save do not overwrite attributes  or nested attributes set after .save is called', function (assert) {
         this.owner.register(
           'adapter:-ember-m3',
           EmberObject.extend({
@@ -820,7 +820,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         });
       });
 
-      test('updates from .save clear changed attributes in nested models within arrays', function(assert) {
+      test('updates from .save clear changed attributes in nested models within arrays', function (assert) {
         this.owner.register(
           'adapter:-ember-m3',
           EmberObject.extend({
@@ -875,7 +875,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         set(nestedModels.get('firstObject'), 'name', 'super windy');
 
         assert.deepEqual(
-          get(model, 'chapters').map(m => get(m, 'name')),
+          get(model, 'chapters').map((m) => get(m, 'name')),
           ['super windy', 'I guess winter was coming after all'],
           'initially properties reflect locally changed attributes'
         );
@@ -887,7 +887,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
           return savePromise.then(() => {
             assert.deepEqual(
-              get(model, 'chapters').map(m => get(m, 'name')),
+              get(model, 'chapters').map((m) => get(m, 'name')),
               ['The Boy Who Lived', 'The Vanishing Glass'],
               'local changes to nested models within arrays are not preserved after adapter commit'
             );
@@ -895,7 +895,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         });
       });
 
-      test('local nested model within non-array updates without server payload', function(assert) {
+      test('local nested model within non-array updates without server payload', function (assert) {
         this.owner.register(
           'adapter:-ember-m3',
           EmberObject.extend({
@@ -931,7 +931,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         let doubleNestedModel = get(model, 'nextChapter.nextChapter');
         set(doubleNestedModel, 'name', 'Chapter 3');
         return run(() =>
-          model.save().then(data => {
+          model.save().then((data) => {
             assert.deepEqual(recordDataFor(data)._data, {
               name: 'The Winds of Winter',
               author: 'George R. R. Martin',
@@ -957,7 +957,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('local nested model within array updates without server payload', function(assert) {
+      test('local nested model within array updates without server payload', function (assert) {
         this.owner.register(
           'adapter:-ember-m3',
           EmberObject.extend({
@@ -995,7 +995,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         let nestedModels = get(model, 'chapters');
         set(nestedModels.get('firstObject'), 'name', 'super windy');
         return run(() =>
-          model.save().then(data => {
+          model.save().then((data) => {
             assert.deepEqual(recordDataFor(data)._data, {
               name: 'The Winds of Winter',
               author: 'George R. R. Martin',
@@ -1017,7 +1017,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('local nested model within non-array updates overriden by server payload', function(assert) {
+      test('local nested model within non-array updates overriden by server payload', function (assert) {
         this.owner.register(
           'adapter:-ember-m3',
           EmberObject.extend({
@@ -1071,7 +1071,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         let doubleNestedModel = get(model, 'nextChapter.nextChapter');
         set(doubleNestedModel, 'name', 'Chapter 3');
         return run(() =>
-          model.save().then(data => {
+          model.save().then((data) => {
             assert.deepEqual(recordDataFor(data)._data, {
               name: 'The Winds of Winter',
               author: 'George R. R. Martin',
@@ -1097,7 +1097,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('local nested model within array updates overriden by server payload', function(assert) {
+      test('local nested model within array updates overriden by server payload', function (assert) {
         this.owner.register(
           'adapter:-ember-m3',
           EmberObject.extend({
@@ -1152,7 +1152,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         let nestedModel = get(model, 'chapters');
         set(nestedModel.get('firstObject'), 'name', 'super windy');
         return run(() =>
-          model.save().then(data => {
+          model.save().then((data) => {
             assert.deepEqual(recordDataFor(data)._data, {
               name: 'The Winds of Winter',
               author: 'George R. R. Martin',
@@ -1170,7 +1170,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('partial update from server and local changes for nested models within non-array', function(assert) {
+      test('partial update from server and local changes for nested models within non-array', function (assert) {
         this.owner.register(
           'adapter:-ember-m3',
           EmberObject.extend({
@@ -1223,7 +1223,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         let doubleNestedModel = get(model, 'nextChapter.nextChapter');
         set(doubleNestedModel, 'name', 'The Vanishing Boy');
         return run(() =>
-          model.save().then(data => {
+          model.save().then((data) => {
             assert.deepEqual(recordDataFor(data)._data, {
               name: `Harry Potter and the Sorcerer's Stone`,
               number: 0,
@@ -1250,7 +1250,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('partial update from server and local changes for nested models within array', function(assert) {
+      test('partial update from server and local changes for nested models within array', function (assert) {
         this.owner.register(
           'adapter:-ember-m3',
           EmberObject.extend({
@@ -1319,7 +1319,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         });
 
         return run(() =>
-          model.save().then(data => {
+          model.save().then((data) => {
             assert.deepEqual(recordDataFor(data)._data, {
               name: `Harry Potter and the Sorcerer's Stone`,
               number: 0,
@@ -1355,7 +1355,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       });
 
       if (testRun === 0) {
-        test('Can set a many embedded property to a semi resolved array containing a mix of pojos and megamorphic models (computeNestedModel does not handle array)', function(assert) {
+        test('Can set a many embedded property to a semi resolved array containing a mix of pojos and megamorphic models (computeNestedModel does not handle array)', function (assert) {
           assert.expect(5);
           this.owner.register(
             'service:m3-schema',
@@ -1420,14 +1420,14 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
           let locations = record.get('locations');
           assert.deepEqual(
-            locations.map(l => l.get('country')),
+            locations.map((l) => l.get('country')),
             ['US', 'MX'],
             'Locations retrieved succesfully'
           );
         });
       }
 
-      test('Can set a many embedded property to a semi resolved array containing a mix of pojos and megamorphic models (computeNestedModel does handle array)', function(assert) {
+      test('Can set a many embedded property to a semi resolved array containing a mix of pojos and megamorphic models (computeNestedModel does handle array)', function (assert) {
         assert.expect(5);
         this.owner.register(
           'service:m3-schema',
@@ -1438,7 +1438,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
             computeNestedModel(key, value) {
               if (Array.isArray(value)) {
-                return value.map(v => {
+                return value.map((v) => {
                   if (v instanceof MegamorphicModel) {
                     return v;
                   }
@@ -1458,7 +1458,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
             computeAttribute(key, value, modelName, schemaInterface) {
               if (Array.isArray(value)) {
                 return schemaInterface.managedArray(
-                  value.map(v => {
+                  value.map((v) => {
                     if (v instanceof MegamorphicModel) {
                       return v;
                     }
@@ -1520,7 +1520,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
         let locations = record.get('locations');
         assert.deepEqual(
-          locations.map(l => l.get('country')),
+          locations.map((l) => l.get('country')),
           ['US', 'MX'],
           'Locations retrieved succesfully'
         );

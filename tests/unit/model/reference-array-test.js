@@ -43,7 +43,7 @@ class TestSchema extends DefaultSchema {
   computeAttribute(key, value, modelName, schemaInterface) {
     let reference = computeAttributeReference(key, value, modelName, schemaInterface);
     if (Array.isArray(reference)) {
-      return schemaInterface.managedArray(reference.map(r => schemaInterface.reference(r)));
+      return schemaInterface.managedArray(reference.map((r) => schemaInterface.reference(r)));
     } else if (reference) {
       return schemaInterface.reference(reference);
     }
@@ -63,10 +63,10 @@ class TestSchemaOldHooks extends DefaultSchema {
 for (let testRun = 0; testRun < 2; testRun++) {
   module(
     `unit/model/reference-array  ${testRun === 0 ? 'old hooks' : 'with computeAttribute'}`,
-    function(hooks) {
+    function (hooks) {
       setupTest(hooks);
 
-      hooks.beforeEach(function() {
+      hooks.beforeEach(function () {
         if (testRun === 0) {
           this.owner.register('service:m3-schema', TestSchemaOldHooks);
         } else if (testRun === 1) {
@@ -75,7 +75,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         this.store = this.owner.lookup('service:store');
       });
 
-      test('.unknownProperty resolves arrays of id-matched values', function(assert) {
+      test('.unknownProperty resolves arrays of id-matched values', function (assert) {
         let model = run(() => {
           return this.store.push({
             data: {
@@ -110,12 +110,12 @@ for (let testRun = 0; testRun < 2; testRun++) {
           'resolved arrays are reference arrays'
         );
         assert.deepEqual(
-          get(model, 'relatedBooks').map(x => get(x, 'name')),
+          get(model, 'relatedBooks').map((x) => get(x, 'name')),
           ['Harry Potter and the Chamber of Secrets', 'Harry Potter and the Prisoner of Azkaban']
         );
       });
 
-      test('.unknownProperty resolves arrays of id-matched values against the global cache', function(assert) {
+      test('.unknownProperty resolves arrays of id-matched values against the global cache', function (assert) {
         let model = run(() => {
           return this.store.push({
             data: {
@@ -150,12 +150,12 @@ for (let testRun = 0; testRun < 2; testRun++) {
           'resolved arrays are reference arrays'
         );
         assert.deepEqual(
-          get(model, 'relatedBooks').map(x => get(x, 'name')),
+          get(model, 'relatedBooks').map((x) => get(x, 'name')),
           ['Harry Potter and the Chamber of Secrets', 'Harry Potter and the Prisoner of Azkaban']
         );
       });
 
-      test('.unknownProperty resolves reference arrays', function(assert) {
+      test('.unknownProperty resolves reference arrays', function (assert) {
         let model = run(() => {
           return this.store.push({
             data: {
@@ -259,7 +259,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('reference arrays act like record arrays - deleted records removed', function(assert) {
+      test('reference arrays act like record arrays - deleted records removed', function (assert) {
         this.owner.register(
           'adapter:-ember-m3',
           EmberObject.extend({
@@ -318,7 +318,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         });
       });
 
-      test('.setUnknownProperty updates cached RecordArrays in-place for given arrays and RecordArrays', function(assert) {
+      test('.setUnknownProperty updates cached RecordArrays in-place for given arrays and RecordArrays', function (assert) {
         let model = run(() =>
           this.store.push({
             data: {
@@ -356,14 +356,14 @@ for (let testRun = 0; testRun < 2; testRun++) {
         ];
 
         assert.deepEqual(
-          relatedBooksRecordArray.map(b => get(b, 'id')),
+          relatedBooksRecordArray.map((b) => get(b, 'id')),
           ['isbn:9780439064873', 'isbn:9780439136365'],
           'initially record array has the server-provided values'
         );
 
         run(() => set(model, 'relatedBooks', relatedBooksPlainArray));
         assert.deepEqual(
-          get(model, 'relatedBooks').map(b => get(b, 'id')),
+          get(model, 'relatedBooks').map((b) => get(b, 'id')),
           ['isbn:9780439136365'],
           'existing attr record array is updated in-place from plain array'
         );
@@ -375,7 +375,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
         run(() => set(model, 'relatedBooks', otherRecordArray));
         assert.deepEqual(
-          get(model, 'relatedBooks').map(b => get(b, 'id')),
+          get(model, 'relatedBooks').map((b) => get(b, 'id')),
           [],
           'existing attr record array is updated in-place from record array'
         );
@@ -393,7 +393,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         });
         run(() => set(model, 'newRecordArray', otherRecordArray));
         assert.deepEqual(
-          get(model, 'newRecordArray').map(b => get(b, 'id')),
+          get(model, 'newRecordArray').map((b) => get(b, 'id')),
           ['isbn:9780439064873'],
           'new attr record array is updated in place once cached'
         );
@@ -404,7 +404,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('BaseRecordArray has length as a property', function(assert) {
+      test('BaseRecordArray has length as a property', function (assert) {
         let model = run(() =>
           this.store.push({
             data: {
@@ -443,7 +443,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('reference array payload can update to undefined', function(assert) {
+      test('reference array payload can update to undefined', function (assert) {
         let model = run(() => {
           return this.store.push({
             data: {
@@ -474,7 +474,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         });
 
         assert.deepEqual(
-          get(model, 'relatedBooks').map(x => get(x, 'name')),
+          get(model, 'relatedBooks').map((x) => get(x, 'name')),
           ['Harry Potter and the Chamber of Secrets', 'Harry Potter and the Prisoner of Azkaban']
         );
 
@@ -492,13 +492,13 @@ for (let testRun = 0; testRun < 2; testRun++) {
         });
 
         assert.deepEqual(
-          get(model, 'relatedBooks').map(x => get(x, 'name')),
+          get(model, 'relatedBooks').map((x) => get(x, 'name')),
           [],
           'array empty'
         );
       });
 
-      test('updated reference arrays resolve their new references lazily when using the global cache', function(assert) {
+      test('updated reference arrays resolve their new references lazily when using the global cache', function (assert) {
         let model = run(() => {
           // use obj instead of urn here so `_resolve` puts us in global cache
           // rather than knowing the type from the id
@@ -559,7 +559,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       });
 
       // TODO: add support instead for a missing ref hook #254
-      test('reference arrays can point to nonexistant records', function(assert) {
+      test('reference arrays can point to nonexistant records', function (assert) {
         let model = run(() => {
           // use obj instead of urn here so `_resolve` puts us in global cache
           // rather than knowing the type from the id
@@ -605,7 +605,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('The key on the payload can differ from the key on the record', async function(assert) {
+      test('The key on the payload can differ from the key on the record', async function (assert) {
         const record = this.store.push({
           data: {
             id: 'urn:bookstore:1',
@@ -634,7 +634,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         const books = record.get('elements');
         assert.equal(books.length, 2, 'We have two books');
         assert.deepEqual(
-          books.map(b => b.get('name')),
+          books.map((b) => b.get('name')),
           ['Book 1!', 'Book 2!'],
           'We have the right books'
         );
@@ -674,7 +674,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
         assert.equal(books.length, 3, 'We updated to 3 books');
         assert.deepEqual(
-          books.map(b => b.get('name')),
+          books.map((b) => b.get('name')),
           ['Book 1!', 'Book 3!', 'Book 4!'],
           'We have the right books after the update'
         );

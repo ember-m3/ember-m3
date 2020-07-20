@@ -7,12 +7,12 @@ import {
 import { addObserver } from '@ember/object/observers';
 import { A } from '@ember/array';
 
-module('unit/utils/notify-changes', function(hooks) {
-  hooks.beforeEach(function() {
+module('unit/utils/notify-changes', function (hooks) {
+  hooks.beforeEach(function () {
     this.store = {};
   });
 
-  test('deferPropertyChange + flushChanges batches property changes', function(assert) {
+  test('deferPropertyChange + flushChanges batches property changes', function (assert) {
     let a = { id: 'a' };
     let b = { id: 'b' };
     let changes = [];
@@ -42,7 +42,7 @@ module('unit/utils/notify-changes', function(hooks) {
     );
   });
 
-  test('deferArrayPropertyChange + flushChanges batches array property changes', function(assert) {
+  test('deferArrayPropertyChange + flushChanges batches array property changes', function (assert) {
     let a = A();
     let b = A();
     a.id = 'a';
@@ -81,7 +81,7 @@ module('unit/utils/notify-changes', function(hooks) {
     );
   });
 
-  test('simple and array property changes can be batched together', function(assert) {
+  test('simple and array property changes can be batched together', function (assert) {
     let a = { id: 'a' };
     let b = A();
     b.id = 'b';
@@ -120,7 +120,7 @@ module('unit/utils/notify-changes', function(hooks) {
     );
   });
 
-  test('deferArrayPropertyChange asserts if passed a non-Ember array', function(assert) {
+  test('deferArrayPropertyChange asserts if passed a non-Ember array', function (assert) {
     assert.throws(
       () => {
         deferArrayPropertyChange(this.store, {}, 1, 2, 3);

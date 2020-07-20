@@ -91,7 +91,7 @@ export default class DefaultSchema extends Service {
     if (isArray(value)) {
       if (value.length > 0) {
         // non-empty arrays are treated as resolved only if they are arrays of records
-        return value.every(v => _isResolvedValue(v));
+        return value.every((v) => _isResolvedValue(v));
       } else {
         // empty arrays are treated as resolved if they're non-native arrays
         // (to handle ManyArray, RecordArrays &c.)

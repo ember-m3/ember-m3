@@ -24,18 +24,12 @@ class CommentOnPage extends PageObject {
 
     return commentBody === null
       ? ''
-      : commentBody.innerText
-          .replace(/\s+/g, ' ')
-          .replace(/^\s*/, '')
-          .replace(/\s*$/, '');
+      : commentBody.innerText.replace(/\s+/g, ' ').replace(/^\s*/, '').replace(/\s*$/, '');
   }
 
   parts() {
-    return this.querySelectorAll('.comment-parts li').map(x =>
-      x.innerText
-        .replace(/\s+/g, ' ')
-        .replace(/^\s*/, '')
-        .replace(/\s*$/, '')
+    return this.querySelectorAll('.comment-parts li').map((x) =>
+      x.innerText.replace(/\s+/g, ' ').replace(/^\s*/, '').replace(/\s*$/, '')
     );
   }
 }
@@ -58,7 +52,7 @@ class BookOnPage extends PageObject {
   }
 
   comments() {
-    return this.querySelectorAll('ul.comments > li').map(x => new CommentOnPage({ scope: x }));
+    return this.querySelectorAll('ul.comments > li').map((x) => new CommentOnPage({ scope: x }));
   }
 }
 
@@ -74,6 +68,6 @@ export default class IndexPage extends PageObject {
   }
 
   books() {
-    return this.querySelectorAll('ul.books > li').map(x => new BookOnPage({ scope: x }));
+    return this.querySelectorAll('ul.books > li').map((x) => new BookOnPage({ scope: x }));
   }
 }
