@@ -3,10 +3,10 @@ import { setupTest } from 'ember-qunit';
 
 import DefaultSchema from 'ember-m3/services/m3-schema';
 
-module('unit/model/api', function(hooks) {
+module('unit/model/api', function (hooks) {
   setupTest(hooks);
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     this.store = this.owner.lookup('service:store');
 
     class TestSchema extends DefaultSchema {
@@ -17,7 +17,7 @@ module('unit/model/api', function(hooks) {
     this.owner.register('service:m3-schema', TestSchema);
   });
 
-  test('changing an id is not allowed, per ember data', function(assert) {
+  test('changing an id is not allowed, per ember data', function (assert) {
     this.store.push({
       data: {
         id: 1,
@@ -34,7 +34,7 @@ module('unit/model/api', function(hooks) {
     }, 'wat');
   });
 
-  test('setting an id to itself is allowed', function(assert) {
+  test('setting an id to itself is allowed', function (assert) {
     this.store.push({
       data: {
         id: 1,

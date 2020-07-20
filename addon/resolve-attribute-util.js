@@ -146,7 +146,7 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
     // First check to see if given value is either a reference or an array of references
     if (computedReference) {
       if (Array.isArray(computedReference)) {
-        computedReference.forEach(v => schemaInterface.reference(v));
+        computedReference.forEach((v) => schemaInterface.reference(v));
         computedValue = schemaInterface.managedArray(computedReference);
       } else {
         computedValue = schemaInterface.reference(computedReference);
@@ -155,7 +155,7 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
       let computedNested = computeNestedModel(key, value, modelName, schemaInterface, schema);
       computedValue = computedNested;
       if (Array.isArray(computedNested)) {
-        computedNested.forEach(v => schemaInterface.nested(v));
+        computedNested.forEach((v) => schemaInterface.nested(v));
         computedValue = schemaInterface.managedArray(computedNested);
       } else if (computedNested !== null && typeof computedNested === 'object') {
         schemaInterface.nested(computedNested);
@@ -215,7 +215,7 @@ function resolveManagedArray(content, key, value, modelName, store, schema, reco
       record,
     });
     array._setInternalModels(
-      content.map(c => c._internalModel || c),
+      content.map((c) => c._internalModel || c),
       false
     );
     return array;
@@ -289,7 +289,7 @@ function createNestedModel(store, record, recordData, key, nestedValue, parentId
       true
     );
   } else {
-    Object.keys(nestedValue.attributes).forEach(key => {
+    Object.keys(nestedValue.attributes).forEach((key) => {
       nestedRecordData.setAttr(key, nestedValue.attributes[key], true);
     });
   }

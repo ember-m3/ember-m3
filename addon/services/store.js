@@ -100,9 +100,7 @@ export default class M3Store extends Store {
         next(() => {
           // We need this to execute in the next task queue so that wrapRecord is not called
           // before the M3RecordData is created
-          getOwner(this)
-            .lookup('data-adapter:main')
-            .addedType(modelName);
+          getOwner(this).lookup('data-adapter:main').addedType(modelName);
         });
       }
       return new M3RecordData(
@@ -175,7 +173,7 @@ export default class M3Store extends Store {
     if (!(record instanceof MegamorphicModelFactory.class)) {
       let recordArrays = recordToRecordArrayMap.get(record);
       if (recordArrays) {
-        recordArrays.forEach(recordArray => recordArray._removeObject(record));
+        recordArrays.forEach((recordArray) => recordArray._removeObject(record));
       }
     }
     return super.teardownRecord(record);

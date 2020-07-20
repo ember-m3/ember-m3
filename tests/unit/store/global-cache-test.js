@@ -28,7 +28,7 @@ class TestSchema extends DefaultSchema {
   computeAttribute(key, value, modelName, schemaInterface) {
     let reference = computeAttributeReference(key, value, modelName, schemaInterface);
     if (Array.isArray(reference)) {
-      return schemaInterface.managedArray(reference.map(r => schemaInterface.reference(r)));
+      return schemaInterface.managedArray(reference.map((r) => schemaInterface.reference(r)));
     } else if (reference) {
       return schemaInterface.reference(reference);
     }
@@ -65,10 +65,10 @@ class TestSchemaOldHooks extends DefaultSchema {
 for (let testRun = 0; testRun < 2; testRun++) {
   module(
     `unit/store/global-cache with  ${testRun === 0 ? 'old hooks' : 'with computeAttribute'}`,
-    function(hooks) {
+    function (hooks) {
       setupTest(hooks);
 
-      hooks.beforeEach(function() {
+      hooks.beforeEach(function () {
         this.sinon = sinon.createSandbox();
         if (testRun === 0) {
           this.owner.register('service:m3-schema', TestSchemaOldHooks);
@@ -79,11 +79,11 @@ for (let testRun = 0; testRun < 2; testRun++) {
         this.store = this.owner.lookup('service:store');
       });
 
-      hooks.afterEach(function() {
+      hooks.afterEach(function () {
         this.sinon.restore();
       });
 
-      test('records are added to, and unloaded from, the global m3 cache', function(assert) {
+      test('records are added to, and unloaded from, the global m3 cache', function (assert) {
         run(() =>
           this.store.push({
             data: [
@@ -118,7 +118,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           '2 chapters are in the cache'
         );
 
-        let bookIds = this.store.peekAll('com.example.bookstore.Book').map(x => x.id);
+        let bookIds = this.store.peekAll('com.example.bookstore.Book').map((x) => x.id);
 
         assert.deepEqual(
           bookIds,
@@ -126,7 +126,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           'Identity map contains expected models - book'
         );
 
-        let chapterIds = this.store.peekAll('com.example.bookstore.Chapter').map(x => x.id);
+        let chapterIds = this.store.peekAll('com.example.bookstore.Chapter').map((x) => x.id);
 
         assert.deepEqual(
           chapterIds,
@@ -193,7 +193,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         }
       });
 
-      test('projections are not added to the global m3 cache', function(assert) {
+      test('projections are not added to the global m3 cache', function (assert) {
         run(() =>
           this.store.push({
             data: {
@@ -226,13 +226,13 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
         let baseIds = this.store
           .peekAll('com.example.bookstore.Book')
-          .map(x => x.id)
+          .map((x) => x.id)
           .sort();
         assert.deepEqual(baseIds, ['urn:book:1', 'urn:book:2'], 'base records in cache');
 
         let projectionIds = this.store
           .peekAll('com.example.bookstore.BookProjection')
-          .map(x => x.id)
+          .map((x) => x.id)
           .sort();
         assert.deepEqual(
           projectionIds,

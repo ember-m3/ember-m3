@@ -93,8 +93,8 @@ export default class InteropDebugAdapter extends DebugAdapter {
 }
 
 function interceptDataTypes(schema, method) {
-  return types => {
-    const dataTypes = types.filter(type => !schema.includesModel(type.name));
+  return (types) => {
+    const dataTypes = types.filter((type) => !schema.includesModel(type.name));
     if (dataTypes.length) {
       method(dataTypes);
     }

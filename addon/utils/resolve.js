@@ -25,7 +25,7 @@ export function computeAttribute(key, value, modelName, schemaInterface, schema)
 
 export function resolveReferencesWithInternalModels(store, references) {
   if (!CUSTOM_MODEL_CLASS) {
-    return references.map(reference =>
+    return references.map((reference) =>
       reference.type
         ? store._internalModelForId(dasherize(reference.type), reference.id)
         : store._globalM3Cache[reference.id]
@@ -35,7 +35,7 @@ export function resolveReferencesWithInternalModels(store, references) {
 
 export function resolveReferencesWithRecords(store, references) {
   if (CUSTOM_MODEL_CLASS) {
-    return references.map(reference => {
+    return references.map((reference) => {
       if (reference.type) {
         return store.peekRecord(dasherize(reference.type), reference.id);
       } else {

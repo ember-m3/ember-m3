@@ -24,10 +24,10 @@ class TestSchemaOldHooks extends DefaultSchema {
 for (let testRun = 0; testRun < 2; testRun++) {
   module(
     `unit/model/references-test with  ${testRun === 0 ? 'old hooks' : 'with computeAttribute'}`,
-    function(hooks) {
+    function (hooks) {
       setupTest(hooks);
 
-      hooks.beforeEach(function() {
+      hooks.beforeEach(function () {
         if (testRun === 0) {
           this.owner.register('service:m3-schema', TestSchemaOldHooks);
         } else if (testRun === 1) {
@@ -36,7 +36,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         this.store = this.owner.lookup('service:store');
       });
 
-      test('references with null ids return null records', function(assert) {
+      test('references with null ids return null records', function (assert) {
         this.store.push({
           data: {
             id: 'urn:book:1',
@@ -53,7 +53,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         assert.strictEqual(book.get('author'), null, 'reference with null id does not error');
       });
 
-      test('references are prioritized over raw values for determining isArray', function(assert) {
+      test('references are prioritized over raw values for determining isArray', function (assert) {
         this.store.push({
           data: {
             id: 'urn:book:1',

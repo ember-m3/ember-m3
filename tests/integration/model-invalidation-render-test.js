@@ -6,10 +6,10 @@ import DefaultSchema from 'ember-m3/services/m3-schema';
 import Component from '@ember/component';
 import { run } from '@ember/runloop';
 
-module('integration/model-invalidation-render', function(hooks) {
+module('integration/model-invalidation-render', function (hooks) {
   setupRenderingTest(hooks);
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     this.owner.register(
       'service:m3-schema',
       class TestSchema extends DefaultSchema {
@@ -35,7 +35,7 @@ module('integration/model-invalidation-render', function(hooks) {
     );
   });
 
-  test('setting properties does not dirty the entire model', async function(assert) {
+  test('setting properties does not dirty the entire model', async function (assert) {
     this.store.pushPayload('com.example.Bookstore', {
       data: {
         id: 'urn:bookstore:1',

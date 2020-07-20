@@ -71,10 +71,10 @@ for (let testRun = 0; testRun < 2; testRun++) {
     `unit/model/projections/serialize with ${
       testRun === 0 ? 'old hooks' : 'with computeAttribute'
     }`,
-    function(hooks) {
+    function (hooks) {
       setupTest(hooks);
 
-      hooks.beforeEach(function() {
+      hooks.beforeEach(function () {
         this.store = this.owner.lookup('service:store');
         if (testRun === 0) {
           this.owner.register('service:m3-schema', TestSchemaOldHooks);
@@ -83,7 +83,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         }
       });
 
-      test(`projectionModel.eachAttribute defers to base model`, function(assert) {
+      test(`projectionModel.eachAttribute defers to base model`, function (assert) {
         run(() =>
           this.store.push({
             data: {
@@ -120,7 +120,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           class TestSerializer extends EmberObject {
             serialize(snapshot) {
               let attrsIterated = [];
-              snapshot.eachAttribute(key => attrsIterated.push(key));
+              snapshot.eachAttribute((key) => attrsIterated.push(key));
 
               assert.deepEqual(
                 attrsIterated.sort(),

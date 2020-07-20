@@ -35,7 +35,7 @@ class TestSchema extends DefaultSchema {
 
   computeAttribute(key, value, modelName, schemaInterface) {
     if (Array.isArray(value)) {
-      let nested = value.map(v => {
+      let nested = value.map((v) => {
         if (typeof v === 'object') {
           return schemaInterface.nested(computeNestedModel(key, v, modelName, schemaInterface));
         } else {
@@ -63,10 +63,10 @@ for (let testRun = 0; testRun < 2; testRun++) {
     `unit/model/projections/changed-attrss  ${
       testRun === 0 ? 'old hooks' : 'with computeAttribute'
     }`,
-    function(hooks) {
+    function (hooks) {
       setupTest(hooks);
 
-      hooks.beforeEach(function() {
+      hooks.beforeEach(function () {
         this.store = this.owner.lookup('service:store');
 
         if (testRun === 0) {
@@ -76,7 +76,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         }
       });
 
-      test('setting a dirty nested model (on projection) to null has correct changed attrs', function(assert) {
+      test('setting a dirty nested model (on projection) to null has correct changed attrs', function (assert) {
         this.store.push({
           data: [
             {
@@ -135,7 +135,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('resetting a property on parent model while nested model is dirty keeps parent model dirty', function(assert) {
+      test('resetting a property on parent model while nested model is dirty keeps parent model dirty', function (assert) {
         this.store.push({
           data: [
             {
@@ -172,7 +172,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('Can set a many embedded property to a semi resolved array containing a mix of pojos and megamorphic models - projections', async function(assert) {
+      test('Can set a many embedded property to a semi resolved array containing a mix of pojos and megamorphic models - projections', async function (assert) {
         assert.expect(1);
 
         this.owner.register(

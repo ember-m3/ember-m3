@@ -8,10 +8,10 @@ import { isArray } from '@ember/array';
 import MutableArray from '@ember/array/mutable';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 
-module('unit/record-array', function(hooks) {
+module('unit/record-array', function (hooks) {
   setupTest(hooks);
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     this.owner.register(
       'services:m3-schema',
       class TestSchema extends DefaultSchema {
@@ -42,24 +42,24 @@ module('unit/record-array', function(hooks) {
         ],
       });
     });
-    this.createRecordArray = function() {
+    this.createRecordArray = function () {
       let recordArray = BaseRecordArray.create();
       recordArray.store = this.store;
       return recordArray;
     };
   });
 
-  test('initially record arrays are unresolved', function(assert) {
+  test('initially record arrays are unresolved', function (assert) {
     let recordArray = this.createRecordArray();
     assert.equal(recordArray._resolved, false);
   });
 
-  test('RecordArray is a mutable Ember Array', function(assert) {
+  test('RecordArray is a mutable Ember Array', function (assert) {
     assert.ok(isArray(this.createRecordArray()));
     assert.ok(MutableArray.detect(this.createRecordArray()));
   });
 
-  test('requesting an object resolves the record array', function(assert) {
+  test('requesting an object resolves the record array', function (assert) {
     let recordArray = this.createRecordArray();
     assert.equal(recordArray._resolved, false, 'initialy unresolved');
     assert.strictEqual(recordArray.objectAt(0), undefined, 'array is empty');
@@ -71,7 +71,7 @@ module('unit/record-array', function(hooks) {
     assert.equal(recordArray._resolved, true, 'requesting object resolved array');
   });
 
-  test('references can be resolved to records lazily', function(assert) {
+  test('references can be resolved to records lazily', function (assert) {
     let recordArray = this.createRecordArray();
     recordArray._setReferences([
       { id: 'isbn:1', type: null },
@@ -94,7 +94,7 @@ module('unit/record-array', function(hooks) {
     assert.equal(didChangeCount, 0, 'resolving references does not trigger change events');
   });
 
-  test('updating a record array invalidates content and makes it unresolved', function(assert) {
+  test('updating a record array invalidates content and makes it unresolved', function (assert) {
     let recordArray = this.createRecordArray();
 
     assert.equal(recordArray._resolved, false, 'initialy unresolved');
@@ -110,7 +110,7 @@ module('unit/record-array', function(hooks) {
     assert.equal(recordArray._resolved, false, 'unresolved when references change');
   });
 
-  test('a record array can resolve new values', function(assert) {
+  test('a record array can resolve new values', function (assert) {
     let recordArray = this.createRecordArray();
 
     recordArray._setReferences([{ id: 'isbn:1', type: null }]);
@@ -122,7 +122,7 @@ module('unit/record-array', function(hooks) {
     assert.deepEqual(recordArray.mapBy('title'), ['pretty good book', 'pretty okay book']);
   });
 
-  test('setting internal models resolves the record array', function(assert) {
+  test('setting internal models resolves the record array', function (assert) {
     let recordArray = this.createRecordArray();
 
     recordArray._setReferences([{ id: 'isbn:1', type: null }]);
@@ -144,7 +144,7 @@ module('unit/record-array', function(hooks) {
     );
   });
 
-  test('setting references triggers a deferred didChange event', function(assert) {
+  test('setting references triggers a deferred didChange event', function (assert) {
     let recordArray = this.createRecordArray();
     let willChangeCount = 0;
     let didChangeArray = null;
@@ -174,7 +174,7 @@ module('unit/record-array', function(hooks) {
     assert.deepEqual(didChangeArgs, [[0, 0, 0]], 'didChange args are correct');
   });
 
-  test('replacing records triggers an eager didChange event', function(assert) {
+  test('replacing records triggers an eager didChange event', function (assert) {
     let recordArray = this.createRecordArray();
     let willChangeCount = 0;
     let didChangeCount = 0;
@@ -223,8 +223,8 @@ module('unit/record-array', function(hooks) {
   });
 
   if (!CUSTOM_MODEL_CLASS) {
-    module('RecordArrayManager api', function() {
-      test('internal moodels can be added and removed from the RecordArrayManager api', function(assert) {
+    module('RecordArrayManager api', function () {
+      test('internal moodels can be added and removed from the RecordArrayManager api', function (assert) {
         let recordArray = this.createRecordArray();
         let book1 = this.store.peekRecord('com.example.bookstore.Book', 'isbn:1');
         let book2 = this.store.peekRecord('com.example.bookstore.Book', 'isbn:2');
@@ -239,7 +239,7 @@ module('unit/record-array', function(hooks) {
         assert.deepEqual(recordArray.toArray().mapBy('id'), ['isbn:2'], '_removeObjects');
       });
 
-      test('adding internal models forces resolution', function(assert) {
+      test('adding internal models forces resolution', function (assert) {
         let recordArray = this.createRecordArray();
         recordArray._setReferences([
           {
@@ -257,7 +257,7 @@ module('unit/record-array', function(hooks) {
         assert.deepEqual(recordArray.toArray().mapBy('id'), ['isbn:1', 'isbn:2'], 'records added');
       });
 
-      test('unresolved references can be removed', function(assert) {
+      test('unresolved references can be removed', function (assert) {
         let recordArray = this.createRecordArray();
         recordArray._setReferences([
           {

@@ -72,7 +72,7 @@ function computeAttributeReference(key, value, modelName, schemaInterface, model
     };
   } else if (Array.isArray(value)) {
     return value
-      .map(v => {
+      .map((v) => {
         let type = null;
         let modelSchema = this.models[modelName];
 
@@ -112,13 +112,13 @@ class TestSchema extends DefaultSchema {
   computeAttribute(key, value, modelName, schemaInterface) {
     let reference = computeAttributeReference(key, value, modelName, schemaInterface, this.models);
     if (Array.isArray(reference)) {
-      return schemaInterface.managedArray(reference.map(r => schemaInterface.reference(r)));
+      return schemaInterface.managedArray(reference.map((r) => schemaInterface.reference(r)));
     } else if (reference) {
       return schemaInterface.reference(reference);
     }
 
     if (Array.isArray(value)) {
-      let nested = value.map(v => {
+      let nested = value.map((v) => {
         if (typeof v === 'object') {
           return schemaInterface.nested(
             computeNestedModel(key, v, modelName, schemaInterface, this.models)
@@ -176,7 +176,7 @@ class TestSchemaOldHooks extends DefaultSchema {
       };
     } else if (Array.isArray(value)) {
       return value
-        .map(v => {
+        .map((v) => {
           let type = null;
           let modelSchema = this.models[modelName];
 
@@ -220,10 +220,10 @@ class TestSchemaOldHooks extends DefaultSchema {
 TestSchemaOldHooks.prototype.models = Models;
 
 for (let testRun = 0; testRun < 2; testRun++) {
-  module('creatingu and updating projections with resolutions', function(hooks) {
+  module('creatingu and updating projections with resolutions', function (hooks) {
     setupTest(hooks);
 
-    hooks.beforeEach(function() {
+    hooks.beforeEach(function () {
       this.store = this.owner.lookup('service:store');
       if (testRun === 0) {
         this.owner.register('service:m3-schema', TestSchemaOldHooks);
@@ -238,7 +238,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
     const BOOK_AUTHOR_ID_1 = 'author:1';
     const BOOK_AUTHOR_NAME_1 = 'Lewis Carol';
 
-    test('newly created and saved projections with embedded records that are resolutions can receive updates', async function(assert) {
+    test('newly created and saved projections with embedded records that are resolutions can receive updates', async function (assert) {
       this.owner.register(
         'adapter:-ember-m3',
         EmberObject.extend({

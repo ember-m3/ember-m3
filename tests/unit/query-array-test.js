@@ -2,10 +2,10 @@ import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import M3QueryArray from 'ember-m3/query-array';
 
-module('unit/query-array', function(hooks) {
+module('unit/query-array', function (hooks) {
   setupTest(hooks);
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     this.store = this.owner.lookup('service:store');
     this.queryCache = new (class MockQueryCache {
       queryURL() {
@@ -16,7 +16,7 @@ module('unit/query-array', function(hooks) {
       }
     })();
 
-    this.createRecordArray = function(options = {}) {
+    this.createRecordArray = function (options = {}) {
       return M3QueryArray.create(
         Object.assign(
           {
@@ -30,7 +30,7 @@ module('unit/query-array', function(hooks) {
     };
   });
 
-  test('flags', async function(assert) {
+  test('flags', async function (assert) {
     let recordArray = this.createRecordArray();
     assert.equal(recordArray.get('isLoaded'), true, 'isLoaded initially true');
     assert.equal(recordArray.get('isUpdating'), false, 'isUpdating initially false');
@@ -59,7 +59,7 @@ module('unit/query-array', function(hooks) {
     assert.equal(recordArray.get('isUpdating'), false, 'isUpdating false after loading rejected');
   });
 
-  test('QueryArray requires a query', function(assert) {
+  test('QueryArray requires a query', function (assert) {
     let queryArray = M3QueryArray.create();
 
     assert.throws(() => {

@@ -84,10 +84,10 @@ for (let testRun = 0; testRun < 2; testRun++) {
     `unit/store/global-cache (interop with @ember-data/model) ${
       testRun ? 'old hooks' : 'computeAttribute'
     }`,
-    function(hooks) {
+    function (hooks) {
       setupTest(hooks);
 
-      hooks.beforeEach(function() {
+      hooks.beforeEach(function () {
         this.sinon = sinon.createSandbox();
 
         this.Author = Model.extend({
@@ -103,11 +103,11 @@ for (let testRun = 0; testRun < 2; testRun++) {
         this.store = this.owner.lookup('service:store');
       });
 
-      hooks.afterEach(function() {
+      hooks.afterEach(function () {
         this.sinon.restore();
       });
 
-      test('records are added to, and unloaded from, the global m3 cache', function(assert) {
+      test('records are added to, and unloaded from, the global m3 cache', function (assert) {
         run(() =>
           this.store.push({
             data: [
@@ -150,7 +150,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
         assert.equal(this.store.peekAll('author').length, 1, '1 author in the cache');
 
-        let bookIds = this.store.peekAll('com.example.bookstore.Book').map(x => x.id);
+        let bookIds = this.store.peekAll('com.example.bookstore.Book').map((x) => x.id);
 
         assert.deepEqual(
           bookIds,
@@ -158,7 +158,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           'Identity map contains expected models - book'
         );
 
-        let chapterIds = this.store.peekAll('com.example.bookstore.Chapter').map(x => x.id);
+        let chapterIds = this.store.peekAll('com.example.bookstore.Chapter').map((x) => x.id);
 
         assert.deepEqual(
           chapterIds,

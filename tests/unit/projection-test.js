@@ -46,7 +46,7 @@ function computeAttributeReference(key, value, modelName, schemaInterface, model
     };
   } else if (Array.isArray(value)) {
     return value
-      .map(v => {
+      .map((v) => {
         let type = null;
         let modelSchema = this.models[modelName];
 
@@ -114,13 +114,13 @@ class TestSchema extends DefaultSchema {
   computeAttribute(key, value, modelName, schemaInterface) {
     let reference = computeAttributeReference(key, value, modelName, schemaInterface, this.models);
     if (Array.isArray(reference)) {
-      return schemaInterface.managedArray(reference.map(r => schemaInterface.reference(r)));
+      return schemaInterface.managedArray(reference.map((r) => schemaInterface.reference(r)));
     } else if (reference) {
       return schemaInterface.reference(reference);
     }
 
     if (Array.isArray(value)) {
-      let nested = value.map(v => {
+      let nested = value.map((v) => {
         if (typeof v === 'object') {
           return schemaInterface.nested(
             computeNestedModel(key, v, modelName, schemaInterface, this.models)
@@ -176,10 +176,10 @@ TestSchemaOldHooks.prototype.models = Models;
 for (let testRun = 0; testRun < 2; testRun++) {
   module(
     `unit/model/projection with ${testRun === 0 ? 'old hooks' : 'with computeAttribute'}`,
-    function(hooks) {
+    function (hooks) {
       setupTest(hooks);
 
-      hooks.beforeEach(function() {
+      hooks.beforeEach(function () {
         this.store = this.owner.lookup('service:store');
         if (testRun === 0) {
           this.owner.register('service:m3-schema', TestSchemaOldHooks);
@@ -189,8 +189,8 @@ for (let testRun = 0; testRun < 2; testRun++) {
         this.schemaManager = this.owner.lookup('service:m3-schema-manager');
       });
 
-      module('cache consistency', function() {
-        test(`store.peekRecord() will only return a projection or base-record if it has been fetched`, function(assert) {
+      module('cache consistency', function () {
+        test(`store.peekRecord() will only return a projection or base-record if it has been fetched`, function (assert) {
           assert.expect(4);
 
           const UNFETCHED_PROJECTION_ID = 'isbn:9780439708180';
@@ -259,7 +259,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test(`store.findRecord() will only fetch a projection or base-model if it has not been fetched previously`, function(assert) {
+        test(`store.findRecord() will only fetch a projection or base-model if it has not been fetched previously`, function (assert) {
           assert.expect(12);
 
           const UNFETCHED_PROJECTION_ID = 'isbn:9780439708180';
@@ -349,7 +349,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           run(() => {
             store
               .findRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, FETCHED_PROJECTION_ID)
-              .then(model => {
+              .then((model) => {
                 assert.equal(
                   get(model, 'id'),
                   FETCHED_PROJECTION_ID,
@@ -362,7 +362,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           run(() => {
             store
               .findRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, UNFETCHED_PROJECTION_ID)
-              .then(model => {
+              .then((model) => {
                 assert.equal(get(model, 'id'), UNFETCHED_PROJECTION_ID, 'we fetched the model');
                 assert.equal(findRecordCallCount, 1, 'We made a single request');
               });
@@ -381,7 +381,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           expectedFindRecordId = FETCHED_PROJECTION_ID;
 
           run(() => {
-            store.findRecord(BOOK_CLASS_PATH, UNFETCHED_PROJECTION_ID).then(model => {
+            store.findRecord(BOOK_CLASS_PATH, UNFETCHED_PROJECTION_ID).then((model) => {
               assert.equal(
                 get(model, 'id'),
                 UNFETCHED_PROJECTION_ID,
@@ -392,14 +392,14 @@ for (let testRun = 0; testRun < 2; testRun++) {
           });
 
           run(() => {
-            store.findRecord(BOOK_CLASS_PATH, FETCHED_PROJECTION_ID).then(model => {
+            store.findRecord(BOOK_CLASS_PATH, FETCHED_PROJECTION_ID).then((model) => {
               assert.equal(get(model, 'id'), FETCHED_PROJECTION_ID, 'we fetched the model');
               assert.equal(findRecordCallCount, 1, 'We made a single request');
             });
           });
         });
 
-        test(`store.peekAll() will not return partial records`, function(assert) {
+        test(`store.peekAll() will not return partial records`, function (assert) {
           let { store } = this;
 
           run(() => {
@@ -444,7 +444,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           assert.equal(get(recordArray.objectAt(0), 'id'), '1', 'We find the expected record');
         });
 
-        test('Projections proxy whitelisted attributes to a base-record', function(assert) {
+        test('Projections proxy whitelisted attributes to a base-record', function (assert) {
           let { store } = this;
           const BOOK_ID = 'isbn:9780439708181';
           const BOOK_TITLE = 'Adventures in Wonderland';
@@ -499,7 +499,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         });
       });
 
-      test('Updating an embedded object property to null can still be updated again', function(assert) {
+      test('Updating an embedded object property to null can still be updated again', function (assert) {
         const BOOK_ID = 'isbn:9780439708181';
         const AUTHOR_NAME = 'Lewis Carroll';
         const NEW_AUTHOR_NAME = 'J.K. Rowling';
@@ -574,7 +574,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      module('property notifications on top-level attributes', function(hooks) {
+      module('property notifications on top-level attributes', function (hooks) {
         /*
       All of the tests in this module MUST implement the following:
 
@@ -598,7 +598,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         const NEW_TITLE = 'Through the Looking Glass';
         const NEW_DESCRIPTION = 'Crazy Town';
 
-        hooks.beforeEach(function(assert) {
+        hooks.beforeEach(function (assert) {
           let { store } = this;
 
           let baseRecord;
@@ -708,7 +708,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        hooks.afterEach(function(assert) {
+        hooks.afterEach(function (assert) {
           let { baseRecordWatcher, excerptWatcher, previewWatcher } = this.watchers;
 
           let { baseRecord, projectedExcerpt, projectedPreview } = this.records;
@@ -783,7 +783,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           this.records = null;
         });
 
-        test('Setting on the base-record updates projections', function(assert) {
+        test('Setting on the base-record updates projections', function (assert) {
           let { baseRecord } = this.records;
 
           run(() => {
@@ -808,7 +808,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('Updating the base-record updates projections', function(assert) {
+        test('Updating the base-record updates projections', function (assert) {
           let { store } = this;
           let { baseRecord } = this.records;
 
@@ -842,7 +842,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('Setting a projection updates the base-record and other projections', function(assert) {
+        test('Setting a projection updates the base-record and other projections', function (assert) {
           let preview = this.records.projectedPreview;
           let baseRecord = this.records.baseRecord;
 
@@ -872,7 +872,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('Updating a projection updates the base-record and other projections', function(assert) {
+        test('Updating a projection updates the base-record and other projections', function (assert) {
           let baseRecord = this.records.baseRecord;
           let { store } = this;
 
@@ -902,7 +902,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         });
       });
 
-      module('property notifications on embedded objects', function(hooks) {
+      module('property notifications on embedded objects', function (hooks) {
         /*
       All of the tests in this module MUST implement the following:
 
@@ -929,7 +929,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         const NEW_AUTHOR_LOCATION = 'Sky';
         const NEW_AUTHOR_AGE = 'wise';
 
-        hooks.beforeEach(function(assert) {
+        hooks.beforeEach(function (assert) {
           let { store } = this;
 
           let baseRecord;
@@ -1060,7 +1060,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        hooks.afterEach(function(assert) {
+        hooks.afterEach(function (assert) {
           let { baseRecordWatcher, excerptWatcher, previewWatcher } = this.watchers;
 
           let { baseRecord, projectedExcerpt, projectedPreview } = this.records;
@@ -1142,7 +1142,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           this.records = null;
         });
 
-        test('Setting an embedded object property on the base-record updates the value for projections', function(assert) {
+        test('Setting an embedded object property on the base-record updates the value for projections', function (assert) {
           let { baseRecord, projectedExcerpt } = this.records;
 
           run(() => {
@@ -1177,7 +1177,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('Updating an embedded object property on the base-record updates the value for projections', function(assert) {
+        test('Updating an embedded object property on the base-record updates the value for projections', function (assert) {
           let { store } = this;
           let { baseRecord, projectedExcerpt } = this.records;
 
@@ -1223,7 +1223,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('Setting an embedded object property on a projection updates the base-record and other projections', function(assert) {
+        test('Setting an embedded object property on a projection updates the base-record and other projections', function (assert) {
           let { baseRecord, projectedExcerpt } = this.records;
           let { baseRecordWatcher, excerptWatcher } = this.watchers;
 
@@ -1257,7 +1257,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('Setting an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
+        test('Setting an embedded object property on a nested projection updates the base-record and other projections', function (assert) {
           let { baseRecord, projectedExcerpt, projectedPreview } = this.records;
 
           run(() => {
@@ -1300,7 +1300,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('Updating an embedded object property on a projection updates the base-record and other projections', function(assert) {
+        test('Updating an embedded object property on a projection updates the base-record and other projections', function (assert) {
           let { store } = this;
           let { baseRecord, projectedExcerpt } = this.records;
 
@@ -1345,7 +1345,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('Updating an embedded object property on a nested projection updates the base-record and other projections', function(assert) {
+        test('Updating an embedded object property on a nested projection updates the base-record and other projections', function (assert) {
           let { store } = this;
           let { baseRecord, projectedExcerpt } = this.records;
 
@@ -1390,7 +1390,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         });
       });
 
-      module('property notifications on resolved objects', function(hooks) {
+      module('property notifications on resolved objects', function (hooks) {
         /*
       All of the tests in this module MUST implement the following:
 
@@ -1417,7 +1417,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         const NEW_PUBLISHER_LOCATION = 'London, England';
         const NEW_PUBLISHER_OWNER = 'Holtzbrinck Publishing Group';
 
-        hooks.beforeEach(function(assert) {
+        hooks.beforeEach(function (assert) {
           let { store } = this;
 
           let baseRecord;
@@ -1560,7 +1560,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        hooks.afterEach(function(assert) {
+        hooks.afterEach(function (assert) {
           let { baseRecordWatcher, excerptWatcher, previewWatcher } = this.watchers;
 
           let { baseRecord, projectedExcerpt, projectedPreview } = this.records;
@@ -1642,7 +1642,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           this.records = null;
         });
 
-        test('Setting a resolution property via the base-record updates projections and nested projections', function(assert) {
+        test('Setting a resolution property via the base-record updates projections and nested projections', function (assert) {
           let { baseRecord, projectedExcerpt } = this.records;
 
           run(() => {
@@ -1677,7 +1677,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('Updating a resolution property via the base-record updates projections and nested projections', function(assert) {
+        test('Updating a resolution property via the base-record updates projections and nested projections', function (assert) {
           let { store } = this;
           let { baseRecord, projectedExcerpt } = this.records;
 
@@ -1728,7 +1728,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('Setting a resolution property via a projection updates the base-record, other projections and nested projections', function(assert) {
+        test('Setting a resolution property via a projection updates the base-record, other projections and nested projections', function (assert) {
           let { baseRecord, projectedExcerpt } = this.records;
 
           run(() => {
@@ -1763,7 +1763,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('Setting a resolution property via a nested projection updates the base-record and other projections', function(assert) {
+        test('Setting a resolution property via a nested projection updates the base-record and other projections', function (assert) {
           let { baseRecord, projectedExcerpt, projectedPreview } = this.records;
 
           run(() => {
@@ -1807,7 +1807,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('Updating a resolution property via a projection updates the base-record, other projections and nested projections', function(assert) {
+        test('Updating a resolution property via a projection updates the base-record, other projections and nested projections', function (assert) {
           let { store } = this;
 
           let { baseRecord, projectedExcerpt } = this.records;
@@ -1852,7 +1852,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('Updating a resolution property via a nested projection updates the base-record, other projections', function(assert) {
+        test('Updating a resolution property via a nested projection updates the base-record, other projections', function (assert) {
           let { store } = this;
           let { baseRecord, projectedExcerpt } = this.records;
 
@@ -1905,7 +1905,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         });
       });
 
-      module('Update projection property with resolved value', function(hooks) {
+      module('Update projection property with resolved value', function (hooks) {
         // properties for use for initial state
         const BOOK_ID = 'isbn:9780439708181';
         const PUBLISHER_ID = 'publisher-abc123';
@@ -1923,9 +1923,9 @@ for (let testRun = 0; testRun < 2; testRun++) {
         const NEW_PUBLISHER_OWNER = 'Holtzbrinck Publishing Group';
         const NEW_PUBLISHER_URN = `urn:${PUBLISHER_CLASS}:${PUBLISHER_ID_NEW}`;
 
-        hooks.beforeEach(function() {
+        hooks.beforeEach(function () {
           //Adding .setAttribute hook in schema
-          this.schemaManager.get('schema').setAttribute = function(
+          this.schemaManager.get('schema').setAttribute = function (
             modelName,
             attr,
             value,
@@ -2003,7 +2003,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           };
         });
 
-        test('Updating property to another resolved value updates the base-record, other projections with new URN information using schema hook .setAttribute', function(assert) {
+        test('Updating property to another resolved value updates the base-record, other projections with new URN information using schema hook .setAttribute', function (assert) {
           let { store } = this;
           let { baseRecord, projectedExcerpt, projectedPreview } = this.records;
 
@@ -2159,7 +2159,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('Updating a reference array will update the array in the projection and the base record', function(assert) {
+        test('Updating a reference array will update the array in the projection and the base record', function (assert) {
           let { store } = this;
           let OTHER_BOOK_ID = 'isbn:8888';
           let projectedPreview;
@@ -2210,7 +2210,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           });
 
           assert.deepEqual(
-            get(projectedPreview, 'otherBooksInSeries').map(book => get(book, 'id')),
+            get(projectedPreview, 'otherBooksInSeries').map((book) => get(book, 'id')),
             [],
             'Initial set of otherBookInSeries should be empty before mutating'
           );
@@ -2220,22 +2220,22 @@ for (let testRun = 0; testRun < 2; testRun++) {
           });
 
           assert.deepEqual(
-            get(projectedPreview, 'otherBooksInSeries').map(book => get(book, 'id')),
+            get(projectedPreview, 'otherBooksInSeries').map((book) => get(book, 'id')),
             [OTHER_BOOK_ID],
             'Changes to otherBooksInSeries references should be reflected after mutation'
           );
         });
       });
 
-      skip(`Updates to a projection's non-whitelisted attributes do not cause a projection to be dirtied`, function() {});
+      skip(`Updates to a projection's non-whitelisted attributes do not cause a projection to be dirtied`, function () {});
 
-      module('unloading/deleting records', function(hooks) {
+      module('unloading/deleting records', function (hooks) {
         const BOOK_ID = 'isbn:123';
         const OTHER_BOOK_ID = 'isbn:456';
         const OTHER_BOOK_URN = `urn:${NORM_BOOK_CLASS_PATH}:${OTHER_BOOK_ID}`;
         const BOOK_TITLE = 'Alice in Wonderland';
 
-        hooks.beforeEach(function() {
+        hooks.beforeEach(function () {
           let { store } = this;
 
           this.owner.register(
@@ -2287,7 +2287,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           };
         });
 
-        skip(`Deleting the base-record also deletes the projections`, function(assert) {
+        skip(`Deleting the base-record also deletes the projections`, function (assert) {
           let { baseRecord, projectedPreview } = this.records;
 
           baseRecord.deleteRecord();
@@ -2319,7 +2319,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           });
         });
 
-        skip(`Deleting the projection also deletes the base-record`, function(assert) {
+        skip(`Deleting the projection also deletes the base-record`, function (assert) {
           let { baseRecord, projectedPreview, projectedExcerpt } = this.records;
 
           projectedPreview.deleteRecord();
@@ -2371,7 +2371,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           });
         });
 
-        test(`Unloading a projection does not unload the base-record and other projections`, function(assert) {
+        test(`Unloading a projection does not unload the base-record and other projections`, function (assert) {
           let { baseRecord, projectedPreview, projectedExcerpt } = this.records;
 
           run(() => {
@@ -2411,7 +2411,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           assert.equal(get(projectedExcerpt, 'title'), BOOK_TITLE);
         });
 
-        test(`Unloading the base-record does not unload the projection`, function(assert) {
+        test(`Unloading the base-record does not unload the projection`, function (assert) {
           let { baseRecord, projectedPreview } = this.records;
 
           run(() => {
@@ -2438,7 +2438,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           assert.equal(get(projectedPreview, 'title'), BOOK_TITLE);
         });
 
-        skip('Unloading a record removes it from record arrays, which have reference to it', function(assert) {
+        skip('Unloading a record removes it from record arrays, which have reference to it', function (assert) {
           // we need additional records to be able to resolve the references
           run(() => {
             this.store.push({
@@ -2505,10 +2505,10 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        skip('Projection list is cleaned up after all projections have been unloaded', function() {});
+        skip('Projection list is cleaned up after all projections have been unloaded', function () {});
       });
 
-      module('creating/updating projections', function(/*hooks*/) {
+      module('creating/updating projections', function (/*hooks*/) {
         const BOOK_ID = 'isbn:123';
         const BOOK_TITLE_1 = 'Alice in Wonderland';
         const BOOK_TITLE_2 = 'Alice Through the Looking Glass';
@@ -2517,7 +2517,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         const BOOK_AUTHOR_NAME_1 = 'Lewis Carol';
         const BOOK_AUTHOR_NAME_2 = 'J.K. Rowling';
 
-        test('independently created projections of the same base-type but no ID do not share their data', function(assert) {
+        test('independently created projections of the same base-type but no ID do not share their data', function (assert) {
           let projectedPreview = run(() =>
             this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
               title: BOOK_TITLE_1,
@@ -2541,7 +2541,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('independently created projections of the same projection-type but no ID do not share their data', function(assert) {
+        test('independently created projections of the same projection-type but no ID do not share their data', function (assert) {
           let projectedPreview1 = run(() =>
             this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
               title: BOOK_TITLE_1,
@@ -2565,7 +2565,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('independently created projections of the same base-type and ID share their data', function(assert) {
+        test('independently created projections of the same base-type and ID share their data', function (assert) {
           let projectedPreview = run(() =>
             this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
               id: BOOK_ID,
@@ -2606,7 +2606,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('independently creating projections of the same projection-type and ID is not allowed', function(assert) {
+        test('independently creating projections of the same projection-type and ID is not allowed', function (assert) {
           run(() => {
             this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
               id: BOOK_ID,
@@ -2623,7 +2623,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           });
         });
 
-        test('can create and save a projection', function(assert) {
+        test('can create and save a projection', function (assert) {
           let createRecordCalls = 0;
 
           this.owner.register(
@@ -2674,7 +2674,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('new projections are correctly cached after save', function(assert) {
+        test('new projections are correctly cached after save', function (assert) {
           this.owner.register(
             'adapter:-ember-m3',
             EmberObject.extend({
@@ -2713,7 +2713,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('newly created and saved projections can receive updates', function(assert) {
+        test('newly created and saved projections can receive updates', function (assert) {
           this.owner.register(
             'adapter:-ember-m3',
             EmberObject.extend({
@@ -2772,7 +2772,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        skip('we cannot create a new projection when existing recordData exists', function(assert) {
+        skip('we cannot create a new projection when existing recordData exists', function (assert) {
           // pre-populate the store with a different projection and base-data for the ID we will attempt to create.
           run(() => {
             this.store.push({
@@ -2799,7 +2799,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('.changedAttributes on a projection returns all changed properties', function(assert) {
+        test('.changedAttributes on a projection returns all changed properties', function (assert) {
           let projectedExcerpt = run(() => {
             return this.store.push({
               data: {
@@ -2841,7 +2841,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('.rollbackAttributes on a projection sets the model attributes back to its original state', function(assert) {
+        test('.rollbackAttributes on a projection sets the model attributes back to its original state', function (assert) {
           let projectedExcerpt = run(() => {
             return this.store.push({
               data: {
@@ -2904,7 +2904,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('.isDirty on a projection is true after updating its state', function(assert) {
+        test('.isDirty on a projection is true after updating its state', function (assert) {
           let projectedExcerpt = run(() => {
             return this.store.push({
               data: {
@@ -2945,7 +2945,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('.debugJSON returns expected JSON for projections', function(assert) {
+        test('.debugJSON returns expected JSON for projections', function (assert) {
           const expectedJSON = {
             title: 'Alice in Wonderland',
             author: {
@@ -2972,7 +2972,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           assert.deepEqual(bookRecord.debugJSON(), expectedJSON, 'The JSON returned is correct');
         });
 
-        skip('update and save of a projection does not touch non-whitelisted properties', function(assert) {
+        skip('update and save of a projection does not touch non-whitelisted properties', function (assert) {
           let updateRecordCalls = 0;
           this.owner.register(
             'adapter:-ember-m3',
@@ -3047,10 +3047,10 @@ for (let testRun = 0; testRun < 2; testRun++) {
         });
       });
 
-      skip(`eachAttribute returns only white-listed properties`, function() {});
-      skip(`Creating a projection with an unloaded schema`, function() {});
-      skip(`Finding a projection with an unloaded schema`, function() {});
-      skip(`fetched schemas must be complete (projected types must also be included)`, function() {});
+      skip(`eachAttribute returns only white-listed properties`, function () {});
+      skip(`Creating a projection with an unloaded schema`, function () {});
+      skip(`Finding a projection with an unloaded schema`, function () {});
+      skip(`fetched schemas must be complete (projected types must also be included)`, function () {});
     }
   );
 }

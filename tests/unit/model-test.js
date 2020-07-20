@@ -31,20 +31,20 @@ function computeAttributeReference(key, value, modelName, schemaInterface) {
         id: refValue,
       };
     } else if (Array.isArray(refValue)) {
-      return refValue.map(x => ({
+      return refValue.map((x) => ({
         type: null,
         id: x,
       }));
     }
     return null;
   } else if (key === 'otherBooksInSeries') {
-    return (value || []).map(id => ({
+    return (value || []).map((id) => ({
       type: null,
       id,
     }));
   } else if (Array.isArray(value)) {
-    return value.every(v => typeof v === 'string' && /^isbn:/.test(v))
-      ? value.map(id => ({
+    return value.every((v) => typeof v === 'string' && /^isbn:/.test(v))
+      ? value.map((id) => ({
           type: /^isbn:/.test(id) ? 'com.example.bookstore.Book' : null,
           id,
         }))
@@ -92,13 +92,13 @@ class TestSchema extends DefaultSchema {
   computeAttribute(key, value, modelName, schemaInterface) {
     let reference = computeAttributeReference(key, value, modelName, schemaInterface);
     if (Array.isArray(reference)) {
-      return schemaInterface.managedArray(reference.map(r => schemaInterface.reference(r)));
+      return schemaInterface.managedArray(reference.map((r) => schemaInterface.reference(r)));
     } else if (reference) {
       return schemaInterface.reference(reference);
     }
 
     if (Array.isArray(value)) {
-      let nested = value.map(v => {
+      let nested = value.map((v) => {
         if (typeof v === 'object') {
           return schemaInterface.nested(computeNestedModel(key, v, modelName, schemaInterface));
         } else {
@@ -173,10 +173,10 @@ TestSchema.prototype.models = Models;
 TestSchemaOldHooks.prototype.models = Models;
 
 for (let testRun = 0; testRun < 2; testRun++) {
-  module(`unit/model ${testRun === 0 ? 'old hooks' : 'with computeAttribute'}`, function(hooks) {
+  module(`unit/model ${testRun === 0 ? 'old hooks' : 'with computeAttribute'}`, function (hooks) {
     setupTest(hooks);
 
-    hooks.beforeEach(function() {
+    hooks.beforeEach(function () {
       this.sinon = sinon.createSandbox();
       this.store = this.owner.lookup('service:store');
 
@@ -187,11 +187,11 @@ for (let testRun = 0; testRun < 2; testRun++) {
       }
     });
 
-    hooks.afterEach(function() {
+    hooks.afterEach(function () {
       this.sinon.restore();
     });
 
-    test('it appears as a model to ember data', function(assert) {
+    test('it appears as a model to ember data', function (assert) {
       assert.equal(MegamorphicModel.isModel, true, 'M3.isModel');
       assert.equal(MegamorphicModel.klass, MegamorphicModel, 'M3.klass');
 
@@ -199,7 +199,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(typeof klassAttrsMap.has, 'function', 'M3.attributes.has()');
     });
 
-    test('.unknownProperty returns undefined for attributes not included in the payload', function(assert) {
+    test('.unknownProperty returns undefined for attributes not included in the payload', function (assert) {
       let model = run(() => {
         return this.store.push({
           data: {
@@ -216,7 +216,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(get(model, 'pubDate'), undefined);
     });
 
-    test('.unknownProperty and .setUnknownProperty work with non-schema objects when isModel is true (custom resolved value)', function(assert) {
+    test('.unknownProperty and .setUnknownProperty work with non-schema objects when isModel is true (custom resolved value)', function (assert) {
       let model = run(() => {
         return this.store.push({
           data: {
@@ -232,7 +232,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(get(model, 'title'), `Harry Potter and the Sorcerer's Stone`);
 
       const LocalClass = EmberObject.extend({
-        address: computed('city', 'state', function() {
+        address: computed('city', 'state', function () {
           return this.get('city') + ', ' + this.get('state');
         }),
       });
@@ -261,7 +261,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('.unknownProperty returns schema-transformed values', function(assert) {
+    test('.unknownProperty returns schema-transformed values', function (assert) {
       let model = run(() => {
         return this.store.push({
           data: {
@@ -280,7 +280,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('.unknownProperty resolves id-matched values to external m3-models', function(assert) {
+    test('.unknownProperty resolves id-matched values to external m3-models', function (assert) {
       let model = run(() => {
         return this.store.push({
           data: {
@@ -307,7 +307,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(get(model, 'followedBy').constructor, MegamorphicModel);
     });
 
-    test('.unknownProperty resolves id-matched values to external m3-models of different types', function(assert) {
+    test('.unknownProperty resolves id-matched values to external m3-models of different types', function (assert) {
       let model = run(() => {
         return this.store.push({
           data: {
@@ -349,7 +349,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
     });
 
     function testGlobalCacheUnloading(description) {
-      test(description, function(assert) {
+      test(description, function (assert) {
         let model = run(() => {
           return this.store.push({
             data: {
@@ -384,7 +384,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
     // stores occur regularly during tests, fastboot &c.
     testGlobalCacheUnloading('global m3 cache unloading works across subsequent stores');
 
-    test('.unknownProperty resolves nested-matched values as nested m3-models', function(assert) {
+    test('.unknownProperty resolves nested-matched values as nested m3-models', function (assert) {
       let model = run(() => {
         return this.store.push({
           data: {
@@ -434,7 +434,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(get(model, 'relatedToBook.value').constructor, MegamorphicModel);
     });
 
-    test('.unknownProperty resolves arrays of nested-matched values', function(assert) {
+    test('.unknownProperty resolves arrays of nested-matched values', function (assert) {
       let model = run(() => {
         return this.store.push({
           data: {
@@ -456,12 +456,12 @@ for (let testRun = 0; testRun < 2; testRun++) {
       });
 
       assert.deepEqual(
-        get(model, 'chapters').map(x => get(x, 'name')),
+        get(model, 'chapters').map((x) => get(x, 'name')),
         ['The Boy Who Lived', 'The Vanishing Glass']
       );
     });
 
-    test('.unknownProperty resolves heterogenous arrays of m3-references and nested objects', function(assert) {
+    test('.unknownProperty resolves heterogenous arrays of m3-references and nested objects', function (assert) {
       let model = run(() => {
         return this.store.push({
           data: {
@@ -499,7 +499,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('.unknownProperty supports default values', function(assert) {
+    test('.unknownProperty supports default values', function (assert) {
       let model = run(() =>
         this.store.push({
           data: {
@@ -522,7 +522,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(get(model, 'publishedIn'), 'UK', 'specified attributes trump defaults');
     });
 
-    test('.unknownProperty supports alias values', function(assert) {
+    test('.unknownProperty supports alias values', function (assert) {
       let model = run(() =>
         this.store.push({
           data: {
@@ -573,7 +573,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('schema can access other attributes when computing attribute references', function(assert) {
+    test('schema can access other attributes when computing attribute references', function (assert) {
       let model = run(() => {
         return this.store.push({
           data: {
@@ -618,13 +618,13 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
       assert.equal(get(model, 'relatedBook.pubDate'), undefined);
       assert.deepEqual(
-        get(model, 'relatedBooks').map(b => get(b, 'name')),
+        get(model, 'relatedBooks').map((b) => get(b, 'name')),
         ['Harry Potter and the Chamber of Secrets', 'Harry Potter and the Prisoner of Azkaban'],
         'compute attribute array reference'
       );
     });
 
-    test('schema can access other attributes when computing nested models', function(assert) {
+    test('schema can access other attributes when computing nested models', function (assert) {
       let model = run(() => {
         return this.store.push({
           data: {
@@ -642,7 +642,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(get(model, 'nextChapter.name'), `The Boy Who Lived`, 'computing nested model');
     });
 
-    test('schema can return a different value for attribute array references', function(assert) {
+    test('schema can return a different value for attribute array references', function (assert) {
       let model = run(() => {
         return this.store.push({
           data: {
@@ -674,7 +674,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       });
       let otherBooks = get(model, 'otherBooksInSeries');
       assert.deepEqual(
-        otherBooks.map(b => get(b, 'name')),
+        otherBooks.map((b) => get(b, 'name')),
         ['Harry Potter and the Chamber of Secrets', 'Harry Potter and the Prisoner of Azkaban'],
         'attr array ref is array-like'
       );
@@ -687,13 +687,13 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
       // This is part of the special sauce of record arrays
       assert.deepEqual(
-        otherBooks.map(b => get(b, 'name')),
+        otherBooks.map((b) => get(b, 'name')),
         ['Harry Potter and the Chamber of Secrets'],
         'array ref updated in place on set'
       );
     });
 
-    test('upon updating the data in store, attributes referring to keys ending with `Embedded` should update', function(assert) {
+    test('upon updating the data in store, attributes referring to keys ending with `Embedded` should update', function (assert) {
       let model = run(() => {
         return this.store.push({
           data: {
@@ -738,7 +738,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('default values are not transformed', function(assert) {
+    test('default values are not transformed', function (assert) {
       let model = run(() =>
         this.store.push({
           data: {
@@ -769,7 +769,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('early set of an ID to a newly created records is allowed', function(assert) {
+    test('early set of an ID to a newly created records is allowed', function (assert) {
       let model = run(() =>
         this.store.createRecord('com.example.bookstore.Book', {
           id: 'my-crazy-id',
@@ -779,7 +779,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(get(model, 'id'), 'my-crazy-id', 'init id property set');
     });
 
-    test('late set of an id for top-level models to a newly created records is not allowed', function(assert) {
+    test('late set of an id for top-level models to a newly created records is not allowed', function (assert) {
       let model = run(() =>
         this.store.createRecord('com.example.bookstore.Book', {
           name: 'Marlborough: His Life and Times',
@@ -795,7 +795,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('late set of an id for nested models to a newly created records is allowed', function(assert) {
+    test('late set of an id for nested models to a newly created records is allowed', function (assert) {
       let model = run(() => {
         return this.store.push({
           data: {
@@ -830,7 +830,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
     // This is unspecified behaviour; unclear if we can do anything sane here
     // TODO: 'default values are not checked for reference arrays'
 
-    test('m3 models can be created with initial properties (init prop buffering)', function(assert) {
+    test('m3 models can be created with initial properties (init prop buffering)', function (assert) {
       let childModel = run(() =>
         this.store.createRecord('com.example.bookstore.Book', {
           name: 'Fantastic Beasts and Where to Find Them',
@@ -862,7 +862,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('.setUnknownProperty updates data and clears simple attribute cache', function(assert) {
+    test('.setUnknownProperty updates data and clears simple attribute cache', function (assert) {
       let model = run(() =>
         this.store.push({
           data: {
@@ -894,7 +894,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('.setUnknownProperty triggers change events', function(assert) {
+    test('.setUnknownProperty triggers change events', function (assert) {
       let model = run(() => {
         return this.store.push({
           data: {
@@ -942,7 +942,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.deepEqual(propChanges, [[model + '', 'title']], 'change events trigger for aliases');
     });
 
-    test('.setUnknownProperty sets attributes to given value for uncached values', function(assert) {
+    test('.setUnknownProperty sets attributes to given value for uncached values', function (assert) {
       let model = run(() =>
         this.store.push({
           data: {
@@ -975,8 +975,8 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
       let relatedBooksRecordArray = get(model, 'relatedBooks');
       let relatedBooksPlainArray = relatedBooksRecordArray
-        .map(b => get(b, 'id'))
-        .map(isbn => this.store.peekRecord('com.example.bookstore.Book', isbn));
+        .map((b) => get(b, 'id'))
+        .map((isbn) => this.store.peekRecord('com.example.bookstore.Book', isbn));
 
       run(() => set(model, 'newPropRA', relatedBooksRecordArray));
       run(() => set(model, 'newPropPA', relatedBooksPlainArray));
@@ -995,7 +995,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('.setUnknownProperty cache is not updated if the value is not resolved to a model', function(assert) {
+    test('.setUnknownProperty cache is not updated if the value is not resolved to a model', function (assert) {
       let model = run(() =>
         this.store.push({
           data: {
@@ -1038,7 +1038,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('.setUnknownProperty cache is removed upon setting a new value', function(assert) {
+    test('.setUnknownProperty cache is removed upon setting a new value', function (assert) {
       let model = run(() =>
         this.store.push({
           data: {
@@ -1072,7 +1072,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('.setUnknownProperty child recordData is removed upon setting a new value', function(assert) {
+    test('.setUnknownProperty child recordData is removed upon setting a new value', function (assert) {
       let model = run(() =>
         this.store.push({
           data: {
@@ -1117,7 +1117,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('.setUnknownProperty cache is not updated if the value is an array of elements which are not resolved as models', function(assert) {
+    test('.setUnknownProperty cache is not updated if the value is an array of elements which are not resolved as models', function (assert) {
       let model = run(() =>
         this.store.push({
           data: {
@@ -1173,7 +1173,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('.setUnknownProperty update cache if the value is resolved', function(assert) {
+    test('.setUnknownProperty update cache if the value is resolved', function (assert) {
       let model = run(() =>
         this.store.push({
           data: {
@@ -1213,7 +1213,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('nested models are created lazily', function(assert) {
+    test('nested models are created lazily', function (assert) {
       let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
       let model = run(() => {
         return this.store.push({
@@ -1269,7 +1269,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(init.callCount, 3, 'doubly nested model is cached');
     });
 
-    test('nested models have normalized model names', function(assert) {
+    test('nested models have normalized model names', function (assert) {
       let model = run(() => {
         return this.store.push({
           data: {
@@ -1300,7 +1300,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       }
     });
 
-    test('nested models with unnormalized model names can have defaults', function(assert) {
+    test('nested models with unnormalized model names can have defaults', function (assert) {
       let model = run(() => {
         return this.store.push({
           data: {
@@ -1324,7 +1324,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('attribute property changes are properly detected', function(assert) {
+    test('attribute property changes are properly detected', function (assert) {
       let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
       let model = run(() => {
         return this.store.push({
@@ -1352,14 +1352,14 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
       assert.deepEqual(
         zip(
-          propChange.thisValues.map(x => x + ''),
+          propChange.thisValues.map((x) => x + ''),
           propChange.args
         ),
         [[model + '', ['name']]]
       );
     });
 
-    test('omitted attributes do not trigger changes', function(assert) {
+    test('omitted attributes do not trigger changes', function (assert) {
       let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
       let model = run(() => {
@@ -1401,7 +1401,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
       assert.deepEqual(
         zip(
-          propChange.thisValues.map(x => x + ''),
+          propChange.thisValues.map((x) => x + ''),
           propChange.args
         ),
         [],
@@ -1409,7 +1409,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('null attributes are detected as changed', function(assert) {
+    test('null attributes are detected as changed', function (assert) {
       let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
       let model = run(() => {
@@ -1440,7 +1440,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
       assert.deepEqual(
         zip(
-          propChange.thisValues.map(x => x + ''),
+          propChange.thisValues.map((x) => x + ''),
           propChange.args
         ),
         [[model + '', ['name']]],
@@ -1448,7 +1448,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('nulled attributes in nested models are detected as changed', function(assert) {
+    test('nulled attributes in nested models are detected as changed', function (assert) {
       let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
       let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
@@ -1509,7 +1509,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
       assert.deepEqual(
         zip(
-          propChange.thisValues.map(x => x + ''),
+          propChange.thisValues.map((x) => x + ''),
           propChange.args
         ),
         [
@@ -1527,7 +1527,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(get(doubleNested, 'name'), null);
     });
 
-    test('omitted attributes in nested models are not detected as changed', function(assert) {
+    test('omitted attributes in nested models are not detected as changed', function (assert) {
       let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
       let model = run(() => {
@@ -1579,7 +1579,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
       assert.deepEqual(
         zip(
-          propChange.thisValues.map(x => x + ''),
+          propChange.thisValues.map((x) => x + ''),
           propChange.args
         ),
         [],
@@ -1592,7 +1592,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(get(doubleNested, 'name'), 'The Vanishing Glass');
     });
 
-    test('new attributes are treated as changed', function(assert) {
+    test('new attributes are treated as changed', function (assert) {
       let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
       let model = run(() => {
@@ -1625,7 +1625,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
       assert.deepEqual(
         zip(
-          propChange.thisValues.map(x => x + ''),
+          propChange.thisValues.map((x) => x + ''),
           propChange.args
         ),
         [[model + '', ['chapterCount']]],
@@ -1636,7 +1636,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(get(model, 'chapterCount'), 17);
     });
 
-    test('new attributes in nested models are treated as changed', function(assert) {
+    test('new attributes in nested models are treated as changed', function (assert) {
       let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
       let model = run(() => {
@@ -1675,7 +1675,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
       assert.deepEqual(
         zip(
-          propChange.thisValues.map(x => x + ''),
+          propChange.thisValues.map((x) => x + ''),
           propChange.args
         ),
         [[nested + '', ['number']]],
@@ -1683,7 +1683,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('nested model attribute changes are properly detected', function(assert) {
+    test('nested model attribute changes are properly detected', function (assert) {
       let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
       let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
@@ -1742,7 +1742,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
       assert.deepEqual(
         zip(
-          propChange.thisValues.map(x => x + ''),
+          propChange.thisValues.map((x) => x + ''),
           propChange.args
         ),
         [
@@ -1753,7 +1753,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('nested model updates null -> model', function(assert) {
+    test('nested model updates null -> model', function (assert) {
       let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
       let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
@@ -1794,7 +1794,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(init.callCount, 1, 'nested models are not eaagerly created from changes');
       assert.deepEqual(
         zip(
-          propChange.thisValues.map(x => x + ''),
+          propChange.thisValues.map((x) => x + ''),
           propChange.args
         ),
         [[model + '', ['nextChapter']]],
@@ -1805,7 +1805,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(init.callCount, 2, 'nested models are lazily created');
     });
 
-    test('nested model updates primitive -> model', function(assert) {
+    test('nested model updates primitive -> model', function (assert) {
       let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
       let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
@@ -1848,7 +1848,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(init.callCount, 1, 'nested models are not eaagerly created from changes');
       assert.deepEqual(
         zip(
-          propChange.thisValues.map(x => x + ''),
+          propChange.thisValues.map((x) => x + ''),
           propChange.args
         ),
         [[model + '', ['nextChapter']]],
@@ -1859,7 +1859,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(init.callCount, 2, 'nested models are lazily created');
     });
 
-    test('nested model updates model -> null (model reified)', function(assert) {
+    test('nested model updates model -> null (model reified)', function (assert) {
       let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
       let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
@@ -1897,7 +1897,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(init.callCount, 2, 'no additional models created');
       assert.deepEqual(
         zip(
-          propChange.thisValues.map(x => x + ''),
+          propChange.thisValues.map((x) => x + ''),
           propChange.args
         ),
         [[model + '', ['nextChapter']]],
@@ -1907,7 +1907,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(get(model, 'nextChapter.name'), undefined, 'nested model cleared');
     });
 
-    test('nested model updates model -> primitive', function(assert) {
+    test('nested model updates model -> primitive', function (assert) {
       let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
       let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
@@ -1945,7 +1945,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(init.callCount, 2, 'no additional models created');
       assert.deepEqual(
         zip(
-          propChange.thisValues.map(x => x + ''),
+          propChange.thisValues.map((x) => x + ''),
           propChange.args
         ),
         [[model + '', ['nextChapter']]],
@@ -1955,7 +1955,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(get(model, 'nextChapter'), 'The Boy Who Lived', 'nested model -> primitive');
     });
 
-    test('nested model updates model -> null (model inert)', function(assert) {
+    test('nested model updates model -> null (model inert)', function (assert) {
       let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
       let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
@@ -1992,7 +1992,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(init.callCount, 1, 'no additional models created');
       assert.deepEqual(
         zip(
-          propChange.thisValues.map(x => x + ''),
+          propChange.thisValues.map((x) => x + ''),
           propChange.args
         ),
         [[model + '', ['nextChapter']]],
@@ -2003,7 +2003,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(init.callCount, 1, 'no additional models created');
     });
 
-    test('nested model updates with no changes except changed type (reified)', function(assert) {
+    test('nested model updates with no changes except changed type (reified)', function (assert) {
       let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
       let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
@@ -2050,7 +2050,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(init.callCount, 3, 'new model has been created for the update');
       assert.deepEqual(
         zip(
-          propChange.thisValues.map(x => x + ''),
+          propChange.thisValues.map((x) => x + ''),
           propChange.args
         ),
         [[model + '', ['nextPart']]],
@@ -2058,7 +2058,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('nested model updates with no changes except id (reified)', function(assert) {
+    test('nested model updates with no changes except id (reified)', function (assert) {
       let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
       let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
@@ -2105,7 +2105,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(init.callCount, 3, 'new model has been created for the update');
       assert.deepEqual(
         zip(
-          propChange.thisValues.map(x => x + ''),
+          propChange.thisValues.map((x) => x + ''),
           propChange.args
         ),
         [[model + '', ['nextChapter']]],
@@ -2113,7 +2113,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('nested model updates with no changes and id = null (reified)', function(assert) {
+    test('nested model updates with no changes and id = null (reified)', function (assert) {
       let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
       let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
@@ -2160,14 +2160,14 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(init.callCount, 2, 'no new models should be created');
       assert.deepEqual(
         zip(
-          propChange.thisValues.map(x => x + ''),
+          propChange.thisValues.map((x) => x + ''),
           propChange.args
         ),
         [],
         'no property change should be triggered'
       );
     });
-    test('nested model updates with no changes (model inert)', function(assert) {
+    test('nested model updates with no changes (model inert)', function (assert) {
       let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
       let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
@@ -2208,7 +2208,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(init.callCount, 1, 'no additional models created');
       assert.deepEqual(
         zip(
-          propChange.thisValues.map(x => x + ''),
+          propChange.thisValues.map((x) => x + ''),
           propChange.args
         ),
         [[model + '', ['nextChapter']]],
@@ -2216,7 +2216,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('nested model updates with no changes (model reifed)', function(assert) {
+    test('nested model updates with no changes (model reifed)', function (assert) {
       let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
       let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
@@ -2260,7 +2260,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(init.callCount, 2, 'no additional models created');
       assert.deepEqual(
         zip(
-          propChange.thisValues.map(x => x + ''),
+          propChange.thisValues.map((x) => x + ''),
           propChange.args
         ),
         [],
@@ -2268,7 +2268,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('nested array attribute changes are properly detected', function(assert) {
+    test('nested array attribute changes are properly detected', function (assert) {
       let init = this.sinon.spy(MegamorphicModel.prototype, 'init');
       let propChange = this.sinon.spy(MegamorphicModel.prototype, 'notifyPropertyChange');
 
@@ -2318,7 +2318,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(init.callCount, 3, 'no additional models created');
       assert.deepEqual(
         zip(
-          propChange.thisValues.map(x => x + ''),
+          propChange.thisValues.map((x) => x + ''),
           propChange.args
         ),
         [[model + '', ['chapters']]],
@@ -2333,7 +2333,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(init.callCount, 5, 'nested models in arrays are not re-used');
     });
 
-    test(`.serialize serializers with the user's -ember-m3 serializer`, function(assert) {
+    test(`.serialize serializers with the user's -ember-m3 serializer`, function (assert) {
       assert.expect(4);
 
       this.owner.register(
@@ -2353,7 +2353,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
             );
 
             let eachAttrCBCalls = [];
-            snapshot.eachAttribute(key => eachAttrCBCalls.push(key));
+            snapshot.eachAttribute((key) => eachAttrCBCalls.push(key));
 
             assert.deepEqual(
               eachAttrCBCalls.sort(),
@@ -2384,7 +2384,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       return model.serialize({ some: 'options' });
     });
 
-    test('.unloadRecord works', function(assert) {
+    test('.unloadRecord works', function (assert) {
       let model = run(() => {
         return this.store.push({
           data: {
@@ -2410,7 +2410,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('.unloadRecord updates reference record arrays', function(assert) {
+    test('.unloadRecord updates reference record arrays', function (assert) {
       let model = run(() => {
         return this.store.push({
           data: {
@@ -2510,7 +2510,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('.unloadRecord on a nested model warns and does not error', function(assert) {
+    test('.unloadRecord on a nested model warns and does not error', function (assert) {
       let model = run(() => {
         return this.store.push({
           data: {
@@ -2552,7 +2552,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       nestedModel.unloadRecord();
       assert.deepEqual(
         zip(
-          warnSpy.thisValues.map(x => x + ''),
+          warnSpy.thisValues.map((x) => x + ''),
           warnSpy.args
         ),
         [
@@ -2573,7 +2573,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('store.findRecord', function(assert) {
+    test('store.findRecord', function (assert) {
       assert.expect(5);
 
       this.owner.register(
@@ -2598,14 +2598,14 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
 
       return run(() =>
-        this.store.findRecord('com.example.bookstore.Book', 'isbn:9780439708180').then(model => {
+        this.store.findRecord('com.example.bookstore.Book', 'isbn:9780439708180').then((model) => {
           assert.equal(model.get('id'), 'isbn:9780439708180', 'model.id');
           assert.equal(model.constructor, MegamorphicModel, 'model.constructor');
         })
       );
     });
 
-    test('store.deleteRecord', function(assert) {
+    test('store.deleteRecord', function (assert) {
       let model = run(() =>
         this.store.push({
           data: {
@@ -2633,7 +2633,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(model.get('isDestroyed'), true, 'model.isDestroyed');
     });
 
-    test('store.findAll', function(assert) {
+    test('store.findAll', function (assert) {
       assert.expect(4);
 
       this.owner.register(
@@ -2663,7 +2663,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
 
       return run(() =>
-        this.store.findAll('com.example.bookstore.book').then(models => {
+        this.store.findAll('com.example.bookstore.book').then((models) => {
           assert.deepEqual(
             models.mapBy('id'),
             ['isbn:9780439708180', 'isbn:9780439064873'],
@@ -2691,7 +2691,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('store.query', function(assert) {
+    test('store.query', function (assert) {
       assert.expect(5);
 
       this.owner.register(
@@ -2722,7 +2722,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
 
       return run(() =>
-        this.store.query('com.example.bookstore.book', { author: 'JK Rowling' }).then(models => {
+        this.store.query('com.example.bookstore.book', { author: 'JK Rowling' }).then((models) => {
           assert.deepEqual(
             models.mapBy('id'),
             ['isbn:9780439708180', 'isbn:9780439064873'],
@@ -2750,7 +2750,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('store.queryRecord', function(assert) {
+    test('store.queryRecord', function (assert) {
       assert.expect(5);
 
       this.owner.register(
@@ -2777,7 +2777,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       return run(() =>
         this.store
           .queryRecord('com.example.bookstore.book', { author: 'JK Rowling' })
-          .then(model => {
+          .then((model) => {
             assert.equal(model.get('id'), 'isbn:9780439708180', 'model.id');
             assert.equal(model.constructor, MegamorphicModel, 'model.constructor');
             assert.equal(model._modelName, 'com.example.bookstore.book');
@@ -2785,7 +2785,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('store.unloadRecord', function(assert) {
+    test('store.unloadRecord', function (assert) {
       run(() => {
         this.store.push({
           data: {
@@ -2810,7 +2810,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('store.getReference', function(assert) {
+    test('store.getReference', function (assert) {
       assert.expect(10);
 
       this.owner.register(
@@ -2836,20 +2836,20 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
         return ref
           .load()
-          .then(model => {
+          .then((model) => {
             assert.deepEqual(model.get('id'), 'isbn:9780439708180', 'ref.load(x => x.id)');
             assert.deepEqual(model.constructor, MegamorphicModel, 'ref.load(x => x.constructor)');
 
             return ref.reload();
           })
-          .then(model => {
+          .then((model) => {
             assert.deepEqual(model.get('id'), 'isbn:9780439708180', 'ref.reload(x => x.id)');
             assert.deepEqual(model.constructor, MegamorphicModel, 'ref.reload(x => x.constructor)');
           });
       });
     });
 
-    test('store.hasRecordForId', function(assert) {
+    test('store.hasRecordForId', function (assert) {
       return run(() => {
         this.store.push({
           data: {
@@ -2871,7 +2871,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       });
     });
 
-    test('store.modelFor', function(assert) {
+    test('store.modelFor', function (assert) {
       let bookModel = this.store.modelFor('com.example.bookstore.Book');
       let chapterModel = this.store.modelFor('com.example.bookstore.Chapter');
 
@@ -2879,7 +2879,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.equal(chapterModel, MegamorphicModel, 'modelFor other schema-matching');
     });
 
-    test('store.peekAll', function(assert) {
+    test('store.peekAll', function (assert) {
       run(() => {
         this.store.push({
           data: [
@@ -2932,7 +2932,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       // TODO: batch by cacheKeyForType
     });
 
-    test('store.peekAll - grouped by model name', function(assert) {
+    test('store.peekAll - grouped by model name', function (assert) {
       run(() => {
         this.store.push({
           data: [
@@ -2971,7 +2971,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('store.peekRecord', function(assert) {
+    test('store.peekRecord', function (assert) {
       run(() => {
         this.store.push({
           data: [
@@ -3036,7 +3036,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('store.hasRecordForId', function(assert) {
+    test('store.hasRecordForId', function (assert) {
       run(() => {
         this.store.push({
           data: [
@@ -3095,7 +3095,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
-    test('errors is intialized upon creation of the record', function(assert) {
+    test('errors is intialized upon creation of the record', function (assert) {
       let model = run(() =>
         this.store.push({
           data: {
@@ -3116,7 +3116,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.ok(errors instanceof Errors);
     });
 
-    test('.save errors getting updated via the store and removed upon setting a new value', function(assert) {
+    test('.save errors getting updated via the store and removed upon setting a new value', function (assert) {
       assert.expect(10);
 
       const modelName = 'com.example.bookstore.Book';
@@ -3160,7 +3160,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           extractErrors(store, typeClass, payload, id) {
             if (payload && typeof payload === 'object' && payload.errors) {
               const record = store.peekRecord(modelName, id);
-              payload.errors.forEach(error => {
+              payload.errors.forEach((error) => {
                 if (error.source) {
                   const errorField = error.source;
                   record.get('errors').add(errorField, error.detail);
@@ -3217,7 +3217,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       });
     });
 
-    test('.debugJSON returns expected JSON for m3 records', function(assert) {
+    test('.debugJSON returns expected JSON for m3 records', function (assert) {
       const BOOK_ID = 'isbn:9780439708180';
       const BOOK_CLASS_PATH = 'com.example.bookstore.Book';
       const expectedJSON = {
@@ -3255,7 +3255,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.deepEqual(bookRecord.debugJSON(), expectedJSON, 'The JSON returned is correct');
     });
 
-    test('Calling .toString on the record prototype correctly returns MegamorphicModel', function(assert) {
+    test('Calling .toString on the record prototype correctly returns MegamorphicModel', function (assert) {
       let model = run(() =>
         this.store.push({
           data: {

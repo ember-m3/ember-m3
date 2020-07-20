@@ -27,10 +27,10 @@ if (HAS_MODEL_PACKAGE) {
 const UrnWithTypeRegex = /^urn:([a-zA-Z.]+):(.*)/;
 const UrnWithoutTypeRegex = /^urn:(.*)/;
 
-module('unit/m3-model (interop with @ember-data/model)', function(hooks) {
+module('unit/m3-model (interop with @ember-data/model)', function (hooks) {
   setupTest(hooks);
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     this.sinon = sinon.createSandbox();
     this.store = this.owner.lookup('service:store');
 
@@ -58,20 +58,20 @@ module('unit/m3-model (interop with @ember-data/model)', function(hooks) {
               id: refValue,
             };
           } else if (Array.isArray(refValue)) {
-            return refValue.map(x => ({
+            return refValue.map((x) => ({
               type: null,
               id: x,
             }));
           }
           return null;
         } else if (key === 'otherBooksInSeries') {
-          return (value || []).map(id => ({
+          return (value || []).map((id) => ({
             type: null,
             id,
           }));
         } else if (Array.isArray(value)) {
-          return value.every(v => typeof v === 'string' && /^isbn:/.test(v))
-            ? value.map(id => ({
+          return value.every((v) => typeof v === 'string' && /^isbn:/.test(v))
+            ? value.map((id) => ({
                 type: /^isbn:/.test(id) ? 'com.example.bookstore.Book' : null,
                 id,
               }))
@@ -142,11 +142,11 @@ module('unit/m3-model (interop with @ember-data/model)', function(hooks) {
     this.owner.register('service:m3-schema', TestSchema);
   });
 
-  hooks.afterEach(function() {
+  hooks.afterEach(function () {
     this.sinon.restore();
   });
 
-  test('.unknownProperty resolves id-matched values to external @ember-data/model Models.', function(assert) {
+  test('.unknownProperty resolves id-matched values to external @ember-data/model Models.', function (assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -173,7 +173,7 @@ module('unit/m3-model (interop with @ember-data/model)', function(hooks) {
     assert.equal(get(model, 'author').constructor, this.Author);
   });
 
-  test('.unknownProperty resolves nested-matched values as nested m3-models', function(assert) {
+  test('.unknownProperty resolves nested-matched values as nested m3-models', function (assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -220,7 +220,7 @@ module('unit/m3-model (interop with @ember-data/model)', function(hooks) {
     assert.equal(get(model, 'relatedToBook.value').constructor, MegamorphicModel);
   });
 
-  test('.unknownProperty resolves heterogenous arrays of m3-references, @ember-data/model model-references and nested objects', function(assert) {
+  test('.unknownProperty resolves heterogenous arrays of m3-references, @ember-data/model model-references and nested objects', function (assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -267,7 +267,7 @@ module('unit/m3-model (interop with @ember-data/model)', function(hooks) {
     assert.equal(get(relatedItems[2], 'name'), 'JK Rowling', 'array ref-to-ds.model');
   });
 
-  test('tracked arrays with @ember-data/model', function(assert) {
+  test('tracked arrays with @ember-data/model', function (assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -315,7 +315,7 @@ module('unit/m3-model (interop with @ember-data/model)', function(hooks) {
     assert.equal(get(relatedItems, 'length'), 2, 'array has right length');
   });
 
-  test('DS.Models can have relationships into m3 models', function(assert) {
+  test('DS.Models can have relationships into m3 models', function (assert) {
     let model = run(() => {
       return this.store.push({
         data: {
@@ -357,7 +357,7 @@ module('unit/m3-model (interop with @ember-data/model)', function(hooks) {
     );
   });
 
-  test('store.modelFor', function(assert) {
+  test('store.modelFor', function (assert) {
     let bookModel = this.store.modelFor('com.example.bookstore.Book');
     let chapterModel = this.store.modelFor('com.example.bookstore.Chapter');
     let authorModel = this.store.modelFor('author');

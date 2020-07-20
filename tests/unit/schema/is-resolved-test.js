@@ -12,7 +12,7 @@ function computeAttributeReference(key, value, modelName, schemaInterface) {
       id: refValue,
     };
   } else if (Array.isArray(refValue)) {
-    return refValue.map(x => ({
+    return refValue.map((x) => ({
       type: null,
       id: x,
     }));
@@ -33,13 +33,13 @@ class TestSchema extends DefaultSchema {
   computeAttribute(key, value, modelName, schemaInterface) {
     let reference = computeAttributeReference(key, value, modelName, schemaInterface);
     if (Array.isArray(reference)) {
-      return schemaInterface.managedArray(reference.map(r => schemaInterface.reference(r)));
+      return schemaInterface.managedArray(reference.map((r) => schemaInterface.reference(r)));
     } else if (reference) {
       return schemaInterface.reference(reference);
     }
 
     if (Array.isArray(value)) {
-      let nested = value.map(v => {
+      let nested = value.map((v) => {
         if (typeof v === 'object') {
           return schemaInterface.nested(computeNestedModel(key, v, modelName, schemaInterface));
         } else {
@@ -80,10 +80,10 @@ class TestSchemaOldHooks extends DefaultSchema {
 for (let testRun = 0; testRun < 2; testRun++) {
   module(
     `unit/schema/is-resolved  ${testRun === 0 ? 'old hooks' : 'with computeAttribute'}`,
-    function(hooks) {
+    function (hooks) {
       setupTest(hooks);
 
-      hooks.beforeEach(function() {
+      hooks.beforeEach(function () {
         this.sinon = sinon.createSandbox();
         this.store = this.owner.lookup('service:store');
         if (testRun === 0) {
@@ -95,12 +95,12 @@ for (let testRun = 0; testRun < 2; testRun++) {
         }
       });
 
-      hooks.afterEach(function() {
+      hooks.afterEach(function () {
         this.sinon.restore();
       });
 
-      module('default impl', function(hooks) {
-        hooks.beforeEach(function() {
+      module('default impl', function (hooks) {
+        hooks.beforeEach(function () {
           this.owner.register('service:m3-schema', this.BaseSchema);
 
           this.store.push({
@@ -142,7 +142,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('records are treated as resolved', function(assert) {
+        test('records are treated as resolved', function (assert) {
           let computeAttrSpy = this.sinon.spy(this.BaseSchema.prototype, this.methodName);
 
           this.book.set('bestChapter', this.chapter1);
@@ -153,7 +153,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           assert.equal(computeAttrSpy.callCount, 0, 'attribute was cached (treated as resolved)');
         });
 
-        test('record arrays are treated as resolved', function(assert) {
+        test('record arrays are treated as resolved', function (assert) {
           let chapters = this.book.get('chapters');
 
           let computeAttrSpy = this.sinon.spy(this.BaseSchema.prototype, this.methodName);
@@ -169,7 +169,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           assert.equal(computeAttrSpy.callCount, 0, 'attribute was cached (treated as resolved)');
         });
 
-        test('empty record arrays are treated as resolved', function(assert) {
+        test('empty record arrays are treated as resolved', function (assert) {
           let dragons = this.book.get('dragons');
 
           let computeAttrSpy = this.sinon.spy(this.BaseSchema.prototype, this.methodName);
@@ -185,21 +185,21 @@ for (let testRun = 0; testRun < 2; testRun++) {
           assert.equal(computeAttrSpy.callCount, 0, 'attribute was cached (treated as resolved)');
         });
 
-        test('plain arrays of records are treated as resolved', function(assert) {
+        test('plain arrays of records are treated as resolved', function (assert) {
           let computeAttrSpy = this.sinon.spy(this.BaseSchema.prototype, this.methodName);
 
           this.book.set('chaptersAgain', [this.chapter1, this.chapter2]);
 
           assert.deepEqual(Object.keys(this.book._cache), ['chaptersAgain'], 'attribute is cached');
           assert.deepEqual(
-            this.book.get('chaptersAgain').map(x => x.get('id')),
+            this.book.get('chaptersAgain').map((x) => x.get('id')),
             ['isbn:9780439708180:chapter:1', 'isbn:9780439708180:chapter:2'],
             'attribute was set'
           );
           assert.equal(computeAttrSpy.callCount, 0, 'attribute was cached (treated as resolved)');
         });
 
-        test('empty plain arrays are treated as unresolved', function(assert) {
+        test('empty plain arrays are treated as unresolved', function (assert) {
           let computeAttrSpy = this.sinon.spy(this.BaseSchema.prototype, this.methodName);
 
           this.book.set('*mentionedDragons', []);
@@ -220,7 +220,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('primitive references are treated as unresolved', function(assert) {
+        test('primitive references are treated as unresolved', function (assert) {
           let computeAttrSpy = this.sinon.spy(this.BaseSchema.prototype, this.methodName);
 
           this.book.set('*someChapter', this.chapter1.id);
@@ -238,7 +238,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('primitive values are treated as unresolved', function(assert) {
+        test('primitive values are treated as unresolved', function (assert) {
           let computeAttrSpy = this.sinon.spy(this.BaseSchema.prototype, this.methodName);
 
           this.book.set('someChapter', this.chapter1.id);
@@ -256,7 +256,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('plain objects are treated as unresolved', function(assert) {
+        test('plain objects are treated as unresolved', function (assert) {
           this.book.set('metadata', {
             '*bestChapter': 'isbn:9780439708180:chapter:1',
           });
@@ -273,10 +273,10 @@ for (let testRun = 0; testRun < 2; testRun++) {
         });
       });
 
-      module('user impl', function(hooks) {
-        hooks.beforeEach(function() {
+      module('user impl', function (hooks) {
+        hooks.beforeEach(function () {
           let testContext = this;
-          this.isAttributeResolved = function() {
+          this.isAttributeResolved = function () {
             throw new Error('implement this in test');
           };
           this.owner.register(
@@ -326,7 +326,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('schema.isResolved can treat a set attribute as resolved', function(assert) {
+        test('schema.isResolved can treat a set attribute as resolved', function (assert) {
           this.isAttributeResolved = () => true;
           let computeAttrSpy = this.sinon.spy(this.BaseSchema.prototype, this.methodName);
 
@@ -361,7 +361,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
         });
 
-        test('schema.isResolved can treat a set attribute as unresolved', function(assert) {
+        test('schema.isResolved can treat a set attribute as unresolved', function (assert) {
           this.isAttributeResolved = () => false;
           let computeAttrSpy = this.sinon.spy(this.BaseSchema.prototype, this.methodName);
 

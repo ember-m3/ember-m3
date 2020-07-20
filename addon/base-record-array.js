@@ -138,7 +138,7 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     _registerWithObjects(objects) {
-      objects.forEach(object => {
+      objects.forEach((object) => {
         if (!object || !isResolvedValue(object)) {
           return;
         }

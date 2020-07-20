@@ -1,8 +1,8 @@
 import { module, test } from 'qunit';
 import { copy } from 'ember-m3/utils/copy';
 
-module('unit/utils/copy', function() {
-  test('copy deep copies', function(assert) {
+module('unit/utils/copy', function () {
+  test('copy deep copies', function (assert) {
     let orig = {
       a: '1',
       b: {
@@ -55,7 +55,7 @@ module('unit/utils/copy', function() {
     assert.strictEqual(acopy.b.foo, acopy.c.foo, 'graphs copied directly');
   });
 
-  test('copy deep copies top level object', function(assert) {
+  test('copy deep copies top level object', function (assert) {
     let orig = {};
     let dupe = copy(orig);
 
@@ -67,7 +67,7 @@ module('unit/utils/copy', function() {
     assert.notEqual(dupe, orig, 'copied top level object (null prototype)');
   });
 
-  test('deep copies cycles', function(assert) {
+  test('deep copies cycles', function (assert) {
     let orig = {
       a: { b: 'b' },
     };
@@ -80,7 +80,7 @@ module('unit/utils/copy', function() {
     assert.equal(dupe.a.b, 'b', 'value copied');
   });
 
-  test('copy shallow copies non-json values', function(assert) {
+  test('copy shallow copies non-json values', function (assert) {
     class SomethingOrOther {
       constructor() {
         this.x = 1;

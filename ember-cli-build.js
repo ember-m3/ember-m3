@@ -15,7 +15,7 @@ function hasDataPackage() {
   }
 }
 
-module.exports = function(defaults) {
+module.exports = function (defaults) {
   // this ensures that the same `@ember-data/canary-features` processing that the various
   // ember-data addons do is done in the dummy app
 

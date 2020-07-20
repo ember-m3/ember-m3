@@ -21,7 +21,7 @@ class TestSchema extends DefaultSchema {
   }
   computeAttribute(key, value, modelName, schemaInterface) {
     if (Array.isArray(value)) {
-      let nested = value.map(v => {
+      let nested = value.map((v) => {
         if (typeof v === 'object') {
           return schemaInterface.nested(computeNestedModel(key, v, modelName, schemaInterface));
         } else {
@@ -51,10 +51,10 @@ class TestSchemaOldHooks extends DefaultSchema {
 for (let testRun = 0; testRun < 2; testRun++) {
   module(
     `unit/model/tracked-array with ${testRun === 0 ? 'old hooks' : 'with computeAttribute'}`,
-    function(hooks) {
+    function (hooks) {
       setupTest(hooks);
 
-      hooks.beforeEach(function() {
+      hooks.beforeEach(function () {
         this.sinon = sinon.createSandbox();
         if (testRun === 0) {
           this.owner.register('service:m3-schema', TestSchemaOldHooks);
@@ -65,7 +65,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         this.store = this.owner.lookup('service:store');
       });
 
-      test('tracked, non-reference, arrays resolve new values', function(assert) {
+      test('tracked, non-reference, arrays resolve new values', function (assert) {
         let model = run(() =>
           this.store.push({
             data: {
@@ -112,7 +112,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         assert.equal(get(chapter2, 'name'), 'The Vanishing Glass', `new values can be resolved`);
       });
 
-      test('tracked nested array, non-reference, arrays resolve new values', function(assert) {
+      test('tracked nested array, non-reference, arrays resolve new values', function (assert) {
         let model = run(() =>
           this.store.push({
             data: {
@@ -178,7 +178,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         assert.equal(chapter1.get('name'), 'The Boy Who Lived', `added record at the start`);
       });
 
-      test('unloaded records are automatically removed from tracked arrays', function(assert) {
+      test('unloaded records are automatically removed from tracked arrays', function (assert) {
         let observerDidChange;
         let model = run(() =>
           this.store.push({
@@ -245,7 +245,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('embedded models can be added to tracked arrays', function(assert) {
+      test('embedded models can be added to tracked arrays', function (assert) {
         this.schema = this.owner.lookup('service:m3-schema');
         this.sinon.spy(this.schema, 'setAttribute');
 
@@ -310,7 +310,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('tracked array interop with Ember Arrays', function(assert) {
+      test('tracked array interop with Ember Arrays', function (assert) {
         let model = run(() =>
           this.store.push({
             data: {

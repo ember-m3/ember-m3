@@ -14,7 +14,7 @@ let computeAttributeReference = function computeAttributeReference(
   let refValue = schemaInterface.getAttr(`*${key}`);
   if (refValue !== undefined) {
     if (Array.isArray(refValue)) {
-      return refValue.map(id => ({ id, type: null }));
+      return refValue.map((id) => ({ id, type: null }));
     } else {
       return {
         id: refValue,
@@ -32,7 +32,7 @@ class TestSchema extends DefaultSchema {
   computeAttribute(key, value, modelName, schemaInterface) {
     let reference = computeAttributeReference(key, value, modelName, schemaInterface);
     if (Array.isArray(reference)) {
-      return schemaInterface.managedArray(reference.map(r => schemaInterface.reference(r)));
+      return schemaInterface.managedArray(reference.map((r) => schemaInterface.reference(r)));
     } else if (reference) {
       return schemaInterface.reference(reference);
     } else if (Array.isArray(value)) {
@@ -53,10 +53,10 @@ class TestSchemaOldHooks extends DefaultSchema {
 for (let testRun = 0; testRun < 2; testRun++) {
   module(
     `unit/model/dependent-keys  ${testRun === 0 ? 'old hooks' : 'with computeAttribute'}`,
-    function(hooks) {
+    function (hooks) {
       setupTest(hooks);
 
-      hooks.beforeEach(function() {
+      hooks.beforeEach(function () {
         this.sinon = sinon.createSandbox();
         this.store = this.owner.lookup('service:store');
         if (testRun === 0) {
@@ -66,7 +66,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         }
       });
 
-      test('when new payloads invalidate properties, their dependent properties are invalidated', function(assert) {
+      test('when new payloads invalidate properties, their dependent properties are invalidated', function (assert) {
         let model = run(() => {
           return this.store.push({
             data: {
@@ -108,12 +108,12 @@ for (let testRun = 0; testRun < 2; testRun++) {
         let otherBooks = get(model, 'otherBooksInSeries');
         let relatedBooks = get(model, 'relatedBooks');
         assert.deepEqual(
-          otherBooks.map(b => get(b, 'name')),
+          otherBooks.map((b) => get(b, 'name')),
           ['Harry Potter and the Chamber of Secrets', 'Harry Potter and the Prisoner of Azkaban'],
           'attr array ref is array-like'
         );
         assert.deepEqual(
-          relatedBooks.map(b => get(b, 'name')),
+          relatedBooks.map((b) => get(b, 'name')),
           ['Fantastic Beasts and Where to Find Them'],
           'attr array ref is array-like'
         );
@@ -161,18 +161,18 @@ for (let testRun = 0; testRun < 2; testRun++) {
         otherBooks = get(model, 'otherBooksInSeries');
         relatedBooks = get(model, 'relatedBooks');
         assert.deepEqual(
-          otherBooks.map(b => get(b, 'name')),
+          otherBooks.map((b) => get(b, 'name')),
           ['Harry Potter and the Goblet of Fire', 'Harry Potter and the Order of the Phoenix'],
           'attr ref is updated upon reload'
         );
         assert.deepEqual(
-          relatedBooks.map(b => get(b, 'name')),
+          relatedBooks.map((b) => get(b, 'name')),
           ['Fantastic Beasts and Where to Find Them 2'],
           'attr array is updated upon reload'
         );
       });
 
-      test('properties requested in computeAttributeRef are treated as dependent even when initially absent', function(assert) {
+      test('properties requested in computeAttributeRef are treated as dependent even when initially absent', function (assert) {
         let model = run(() => {
           return this.store.push({
             data: {
@@ -221,7 +221,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('Accessing a property twice while resolving it does not cause errors', function(assert) {
+      test('Accessing a property twice while resolving it does not cause errors', function (assert) {
         assert.expect(5);
 
         this.owner.register(

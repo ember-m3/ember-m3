@@ -56,7 +56,7 @@ export default class M3DebugAdapter extends DataAdapter {
 
       return this._stringifyNestedValues(objectJSON);
     } else if (isArray(attributeValue) && get(attributeValue, 'length')) {
-      return attributeValue.map(nestedAttributeValue =>
+      return attributeValue.map((nestedAttributeValue) =>
         this._getRecordValues(nestedAttributeValue)
       );
     } else if (isArray(attributeValue) && !get(attributeValue, 'length')) {
@@ -91,7 +91,7 @@ export default class M3DebugAdapter extends DataAdapter {
     let modelTypes = [];
     let allModelNames = seenTypesPerStore.get(this.store);
 
-    allModelNames.forEach(name => {
+    allModelNames.forEach((name) => {
       // we need to keep klass even though it is not technically needed/correct
       // because both Ember Inspector and Ember's generic debug adapter expect this data structure
       // and use klass to generate objectIds and such
@@ -157,8 +157,8 @@ export default class M3DebugAdapter extends DataAdapter {
       return columns;
     }
 
-    records.forEach(record =>
-      record.eachAttribute(name => {
+    records.forEach((record) =>
+      record.eachAttribute((name) => {
         if (count++ > this.attributeLimit) {
           return false;
         }
@@ -201,7 +201,7 @@ export default class M3DebugAdapter extends DataAdapter {
     let count = 0;
     let columnValues = { id: get(record, 'id') };
 
-    record.eachAttribute(key => {
+    record.eachAttribute((key) => {
       if (count++ > this.attributeLimit) {
         return false;
       }
@@ -271,12 +271,12 @@ export default class M3DebugAdapter extends DataAdapter {
     this.typesUpdatedCallback = typesUpdated;
     this.localReleaseMethods = A();
 
-    modelTypes.forEach(type => this.seenTypesInAdapter.add(type.name));
-    let typesToSend = modelTypes.map(type => this.processAddedType(type.name));
+    modelTypes.forEach((type) => this.seenTypesInAdapter.add(type.name));
+    let typesToSend = modelTypes.map((type) => this.processAddedType(type.name));
     typesAdded(typesToSend);
 
     let release = () => {
-      this.localReleaseMethods.forEach(fn => fn());
+      this.localReleaseMethods.forEach((fn) => fn());
       this.releaseMethods.removeObject(release);
 
       // Clear out the model types in seenTypesInAdapter so they can be added again if the inspector is re-opened
