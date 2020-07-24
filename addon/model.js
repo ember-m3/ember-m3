@@ -407,7 +407,7 @@ export default class MegamorphicModel extends EmberObject {
         return get(this, key);
       }
 
-      let defaultValue = this._schema.getDefaultValue(this._modelName, key);
+      let defaultValue = this._getDefaultValue(this._modelName, key);
 
       // If default value is not defined, resolve the key for reference
       if (defaultValue !== undefined) {
@@ -427,8 +427,12 @@ export default class MegamorphicModel extends EmberObject {
     ));
   }
 
+  _getDefaultValue(modelName, key) {
+    return this._schema.getDefaultValue(modelName, key);
+  }
+
   _transformValue(modelName, key, rawValue) {
-    return this._schema.transformValue(modelName, key, rawValue);
+    return this._schema.transformValue(modelName, key, rawValue, this._topModel);
   }
 
   get id() {
