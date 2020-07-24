@@ -432,7 +432,7 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   _transformValue(modelName, key, rawValue) {
-    return this._schema.transformValue(modelName, key, rawValue, this._topModel);
+    return this._schema.transformValue(modelName, key, rawValue);
   }
 
   get id() {
