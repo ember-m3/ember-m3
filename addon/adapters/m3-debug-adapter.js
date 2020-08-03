@@ -33,7 +33,6 @@ export default class M3DebugAdapter extends DataAdapter {
     @return Object with stringified values as needed
   */
   _stringifyNestedValues(nestedJSON) {
-    nestedJSON = JSON.parse(JSON.stringify(nestedJSON));
     for (let key in nestedJSON) {
       const nestedJSONValue = nestedJSON[key];
       if (nestedJSONValue instanceof Object) {
