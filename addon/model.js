@@ -8,7 +8,6 @@ import { readOnly } from '@ember/object/computed';
 import { recordDataToRecordMap } from './utils/caches';
 
 import { recordDataFor } from './-private';
-import { OWNER_KEY } from './util';
 import { resolveValue } from './resolve-attribute-util';
 import { computeAttributeReference, computeAttribute } from './utils/resolve';
 import {
@@ -454,11 +453,6 @@ export default class MegamorphicModel extends EmberObject {
 
   // TODO: drop change events for unretrieved properties
   setUnknownProperty(key, value) {
-    if (key === OWNER_KEY) {
-      // 2.12 support; later versions avoid this call entirely
-      return;
-    }
-
     if (!this._init) {
       initProperites[key] = value;
       return;
