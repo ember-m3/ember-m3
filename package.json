@@ -94,7 +94,7 @@
     "ember-lodash": "^4.17.5",
     "ember-qunit": "^4.6.0",
     "ember-qunit-assert-helpers": "^0.2.1",
-    "ember-resolver": "^8.0.0",
+    "ember-resolver": "^8.0.2",
     "ember-sinon": "^5.0.0",
     "ember-source": "^3.20.3",
     "ember-source-channel-url": "^2.0.1",
