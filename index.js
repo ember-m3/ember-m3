@@ -1,5 +1,6 @@
 /* eslint-env node */
 'use strict';
+const semver = require('semver');
 const Funnel = require('broccoli-funnel');
 const getDebugMacros = require('./src/debug-macros').debugMacros;
 
@@ -28,9 +29,15 @@ module.exports = {
   included() {
     this._super.included.call(this, ...arguments);
 
-    assertValidEmberData(this);
-
     this.configureBabelOptions();
+
+    let emberDataMetaPackage = this.project.addons.find((a) => a.name === 'ember-data');
+
+    if (emberDataMetaPackage === undefined) {
+      assertValidEmberData(this);
+    } else if (semver.lt(emberDataMetaPackage.pkg.version, '3.16.0')) {
+      throw new Error('[ember-m3] requires ember-data@3.16.0 or higher.');
+    }
   },
 
   treeForAddon(tree) {
