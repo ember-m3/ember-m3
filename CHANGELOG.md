@@ -1,6 +1,23 @@
+## v3.0.2 (2020-08-20)
+
+#### :rocket: Enhancement
+
+- [#837](https://github.com/hjdivad/ember-m3/pull/837) Avoid checking project dependencies more than once per project ([@hjdivad](https://github.com/hjdivad))
+
+#### Committers: 2
+
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
 ## v3.0.1 (2020-08-20)
 
+#### :bug: Bug Fix
+
 Avoid `checker.check` when project depends on ember-data for a performance gain
+
+#### Committers: 1
+
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
 
 ## v3.0.0 (2020-06-09)
 
