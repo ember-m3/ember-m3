@@ -1,3 +1,7 @@
+## v3.0.1 (2020-08-20)
+
+Avoid `checker.check` when project depends on ember-data for a performance gain
+
 ## v3.0.0 (2020-06-09)
 
 #### :boom: Breaking Change
