@@ -63,7 +63,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
     hooks.beforeEach(function () {
       this.sinon = sinon.createSandbox();
 
-      let globalCache = new Object(null);
+      let globalCache = Object.create(null);
       if (testRun === 0) {
         this.owner.register('service:m3-schema', TestSchemaOldHooks);
       } else if (testRun === 1) {
