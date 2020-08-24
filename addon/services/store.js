@@ -82,12 +82,12 @@ export default class M3Store extends Store {
 
     this._modifiedInternalModelMapProto = undefined;
     if (CUSTOM_MODEL_CLASS) {
-      this._globalM3RecordDataCache = new Object(null);
+      this._globalM3RecordDataCache = Object.create(null);
       this._recordDataToRecordMap = recordDataToRecordMap;
       let defaultSchema = this.getSchemaDefinitionService();
       this.registerSchemaDefinitionService(new SchemaDefinition(this, defaultSchema));
     } else {
-      this._globalM3Cache = new Object(null);
+      this._globalM3Cache = Object.create(null);
     }
   }
 
