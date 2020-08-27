@@ -57,9 +57,15 @@ export default class QueryCache {
             cacheKey,
             'queryURL'
           );
-          if (payload === null || payload === undefined) {
+          if (
+            payload === null ||
+            payload === undefined ||
+            typeof payload !== 'object' ||
+            Array.isArray(payload)
+          ) {
             return payload;
           }
+
           let result = this._createResult(payload, { url, params, method, cacheKey }, array);
           // Add result to reverseCache.
           if (cacheKey) {
