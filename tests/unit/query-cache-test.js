@@ -345,6 +345,40 @@ module('unit/query-cache', function(hooks) {
     });
   });
 
+  test('.queryURL can resolve with primitives', async function(assert) {
+    this.adapterAjax.returns(resolve(123));
+    let result = await this.queryCache.queryURL('/uwot', { reload: true });
+    assert.strictEqual(result, 123, 'queryURL → number');
+
+    this.adapterAjax.returns(resolve(false));
+    result = await this.queryCache.queryURL('/uwot', { reload: true });
+    assert.strictEqual(result, false, 'queryURL → boolean');
+
+    this.adapterAjax.returns(resolve('amazing'));
+    result = await this.queryCache.queryURL('/uwot', { reload: true });
+    assert.strictEqual(result, 'amazing', 'queryURL → string');
+
+    this.adapterAjax.returns(resolve(null));
+    result = await this.queryCache.queryURL('/uwot', { reload: true });
+    assert.strictEqual(result, null, 'queryURL → null');
+
+    this.adapterAjax.returns(resolve([123]));
+    result = await this.queryCache.queryURL('/uwot', { reload: true });
+    assert.deepEqual(result, [123], 'queryURL → [number]');
+
+    this.adapterAjax.returns(resolve([false]));
+    result = await this.queryCache.queryURL('/uwot', { reload: true });
+    assert.deepEqual(result, [false], 'queryURL → [boolean]');
+
+    this.adapterAjax.returns(resolve(['amazing']));
+    result = await this.queryCache.queryURL('/uwot', { reload: true });
+    assert.deepEqual(result, ['amazing'], 'queryURL → [string]');
+
+    this.adapterAjax.returns(resolve([null]));
+    result = await this.queryCache.queryURL('/uwot', { reload: true });
+    assert.deepEqual(result, [null], 'queryURL → [null]');
+  });
+
   test('.queryURL can resolve with a record array of models', function(assert) {
     let payload = {
       data: [
