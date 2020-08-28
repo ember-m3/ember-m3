@@ -1,3 +1,13 @@
+## v3.0.3 (2020-08-28)
+
+#### :rocket: Enhancement
+
+- [#852](https://github.com/hjdivad/ember-m3/pull/852) queryURL can resolve primitive values ([@hjdivad](https://github.com/hjdivad))
+
+#### Committers: 1
+
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+
 ## v3.0.2 (2020-08-20)
 
 #### :rocket: Enhancement
