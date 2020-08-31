@@ -1325,12 +1325,20 @@
     ember-cli-babel "^7.18.0"
     ember-cli-typescript "^3.1.3"
 
-"@ember-data/debug@^3.20.0":
-  version "3.20.0"
-  resolved "https://registry.yarnpkg.com/@ember-data/debug/-/debug-3.20.0.tgz#84cf51e162d253d28926f0770b50c9c943ca0f63"
-  integrity sha512-HSDDheFdxdLLb4vD6SrbYiwG1PI2MR3FtNQOSIi62HePxrMlM+Apa489TsTB4SAkimxWJ27yk7s018aGJ+1Gwg==
+"@ember-data/canary-features@3.20.1":
+  version "3.20.1"
+  resolved "https://registry.yarnpkg.com/@ember-data/canary-features/-/canary-features-3.20.1.tgz#b3e9d7e75ad11ea74aadf39eb76f6896d549bc4b"
+  integrity sha512-owTZwryXl/Csx9/rjTMNis5v43BPu+10v7OdqyL5d4RnXtji/0BUblw/3w7elM116GDzVvc4999jCOBwkD5vpA==
   dependencies:
-    "@ember-data/private-build-infra" "3.20.0"
+    ember-cli-babel "^7.18.0"
+    ember-cli-typescript "^3.1.3"
+
+"@ember-data/debug@^3.20.1":
+  version "3.20.1"
+  resolved "https://registry.yarnpkg.com/@ember-data/debug/-/debug-3.20.1.tgz#ee65ee4ab9222ba0a044d0aa7545910b86abdf26"
+  integrity sha512-Q5MIcCHLrPosNpBu/10fzcc/muYo0KRhaBasL9vQCxd2qSHC/gt7UH54HxgJGpY+r3uoRmeV+IUYn66vHWTg8A==
+  dependencies:
+    "@ember-data/private-build-infra" "3.20.1"
     "@ember/edition-utils" "^1.2.0"
     ember-cli-babel "^7.18.0"
     ember-cli-test-info "^1.0.0"
@@ -1359,6 +1367,38 @@
   dependencies:
     "@babel/plugin-transform-block-scoping" "^7.8.3"
     "@ember-data/canary-features" "3.20.0"
+    "@ember/edition-utils" "^1.2.0"
+    babel-plugin-debug-macros "^0.3.3"
+    babel-plugin-filter-imports "^4.0.0"
+    babel6-plugin-strip-class-callcheck "^6.0.0"
+    broccoli-debug "^0.6.5"
+    broccoli-file-creator "^2.1.1"
+    broccoli-funnel "^2.0.2"
+    broccoli-merge-trees "^4.2.0"
+    broccoli-rollup "^4.1.1"
+    calculate-cache-key-for-tree "^2.0.0"
+    chalk "^4.0.0"
+    ember-cli-babel "^7.18.0"
+    ember-cli-path-utils "^1.0.0"
+    ember-cli-string-utils "^1.1.0"
+    ember-cli-typescript "^3.1.3"
+    ember-cli-version-checker "^5.1.1"
+    esm "^3.2.25"
+    git-repo-info "^2.1.1"
+    glob "^7.1.6"
+    npm-git-info "^1.0.3"
+    rimraf "^3.0.2"
+    rsvp "^4.8.5"
+    semver "^7.1.3"
+    silent-error "^1.1.1"
+
+"@ember-data/private-build-infra@3.20.1":
+  version "3.20.1"
+  resolved "https://registry.yarnpkg.com/@ember-data/private-build-infra/-/private-build-infra-3.20.1.tgz#ae674dbd85fb1c702520975c80c15a3201229e78"
+  integrity sha512-JgUirXnCi7ztOuYUMkHVXC3n7tiJAzfDDTUsPBlUt3ui/xqKgWhmFHglJ9Y0FywtLkYT7CvrkkqRqe9d++3Eig==
+  dependencies:
+    "@babel/plugin-transform-block-scoping" "^7.8.3"
+    "@ember-data/canary-features" "3.20.1"
     "@ember/edition-utils" "^1.2.0"
     babel-plugin-debug-macros "^0.3.3"
     babel-plugin-filter-imports "^4.0.0"
