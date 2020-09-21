@@ -1344,14 +1344,14 @@
     ember-cli-test-info "^1.0.0"
     ember-cli-typescript "^3.1.3"
 
-"@ember-data/model@^3.21.0":
-  version "3.21.0"
-  resolved "https://registry.yarnpkg.com/@ember-data/model/-/model-3.21.0.tgz#bbb2d891158bb4d376097d7891f8ffa8de1ef015"
-  integrity sha512-NAygxJNk3WWKLbUGZ/6H3k4cFEzT/JQ/dR5Uryt2N7YOVJ9aKssgYpZ7NONWxzIhlNMAM8bIhq1zdaFvXdPp+w==
+"@ember-data/model@^3.21.1":
+  version "3.21.1"
+  resolved "https://registry.yarnpkg.com/@ember-data/model/-/model-3.21.1.tgz#8dde794fb8934bd2639a43763285a5ca7d863991"
+  integrity sha512-+UwR6wt086hSFPLC2gya5HuiZIIZ4Kec/UoC64IEgc7kYHeND9mHiFKjq4N0k5w4lFgITeuYDBf/a90GQ9Y+/Q==
   dependencies:
-    "@ember-data/canary-features" "3.21.0"
-    "@ember-data/private-build-infra" "3.21.0"
-    "@ember-data/store" "3.21.0"
+    "@ember-data/canary-features" "3.21.1"
+    "@ember-data/private-build-infra" "3.21.1"
+    "@ember-data/store" "3.21.1"
     "@ember/edition-utils" "^1.2.0"
     ember-cli-babel "^7.18.0"
     ember-cli-string-utils "^1.1.0"
@@ -1429,19 +1429,7 @@
   resolved "https://registry.yarnpkg.com/@ember-data/rfc395-data/-/rfc395-data-0.0.4.tgz#ecb86efdf5d7733a76ff14ea651a1b0ed1f8a843"
   integrity sha512-tGRdvgC9/QMQSuSuJV45xoyhI0Pzjm7A9o/MVVA3HakXIImJbbzx/k/6dO9CUEQXIyS2y0fW6C1XaYOG7rY0FQ==
 
-"@ember-data/store@3.21.0":
-  version "3.21.0"
-  resolved "https://registry.yarnpkg.com/@ember-data/store/-/store-3.21.0.tgz#3a93a87cdbae37757bc9e009fc654b74b17ccf70"
-  integrity sha512-oDoHEw+6fZV7NKq+Kg75KoP6g3RHWF/MHecqqLA8vOanKC2oKMxghFhZJ9YzWuhs9PmmYyqjfFBr10NF6g9CXg==
-  dependencies:
-    "@ember-data/canary-features" "3.21.0"
-    "@ember-data/private-build-infra" "3.21.0"
-    ember-cli-babel "^7.18.0"
-    ember-cli-path-utils "^1.0.0"
-    ember-cli-typescript "^3.1.3"
-    heimdalljs "^0.3.0"
-
-"@ember-data/store@^3.21.1":
+"@ember-data/store@3.21.1", "@ember-data/store@^3.21.1":
   version "3.21.1"
   resolved "https://registry.yarnpkg.com/@ember-data/store/-/store-3.21.1.tgz#982bb9a077f0000c9d9289ea9f2c3126baff1735"
   integrity sha512-Pdew7/XWTSuE22Kss9jca3q9TM72NQQN3K/bz5inBD9ct5bd6DNvbFYz/Y2wxQzbyQ5VvMfg/2kNlv+q8iYPwg==
