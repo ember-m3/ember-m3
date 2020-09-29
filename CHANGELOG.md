@@ -1,3 +1,13 @@
+## v3.0.4 (2020-09-29)
+
+#### :bug: Bug Fix
+
+- [#892](https://github.com/hjdivad/ember-m3/pull/892) Fix keeping embedded records in sync inside projections ([@igorT](https://github.com/igorT))
+
+#### Committers: 1
+
+- Igor Terzic ([@igorT](https://github.com/igorT))
+
 ## v3.0.3 (2020-08-28)
 
 #### :rocket: Enhancement
