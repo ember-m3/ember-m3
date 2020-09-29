@@ -59,6 +59,9 @@ module('unit/projection', function(hooks) {
             id: parts[2],
           };
         } else if (Array.isArray(value)) {
+          if (key === 'similarAuthors') {
+            return;
+          }
           return value
             .map(v => {
               let type = null;
@@ -78,6 +81,9 @@ module('unit/projection', function(hooks) {
       }
 
       computeNestedModel(key, value, modelName) {
+        if (Array.isArray(value)) {
+          return;
+        }
         if (!value || typeof value !== 'object' || value.constructor === Date) {
           return null;
         }
@@ -115,8 +121,16 @@ module('unit/projection', function(hooks) {
           otherBooksInSeries: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
         },
         // if you want to project an embedded model then it must have a type
-        //  computedEmbeddedType
-        attributes: ['title', 'author', 'chapter-1', 'year', 'publisher', 'otherBooksInSeries'],
+        // computedEmbeddedType
+        attributes: [
+          'title',
+          'author',
+          'chapter-1',
+          'year',
+          'publisher',
+          'otherBooksInSeries',
+          'similarAuthors',
+        ],
       },
       [NORM_PUBLISHER_CLASS]: {},
       // this schema must come with the parent schema
@@ -509,6 +523,54 @@ module('unit/projection', function(hooks) {
       NEW_AUTHOR_NAME,
       'excerpt has the correct author.name'
     );
+  });
+
+  test('Updating an embedded object property to null can still be updated again', function(assert) {
+    const BOOK_ID = 'isbn:9780439708181';
+    const AUTHOR_NAME = 'Lewis Carroll';
+    const NEW_AUTHOR_NAME = 'J.K. Rowling';
+
+    let { store } = this;
+
+    let projectedBook;
+
+    run(() => {
+      store.push({
+        data: {
+          id: BOOK_ID,
+          type: BOOK_CLASS_PATH,
+          attributes: {
+            author: {
+              name: AUTHOR_NAME,
+            },
+            similarAuthors: [{ type: 'someType', name: NEW_AUTHOR_NAME }],
+          },
+        },
+      });
+
+      projectedBook = store.push({
+        data: {
+          id: BOOK_ID,
+          type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+          attributes: {},
+        },
+      });
+    });
+
+    let similarAuthors = projectedBook.get('similarAuthors');
+    assert.equal(
+      similarAuthors.objectAt(0).get('name'),
+      NEW_AUTHOR_NAME,
+      'Starts off with correct author name'
+    );
+    similarAuthors.removeAt(0);
+    similarAuthors.pushObject({
+      type: 'someType',
+      location: 'San Francisco',
+    });
+    let newAuthor = projectedBook.get('similarAuthors').objectAt(0);
+    assert.equal(newAuthor.get('location'), 'San Francisco', 'Has the correct new property');
+    assert.equal(newAuthor.get('name'), null, 'Does not have the old data');
   });
 
   module('property notifications on top-level attributes', function(hooks) {
