@@ -968,6 +968,10 @@ export default class M3RecordData {
    * @param {string} addLength
    */
   _resizeChildRecordData(key, idx, removeLength, addLength) {
+    if (this._baseRecordData) {
+      this._baseRecordData._resizeChildRecordData(key, idx, removeLength, addLength);
+    }
+
     const childRecordDatas = this._childRecordDatas && this._childRecordDatas[key];
     if (!childRecordDatas) {
       return;
