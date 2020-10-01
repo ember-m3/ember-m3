@@ -225,7 +225,7 @@ normalization to JSON API.
 
 When `cacheKey` is provided, the response is cached under `cacheKey`.
 
-If the response contains an model with an id, that model will be cached under that id as
+If the response contains a model with an id, that model will be cached under that id as
 well as under the `cacheKey`. The entry under the model's id and under the `cacheKey` will
 point to the same model. Changes to the model will be reflected in both the models
 retrieved by `cacheKey` and the models retreived by the model's id.
@@ -269,7 +269,7 @@ to create models and relationships within your app code.
 
 ##### Cache Eviction
 
-Because models (or `RecordArray`s of models are cached) the cache can be emptied
+Because models (or `RecordArray`s of models) are cached, the cache can be emptied
 automatically when the models are unloaded. In the case of `RecordArray`s of
 models, the entire cache entry is evicted if _any_ of the member models is
 unloaded.
