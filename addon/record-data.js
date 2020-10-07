@@ -1,6 +1,6 @@
 import { isEqual, isNone } from '@ember/utils';
 import { dasherize } from '@ember/string';
-import { assign, merge } from '@ember/polyfills';
+import { assign } from '@ember/polyfills';
 import { copy } from './utils/copy';
 import { assert } from '@ember/debug';
 import Ember from 'ember';
@@ -8,8 +8,6 @@ import { recordDataToRecordMap, recordDataToQueryCache } from './utils/caches';
 import { computeNestedModel, computeAttribute } from './utils/resolve';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import { schemaTypesInfo, NESTED, REFERENCE, MANAGED_ARRAY } from './utils/schema-types-info';
-
-const emberAssign = assign || merge;
 
 function pushDataAndNotify(recordData, updates) {
   recordData.pushData({ attributes: updates }, true, true);
@@ -384,7 +382,7 @@ export default class M3RecordData {
     // We need to sync nested models in case of partial updates from server and local.
     this._syncNestedModelUpdates(attributes);
 
-    emberAssign(this._data, this._inFlightAttributes);
+    assign(this._data, this._inFlightAttributes);
     this._inFlightAttributes = null;
 
     let changedKeys;
@@ -660,7 +658,7 @@ export default class M3RecordData {
     let localChanges = this._attributes;
     let inFlightData = this._inFlightAttributes;
     // TODO: test that we copy here
-    let newData = emberAssign(copy(inFlightData), localChanges);
+    let newData = assign(copy(inFlightData), localChanges);
     let _changedAttributes = Object.create(null);
     let newDataKeys = Object.keys(newData);
 
