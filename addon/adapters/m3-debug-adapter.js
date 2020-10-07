@@ -25,7 +25,7 @@ export default class M3DebugAdapter extends DataAdapter {
   }
 
   /**
-    Iterates through objects and if there is a nested object or array, stringifies the value
+    Clones the nestedJSON to avoid mutating references then iterates through objects and if there is a nested object or array, stringifies the value
     This is needed because Ember Inspector does not support data structures more than two levels deep
     @private
     @method _stringifyNestedValues
@@ -33,6 +33,7 @@ export default class M3DebugAdapter extends DataAdapter {
     @return Object with stringified values as needed
   */
   _stringifyNestedValues(nestedJSON) {
+    nestedJSON = JSON.parse(JSON.stringify(nestedJSON));
     for (let key in nestedJSON) {
       const nestedJSONValue = nestedJSON[key];
       if (nestedJSONValue instanceof Object) {
