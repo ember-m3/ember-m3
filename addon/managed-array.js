@@ -1,4 +1,3 @@
-import { get } from '@ember/object';
 import { resolveValue } from './resolve-attribute-util';
 import { isResolvedValue } from './utils/resolve';
 import BaseRecordArray from './base-record-array';
@@ -19,10 +18,10 @@ if (CUSTOM_MODEL_CLASS) {
   ManagedArray = class ManagedArray extends BaseRecordArray {
     init() {
       super.init(...arguments);
-      this._key = get(this, 'key');
-      this._modelName = get(this, 'modelName');
-      this._schema = get(this, 'schema');
-      this._record = get(this, 'model');
+      this._key = this.key;
+      this._modelName = this.modelName;
+      this._schema = this.schema;
+      this._record = this.model;
       this._resolved = true;
     }
 
@@ -115,11 +114,11 @@ if (CUSTOM_MODEL_CLASS) {
   ManagedArray = class ManagedArray extends BaseRecordArray {
     init() {
       super.init(...arguments);
-      this._key = get(this, 'key');
-      this._modelName = get(this, 'modelName');
-      this._store = get(this, 'store');
-      this._schema = get(this, 'schema');
-      this._record = get(this, 'model');
+      this._key = this.key;
+      this._modelName = this.modelName;
+      this._store = this.store;
+      this._schema = this.schema;
+      this._record = this.model;
     }
 
     get value() {

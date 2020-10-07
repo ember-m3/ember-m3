@@ -56,11 +56,11 @@ export default class M3DebugAdapter extends DataAdapter {
       const objectJSON = attributeValue.debugJSON();
 
       return this._stringifyNestedValues(objectJSON);
-    } else if (isArray(attributeValue) && get(attributeValue, 'length')) {
+    } else if (isArray(attributeValue) && attributeValue.lenth) {
       return attributeValue.map((nestedAttributeValue) =>
         this._getRecordValues(nestedAttributeValue)
       );
-    } else if (isArray(attributeValue) && !get(attributeValue, 'length')) {
+    } else if (isArray(attributeValue) && !attributeValue.length) {
       return [];
     } else if (attributeValue instanceof Object) {
       const objectJSON = JSON.parse(JSON.stringify(attributeValue));
@@ -121,7 +121,7 @@ export default class M3DebugAdapter extends DataAdapter {
 
     return {
       name,
-      count: get(records, 'length'),
+      count: records.length,
       columns: this.columnsForType(records),
       // We pass in model name into the field object, even though it is a misnomer
       // because Ember Inspector will use this value to generate a guid
@@ -150,7 +150,7 @@ export default class M3DebugAdapter extends DataAdapter {
     };
     let columns = [];
 
-    if (!get(records, 'length')) {
+    if (!records.length) {
       for (let key in columnsMap) {
         columns.push(columnsMap[key]);
       }
@@ -187,7 +187,7 @@ export default class M3DebugAdapter extends DataAdapter {
      so it should update when new records are added/removed
   */
   getRecords(type) {
-    return this.get('store').peekAll(type);
+    return this.store.peekAll(type);
   }
 
   /**
@@ -200,7 +200,7 @@ export default class M3DebugAdapter extends DataAdapter {
   */
   getRecordColumnValues(record) {
     let count = 0;
-    let columnValues = { id: get(record, 'id') };
+    let columnValues = { id: record.id };
 
     record.eachAttribute((key) => {
       if (count++ > this.attributeLimit) {

@@ -59,7 +59,7 @@ function computeAttributeReference(key, value, modelName, schemaInterface, model
 
         return {
           type,
-          id: get(v, 'id'),
+          id: v.id,
         };
       })
       .filter(Boolean);
@@ -365,7 +365,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
               .findRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, FETCHED_PROJECTION_ID)
               .then((model) => {
                 assert.equal(
-                  get(model, 'id'),
+                  model.id,
                   FETCHED_PROJECTION_ID,
                   'we retrieved the already fetched the model'
                 );
@@ -377,7 +377,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
             store
               .findRecord(BOOK_EXCERPT_PROJECTION_CLASS_PATH, UNFETCHED_PROJECTION_ID)
               .then((model) => {
-                assert.equal(get(model, 'id'), UNFETCHED_PROJECTION_ID, 'we fetched the model');
+                assert.equal(model.id, UNFETCHED_PROJECTION_ID, 'we fetched the model');
                 assert.equal(findRecordCallCount, 1, 'We made a single request');
               });
           });
@@ -397,7 +397,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           run(() => {
             store.findRecord(BOOK_CLASS_PATH, UNFETCHED_PROJECTION_ID).then((model) => {
               assert.equal(
-                get(model, 'id'),
+                model.id,
                 UNFETCHED_PROJECTION_ID,
                 'we retrieved the already fetched the model'
               );
@@ -407,7 +407,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
           run(() => {
             store.findRecord(BOOK_CLASS_PATH, FETCHED_PROJECTION_ID).then((model) => {
-              assert.equal(get(model, 'id'), FETCHED_PROJECTION_ID, 'we fetched the model');
+              assert.equal(model.id, FETCHED_PROJECTION_ID, 'we fetched the model');
               assert.equal(findRecordCallCount, 1, 'We made a single request');
             });
           });
@@ -454,8 +454,8 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
           let recordArray = store.peekAll(BOOK_CLASS_PATH);
 
-          assert.equal(get(recordArray, 'length'), 1, 'We only find one record');
-          assert.equal(get(recordArray.objectAt(0), 'id'), '1', 'We find the expected record');
+          assert.equal(recordArray.length, 1, 'We only find one record');
+          assert.equal(recordArray.objectAt(0).id, '1', 'We find the expected record');
         });
 
         test('Projections proxy whitelisted attributes to a base-record', function (assert) {
@@ -493,20 +493,16 @@ for (let testRun = 0; testRun < 2; testRun++) {
             });
           });
 
-          assert.equal(get(baseRecord, 'id'), BOOK_ID, 'base-record has the proper id');
-          assert.equal(get(baseRecord, 'author'), BOOK_AUTHOR, 'base-record has author');
-          assert.equal(get(baseRecord, 'title'), BOOK_TITLE, 'base-record has title');
-          assert.equal(
-            get(baseRecord, 'description'),
-            BOOK_DESCRIPTION,
-            'base-record has description'
-          );
+          assert.equal(baseRecord.id, BOOK_ID, 'base-record has the proper id');
+          assert.equal(baseRecord.author, BOOK_AUTHOR, 'base-record has author');
+          assert.equal(baseRecord.title, BOOK_TITLE, 'base-record has title');
+          assert.equal(baseRecord.description, BOOK_DESCRIPTION, 'base-record has description');
 
-          assert.equal(get(projectedRecord, 'id'), BOOK_ID, 'projected-record has the proper id');
-          assert.equal(get(projectedRecord, 'author'), BOOK_AUTHOR, 'projected-record has author');
-          assert.equal(get(projectedRecord, 'title'), BOOK_TITLE, 'projected-record has title');
+          assert.equal(projectedRecord.id, BOOK_ID, 'projected-record has the proper id');
+          assert.equal(projectedRecord.author, BOOK_AUTHOR, 'projected-record has author');
+          assert.equal(projectedRecord.title, BOOK_TITLE, 'projected-record has title');
           assert.equal(
-            get(projectedRecord, 'description'),
+            projectedRecord.description,
             undefined,
             'projected-record has no description as it is not whitelisted'
           );
@@ -720,23 +716,23 @@ for (let testRun = 0; testRun < 2; testRun++) {
           };
 
           // a whitelisted property
-          assert.equal(get(baseRecord, 'title'), BOOK_TITLE, 'base-record has the correct title');
-          assert.equal(get(projectedExcerpt, 'title'), BOOK_TITLE, 'excerpt has the correct title');
-          assert.equal(get(projectedPreview, 'title'), BOOK_TITLE, 'preview has the correct title');
+          assert.equal(baseRecord.title, BOOK_TITLE, 'base-record has the correct title');
+          assert.equal(projectedExcerpt.title, BOOK_TITLE, 'excerpt has the correct title');
+          assert.equal(projectedPreview.title, BOOK_TITLE, 'preview has the correct title');
 
           // a non-whitelisted property
           assert.equal(
-            get(baseRecord, 'description'),
+            baseRecord.description,
             BOOK_DESCRIPTION,
             'base-record has the correct description'
           );
           assert.equal(
-            get(projectedExcerpt, 'description'),
+            projectedExcerpt.description,
             undefined,
             'excerpt has no description since it is not whitelisted'
           );
           assert.equal(
-            get(projectedPreview, 'description'),
+            projectedPreview.description,
             undefined,
             'preview has no description since it is not whitelisted'
           );
@@ -747,9 +743,9 @@ for (let testRun = 0; testRun < 2; testRun++) {
           assert.equal(get(projectedPreview, 'chapter-1'), undefined, 'preview has no chapter-1');
 
           // a whitelisted property that won't be updated
-          assert.equal(get(baseRecord, 'year'), BOOK_YEAR, 'base-record has the correct year');
-          assert.equal(get(projectedExcerpt, 'year'), BOOK_YEAR, 'excerpt has the correct year');
-          assert.equal(get(projectedPreview, 'year'), BOOK_YEAR, 'preview has the correct year');
+          assert.equal(baseRecord.year, BOOK_YEAR, 'base-record has the correct year');
+          assert.equal(projectedExcerpt.year, BOOK_YEAR, 'excerpt has the correct year');
+          assert.equal(projectedPreview.year, BOOK_YEAR, 'preview has the correct year');
 
           assert.deepEqual(
             baseRecordWatcher.counts,
@@ -803,9 +799,9 @@ for (let testRun = 0; testRun < 2; testRun++) {
           previewWatcher.unwatch();
 
           // set to an existing property
-          assert.equal(get(baseRecord, 'title'), NEW_TITLE, 'base-record has the correct title');
-          assert.equal(get(projectedExcerpt, 'title'), NEW_TITLE, 'excerpt has the correct title');
-          assert.equal(get(projectedPreview, 'title'), NEW_TITLE, 'preview has the correct title');
+          assert.equal(baseRecord.title, NEW_TITLE, 'base-record has the correct title');
+          assert.equal(projectedExcerpt.title, NEW_TITLE, 'excerpt has the correct title');
+          assert.equal(projectedPreview.title, NEW_TITLE, 'preview has the correct title');
 
           // set to a previously absent property
           assert.equal(
@@ -825,18 +821,18 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
 
           // a whitelisted non-updated property
-          assert.equal(get(baseRecord, 'year'), BOOK_YEAR, 'base-record has the correct year');
-          assert.equal(get(projectedExcerpt, 'year'), BOOK_YEAR, 'excerpt has the correct year');
-          assert.equal(get(projectedPreview, 'year'), BOOK_YEAR, 'preview has the correct year');
+          assert.equal(baseRecord.year, BOOK_YEAR, 'base-record has the correct year');
+          assert.equal(projectedExcerpt.year, BOOK_YEAR, 'excerpt has the correct year');
+          assert.equal(projectedPreview.year, BOOK_YEAR, 'preview has the correct year');
 
           // a non-whitelisted property
           assert.equal(
-            get(projectedExcerpt, 'description'),
+            projectedExcerpt.description,
             undefined,
             'excerpt has no description since it is not whitelisted'
           );
           assert.equal(
-            get(projectedPreview, 'description'),
+            projectedPreview.description,
             undefined,
             'preview has no description since it is not whitelisted'
           );
@@ -864,7 +860,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
             'Afterwards we have dirtied baseRecord.description'
           );
           assert.equal(
-            get(baseRecord, 'description'),
+            baseRecord.description,
             NEW_DESCRIPTION,
             'base-record has the correct description'
           );
@@ -898,7 +894,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
             'Afterwards we have dirtied baseRecord.description'
           );
           assert.equal(
-            get(baseRecord, 'description'),
+            baseRecord.description,
             NEW_DESCRIPTION,
             'base-record has the correct description'
           );
@@ -928,7 +924,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
             'Afterwards we have not dirtied baseRecord.description'
           );
           assert.equal(
-            get(baseRecord, 'description'),
+            baseRecord.description,
             BOOK_DESCRIPTION,
             'base-record has the correct description'
           );
@@ -957,7 +953,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
             'Afterwards we have not dirtied baseRecord.description'
           );
           assert.equal(
-            get(baseRecord, 'description'),
+            baseRecord.description,
             BOOK_DESCRIPTION,
             'base-record has the correct description'
           );
@@ -2272,17 +2268,17 @@ for (let testRun = 0; testRun < 2; testRun++) {
           });
 
           assert.deepEqual(
-            get(projectedPreview, 'otherBooksInSeries').map((book) => get(book, 'id')),
+            projectedPreview.otherBooksInSeries.map((book) => book.id),
             [],
             'Initial set of otherBookInSeries should be empty before mutating'
           );
 
           run(() => {
-            get(projectedPreview, 'otherBooksInSeries').replace(0, 1, [otherProjectedPreview]);
+            projectedPreview.otherBooksInSeries.replace(0, 1, [otherProjectedPreview]);
           });
 
           assert.deepEqual(
-            get(projectedPreview, 'otherBooksInSeries').map((book) => get(book, 'id')),
+            projectedPreview.otherBooksInSeries.map((book) => book.id),
             [OTHER_BOOK_ID],
             'Changes to otherBooksInSeries references should be reflected after mutation'
           );
@@ -2355,12 +2351,12 @@ for (let testRun = 0; testRun < 2; testRun++) {
           baseRecord.deleteRecord();
 
           assert.equal(
-            get(projectedPreview, 'isDeleted'),
+            projectedPreview.isDeleted,
             true,
             'Expected projection record to be deleted as well'
           );
           assert.equal(
-            get(projectedPreview, 'isDirty'),
+            projectedPreview.isDirty,
             true,
             'Expected projection record to be marked as dirty as well'
           );
@@ -2368,12 +2364,12 @@ for (let testRun = 0; testRun < 2; testRun++) {
           run(() => {
             baseRecord.save().then(() => {
               assert.equal(
-                get(projectedPreview, 'isDeleted'),
+                projectedPreview.isDeleted,
                 true,
                 'Expected the projection record to stay deleted'
               );
               assert.equal(
-                get(projectedPreview, 'isDirty'),
+                projectedPreview.isDirty,
                 false,
                 'Expected the projection record to have been committed'
               );
@@ -2387,45 +2383,41 @@ for (let testRun = 0; testRun < 2; testRun++) {
           projectedPreview.deleteRecord();
 
           assert.equal(
-            get(baseRecord, 'isDeleted'),
+            baseRecord.isDeleted,
             true,
             'Expected the base record to be deleted as well'
           );
           assert.equal(
-            get(baseRecord, 'isDirty'),
+            baseRecord.isDirty,
             true,
             'Expected the base record to be marked as dirty as well'
           );
           assert.equal(
-            get(projectedExcerpt, 'isDeleted'),
+            projectedExcerpt.isDeleted,
             true,
             'Expected the other projection record to be deleted as well'
           );
           assert.equal(
-            get(projectedExcerpt, 'isDirty'),
+            projectedExcerpt.isDirty,
             true,
             'Expected the other projection record to be marked as dirty as well'
           );
 
           run(() => {
             projectedPreview.save().then(() => {
+              assert.equal(baseRecord.isDeleted, true, 'Expected the base record to stay deleted');
               assert.equal(
-                get(baseRecord, 'isDeleted'),
-                true,
-                'Expected the base record to stay deleted'
-              );
-              assert.equal(
-                get(baseRecord, 'isDirty'),
+                baseRecord.isDirty,
                 false,
                 'Expected the base record to have been committed'
               );
               assert.equal(
-                get(projectedExcerpt, 'isDeleted'),
+                projectedExcerpt.isDeleted,
                 true,
                 'Expected the other projection record to stay deleted'
               );
               assert.equal(
-                get(projectedExcerpt, 'isDirty'),
+                projectedExcerpt.isDirty,
                 false,
                 'Expected the other projection record to have been committed'
               );
@@ -2445,11 +2437,11 @@ for (let testRun = 0; testRun < 2; testRun++) {
             this.store.hasRecordForId(BOOK_PREVIEW_PROJECTION_CLASS_PATH, BOOK_ID),
             false
           );
-          assert.equal(get(projectedPreview, 'isDestroyed'), true);
+          assert.equal(projectedPreview.isDestroyed, true);
 
           // baseRecord is still around
           assert.equal(this.store.hasRecordForId(BOOK_CLASS_PATH, BOOK_ID), true);
-          assert.equal(get(baseRecord, 'isDestroyed'), false);
+          assert.equal(baseRecord.isDestroyed, false);
           // TODO How can we check whether the underlying structure were not destroyed in the case of unload
           // Functionality can continue to work even in case of a bug
           if (CUSTOM_MODEL_CLASS) {
@@ -2457,20 +2449,20 @@ for (let testRun = 0; testRun < 2; testRun++) {
           } else {
             assert.equal(get(baseRecord, '_internalModel.isDestroyed'), false);
           }
-          assert.equal(get(baseRecord, 'title'), BOOK_TITLE);
+          assert.equal(baseRecord.title, BOOK_TITLE);
 
           // projectedExcerpt is still arond
           assert.equal(
             this.store.hasRecordForId(BOOK_EXCERPT_PROJECTION_CLASS_PATH, BOOK_ID),
             true
           );
-          assert.equal(get(projectedExcerpt, 'isDestroyed'), false);
+          assert.equal(projectedExcerpt.isDestroyed, false);
           if (CUSTOM_MODEL_CLASS) {
             assert.equal(get(projectedExcerpt, '_recordData.isDestroyed'), false);
           } else {
             assert.equal(get(projectedExcerpt, '_internalModel.isDestroyed'), false);
           }
-          assert.equal(get(projectedExcerpt, 'title'), BOOK_TITLE);
+          assert.equal(projectedExcerpt.title, BOOK_TITLE);
         });
 
         test(`Unloading the base-record does not unload the projection`, function (assert) {
@@ -2482,14 +2474,14 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
           // baseRecord has been unloaded
           assert.equal(this.store.hasRecordForId(BOOK_CLASS_PATH, BOOK_ID), false);
-          assert.equal(get(baseRecord, 'isDestroyed'), true);
+          assert.equal(baseRecord.isDestroyed, true);
 
           // projectedPreview is still around
           assert.equal(
             this.store.hasRecordForId(BOOK_PREVIEW_PROJECTION_CLASS_PATH, BOOK_ID),
             true
           );
-          assert.equal(get(projectedPreview, 'isDestroyed'), false);
+          assert.equal(projectedPreview.isDestroyed, false);
           // TODO How can we check whether the underlying structure were not destroyed in the case of unload
           // Functionality can continue to work even in case of a bug
           if (CUSTOM_MODEL_CLASS) {
@@ -2497,7 +2489,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           } else {
             assert.equal(get(projectedPreview, '_internalModel.isDestroyed'), false);
           }
-          assert.equal(get(projectedPreview, 'title'), BOOK_TITLE);
+          assert.equal(projectedPreview.title, BOOK_TITLE);
         });
 
         skip('Unloading a record removes it from record arrays, which have reference to it', function (assert) {
@@ -2524,18 +2516,18 @@ for (let testRun = 0; testRun < 2; testRun++) {
           let { baseModel, projectedPreview } = this.records;
 
           // load the record arrays
-          let booksInSeriesBase = get(baseModel, 'otherBooksInSeries');
-          let booksInSeriesProjectedPreview = get(projectedPreview, 'otherBooksInSeries');
-          let otherProjectedPreview = get(booksInSeriesProjectedPreview, 'firstObject');
+          let booksInSeriesBase = baseModel.otherBooksInSeries;
+          let booksInSeriesProjectedPreview = projectedPreview.otherBooksInSeries;
+          let otherProjectedPreview = booksInSeriesProjectedPreview.firstObject;
 
           // precondition
           assert.equal(
-            get(booksInSeriesBase, 'length'),
+            booksInSeriesBase.length,
             1,
             'Expected otherBooksInSeries length to be one for base'
           );
           assert.equal(
-            get(booksInSeriesProjectedPreview, 'length'),
+            booksInSeriesProjectedPreview.length,
             1,
             'Expected otherBooksInSeries length to be one for projected preview'
           );
@@ -2546,12 +2538,12 @@ for (let testRun = 0; testRun < 2; testRun++) {
           });
 
           assert.equal(
-            get(booksInSeriesBase, 'length'),
+            booksInSeriesBase.length,
             1,
             'Expected otherBooksInSeries length to be unchanged for base'
           );
           assert.equal(
-            get(booksInSeriesProjectedPreview, 'length'),
+            booksInSeriesProjectedPreview.length,
             1,
             'Expected otherBooksInSeries length to be unchanged for projected preview'
           );
@@ -2592,12 +2584,12 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
 
           assert.equal(
-            get(projectedPreview, 'title'),
+            projectedPreview.title,
             BOOK_TITLE_1,
             'Expected title of preview projection to be correct'
           );
           assert.equal(
-            get(projectedExcerpt, 'title'),
+            projectedExcerpt.title,
             BOOK_TITLE_2,
             'Expected title of excerpt projection to be correct'
           );
@@ -2616,12 +2608,12 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
 
           assert.equal(
-            get(projectedPreview1, 'title'),
+            projectedPreview1.title,
             BOOK_TITLE_1,
             'Expected title of preview projection to be correct'
           );
           assert.equal(
-            get(projectedPreview2, 'title'),
+            projectedPreview2.title,
             BOOK_TITLE_2,
             'Expected title of the second preview projection to be correct'
           );
@@ -2642,12 +2634,12 @@ for (let testRun = 0; testRun < 2; testRun++) {
           );
 
           assert.equal(
-            get(projectedPreview, 'title'),
+            projectedPreview.title,
             BOOK_TITLE_2,
             'Expected title of preview projection to be correct'
           );
           assert.equal(
-            get(projectedExcerpt, 'title'),
+            projectedExcerpt.title,
             BOOK_TITLE_2,
             'Expected title of excerpt projection to be correct'
           );
@@ -2657,12 +2649,12 @@ for (let testRun = 0; testRun < 2; testRun++) {
           });
 
           assert.equal(
-            get(projectedPreview, 'title'),
+            projectedPreview.title,
             BOOK_TITLE_1,
             'Expected title of preview projection to be updated'
           );
           assert.equal(
-            get(projectedExcerpt, 'title'),
+            projectedExcerpt.title,
             BOOK_TITLE_1,
             'Expected title of excerpt projection to be updated'
           );
@@ -2695,7 +2687,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
                 createRecordCalls++;
                 // some assertions
                 assert.equal(
-                  get(snapshot, 'modelName'),
+                  snapshot.modelName,
                   NORM_BOOK_PREVIEW_PROJECTION_CLASS_PATH,
                   'Expected createRecord to be called for the projection type'
                 );
@@ -2720,12 +2712,12 @@ for (let testRun = 0; testRun < 2; testRun++) {
           });
 
           assert.equal(
-            get(projectedPreview, 'isNew'),
+            projectedPreview.isNew,
             false,
             'Expected the projection to be marked as saved'
           );
           assert.equal(
-            get(projectedPreview, 'id'),
+            projectedPreview.id,
             BOOK_ID,
             'Expected the new record to have picked up the returned ID'
           );
@@ -2765,7 +2757,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           });
 
           assert.equal(
-            get(peekedPreview, 'title'),
+            peekedPreview.title,
             BOOK_TITLE_1,
             'Empty attributes in the save response preserved our in-flight attributes'
           );
@@ -2823,7 +2815,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           });
 
           assert.equal(
-            get(projectedPreview, 'title'),
+            projectedPreview.title,
             BOOK_TITLE_2,
             'Expected preview projection to have received updated title'
           );
@@ -3043,7 +3035,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
                 updateRecordCalls++;
 
                 assert.equal(
-                  get(snapshot, 'modelName'),
+                  snapshot.modelName,
                   BOOK_EXCERPT_PROJECTION_CLASS_PATH,
                   'Expected update request to be made for the projection'
                 );

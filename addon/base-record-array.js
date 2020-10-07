@@ -1,4 +1,3 @@
-import { get } from '@ember/object';
 import { dasherize } from '@ember/string';
 import EmberObject from '@ember/object';
 import MutableArray from '@ember/array/mutable';
@@ -45,7 +44,7 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     replace(idx, removeAmt, newRecords) {
-      let addAmt = get(newRecords, 'length');
+      let addAmt = newRecords.length;
       let newObjects = new Array(addAmt);
 
       if (addAmt > 0) {
@@ -176,7 +175,7 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     replace(idx, removeAmt, newRecords) {
-      let addAmt = get(newRecords, 'length');
+      let addAmt = newRecords.length;
       let newInternalModels = new Array(addAmt);
 
       if (addAmt > 0) {

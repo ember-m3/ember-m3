@@ -15,6 +15,7 @@ module.exports = {
   },
   rules: {
     'ember/no-jquery': 'error',
+    'ember/no-get': 'off',
   },
   overrides: [
     {

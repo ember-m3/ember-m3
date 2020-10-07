@@ -21,7 +21,7 @@ export default class QueryArray extends BaseRecordArray {
 
     this._updatingPromise = this._update().finally(() => {
       this._updatingPromise = null;
-      if (this.get('isDestroying') || this.get('isDestroyed')) {
+      if (this.isDestroying || this.isDestroyed) {
         return;
       }
       this.setProperties({

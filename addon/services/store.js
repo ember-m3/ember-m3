@@ -1,6 +1,5 @@
 import Store from '@ember-data/store';
 import { inject } from '@ember/service';
-import { get } from '@ember/object';
 import M3RecordData from '../record-data';
 import MegamorphicModelFactory from '../factory';
 import QueryCache from '../query-cache';
@@ -41,7 +40,7 @@ class SchemaDefinition {
     } else {
       modelName = identifier;
     }
-    if (get(this.store, '_schemaManager').includesModel(modelName)) {
+    if (this.store._schemaManager.includesModel(modelName)) {
       if (identifier) {
         return this.store.recordDataFor(identifier).attributesDefinition();
       } else {
@@ -57,13 +56,13 @@ class SchemaDefinition {
     } else {
       modelName = identifier;
     }
-    if (get(this.store, '_schemaManager').includesModel(modelName)) {
+    if (this.store._schemaManager.includesModel(modelName)) {
       return Object.create(null);
     }
     return this.dsModelSchema.relationshipsDefinitionFor(modelName);
   }
   doesTypeExist(modelName) {
-    if (get(this.store, '_schemaManager').includesModel(modelName)) {
+    if (this.store._schemaManager.includesModel(modelName)) {
       return true;
     }
     return this.dsModelSchema.doesTypeExist(modelName);
@@ -90,11 +89,11 @@ export default class M3Store extends Store {
   }
 
   createRecordDataFor(modelName, id, clientId, storeWrapper) {
-    let schemaManager = get(this, '_schemaManager');
+    let schemaManager = this._schemaManager;
     if (schemaManager.includesModel(modelName)) {
       seenTypesPerStore.get(this).add(modelName);
 
-      if (get(schemaManager, 'schema').watchModelTypes) {
+      if (schemaManager._schema.watchModelTypes) {
         next(() => {
           // We need this to execute in the next task queue so that wrapRecord is not called
           // before the M3RecordData is created
@@ -121,25 +120,25 @@ export default class M3Store extends Store {
 
   // Store hooks necessary for using a single model class
   _hasModelFor(modelName) {
-    return get(this, '_schemaManager').includesModel(modelName) || super._hasModelFor(modelName);
+    return this._schemaManager.includesModel(modelName) || super._hasModelFor(modelName);
   }
 
   _modelFactoryFor(modelName) {
-    if (get(this, '_schemaManager').includesModel(modelName)) {
+    if (this._schemaManager.includesModel(modelName)) {
       return MegamorphicModelFactory;
     }
     return super._modelFactoryFor(modelName);
   }
 
   adapterFor(modelName) {
-    if (get(this, '_schemaManager').includesModel(modelName)) {
+    if (this._schemaManager.includesModel(modelName)) {
       return super.adapterFor('-ember-m3');
     }
     return super.adapterFor(modelName);
   }
 
   serializerFor(modelName) {
-    if (get(this, '_schemaManager').includesModel(modelName)) {
+    if (this._schemaManager.includesModel(modelName)) {
       return super.serializerFor('-ember-m3');
     }
     return super.serializerFor(modelName);
@@ -149,7 +148,7 @@ export default class M3Store extends Store {
     let recordData = recordDataFor(identifier);
     recordDataToQueryCache.set(recordData, this._queryCache);
     let modelName = identifier.type;
-    if (get(this, '_schemaManager').includesModel(modelName)) {
+    if (this._schemaManager.includesModel(modelName)) {
       let createOptions = assign({ _recordData: recordData, store: this }, createRecordArgs);
       // TODO remove the megamorphicModelFactory
       let record = MegamorphicModelFactory.create(createOptions);
@@ -238,7 +237,7 @@ export default class M3Store extends Store {
       return super._pushInternalModel(jsonAPIResource);
     } else {
       let internalModel = super._pushInternalModel(jsonAPIResource);
-      let schemaManager = get(this, '_schemaManager');
+      let schemaManager = this._schemaManager;
       let { type } = jsonAPIResource;
       if (schemaManager.includesModel(type)) {
         let baseName = schemaManager.computeBaseModelName(dasherize(type));

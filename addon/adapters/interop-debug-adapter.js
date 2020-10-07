@@ -1,5 +1,5 @@
 import M3DebugAdapter from './m3-debug-adapter';
-import { get, defineProperty } from '@ember/object';
+import { defineProperty } from '@ember/object';
 import { inject } from '@ember/service';
 import { default as MegamorphicModel } from '../model';
 import require from 'require';
@@ -27,8 +27,8 @@ if (HAS_DEBUG_PACKAGE) {
 export default class InteropDebugAdapter extends DebugAdapter {
   init() {
     super.init(...arguments);
-    const store = get(this, 'store');
-    const schema = get(this, 'schema');
+    const store = this.store;
+    const schema = this.schema;
     this._m3DebugAdapter = M3DebugAdapter.create({
       store,
       schema,

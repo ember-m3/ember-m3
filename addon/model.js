@@ -30,6 +30,7 @@ if (Errors === undefined) {
 
 let retrieveFromCurrentState;
 if (!CUSTOM_MODEL_CLASS) {
+  // eslint-disable-next-line ember/require-computed-property-dependencies
   retrieveFromCurrentState = computed('_topModel.currentState', function (key) {
     return this._topModel._internalModel.currentState[key];
   }).readOnly();
@@ -608,6 +609,7 @@ MegamorphicModel.relationshipsByName = new Map();
   */
 let isValid;
 if (CUSTOM_MODEL_CLASS) {
+  // eslint-disable-next-line ember/require-computed-property-dependencies
   isValid = computed(function () {
     if (this.get('errors.length') > 0) {
       return false;
@@ -627,10 +629,9 @@ if (CUSTOM_MODEL_CLASS) {
   isValid = retrieveFromCurrentState;
 }
 
-/**
- */
 let isDirty;
 if (CUSTOM_MODEL_CLASS) {
+  // eslint-disable-next-line ember/require-computed-property-dependencies
   isDirty = computed('_topModel.isDirty', function () {
     if (this._topModel !== this) {
       return this._topModel.get('isDirty');
@@ -647,6 +648,7 @@ if (CUSTOM_MODEL_CLASS) {
 
 let isDeleted;
 if (CUSTOM_MODEL_CLASS) {
+  // eslint-disable-next-line ember/require-computed-property-dependencies
   isDeleted = computed(function () {
     return this._recordData.isDeleted();
   });
@@ -656,6 +658,7 @@ if (CUSTOM_MODEL_CLASS) {
 
 let isNew;
 if (CUSTOM_MODEL_CLASS) {
+  // eslint-disable-next-line ember/require-computed-property-dependencies
   isNew = computed(function () {
     return this._recordData.isNew();
   });
@@ -665,6 +668,7 @@ if (CUSTOM_MODEL_CLASS) {
 
 let isSaving;
 if (CUSTOM_MODEL_CLASS) {
+  // eslint-disable-next-line ember/require-computed-property-dependencies
   isSaving = computed(function () {
     let requests = this._store
       .getRequestStateService()
@@ -677,25 +681,23 @@ if (CUSTOM_MODEL_CLASS) {
 
 let isLoaded;
 if (CUSTOM_MODEL_CLASS) {
-  isLoaded = computed(function () {
-    //TODO this seems untested right now
-    return this._recordData._isLoaded;
-  });
+  // eslint-disable-next-line ember/require-computed-property-dependencies
+  isLoaded = computed.reads('_recordData._isLoaded');
 } else {
   isLoaded = retrieveFromCurrentState;
 }
 
 let isLoading;
 if (CUSTOM_MODEL_CLASS) {
-  isLoading = computed(function () {
-    return !this.get('isLoaded');
-  });
+  // eslint-disable-next-line ember/require-computed-property-dependencies
+  isLoading = computed.not('isLoaded');
 } else {
   isLoading = retrieveFromCurrentState;
 }
 
 let dirtyType;
 if (CUSTOM_MODEL_CLASS) {
+  // eslint-disable-next-line ember/require-computed-property-dependencies
   dirtyType = computed(function () {
     if (this._recordData.isNew()) {
       return 'created';

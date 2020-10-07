@@ -1,6 +1,5 @@
 import { Promise as RSVPPromise } from 'rsvp';
 import { assert } from '@ember/debug';
-import { get } from '@ember/object';
 import { assign } from '@ember/polyfills';
 
 import MegamorphicModel from './model';
@@ -163,7 +162,7 @@ export default class QueryCache {
     }
 
     if (needsHost) {
-      host = stripSlash(get(this._adapter, 'host') || '', false, true);
+      host = stripSlash(this._adapter.host || '', false, true);
       if (host.length > 0) {
         parts.push(host);
       }
@@ -173,7 +172,7 @@ export default class QueryCache {
       // if we have a host we'll get '/' from joining, otherwise if we're
       // producing only a path respect whatever the namespace is configured as
       let stripLeadingSlash = parts.length > 0;
-      namespace = stripSlash(get(this._adapter, 'namespace') || '', stripLeadingSlash, true);
+      namespace = stripSlash(this._adapter.namespace || '', stripLeadingSlash, true);
       if (namespace.length > 0) {
         parts.push(namespace);
       }
