@@ -1,6 +1,6 @@
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import { setupTest } from 'ember-qunit';
-import schemaVersions from '../../helpers/schema-versions';
+import schemaVersions from '../../../helpers/schema-versions';
 
 export const BOOK_CLASS_PATH = 'com.example.bookstore.Book';
 export const NORM_BOOK_CLASS_PATH = 'com.example.bookstore.book';

@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { get, set } from '@ember/object';
 import { run } from '@ember/runloop';
-import { watchProperties } from '../../helpers/watch-property';
+import { watchProperties } from '../../../helpers/watch-property';
 import {
   setupTestPerSchema,
   BOOK_CLASS_PATH,
