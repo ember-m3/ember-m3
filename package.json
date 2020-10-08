@@ -46,7 +46,7 @@
     "format": "eslint --fix .",
     "lint": "yarn lint:js",
     "lint:js": "eslint .",
-    "start": "ember server --no-live-reload --port=0",
+    "start": "ember server --port=0",
     "test": "yarn test:ember",
     "test:ember": "ember test"
   },
