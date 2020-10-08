@@ -878,6 +878,14 @@ for (let testRun = 0; testRun < 2; testRun++) {
         recordDataToRecordMap.set(this.child11RecordData, this.child11Model);
       });
 
+      test('child record datas share an underling data dictionary', function () {
+        // TODO: impl
+      });
+
+      test('child record datas share an underlying array of data dictionaries', function () {
+        // TODO: impl
+      });
+
       test('.pushData calls reified child recordDatas recursively', function (assert) {
         let pushDataSpy = this.sinon.spy(M3RecordData.prototype, 'pushData');
         let changedKeys = this.topRecordData.pushData(
