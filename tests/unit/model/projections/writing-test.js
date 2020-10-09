@@ -1,4 +1,5 @@
 import { module, test, skip } from 'qunit';
+import { settled } from 'ember-test-helpers';
 import EmberObject, { get, set } from '@ember/object';
 import { run } from '@ember/runloop';
 import {
@@ -542,6 +543,71 @@ for (let { name, setupTest } of setupTestPerSchema()) {
         true,
         'The base model should still be dirty'
       );
+    });
+
+    test('projected nested models do not produce false notifications', async function (assert) {
+      // TODO: force a nested resolve to go thorugh `getServerAttr` -. nestdrecorddata.pushdata as in addon/resolve-attribute-util
+      // TODO: we need 2 levels of nesting to trigger the bug
+      // only need projection at the top i think
+      // add a property (projection or otherwise) to author
+      // TODO: then try to create a record or write and have it fail due to unflushed batch notifications
+
+      let projectionBook = this.store.push({
+        data: {
+          id: BOOK_ID,
+          type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+          attributes: {},
+        },
+        included: [
+          {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              author: {
+                name: 'Winston Churchill',
+                type: 'author',
+                bestBook: {
+                  title: 'not sure',
+                },
+              },
+            },
+          },
+        ],
+      });
+      await settled();
+
+      let book = this.store.peekRecord(BOOK_CLASS_PATH, BOOK_ID);
+      debugger;
+      book.get('author.bestBook.title');
+
+      this.store.push({
+        data: {
+          id: BOOK_ID,
+          type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+          attributes: {},
+        },
+        included: [
+          {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              author: {
+                bestBook: {
+                  title: 'A History of the English Speaking Peoples',
+                },
+              },
+            },
+          },
+        ],
+      });
+      debugger;
+      projectionBook.get('author.bestBook.title');
+
+      // trigger no changes assertion
+      projectionBook.set('author.name', 'Sir Winston Churchill');
+      await settled();
+
+      assert.ok(true);
     });
 
     test('Updating an embedded object property to null can still be updated again', function (assert) {

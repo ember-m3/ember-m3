@@ -280,6 +280,7 @@ function createNestedModel(store, record, recordData, key, nestedValue, parentId
     !recordData.getServerAttr ||
     (recordData.getServerAttr(key) !== null && recordData.getServerAttr(key) !== undefined)
   ) {
+    debugger;
     nestedRecordData.pushData(
       {
         attributes: nestedValue.attributes,
