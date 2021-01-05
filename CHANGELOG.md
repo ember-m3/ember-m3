@@ -1,3 +1,13 @@
+## v3.0.5 (2021-01-05)
+
+#### :rocket: Enhancement
+
+- [#784](Add queryParams option for Store.queryURL) (backported via #980)
+
+#### Committers: 1
+
+- ([@2hu](https://github.com/2hu12))
+
 ## v3.0.4 (2020-09-29)
 
 #### :bug: Bug Fix
