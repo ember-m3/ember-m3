@@ -1351,15 +1351,16 @@
     ember-cli-test-info "^1.0.0"
     ember-cli-typescript "^3.1.3"
 
-"@ember-data/model@^3.22.1":
-  version "3.22.1"
-  resolved "https://registry.yarnpkg.com/@ember-data/model/-/model-3.22.1.tgz#16ee9da04ecd398a319fd0ab76fa1759fdd562b7"
-  integrity sha512-1zOgPGb6lWDozXfQJzbz5KkMDZLazdmXpy8Wr32lYrqgKZ8A80T5Wy6ywtTbuI35A+Q1vxsJlAGZm3R4ucQB+Q==
+"@ember-data/model@^3.24.0":
+  version "3.24.0"
+  resolved "https://registry.yarnpkg.com/@ember-data/model/-/model-3.24.0.tgz#e99efe459b2be06396320fc4e7e053256653e326"
+  integrity sha512-lW4+35TQj6cyPNh5MxVxHHQaauQIhaCuHQYgpMinw7hPCaVhVhm1RhW5Zem6YJA/iDB7+4ffNSJZamb3jBZ8aA==
   dependencies:
-    "@ember-data/canary-features" "3.22.1"
-    "@ember-data/private-build-infra" "3.22.1"
-    "@ember-data/store" "3.22.1"
+    "@ember-data/canary-features" "3.24.0"
+    "@ember-data/private-build-infra" "3.24.0"
+    "@ember-data/store" "3.24.0"
     "@ember/edition-utils" "^1.2.0"
+    "@ember/string" "^1.0.0"
     ember-cli-babel "^7.18.0"
     ember-cli-string-utils "^1.1.0"
     ember-cli-test-info "^1.0.0"
@@ -1436,19 +1437,7 @@
   resolved "https://registry.yarnpkg.com/@ember-data/rfc395-data/-/rfc395-data-0.0.4.tgz#ecb86efdf5d7733a76ff14ea651a1b0ed1f8a843"
   integrity sha512-tGRdvgC9/QMQSuSuJV45xoyhI0Pzjm7A9o/MVVA3HakXIImJbbzx/k/6dO9CUEQXIyS2y0fW6C1XaYOG7rY0FQ==
 
-"@ember-data/store@3.22.1":
-  version "3.22.1"
-  resolved "https://registry.yarnpkg.com/@ember-data/store/-/store-3.22.1.tgz#373b13d25fbdbb8fc940575aa66141b07f184c96"
-  integrity sha512-2Iy7sB8JhKN4l4D3GOD2+31rZ8buVNwGodZD++uldisYlaLNdlhK6povhxuDSxu3j+g3bH8qXpFqTezE11EyjA==
-  dependencies:
-    "@ember-data/canary-features" "3.22.1"
-    "@ember-data/private-build-infra" "3.22.1"
-    ember-cli-babel "^7.18.0"
-    ember-cli-path-utils "^1.0.0"
-    ember-cli-typescript "^3.1.3"
-    heimdalljs "^0.3.0"
-
-"@ember-data/store@^3.24.0":
+"@ember-data/store@3.24.0", "@ember-data/store@^3.24.0":
   version "3.24.0"
   resolved "https://registry.yarnpkg.com/@ember-data/store/-/store-3.24.0.tgz#1eba52a7f06a4a6304af9495f8cf517be9e3d29e"
   integrity sha512-eyzHvqBDcQ/iVhYL82rP6YDiXy6H6w/ULGCwU8dr0ZAIDSKrWm5Nu4O3pSuhzNgxRTTE3JDCmMRDnGyeCJKKUQ==
