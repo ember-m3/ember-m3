@@ -1332,10 +1332,10 @@
     ember-cli-babel "^7.18.0"
     ember-cli-typescript "^3.1.3"
 
-"@ember-data/canary-features@3.23.0":
-  version "3.23.0"
-  resolved "https://registry.yarnpkg.com/@ember-data/canary-features/-/canary-features-3.23.0.tgz#631ffce7748f92ee70277ca679225296b6024bdc"
-  integrity sha512-vATwZTAtHTu7LRulI6vNj2DLjeUsJlNpdCtIq1KnX41Ho/sJirpod4y9roExi9xQQgttnvpxl+yBa0Bpnp6wqA==
+"@ember-data/canary-features@3.24.0":
+  version "3.24.0"
+  resolved "https://registry.yarnpkg.com/@ember-data/canary-features/-/canary-features-3.24.0.tgz#7ac1f03cf6dd0f8629f71bb34d3ab79d7db3f865"
+  integrity sha512-49vhKL0pCfgK1maZofrZqKu1L0JGwDK/cjX5Z6NgY6495OFUuTUxIY8nobHRJRtVE3olLMh3YBQg0i7Iv1dKgw==
   dependencies:
     ember-cli-babel "^7.18.0"
     ember-cli-typescript "^3.1.3"
@@ -1399,13 +1399,13 @@
     semver "^7.1.3"
     silent-error "^1.1.1"
 
-"@ember-data/private-build-infra@3.23.0":
-  version "3.23.0"
-  resolved "https://registry.yarnpkg.com/@ember-data/private-build-infra/-/private-build-infra-3.23.0.tgz#d30cda808dab9e52e416fb2d1fd0db6a13112f71"
-  integrity sha512-p8c2+N/P698J90/Zy+i9vklmqqnDrgcsmhAyGrWleLXD9TOyVNh9nH2ENNgrmBf7UY32nAAOC/VoDGngYLZZ7g==
+"@ember-data/private-build-infra@3.24.0":
+  version "3.24.0"
+  resolved "https://registry.yarnpkg.com/@ember-data/private-build-infra/-/private-build-infra-3.24.0.tgz#ce5b56f2929d96cb004643866922ac5509bbd6c1"
+  integrity sha512-SEJ+hdjVK5y0NM6DpkSVKHqCxOvR2QXPQdJ0PXxbgFTxhyq4jGqT8N1Rl1zRKr9mg2WXFFwt4Lg9SBlYjqVHWg==
   dependencies:
     "@babel/plugin-transform-block-scoping" "^7.8.3"
-    "@ember-data/canary-features" "3.23.0"
+    "@ember-data/canary-features" "3.24.0"
     "@ember/edition-utils" "^1.2.0"
     babel-plugin-debug-macros "^0.3.3"
     babel-plugin-filter-imports "^4.0.0"
@@ -1448,13 +1448,14 @@
     ember-cli-typescript "^3.1.3"
     heimdalljs "^0.3.0"
 
-"@ember-data/store@^3.23.0":
-  version "3.23.0"
-  resolved "https://registry.yarnpkg.com/@ember-data/store/-/store-3.23.0.tgz#7b8af0a1d4a22665227cc9a03f7a2b3bb47d4b9e"
-  integrity sha512-pshDJfh6BZNtOaCMJma8sOazDqatssrU8W5zGptDW3begfPzNmnrW0eeF+SBndtvyO04Ap72xFHOWE7YGXC0PQ==
+"@ember-data/store@^3.24.0":
+  version "3.24.0"
+  resolved "https://registry.yarnpkg.com/@ember-data/store/-/store-3.24.0.tgz#1eba52a7f06a4a6304af9495f8cf517be9e3d29e"
+  integrity sha512-eyzHvqBDcQ/iVhYL82rP6YDiXy6H6w/ULGCwU8dr0ZAIDSKrWm5Nu4O3pSuhzNgxRTTE3JDCmMRDnGyeCJKKUQ==
   dependencies:
-    "@ember-data/canary-features" "3.23.0"
-    "@ember-data/private-build-infra" "3.23.0"
+    "@ember-data/canary-features" "3.24.0"
+    "@ember-data/private-build-infra" "3.24.0"
+    "@ember/string" "^1.0.0"
     ember-cli-babel "^7.18.0"
     ember-cli-path-utils "^1.0.0"
     ember-cli-typescript "^3.1.3"
@@ -1476,6 +1477,13 @@
     inquirer "^7.3.3"
     mkdirp "^1.0.4"
     silent-error "^1.1.1"
+
+"@ember/string@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@ember/string/-/string-1.0.0.tgz#3a2254caedacb95e09071204d36cad49e0f8b855"
+  integrity sha512-KZ+CcIXFdyIBMztxDMgza4SdLJgIeUgTjDAoHk6M50C2u1X/BK7KWUIN7MIK2LNTOMvbib9lWwEzKboxdI4lBw==
+  dependencies:
+    ember-cli-babel "^7.4.0"
 
 "@ember/test-helpers@^1.7.1":
   version "1.7.1"
@@ -4792,7 +4800,7 @@ ember-cli-babel@^6.16.0, ember-cli-babel@^6.6.0, ember-cli-babel@^6.8.1, ember-c
     ember-cli-version-checker "^2.1.2"
     semver "^5.5.0"
 
-ember-cli-babel@^7.0.0, ember-cli-babel@^7.11.0, ember-cli-babel@^7.12.0, ember-cli-babel@^7.13.0, ember-cli-babel@^7.17.2, ember-cli-babel@^7.18.0, ember-cli-babel@^7.22.1, ember-cli-babel@^7.23.0, ember-cli-babel@^7.7.3:
+ember-cli-babel@^7.0.0, ember-cli-babel@^7.11.0, ember-cli-babel@^7.12.0, ember-cli-babel@^7.13.0, ember-cli-babel@^7.17.2, ember-cli-babel@^7.18.0, ember-cli-babel@^7.22.1, ember-cli-babel@^7.23.0, ember-cli-babel@^7.4.0, ember-cli-babel@^7.7.3:
   version "7.23.0"
   resolved "https://registry.yarnpkg.com/ember-cli-babel/-/ember-cli-babel-7.23.0.tgz#ec580aa2c115d0810e454dd5c2fffce238284b92"
   integrity sha512-ix58DlRDAbGITtdJoRUPcAoQwKLYr/x/kIXjU9u1ATyhmuUjqb+0FDXghOWbkNihGiNOqBBR49+LBgK9AeBcNw==
