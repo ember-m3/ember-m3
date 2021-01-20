@@ -66,7 +66,7 @@
     "babel-plugin-debug-macros": "^0.3.3",
     "broccoli-funnel": "^3.0.3",
     "ember-cli-babel": "^7.23.0",
-    "ember-cli-version-checker": "^5.1.1",
+    "ember-cli-version-checker": "^5.1.2",
     "semver": "^7.3.4"
   },
   "devDependencies": {
