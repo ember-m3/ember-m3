@@ -1,4 +1,5 @@
 import M3DebugAdapter from './m3-debug-adapter';
+import { getOwner, setOwner } from '@ember/application';
 import { get, defineProperty } from '@ember/object';
 import { inject } from '@ember/service';
 import { default as MegamorphicModel } from '../model';
@@ -29,10 +30,16 @@ export default class InteropDebugAdapter extends DebugAdapter {
     super.init(...arguments);
     const store = get(this, 'store');
     const schema = get(this, 'schema');
-    this._m3DebugAdapter = M3DebugAdapter.create({
+    const owner = getOwner(this);
+
+    const injections = {
       store,
       schema,
-    });
+    };
+
+    setOwner(injections, owner);
+
+    this._m3DebugAdapter = M3DebugAdapter.create(injections);
   }
 
   /**
