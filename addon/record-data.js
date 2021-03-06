@@ -583,19 +583,22 @@ export default class M3RecordData {
       return this._baseRecordData.eachAttribute(callback, binding);
     }
 
+    let attrs = {};
     if (this.__attributes !== null) {
-      Object.keys(this._attributes).forEach(callback, binding);
+      Object.keys(this._attributes).forEach(key => (attrs[key] = true));
     }
 
     if (this.__inFlightAttributes !== null) {
-      Object.keys(this._inFlightAttributes).forEach(callback, binding);
+      Object.keys(this._inFlightAttributes).forEach(key => (attrs[key] = true));
     }
 
     if (this.__data !== null) {
       this._schema
         .computeAttributes(Object.keys(this._data), this.modelName)
-        .forEach(callback, binding);
+        .forEach(key => (attrs[key] = true));
     }
+
+    Object.keys(attrs).forEach(callback, binding);
   }
 
   // Exposes attribute keys for the schema service to be able to iterate over the props
