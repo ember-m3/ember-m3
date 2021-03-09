@@ -1332,6 +1332,14 @@
     ember-cli-babel "^7.18.0"
     ember-cli-typescript "^3.1.3"
 
+"@ember-data/canary-features@3.25.0":
+  version "3.25.0"
+  resolved "https://registry.yarnpkg.com/@ember-data/canary-features/-/canary-features-3.25.0.tgz#4712bcbdc50aa65ff380c24b12d21e178ef3b4fb"
+  integrity sha512-Wrf4oFOnsSjCb3iXEWwfZFvD6MLLztbq0oArw7ic5Fg/UJ4f1vo5tj8UunZjhjC34QKFuCeYgiAod7RL5158gA==
+  dependencies:
+    ember-cli-babel "^7.18.0"
+    ember-cli-typescript "^4.0.0"
+
 "@ember-data/debug@^3.24.0":
   version "3.24.0"
   resolved "https://registry.yarnpkg.com/@ember-data/debug/-/debug-3.24.0.tgz#c65fef5c3a5aab70d250c83743f729c3ccc52782"
@@ -1344,20 +1352,20 @@
     ember-cli-test-info "^1.0.0"
     ember-cli-typescript "^3.1.3"
 
-"@ember-data/model@^3.24.0":
-  version "3.24.0"
-  resolved "https://registry.yarnpkg.com/@ember-data/model/-/model-3.24.0.tgz#e99efe459b2be06396320fc4e7e053256653e326"
-  integrity sha512-lW4+35TQj6cyPNh5MxVxHHQaauQIhaCuHQYgpMinw7hPCaVhVhm1RhW5Zem6YJA/iDB7+4ffNSJZamb3jBZ8aA==
+"@ember-data/model@^3.25.0":
+  version "3.25.0"
+  resolved "https://registry.yarnpkg.com/@ember-data/model/-/model-3.25.0.tgz#1cf4ba95039701ee04e176f6073e114b5ab5f4f0"
+  integrity sha512-xanNW78p+2xYWWsRvwPyVv/TiNbsJ6qterFGtbD63lD1YO7WbGtrRYblxeXKRNcaaTzlrPdJVGZ8HK3NjoFVNg==
   dependencies:
-    "@ember-data/canary-features" "3.24.0"
-    "@ember-data/private-build-infra" "3.24.0"
-    "@ember-data/store" "3.24.0"
+    "@ember-data/canary-features" "3.25.0"
+    "@ember-data/private-build-infra" "3.25.0"
+    "@ember-data/store" "3.25.0"
     "@ember/edition-utils" "^1.2.0"
     "@ember/string" "^1.0.0"
     ember-cli-babel "^7.18.0"
     ember-cli-string-utils "^1.1.0"
     ember-cli-test-info "^1.0.0"
-    ember-cli-typescript "^3.1.3"
+    ember-cli-typescript "^4.0.0"
     ember-compatibility-helpers "^1.2.0"
     inflection "1.12.0"
 
@@ -1393,22 +1401,54 @@
     semver "^7.1.3"
     silent-error "^1.1.1"
 
+"@ember-data/private-build-infra@3.25.0":
+  version "3.25.0"
+  resolved "https://registry.yarnpkg.com/@ember-data/private-build-infra/-/private-build-infra-3.25.0.tgz#8310fdb57685ad6e73cd80c5c8b8869722f4d4a6"
+  integrity sha512-KgWi7/CHzbkeUo2qNfSJbl0kxaUqgmYPrlL8FNcU7vR8VDvw94GNlYvgw1sY29h/7ieWHUphkCbGpXZuInTGvw==
+  dependencies:
+    "@babel/plugin-transform-block-scoping" "^7.8.3"
+    "@ember-data/canary-features" "3.25.0"
+    "@ember/edition-utils" "^1.2.0"
+    babel-plugin-debug-macros "^0.3.3"
+    babel-plugin-filter-imports "^4.0.0"
+    babel6-plugin-strip-class-callcheck "^6.0.0"
+    broccoli-debug "^0.6.5"
+    broccoli-file-creator "^2.1.1"
+    broccoli-funnel "^2.0.2"
+    broccoli-merge-trees "^4.2.0"
+    broccoli-rollup "^4.1.1"
+    calculate-cache-key-for-tree "^2.0.0"
+    chalk "^4.0.0"
+    ember-cli-babel "^7.18.0"
+    ember-cli-path-utils "^1.0.0"
+    ember-cli-string-utils "^1.1.0"
+    ember-cli-typescript "^3.1.3"
+    ember-cli-version-checker "^5.1.1"
+    esm "^3.2.25"
+    git-repo-info "^2.1.1"
+    glob "^7.1.6"
+    npm-git-info "^1.0.3"
+    rimraf "^3.0.2"
+    rsvp "^4.8.5"
+    semver "^7.1.3"
+    silent-error "^1.1.1"
+
 "@ember-data/rfc395-data@^0.0.4":
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/@ember-data/rfc395-data/-/rfc395-data-0.0.4.tgz#ecb86efdf5d7733a76ff14ea651a1b0ed1f8a843"
   integrity sha512-tGRdvgC9/QMQSuSuJV45xoyhI0Pzjm7A9o/MVVA3HakXIImJbbzx/k/6dO9CUEQXIyS2y0fW6C1XaYOG7rY0FQ==
 
-"@ember-data/store@3.24.0", "@ember-data/store@^3.24.0":
-  version "3.24.0"
-  resolved "https://registry.yarnpkg.com/@ember-data/store/-/store-3.24.0.tgz#1eba52a7f06a4a6304af9495f8cf517be9e3d29e"
-  integrity sha512-eyzHvqBDcQ/iVhYL82rP6YDiXy6H6w/ULGCwU8dr0ZAIDSKrWm5Nu4O3pSuhzNgxRTTE3JDCmMRDnGyeCJKKUQ==
+"@ember-data/store@3.25.0", "@ember-data/store@^3.24.0":
+  version "3.25.0"
+  resolved "https://registry.yarnpkg.com/@ember-data/store/-/store-3.25.0.tgz#26210ff7c8fb3a9ec67a88d1e65fec8e414b1a52"
+  integrity sha512-Dyk3KN4jJpofV02Ctp8z6SlXG07Vz5GP4fZsdc25ECm0Sayf48YXb6g2wnd+sSplc6qnyeCXx4znXLQtgivJsg==
   dependencies:
-    "@ember-data/canary-features" "3.24.0"
-    "@ember-data/private-build-infra" "3.24.0"
+    "@ember-data/canary-features" "3.25.0"
+    "@ember-data/private-build-infra" "3.25.0"
     "@ember/string" "^1.0.0"
     ember-cli-babel "^7.18.0"
     ember-cli-path-utils "^1.0.0"
-    ember-cli-typescript "^3.1.3"
+    ember-cli-typescript "^4.0.0"
     heimdalljs "^0.3.0"
 
 "@ember/edition-utils@^1.2.0":
@@ -4984,6 +5024,22 @@ ember-cli-typescript@^3.1.3:
     stagehand "^1.0.0"
     walk-sync "^2.0.0"
 
+ember-cli-typescript@^4.0.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/ember-cli-typescript/-/ember-cli-typescript-4.1.0.tgz#2ff17be2e6d26b58c88b1764cb73887e7176618b"
+  integrity sha512-zSuKG8IQuYE3vS+c7V0mHJqwrN/4Wo9Wr50+0NUjnZH3P99ChynczQHu/P7WSifkO6pF6jaxwzf09XzWvG8sVw==
+  dependencies:
+    ansi-to-html "^0.6.6"
+    broccoli-stew "^3.0.0"
+    debug "^4.0.0"
+    execa "^4.0.0"
+    fs-extra "^9.0.1"
+    resolve "^1.5.0"
+    rsvp "^4.8.1"
+    semver "^7.3.2"
+    stagehand "^1.0.0"
+    walk-sync "^2.2.0"
+
 ember-cli-uglify@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/ember-cli-uglify/-/ember-cli-uglify-3.0.0.tgz#8819665b2cc5fe70e3ba9fe7a94645209bc42fd6"
@@ -6216,6 +6272,16 @@ fs-extra@^9.0.0:
     graceful-fs "^4.2.0"
     jsonfile "^6.0.1"
     universalify "^1.0.0"
+
+fs-extra@^9.0.1:
+  version "9.1.0"
+  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-9.1.0.tgz#5954460c764a8da2094ba3554bf839e6b9a7c86d"
+  integrity sha512-hcg3ZmepS30/7BSFqRvoo3DOMQu7IjqxO5nCDt+zM9XWjb33Wg7ziNT+Qvqbuc3+gWpzO02JubVyk2G4Zvo1OQ==
+  dependencies:
+    at-least-node "^1.0.0"
+    graceful-fs "^4.2.0"
+    jsonfile "^6.0.1"
+    universalify "^2.0.0"
 
 fs-merger@^3.1.0:
   version "3.1.0"
@@ -11193,6 +11259,11 @@ universalify@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/universalify/-/universalify-1.0.0.tgz#b61a1da173e8435b2fe3c67d29b9adf8594bd16d"
   integrity sha512-rb6X1W158d7pRQBg5gkR8uPaSfiids68LTJQYOtEUhoJUWBdaQHsuT/EUduxXYxcrt4r5PJ4fuHW1MHT6p0qug==
+
+universalify@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/universalify/-/universalify-2.0.0.tgz#75a4984efedc4b08975c5aeb73f530d02df25717"
+  integrity sha512-hAZsKq7Yy11Zu1DE0OzWjw7nnLZmJZYTDZZyEFHZdUhV8FkH5MCfoU1XMaxXovpyW5nq5scPqq0ZDP9Zyl04oQ==
 
 unpipe@1.0.0, unpipe@~1.0.0:
   version "1.0.0"
