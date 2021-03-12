@@ -111,7 +111,7 @@
     "pretender": "^3.4.3",
     "prettier": "^2.1.2",
     "qunit": "^2.14.0",
-    "release-it": "^14.3.0",
+    "release-it": "^14.4.1",
     "release-it-lerna-changelog": "^3.1.0",
     "testem": "^3.2.0"
   },
