@@ -1,6 +1,7 @@
 {
   "name": "ember-m3",
   "version": "3.0.0",
+  "isCanary": true,
   "description": "Alternative to @ember-data/model in which attributes and relationships are derived from API Payloads",
   "keywords": [
     "ember-addon",
@@ -48,7 +49,9 @@
     "lint:js": "eslint .",
     "start": "ember server --port=0",
     "test": "yarn test:ember",
-    "test:ember": "ember test"
+    "test:ember": "ember test",
+    "prepublishOnly": "node ./src/prepublish.js",
+    "postpublish": "node ./src/postpublish.js"
   },
   "husky": {
     "hooks": {

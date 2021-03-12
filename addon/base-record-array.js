@@ -14,9 +14,10 @@ import {
   deferPropertyChange,
   flushChanges,
 } from './utils/notify-changes';
-import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
+import { CUSTOM_MODEL_CLASS, PROXY_MODEL_CLASS } from 'ember-m3/-infra/features';
 import { recordDataToRecordMap, recordToRecordArrayMap } from './utils/caches';
 import { recordIdentifierFor } from '@ember-data/store';
+import { assert } from '@ember/debug';
 
 /**
  * BaseRecordArray
@@ -24,6 +25,45 @@ import { recordIdentifierFor } from '@ember-data/store';
  * @class BaseRecordArray
  */
 let BaseRecordArray;
+let baseRecordArrayProxyHandler;
+
+if (PROXY_MODEL_CLASS) {
+  const convertToInt = (prop) => {
+    if (typeof prop === 'symbol') return null;
+
+    const num = Number(prop);
+
+    if (isNaN(num)) return null;
+
+    return num % 1 === 0 ? num : null;
+  };
+
+  const BaseRecordArrayProxyHandler = class {
+    get(target, key, receiver) {
+      let index = convertToInt(key);
+
+      if (index !== null) {
+        return receiver.objectAt(key);
+      }
+
+      return Reflect.get(target, key, receiver);
+    }
+
+    set(target, key, value, receiver) {
+      let index = convertToInt(key);
+
+      if (index !== null) {
+        receiver.replaceAt(index, value);
+      } else {
+        Reflect.set(target, key, value, receiver);
+      }
+
+      return true;
+    }
+  };
+
+  baseRecordArrayProxyHandler = new BaseRecordArrayProxyHandler();
+}
 
 if (CUSTOM_MODEL_CLASS) {
   /**
@@ -33,6 +73,15 @@ if (CUSTOM_MODEL_CLASS) {
    */
   BaseRecordArray = class BaseRecordArray extends EmberObject.extend(MutableArray) {
     // public RecordArray API
+    static create(...args) {
+      let instance = super.create(...args);
+
+      if (PROXY_MODEL_CLASS) {
+        return new Proxy(instance, baseRecordArrayProxyHandler);
+      }
+
+      return instance;
+    }
 
     init() {
       super.init(...arguments);
@@ -166,6 +215,13 @@ if (CUSTOM_MODEL_CLASS) {
 } else {
   BaseRecordArray = class BaseRecordArray extends EmberObject.extend(MutableArray) {
     // public RecordArray API
+    static create(...args) {
+      let instance = super.create(...args);
+
+      assert('CUSTOM_MODEL_CLASS must be enabled to use PROXY_MODEL_CLASS', !PROXY_MODEL_CLASS);
+
+      return instance;
+    }
 
     init() {
       this._internalModels = A();
@@ -297,6 +353,35 @@ if (CUSTOM_MODEL_CLASS) {
       return this._resolved ? this._internalModels.length : this._references.length;
     }
   };
+}
+
+if (PROXY_MODEL_CLASS) {
+  // Add native array methods here
+  Object.assign(BaseRecordArray.prototype, {
+    push(...values) {
+      return this.pushObjects(values);
+    },
+
+    pop(...values) {
+      return this.popObjects(values);
+    },
+
+    shift(...values) {
+      return this.shiftObjects(values);
+    },
+
+    unshift(...values) {
+      return this.unshiftObjects(values);
+    },
+
+    splice(idx, amt, ...values) {
+      return this.replace(idx, amt, values);
+    },
+
+    reverse() {
+      return this.reverseObjects();
+    },
+  });
 }
 
 export function associateRecordWithRecordArray(record, recordArray) {

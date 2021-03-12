@@ -12,7 +12,7 @@ import require, { has } from 'require';
   The file itself is stripped from production builds.
 */
 
-function flagState(flagName) {
+function dataFlagState(flagName) {
   let value;
   if (has('@ember-data/canary-features')) {
     value = require('@ember-data/canary-features')[flagName];
@@ -20,4 +20,9 @@ function flagState(flagName) {
   return value || false;
 }
 
-export const CUSTOM_MODEL_CLASS = flagState('CUSTOM_MODEL_CLASS');
+function m3FlagState(flagName) {
+  return window.M3ENV?.FEATURES?.[flagName];
+}
+
+export const CUSTOM_MODEL_CLASS = dataFlagState('CUSTOM_MODEL_CLASS');
+export const PROXY_MODEL_CLASS = m3FlagState('PROXY_MODEL_CLASS');
