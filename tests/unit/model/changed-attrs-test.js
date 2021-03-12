@@ -1,4 +1,4 @@
-import { module, test } from 'qunit';
+import QUnit, { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 
 import EmberObject, { get, set } from '@ember/object';
@@ -327,6 +327,114 @@ for (let testRun = 0; testRun < 2; testRun++) {
           model.changedAttributes(),
           { author: [null, { name: [undefined, 'Chris'] }] },
           'Changed attributes for the parent model is correct'
+        );
+      });
+
+      test('.changedAttributes returns [ object, object ] for object replacement and leaf property change', function (assert) {
+        QUnit.dump.maxDepth = 10;
+        assert.expect(1);
+
+        let model = run(() => {
+          return this.store.push({
+            data: {
+              id: 1,
+              type: 'com.example.bookstore.Book',
+              attributes: {
+                reports: {
+                  highlyRated: {
+                    reportOne: {
+                      author: 'JK Rowling',
+                      reportDate: '2020-01-01',
+                    },
+                  },
+                },
+              },
+            },
+          });
+        });
+
+        model.set('reports', { highlyRated: { reportOne: {} } });
+        let reportOne = model.get('reports.highlyRated.reportOne');
+        reportOne.set('author', 'William Shakespeare');
+
+        assert.deepEqual(
+          model.changedAttributes(),
+          {
+            reports: [
+              {
+                highlyRated: {
+                  reportOne: {
+                    author: 'JK Rowling',
+                    reportDate: '2020-01-01',
+                  },
+                },
+              },
+              {
+                highlyRated: {
+                  reportOne: {
+                    author: [undefined, 'William Shakespeare'],
+                  },
+                },
+              },
+            ],
+          },
+          'Changed attributes for the model is correct'
+        );
+      });
+
+      test('.changedAttributes returns [ object, object ] for object replacement with deeply nested object', function (assert) {
+        QUnit.dump.maxDepth = 10;
+        assert.expect(1);
+
+        let model = run(() => {
+          return this.store.push({
+            data: {
+              id: 1,
+              type: 'com.example.bookstore.Book',
+              attributes: {
+                reports: {
+                  highlyRated: {
+                    reportOne: {
+                      author: 'JK Rowling',
+                      reportDate: '2020-01-01',
+                    },
+                  },
+                },
+              },
+            },
+          });
+        });
+
+        model.set('reports', {
+          highlyRated: {
+            reportOne: {
+              author: 'William Shakespeare',
+            },
+          },
+        });
+
+        assert.deepEqual(
+          model.changedAttributes(),
+          {
+            reports: [
+              {
+                highlyRated: {
+                  reportOne: {
+                    author: 'JK Rowling',
+                    reportDate: '2020-01-01',
+                  },
+                },
+              },
+              {
+                highlyRated: {
+                  reportOne: {
+                    author: 'William Shakespeare',
+                  },
+                },
+              },
+            ],
+          },
+          'Changed attributes for the model is correct'
         );
       });
 
