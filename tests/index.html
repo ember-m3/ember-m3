@@ -29,6 +29,11 @@
       if (QUnit.urlParams.enableoptionalfeatures) {
         window.EmberDataENV = { ENABLE_OPTIONAL_FEATURES: true };
       }
+
+      if (QUnit.urlParams.enableproxy) {
+        window.EmberDataENV = { ENABLE_OPTIONAL_FEATURES: true };
+        window.M3ENV = { FEATURES: { PROXY_MODEL_CLASS: true } };
+      }
     </script>
 
     <script src="{{ rootURL }}assets/dummy.js"></script>

@@ -60,7 +60,7 @@ module.exports = {
     this.options = this.options || {};
     this.options.babel = this.options.babel || {};
     let plugins = this.options.babel.plugins;
-    let newPlugins = getDebugMacros(app, this.isDevelopingAddon());
+    let newPlugins = getDebugMacros(app);
     this.options.babel.plugins = Array.isArray(plugins) ? plugins.concat(newPlugins) : newPlugins;
 
     this.options.babel.loose = true;

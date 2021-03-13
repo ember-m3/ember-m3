@@ -51,6 +51,20 @@ jobs:
       - name: test:feature-flags
         run: yarn run ember try:one canary-channel --- ember test --query enableoptionalfeatures
 
+  test-proxy:
+    name: proxy
+    needs: [lint]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '10.x' # min node version
+      - name: yarn install
+        run: yarn --frozen-lockfile --install
+      - name: test:feature-flags
+        run: yarn run ember try:one canary-channel --- ember test --query enableproxy
+
   test-node:
     name: 't:' # rely on matrix for most of name
     needs: [lint, test, test-feature-flags]

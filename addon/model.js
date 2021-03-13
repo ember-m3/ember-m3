@@ -17,7 +17,7 @@ import {
   flushChanges,
 } from './utils/notify-changes';
 import { DEBUG } from '@glimmer/env';
-import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
+import { CUSTOM_MODEL_CLASS, PROXY_MODEL_CLASS } from 'ember-m3/-infra/features';
 import { RootState, Errors as StoreErrors } from '@ember-data/store/-private';
 import { Errors as ModelErrors } from '@ember-data/model/-private';
 import { REFERENCE, schemaTypesInfo } from './utils/schema-types-info';
@@ -76,7 +76,66 @@ const YesManAttributes = new YesManAttributesSingletonClass();
 //      CP or setknownProperty can rely on any initialization
 let initProperites = Object.create(null);
 
+let megamorphicModelProxyHandler;
+
+if (PROXY_MODEL_CLASS) {
+  console.warn(
+    'You have enabled experimental M3 proxy support. This is a canary feature that is still under development, and can only be used in development mode for testing purposes. It will NOT work in production builds'
+  );
+
+  const MegamorphicModelProxyHandler = class {
+    get(target, key, receiver) {
+      if (typeof key !== 'string' || key in target) {
+        return Reflect.get(target, key, receiver);
+      }
+
+      // Ideally we would do `receiver.unknownProperty(key)` here, but
+      // unfortunately `unknownProperty` does not entangle the property
+      // tag. `Ember.get` is the only thing that does, actually, so we
+      // have to use it. This is safe, because we already checked that the
+      // property is not `in` the instance, so it will definitely call
+      // `unknownProperty` and will not re-enter.
+      return receiver.get(key);
+    }
+
+    set(target, key, value, receiver) {
+      if (key in target) {
+        if (DEBUG) {
+          // Do this to get around MANDATORY_SETTER
+          // TODO: Figure out a way to fix this
+          target.set(key, value);
+        } else {
+          Reflect.set(target, key, value, receiver);
+        }
+      } else {
+        receiver.setUnknownProperty(key, value);
+      }
+
+      return true;
+    }
+  };
+
+  megamorphicModelProxyHandler = new MegamorphicModelProxyHandler();
+}
+
 export default class MegamorphicModel extends EmberObject {
+  static create(...args) {
+    let instance = super.create(...args);
+
+    if (PROXY_MODEL_CLASS) {
+      assert('CUSTOM_MODEL_CLASS must be enabled to use PROXY_MODEL_CLASS', CUSTOM_MODEL_CLASS);
+
+      let proxy = new Proxy(instance, megamorphicModelProxyHandler);
+
+      // Update the mapping to point to the proxy instead of the instance
+      recordDataToRecordMap.set(instance._recordData, proxy);
+
+      return proxy;
+    }
+
+    return instance;
+  }
+
   init(properties) {
     // Drop Ember.Object subclassing instead
     super.init(...arguments);

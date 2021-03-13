@@ -11,6 +11,11 @@ QUnit.config.urlConfig.push({
   label: 'Enable Opt Features',
 });
 
+QUnit.config.urlConfig.push({
+  id: 'enableproxy',
+  label: 'Enable Proxy',
+});
+
 setApplication(Application.create(config.APP));
 start({
   setupTestIsolationValidation: true,
