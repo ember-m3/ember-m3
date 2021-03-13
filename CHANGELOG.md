@@ -1,3 +1,9 @@
+## v3.0.6 (2021-03-12)
+
+#### :bug: Bug Fix
+
+- [#1031](Outer object replacement and nested property change bugfix) (backported via #1033)
+
 ## v3.0.5 (2021-01-05)
 
 #### :rocket: Enhancement
