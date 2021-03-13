@@ -2,13 +2,13 @@
 
 #### :bug: Bug Fix
 
-- [#1031](Outer object replacement and nested property change bugfix) (backported via #1033)
+- [#1031](https://github.com/hjdivad/ember-m3/pull/1031) Outer object replacement and nested property change bugfix (backported via #1033)
 
 ## v3.0.5 (2021-01-05)
 
 #### :rocket: Enhancement
 
-- [#784](Add queryParams option for Store.queryURL) (backported via #980)
+- [#784](https://github.com/hjdivad/ember-m3/pull/784) Add queryParams option for Store.queryURL (backported via #980)
 
 #### Committers: 1
 
