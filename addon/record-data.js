@@ -659,7 +659,8 @@ export default class M3RecordData {
           if (Object.keys(childChangedAttributes).length > 0) {
             if (
               this.getServerAttr(childKey) !== null &&
-              this.getServerAttr(childKey) !== undefined
+              this.getServerAttr(childKey) !== undefined &&
+              newData[childKey] === undefined // If object is not already staged for change
             ) {
               _changedAttributes[childKey] = childChangedAttributes;
             } else {
