@@ -1,3 +1,18 @@
+## v3.0.6 (2021-03-15)
+
+#### :bug: Bug Fix
+
+- [#1033](https://github.com/hjdivad/ember-m3/pull/1033) fix: outer object replacement and nested property change (backport #1031) ([@spham92](https://github.com/spham92))
+
+#### :house: Internal
+
+- [#1036](https://github.com/hjdivad/ember-m3/pull/1036) chore: bump release-it, release-it-lerna-changelog ([@hjdivad](https://github.com/hjdivad))
+
+#### Committers: 2
+
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- Steven Pham ([@spham92](https://github.com/spham92))
+
 ## v3.0.5 (2021-01-05)
 
 #### :rocket: Enhancement
