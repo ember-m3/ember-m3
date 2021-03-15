@@ -154,6 +154,44 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.deepEqual(attrsIterated, ['localAttr', 'inFlightAttr', 'dataAttr']);
     });
 
+    test(`.eachAttribute callback fires only once per attribute name`, function (assert) {
+      let recordData = new M3RecordData(
+        'com.exmaple.bookstore.book',
+        '1',
+        null,
+        this.storeWrapper,
+        this.schemaManager,
+        null,
+        null,
+        {}
+      );
+
+      recordData.pushData(
+        {
+          id: '1',
+          attributes: {
+            dataAttr: 'value',
+          },
+        },
+        false
+      );
+
+      recordData.setAttr('dataAttr', 'changed dataAttr');
+      recordData.setAttr('inFlightAttr', 'value');
+      recordData.willCommit();
+      recordData.setAttr('localAttr', 'value');
+
+      let attributeCallbackCounters = {
+        localAttr: 0,
+        inFlightAttr: 0,
+        dataAttr: 0,
+      };
+
+      recordData.eachAttribute((attr) => attributeCallbackCounters[attr]++);
+
+      assert.deepEqual(attributeCallbackCounters, { localAttr: 1, dataAttr: 1, inFlightAttr: 1 });
+    });
+
     test(`.getServerAttr returns the server state`, function (assert) {
       let recordData = new M3RecordData(
         'com.exmaple.bookstore.book',
