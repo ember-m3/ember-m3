@@ -36,15 +36,24 @@ class CommentOnPage extends PageObject {
 
 class BookOnPage extends PageObject {
   id() {
-    return this.querySelector('.id').innerText;
+    return this.querySelector('.id')
+      .innerText.replace(/\s+/g, ' ')
+      .replace(/^\s*/, '')
+      .replace(/\s*$/, '');
   }
 
   name() {
-    return this.querySelector('.name').innerText;
+    return this.querySelector('.name')
+      .innerText.replace(/\s+/g, ' ')
+      .replace(/^\s*/, '')
+      .replace(/\s*$/, '');
   }
 
   authorName() {
-    return this.querySelector('.author').innerText;
+    return this.querySelector('.author')
+      .innerText.replace(/\s+/g, ' ')
+      .replace(/^\s*/, '')
+      .replace(/\s*$/, '');
   }
 
   pubMonth() {

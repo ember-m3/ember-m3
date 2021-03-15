@@ -473,10 +473,9 @@ export default class MegamorphicModel extends EmberObject {
       }
     }
 
-    let value = this._schema.transformValue(this._modelName, key, rawValue);
     return (this._cache[key] = resolveValue(
       key,
-      value,
+      rawValue,
       this._modelName,
       this._store,
       this._schema,

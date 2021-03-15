@@ -43,6 +43,14 @@ class M3SchemaInterface {
   }
 
   /**
+   * Returns the topRecordData
+   * @returns {M3RecordData}
+   */
+  topModel() {
+    return this.recordData._topRecordData;
+  }
+
+  /**
    * Mark the passed in object as a nested m3 model
    * @param {Object} object
    */
@@ -773,6 +781,14 @@ export default class M3RecordData {
     }
 
     return originalValue !== this._attributes[key];
+  }
+
+  /**
+   * @readonly
+   * @returns {M3RecordData}
+   */
+  get _topRecordData() {
+    return this._parentRecordData ? this._parentRecordData._topModel : this;
   }
 
   /**

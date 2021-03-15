@@ -135,6 +135,7 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
   } else {
     // TODO remove this if branch once we remove support for old compute hooks
     // We invoke the old hooks and mark the results with the new apis
+    value = schema.transformValue(modelName, key, value);
 
     let computedReference = computeAttributeReference(
       key,

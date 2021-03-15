@@ -27,6 +27,13 @@ Name: {{model._internalModel.modelName}}<br>
               {{#with comment.commenter as |commenter|}}
                 {{commenter._internalModel.modelName}}: {{commenter.id}}<br>
                 {{commenter.name}}
+                {{#with commenter.reputation as |reputation|}}
+                  <br />
+                  {{reputation._internalModel.modelName}}
+                  {{#if reputation.booksReviewed}}
+                    {{reputation.booksReviewed}} books reviewed!
+                  {{/if}}
+                {{/with}}
                 {{#if commenter.favouriteBook}}
                   (<em>Favourite: ({{commenter.favouriteBook.name}})</em>)
                 {{/if}}
