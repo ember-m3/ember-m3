@@ -111,8 +111,8 @@
     "pretender": "^3.4.3",
     "prettier": "^1.19.1",
     "qunit": "^2.10.0",
-    "release-it": "^13.6.2",
-    "release-it-lerna-changelog": "^2.3.0",
+    "release-it": "^14.4.1",
+    "release-it-lerna-changelog": "^3.1.0",
     "testem": "^3.2.0"
   },
   "engines": {
@@ -151,7 +151,7 @@
     }
   },
   "volta": {
-    "node": "13.9.0",
+    "node": "14.16.0",
     "yarn": "1.12.1"
   }
 }
