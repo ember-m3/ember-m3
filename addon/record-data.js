@@ -788,7 +788,7 @@ export default class M3RecordData {
    * @returns {M3RecordData}
    */
   get _topRecordData() {
-    return this._parentRecordData ? this._parentRecordData._topModel : this;
+    return this._parentRecordData ? this._parentRecordData._topRecordData : this;
   }
 
   /**
