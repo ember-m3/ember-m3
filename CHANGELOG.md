@@ -1,3 +1,13 @@
+## v3.0.7 (2021-03-17)
+
+#### :bug: Bug Fix
+
+- [#1041](https://github.com/hjdivad/ember-m3/pull/1041) Only execute callback once per key for eachAttribute (backport #1022) ([@betocantu93](https://github.com/betocantu93))
+
+#### Committers: 1
+
+- Alberto Cantú Gómez ([@betocantu93](https://github.com/betocantu93))
+
 ## v3.0.6 (2021-03-15)
 
 #### :bug: Bug Fix
