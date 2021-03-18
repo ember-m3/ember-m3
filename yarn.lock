@@ -2597,10 +2597,10 @@ babel-plugin-htmlbars-inline-precompile@^1.0.0:
   resolved "https://registry.yarnpkg.com/babel-plugin-htmlbars-inline-precompile/-/babel-plugin-htmlbars-inline-precompile-1.0.0.tgz#a9d2f6eaad8a3f3d361602de593a8cbef8179c22"
   integrity sha512-4jvKEHR1bAX03hBDZ94IXsYCj3bwk9vYsn6ux6JZNL2U5pvzCWjqyrGahfsGNrhERyxw8IqcirOi9Q6WCo3dkQ==
 
-babel-plugin-htmlbars-inline-precompile@^4.4.1:
-  version "4.4.3"
-  resolved "https://registry.yarnpkg.com/babel-plugin-htmlbars-inline-precompile/-/babel-plugin-htmlbars-inline-precompile-4.4.3.tgz#e45a6386786583009e2d7c8bd2dc5ec51132c041"
-  integrity sha512-tJQP1cdJ/ISX5++s+7xKfy6MAZ9CYV2i78zHQ8zCrPVxAmstUWQeOkxglRMqvCoP6G0frvRSZgz+W26GyknoXw==
+babel-plugin-htmlbars-inline-precompile@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/babel-plugin-htmlbars-inline-precompile/-/babel-plugin-htmlbars-inline-precompile-5.0.0.tgz#b3a3008bdedbd3543e745fc953769cc10d4a7021"
+  integrity sha512-ZPIV7zVwVcwRyTWCp29HSwIPcvqX7PoslpKlNu53AzAx5X4QBwuMb9fFsUYY3JcriNZb5xWFOM4AE95XW0UYeA==
   dependencies:
     babel-plugin-ember-modules-api-polyfill "^3.4.0"
 
@@ -4848,18 +4848,19 @@ ember-cli-htmlbars-inline-precompile@^2.1.0:
     heimdalljs-logger "^0.1.9"
     silent-error "^1.1.0"
 
-ember-cli-htmlbars@^5.6.4:
-  version "5.6.4"
-  resolved "https://registry.yarnpkg.com/ember-cli-htmlbars/-/ember-cli-htmlbars-5.6.4.tgz#97c1ce813dfe79961c575b4516fbb30cbb782b43"
-  integrity sha512-I4zSc6PJpWiDuhru7jozQsodo4tAsNENJP/Ry0LTL0DtlZASEa5cwahPsxBjzEmAnr30oI2AExZhrDcZBryTjQ==
+ember-cli-htmlbars@^5.7.0:
+  version "5.7.0"
+  resolved "https://registry.yarnpkg.com/ember-cli-htmlbars/-/ember-cli-htmlbars-5.7.0.tgz#ca10ab2716d7ee7ba08c6514868c69b46b7cc10d"
+  integrity sha512-Cda9caL1hgd7tOFH7ab1h8WXe9WxChmv766tMb6yunQuzaHLhn/E3NrNJB6TpqosfQH8nIo8TzqWTPRwJbRq2w==
   dependencies:
     "@ember/edition-utils" "^1.2.0"
-    babel-plugin-htmlbars-inline-precompile "^4.4.1"
+    babel-plugin-htmlbars-inline-precompile "^5.0.0"
     broccoli-debug "^0.6.5"
     broccoli-persistent-filter "^3.1.2"
     broccoli-plugin "^4.0.3"
     common-tags "^1.8.0"
     ember-cli-babel-plugin-helpers "^1.1.1"
+    ember-cli-version-checker "^5.1.2"
     fs-tree-diff "^2.0.1"
     hash-for-dep "^1.5.1"
     heimdalljs-logger "^0.1.10"
