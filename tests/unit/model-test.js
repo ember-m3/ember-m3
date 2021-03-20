@@ -1,4 +1,3 @@
-import Ember from 'ember';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
@@ -17,6 +16,7 @@ import MegamorphicModel from 'ember-m3/model';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import require from 'require';
 
+import { capturedWarnings, captureWarnings } from '../helpers/warning-handler';
 import { watchProperty } from '../helpers/watch-property';
 
 const Errors = ModelErrors || StoreErrors;
@@ -2467,24 +2467,14 @@ module('unit/model', function(hooks) {
     // nestedModel.unloadRecord();
     // assert.expectWarning(`Nested models cannot be directly unloaded.  Perhaps you meant to unload the top level model, 'com.example.bookstore.book:1'`);
 
-    let warnSpy = this.sinon.stub(Ember, 'warn');
+    captureWarnings();
     nestedModel.unloadRecord();
-    assert.deepEqual(
-      zip(
-        warnSpy.thisValues.map(x => x + ''),
-        warnSpy.args
-      ),
+    assert.deepEqual(capturedWarnings, [
       [
-        [
-          'Ember',
-          [
-            "Nested models cannot be directly unloaded.  Perhaps you meant to unload the top level model, 'com.example.bookstore.book:1'",
-            false,
-            { id: 'ember-m3.nested-model-unloadRecord' },
-          ],
-        ],
-      ]
-    );
+        "Nested models cannot be directly unloaded.  Perhaps you meant to unload the top level model, 'com.example.bookstore.book:1'",
+        { id: 'ember-m3.nested-model-unloadRecord' },
+      ],
+    ]);
     assert.equal(
       this.store.hasRecordForId('com.example.bookstore.book', '1'),
       true,

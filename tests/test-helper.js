@@ -6,10 +6,15 @@ import './helpers/watch-property';
 import QUnit from 'qunit';
 import 'ember-m3/initializers/m3-store';
 
+// ensures the warning handler is setup for all tests
+import { resetWarnings } from './helpers/warning-handler';
+
 QUnit.config.urlConfig.push({
   id: 'enableoptionalfeatures',
   label: 'Enable Opt Features',
 });
+
+QUnit.testDone(resetWarnings);
 
 setApplication(Application.create(config.APP));
 start({
