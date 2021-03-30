@@ -116,7 +116,7 @@
     "qunit": "^2.14.1",
     "release-it": "^14.4.1",
     "release-it-lerna-changelog": "^3.1.0",
-    "testem": "^3.2.1"
+    "testem": "^3.4.0"
   },
   "engines": {
     "node": "10.* || >= 12.*"
