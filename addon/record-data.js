@@ -46,7 +46,7 @@ class M3SchemaInterface {
    * Returns the topRecordData
    * @returns {M3RecordData}
    */
-  topModel() {
+  rootModel() {
     return this.recordData._topRecordData;
   }
 
