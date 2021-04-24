@@ -86,26 +86,27 @@ export default class SchemaManager extends Service {
   }
 
   isAttributeIncluded(modelName, attrName) {
-    let whitelist = this._modelSchemaProperty(modelName, 'attributes');
-    return !whitelist || whitelist.includes(attrName);
+    let schema = this.get('schema');
+    if (schema.isAttributeIncluded && typeof schema.isAttributeIncluded === 'function') {
+      return schema.isAttributeIncluded(modelName, attrName);
+    }
+    return true;
   }
 
+  //implicit undefined return, thus no default value
   getDefaultValue(modelName, keyName) {
-    let defaults = this._modelSchemaProperty(modelName, 'defaults');
-    if (!defaults) {
-      return;
+    let schema = this.get('schema');
+    if (schema.getDefaultValue && typeof schema.getDefaultValue === 'function') {
+      return this.get('schema').getDefaultValue(modelName, keyName);
     }
-
-    return defaults[keyName];
   }
 
+  //implicit undefined return, thus no default value
   getAttributeAlias(modelName, attrName) {
-    let aliases = this._modelSchemaProperty(modelName, 'aliases');
-    if (!aliases) {
-      return;
+    let schema = this.get('schema');
+    if (schema.getAttributeAlias && typeof schema.getAttributeAlias === 'function') {
+      return schema.getAttributeAlias(modelName, attrName);
     }
-
-    return aliases[attrName];
   }
 
   // TODO: probably need a better function name, e.g. computeAttributeNames
@@ -141,43 +142,13 @@ export default class SchemaManager extends Service {
     return this.get('schema').isAttributeResolved(modelName, attrName, value, schemaInterface);
   }
 
+  //backwards compatibility using ember generate schema-compat
   transformValue(modelName, attrName, value) {
-    let transforms = this._modelSchemaProperty(modelName, 'transforms');
-    let transform = transforms && transforms[attrName];
-
-    return transform ? transform(value) : value;
-  }
-
-  _modelSchema(modelName) {
-    let models = this.get('schema').models;
-    return models && models[modelName];
-  }
-
-  /**
-   * Access property of the type-specific information, including:
-   * - `attributes` A list of whitelisted attributes.  It is recommended to omit
-   *   this unless you explicitly want to prevent unknown properties returned in
-   *   the API payload from being read.  If present, it is an array of strings that
-   *   list whitelisted attributes.  Reads of non-whitelisted properties will
-   *   return `undefined`.
-   *
-   * - `defaults` An object whose key-value pairs map attribute names to default
-   *   values.  Reads of properties not included in the API will return the default
-   *   value instead, if it is specified in the schema.
-   *
-   * - `aliases` Alternate names for payload attributes.  Aliases are read-only, ie
-   *   equivalent to `Ember.computed.reads` and not `Ember.computed.alias`
-   *
-   * - `transforms` An object whose key-value pairs map attribute names to
-   *   functions that transform their values.
-   *
-   * @param {string} modelName
-   * @param {string} property 'attributes'|'defaults'|'aliases'|'transforms'
-   * @returns {Object}
-   */
-  _modelSchemaProperty(modelName, property) {
-    let modelSchema = this._modelSchema(modelName);
-    return modelSchema && modelSchema[property];
+    let schema = this.get('schema');
+    if (schema.transformValue && typeof schema.transformValue === 'function') {
+      return schema.transformValue(modelName, attrName, value);
+    }
+    return value;
   }
 }
 
