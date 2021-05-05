@@ -65,6 +65,38 @@ for (let testRun = 0; testRun < 2; testRun++) {
         this.store = this.owner.lookup('service:store');
       });
 
+      test('Double nested arrays', function (assert) {
+        let model = run(() =>
+          this.store.push({
+            data: {
+              id: 'isbn:9780439708180',
+              type: 'com.example.bookstore.Book',
+              attributes: {
+                name: `Harry Potter and the Sorcerer's Stone`,
+                chapters: [
+                  [
+                    {
+                      name: 'The Boy Who Lived',
+                    },
+                  ],
+                  [{ name: 'This will overwrite the first model' }],
+                ],
+              },
+            },
+          })
+        );
+
+        let chapters = model.get('chapters');
+        assert.equal(chapters instanceof ManagedArray, true, 'chapters is a tracked array');
+
+        let chapter1 = chapters.objectAt(0);
+        assert.equal(
+          chapter1.objectAt(0).get('name'),
+          'The Boy Who Lived',
+          `chapters's embedded records can resolve values`
+        );
+      });
+
       test('tracked, non-reference, arrays resolve new values', function (assert) {
         let model = run(() =>
           this.store.push({
