@@ -1812,13 +1812,26 @@
   resolved "https://registry.yarnpkg.com/@ember-data/rfc395-data/-/rfc395-data-0.0.4.tgz#ecb86efdf5d7733a76ff14ea651a1b0ed1f8a843"
   integrity sha512-tGRdvgC9/QMQSuSuJV45xoyhI0Pzjm7A9o/MVVA3HakXIImJbbzx/k/6dO9CUEQXIyS2y0fW6C1XaYOG7rY0FQ==
 
-"@ember-data/store@3.26.0", "@ember-data/store@^3.24.0":
+"@ember-data/store@3.26.0":
   version "3.26.0"
   resolved "https://registry.yarnpkg.com/@ember-data/store/-/store-3.26.0.tgz#16b52af043aca43e49274c4200054267f65ca3e5"
   integrity sha512-qG+zgEJStdcyGaJXTS0JV+tPC8HfCSnv/u5IWHBm0AkqtOn4JmWhFmap9h2/hwQE/K1f+clWn7AMSCxQS+uBgw==
   dependencies:
     "@ember-data/canary-features" "3.26.0"
     "@ember-data/private-build-infra" "3.26.0"
+    "@ember/string" "^1.0.0"
+    ember-cli-babel "^7.26.3"
+    ember-cli-path-utils "^1.0.0"
+    ember-cli-typescript "^4.0.0"
+    heimdalljs "^0.3.0"
+
+"@ember-data/store@^3.27.0":
+  version "3.27.0"
+  resolved "https://registry.yarnpkg.com/@ember-data/store/-/store-3.27.0.tgz#8d2e13f47faa488ec7ec40d86f6f19fec989d625"
+  integrity sha512-styKttDQNJRqeOkhkoclSeEtJaw76gaEXCYRH4Yl906/SXGIB6hzD/roSRvSUCgRNSN1I7m6QGGR4mnqFmaonw==
+  dependencies:
+    "@ember-data/canary-features" "3.27.0"
+    "@ember-data/private-build-infra" "3.27.0"
     "@ember/string" "^1.0.0"
     ember-cli-babel "^7.26.3"
     ember-cli-path-utils "^1.0.0"
