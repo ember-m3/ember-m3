@@ -218,7 +218,7 @@ export default class MegamorphicModel extends EmberObject {
       // just super and move on for state flags
       // this needs to match whatever we are notifying
       // in our subscription to the notificationManager
-      if (['isNew', 'isDeleted'].contains(key)) {
+      if (['isNew', 'isDeleted'].indexOf(key) !== -1) {
         super.notifyPropertyChange(key);
         return;
       }
