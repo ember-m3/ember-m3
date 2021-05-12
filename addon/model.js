@@ -272,6 +272,15 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   notifyPropertyChange(key) {
+    if (CUSTOM_MODEL_CLASS) {
+      // just super and move on for state flags
+      // this needs to match whatever we are notifying
+      // in our subscription to the notificationManager
+      if (['isNew', 'isDeleted'].indexOf(key) !== -1) {
+        super.notifyPropertyChange(key);
+        return;
+      }
+    }
     const recordData = recordDataFor(this);
     const schemaInterface = recordData.schemaInterface;
     let resolvedKeysInCache = schemaInterface._getDependentResolvedKeys(key);
