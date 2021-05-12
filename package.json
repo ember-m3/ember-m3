@@ -119,7 +119,7 @@
     "testem": "^3.4.1"
   },
   "engines": {
-    "node": "10.* || >= 12.*"
+    "node": ">= 12.*"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"

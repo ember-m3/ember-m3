@@ -281,7 +281,7 @@ As an example, we may need to compute a secondary cache key once we receive
 response from our API.
 
 ```js
-store.queryURL('/foo', { cacheKey }).then(result => {
+store.queryURL('/foo', { cacheKey }).then((result) => {
   const secondaryCacheKey = computeSecondaryCacheKey(result);
   store.cacheURL(secondaryCacheKey, result);
 });
@@ -291,7 +291,7 @@ When we unload the model, we will evict _both_ the initial `cacheKey` as well as
 `secondaryCacheKey`.
 
 ```js
-store.queryURL('/foo', { cacheKey: 'foo' }).then(result => {
+store.queryURL('/foo', { cacheKey: 'foo' }).then((result) => {
   store.cacheURL('bar', result);
 
   // Cache conceptually looks like: { foo: ..., bar: ...' }
@@ -360,8 +360,8 @@ If you are returning a nested m3 model, return:
 
 If you are returning a managed array, return:
 `schemaInterface.managedArray([schemaInterface.nested(obj), someOtherValue])`
-  
- If you are returning the a value you can return the raw value without passing it
+
+If you are returning the a value you can return the raw value without passing it
 through the schemaInterface call
 
 For example, if we have a book object:
@@ -624,7 +624,7 @@ Let's say this state has a formal class:
 
 ```js
 const RetrofitState = Ember.Object.extend({
-  statusText: Ember.computed('statusCode', function() {
+  statusText: Ember.computed('statusCode', function () {
     let code = this.get('statusCode');
 
     switch (code) {
@@ -778,7 +778,7 @@ As of 30 April 2020 this means:
 - 3.17.x (the previous release)
 - 3.16.x (the current LTS)
 
-On the build side, a [supported version of node](https://nodejs.org/en/about/releases/) is required.
+On the build side, an [active version of node](https://nodejs.org/en/about/releases/) is required.
 
 ## Utilizing less of EmberData
 
