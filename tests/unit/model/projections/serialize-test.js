@@ -1,4 +1,5 @@
-import { module, test, setupTest } from 'ember-qunit';
+import { setupTest } from 'ember-qunit';
+import { module, test } from 'qunit';
 import { get } from '@ember/object';
 import { run } from '@ember/runloop';
 import EmberObject from '@ember/object';
