@@ -79,6 +79,7 @@
     "@ember-data/model": "^3.27.0",
     "@ember-data/store": "^3.24.0",
     "@ember/optional-features": "^2.0.0",
+    "@ember/test-helpers": "^2.2.5",
     "@malleatus/nyx": "^0.2.0",
     "@octokit/rest": "^18.5.3",
     "babel-eslint": "^10.1.0",
@@ -95,7 +96,7 @@
     "ember-inflector": "^3.0.1",
     "ember-load-initializers": "^2.1.2",
     "ember-lodash": "^4.17.5",
-    "ember-qunit": "^4.6.0",
+    "ember-qunit": "^5.1.4",
     "ember-qunit-assert-helpers": "^0.2.1",
     "ember-resolver": "^8.0.2",
     "ember-sinon": "^5.0.0",
@@ -119,7 +120,7 @@
     "testem": "^3.4.1"
   },
   "engines": {
-    "node": "10.* || >= 12.*"
+    "node": ">= 12.* < 16.*"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
