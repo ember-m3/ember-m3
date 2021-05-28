@@ -77,7 +77,7 @@
     "@commitlint/travis-cli": "^12.1.4",
     "@ember-data/debug": "^3.27.1",
     "@ember-data/model": "^3.27.0",
-    "@ember-data/store": "^3.24.0",
+    "@ember-data/store": "^3.27.1",
     "@ember/optional-features": "^2.0.0",
     "@ember/test-helpers": "^2.2.5",
     "@malleatus/nyx": "^0.2.0",
