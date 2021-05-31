@@ -79,7 +79,7 @@
     "@ember-data/model": "^3.27.1",
     "@ember-data/store": "^3.27.1",
     "@ember/optional-features": "^2.0.0",
-    "@ember/test-helpers": "^2.2.5",
+    "@ember/test-helpers": "^2.2.6",
     "@malleatus/nyx": "^0.2.0",
     "@octokit/rest": "^18.5.5",
     "babel-eslint": "^10.1.0",
