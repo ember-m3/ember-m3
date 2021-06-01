@@ -54,6 +54,18 @@ module.exports = {
     return this._super.treeForAddon.call(this, tree);
   },
 
+  treeForApp(tree) {
+    const isProd = process.env.EMBER_ENV === 'production';
+
+    if (isProd) {
+      tree = new Funnel(tree, {
+        exclude: ['data-adapter.js'],
+      });
+    }
+
+    return this._super.treeForApp.call(this, tree);
+  },
+
   configureBabelOptions() {
     let app = this._findHost();
 
