@@ -71,9 +71,18 @@ module.exports = {
 
     this.options = this.options || {};
     this.options.babel = this.options.babel || {};
-    let plugins = this.options.babel.plugins;
+    let plugins = this.options.babel.plugins ? this.options.babel.plugins.slice() : [];
     let newPlugins = getDebugMacros(app);
-    this.options.babel.plugins = Array.isArray(plugins) ? plugins.concat(newPlugins) : newPlugins;
+
+    for (let newPlugin of newPlugins) {
+      let wasPreviouslyAdded = plugins.find(
+        (existingPlugin) => Array.isArray(existingPlugin) && existingPlugin[2] === newPlugin[2]
+      );
+      if (!wasPreviouslyAdded) {
+        plugins.push(newPlugin);
+      }
+    }
+    this.options.babel.plugins = plugins;
 
     this.options.babel.loose = true;
   },
