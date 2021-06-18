@@ -15,8 +15,9 @@ jobs:
           fetch-depth: 0
       - name: Check SHA
         run: |
-          sha=$(git rev-parse --short=8 HEAD)
-          echo "HEAD sha=$sha"
+          # sha=$(git rev-parse --short=8 HEAD)
+          # echo "HEAD sha=$sha"
+          echo "HEAD sha=$GITHUB_SHA"
           echo "GITHUB_SHA sha=$GITHUB_SHA"
           mkdir -p tmp
           echo $sha > tmp/sha-for-check.txt
