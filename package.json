@@ -44,6 +44,7 @@
   ],
   "scripts": {
     "build": "ember build",
+    "build:perf-test": "ember build",
     "format": "eslint --fix .",
     "lint": "yarn lint:js",
     "lint:js": "eslint .",
