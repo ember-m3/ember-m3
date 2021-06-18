@@ -3,7 +3,7 @@ name: Performance Checks
 on:
   pull_request:
     branches:
-      - master
+      - '*'
 
 jobs:
   performance-checks:
