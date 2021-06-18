@@ -67,6 +67,6 @@
     "edition": "octane"
   },
   "dependencies": {
-    "ember-m3": "^3.0.7"
+    "ember-m3": "file:../"
   }
 }
