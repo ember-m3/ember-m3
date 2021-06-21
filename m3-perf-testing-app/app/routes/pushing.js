@@ -4,8 +4,8 @@ export default Route.extend({
   model() {
     performance.mark('start-loading');
     window.setTimeout(() => {
-    performance.mark('end-loading');
+      performance.mark('end-loading');
     }, 100);
-    return {};
+    return { message: 'hello'};
   },
 });
