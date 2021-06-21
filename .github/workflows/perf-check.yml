@@ -35,9 +35,9 @@ jobs:
           scenarios: |
             {
               "loading": {
-                "control": "http://localhost:4200/materialization",
-                "experiment": "http://localhost:4201/materialization",
-                "markers": "start-find-all,start-materialization,end-materialization"
+                "control": "http://localhost:4200/pushing",
+                "experiment": "http://localhost:4201/pushing",
+                "markers": "start-loading,end-loading"
               }
             }
           fidelity: 60
