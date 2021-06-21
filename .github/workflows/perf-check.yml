@@ -38,7 +38,7 @@ jobs:
                 "control": "http://localhost:4200/materialization",
                 "experiment": "http://localhost:4201/materialization",
                 "markers": "start-find-all,start-materialization,end-materialization"
-              },
+              }
             }
           fidelity: 60
           upload-traces: true
