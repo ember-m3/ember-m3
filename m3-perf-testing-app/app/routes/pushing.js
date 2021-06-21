@@ -7,6 +7,6 @@ export default Route.extend({
   },
 
   didTransition() {
-      performance.mark('end-loading');
+    performance.mark('end-loading');
   }
 });
