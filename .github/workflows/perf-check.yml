@@ -25,7 +25,7 @@ jobs:
           echo $originSha > tmp/sha-for-commit.txt
           git show --format=short --no-patch $originSha
           cd m3-perf-testing-app && yarn
-      - uses: tracerbench/tracerbench-compare-action@update-configurability
+      - uses: tracerbench/tracerbench-compare-action
         with:
           experiment-build-command: cd m3-perf-testing-app && ./node_modules/ember-cli/bin/ember build -e production --output-path dist-experiment
           experiment-serve-command:  cd m3-perf-testing-app &&  ./node_modules/ember-cli/bin/ember s --path dist-experiment --port 4201
