@@ -641,7 +641,9 @@ export default class MegamorphicModel extends EmberObject {
   // Errors hash that will get update,
   // upon validation errors
   get errors() {
-    if (this._errors === null) {
+    if (this._schema.useUnderlyingErrorsValue(this._modelName)) {
+      return this.unknownProperty('errors');
+    } else if (this._errors === null) {
       this._errors = Errors.create();
     }
     return this._errors;

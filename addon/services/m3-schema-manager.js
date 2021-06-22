@@ -57,6 +57,17 @@ export default class SchemaManager extends Service {
   }
 
   /**
+   * Calls the schema's useUnderlyingErrorsValue passing in modelName
+   *
+   * @param {string} modelName - Name of model to determine if `errors` property in the payload should be used
+   * @returns {boolean}
+   */
+  useUnderlyingErrorsValue(modelName) {
+    let schema = this.get('schema');
+    return schema.useUnderlyingErrorsValue(modelName);
+  }
+
+  /**
    * Whether or not ember-m3 should handle this `modelName`.
    *
    * @param {string} modelName

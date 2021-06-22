@@ -216,4 +216,41 @@ module('unit/schema-manager', function (hooks) {
     );
     assert.equal(this.schemaManager.useComputeAttribute(), true);
   });
+
+  test("schema's useUnderlyingErrorsValue returns true", function (assert) {
+    this.registerSchema(
+      class TestSchema extends DefaultSchema {
+        useUnderlyingErrorsValue(modelName) {
+          assert.equal(
+            modelName,
+            'com.example.bookstore.Book',
+            "model name is passed to schema's useUnderlyingErrorsValue function"
+          );
+          return true;
+        }
+      }
+    );
+    assert.equal(this.schemaManager.useUnderlyingErrorsValue('com.example.bookstore.Book'), true);
+  });
+
+  test("schema's useUnderlyingErrorsValue returns false", function (assert) {
+    this.registerSchema(
+      class TestSchema extends DefaultSchema {
+        useUnderlyingErrorsValue(modelName) {
+          assert.equal(
+            modelName,
+            'com.example.bookstore.Book',
+            "model name is passed to schema's useUnderlyingErrorsValue function"
+          );
+          return false;
+        }
+      }
+    );
+    assert.equal(this.schemaManager.useUnderlyingErrorsValue('com.example.bookstore.Book'), false);
+  });
+
+  test("schema's default useUnderlyingErrorsValue function call as false", function (assert) {
+    this.registerSchema(DefaultSchema);
+    assert.equal(this.schemaManager.useUnderlyingErrorsValue(), false);
+  });
 });
