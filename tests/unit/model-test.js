@@ -17,6 +17,8 @@ import MegamorphicModel from 'ember-m3/model';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import require from 'require';
 
+import { watchProperty } from '../helpers/watch-property';
+
 const Errors = ModelErrors || StoreErrors;
 
 const UrnWithTypeRegex = /^urn:([a-zA-Z.]+):(.*)/;
@@ -850,35 +852,25 @@ module('unit/model', function(hooks) {
         },
       });
     });
-
-    let propChanges = [];
-    // TODO Convert this to use watch-property helper
-    model.addObserver('fans', (model, key) => {
-      propChanges.push([model + '', key]);
-    });
-
+    let fansWatcher = watchProperty(model, 'fans');
     // observe alias
-    // TODO Convert this to use watch-property helper
-    model.addObserver('title', (model, key) => {
-      propChanges.push([model + '', key]);
-    });
-
+    let titleWatcher = watchProperty(model, 'title');
     run(() => {
       set(model, 'fans', 'millions');
-      // check that alias doesn't get prop changes when not requested
+      // title is aliased to name
       set(model, 'name', 'First Book');
     });
-
-    assert.deepEqual(propChanges, [[model + '', 'fans']], 'change events trigger for direct props');
-
-    propChanges.splice(0, propChanges.length);
+    assert.equal(fansWatcher.count, 1, 'change events trigger for direct props');
+    assert.equal(
+      titleWatcher.count,
+      0,
+      "check that alias doesn't get prop changes when not requested"
+    );
     assert.equal(get(model, 'title'), `First Book`, 'initialize alias');
-
     run(() => {
       set(model, 'name', 'Book 1');
     });
-
-    assert.deepEqual(propChanges, [[model + '', 'title']], 'change events trigger for aliases');
+    assert.equal(titleWatcher.count, 1, 'change events trigger for aliases');
   });
 
   test('.setUnknownProperty sets attributes to given value for uncached values', function(assert) {
