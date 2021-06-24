@@ -1,4 +1,6 @@
 import Route from '@ember/routing/route';
+import { action } from '@ember/object';
+
 
 export default Route.extend({
   model() {
@@ -6,6 +8,7 @@ export default Route.extend({
     return { message: 'hello'};
   },
 
+  @action
   didTransition() {
     performance.mark('end-loading');
   }

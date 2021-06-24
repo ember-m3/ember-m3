@@ -4710,7 +4710,7 @@ ember-cli-babel@^6.0.0-beta.4:
     ember-cli-version-checker "^2.1.2"
     semver "^5.5.0"
 
-ember-cli-babel@^7.0.0, ember-cli-babel@^7.13.0, ember-cli-babel@^7.13.2, ember-cli-babel@^7.20.5, ember-cli-babel@^7.22.1, ember-cli-babel@^7.23.0, ember-cli-babel@^7.23.1, ember-cli-babel@^7.26.2, ember-cli-babel@^7.26.3, ember-cli-babel@^7.26.5, ember-cli-babel@^7.26.6, ember-cli-babel@^7.4.0, ember-cli-babel@^7.4.1, ember-cli-babel@^7.7.3:
+ember-cli-babel@^7.0.0, ember-cli-babel@^7.13.0, ember-cli-babel@^7.13.2, ember-cli-babel@^7.22.1, ember-cli-babel@^7.23.0, ember-cli-babel@^7.23.1, ember-cli-babel@^7.26.2, ember-cli-babel@^7.26.3, ember-cli-babel@^7.26.5, ember-cli-babel@^7.26.6, ember-cli-babel@^7.4.0, ember-cli-babel@^7.4.1, ember-cli-babel@^7.7.3:
   version "7.26.6"
   resolved "https://registry.yarnpkg.com/ember-cli-babel/-/ember-cli-babel-7.26.6.tgz#322fbbd3baad9dd99e3276ff05bc6faef5e54b39"
   integrity sha512-040svtfj2RC35j/WMwdWJFusZaXmNoytLAMyBDGLMSlRvznudTxZjGlPV6UupmtTBApy58cEF8Fq4a+COWoEmQ==
@@ -5146,18 +5146,7 @@ ember-load-initializers@^2.1.2:
     ember-cli-babel "^7.13.0"
     ember-cli-typescript "^2.0.2"
 
-ember-m3@^3.0.7:
-  version "3.0.7"
-  resolved "https://registry.yarnpkg.com/ember-m3/-/ember-m3-3.0.7.tgz#6a167c34853134b317eb4c9ff4f5543665aa6d58"
-  integrity sha512-EltbCeS6zaV09ZxCc+I7QTD7nDX/VVo5B7kXp12Hn+PrssLbU9tvuHdGf+rnS5O7lZVIy5CYR01PTIDDvNxmaA==
-  dependencies:
-    babel-plugin-debug-macros "^0.3.3"
-    broccoli-funnel "^3.0.3"
-    ember-cli-babel "^7.20.5"
-    ember-cli-version-checker "^5.1.1"
-    semver "^7.3.2"
-
-"ember-m3@file:../":
+"ember-m3@file:..":
   version "3.0.0"
   dependencies:
     babel-plugin-debug-macros "^0.3.3"
