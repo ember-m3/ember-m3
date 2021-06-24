@@ -53,12 +53,6 @@
     "prepublishOnly": "node ./src/prepublish.js",
     "postpublish": "node ./src/postpublish.js"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged",
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
-    }
-  },
   "lint-staged": {
     "*.{js,json,md}": [
       "prettier --write",
