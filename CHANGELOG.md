@@ -1,3 +1,6 @@
+## v4.0.1 (2021-06-24)
+Internal release - no user-visible changes
+
 ## v4.0.0 (2021-06-24)
 
 #### :boom: Breaking Change
