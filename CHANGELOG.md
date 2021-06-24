@@ -1,3 +1,36 @@
+## v4.0.0 (2021-06-24)
+
+#### :boom: Breaking Change
+* [#1100](https://github.com/hjdivad/ember-m3/pull/1100) Drop support for inactive node 10 ([@hjdivad](https://github.com/hjdivad))
+
+#### :rocket: Enhancement
+* [#1032](https://github.com/hjdivad/ember-m3/pull/1032) Adds support for native Proxy behind a canary feature flag ([@pzuraq](https://github.com/pzuraq))
+* [#787](https://github.com/hjdivad/ember-m3/pull/787) replace computeNestedModel and computeAttributeReference schema hooks with computeAttribute ([@igorT](https://github.com/igorT))
+
+#### :bug: Bug Fix
+* [#1131](https://github.com/hjdivad/ember-m3/pull/1131) Ensure we do not add custom babel plugins multiple times ([@rwjblue](https://github.com/rwjblue))
+* [#1121](https://github.com/hjdivad/ember-m3/pull/1121) Avoid invalid imports in production app tree ([@rwjblue](https://github.com/rwjblue))
+* [#1099](https://github.com/hjdivad/ember-m3/pull/1099) Fix state notifications when CUSTOM_MODEL_CLASS is active ([@runspired](https://github.com/runspired))
+* [#1005](https://github.com/hjdivad/ember-m3/pull/1005) Pass owner when creating M3DebugAdapter ([@pzuraq](https://github.com/pzuraq))
+* [#817](https://github.com/hjdivad/ember-m3/pull/817) temporary fix for stringifying models in the debug adapter ([@betocantu93](https://github.com/betocantu93))
+* [#840](https://github.com/hjdivad/ember-m3/pull/840) Replace `new Object(null)` with `Object.create(null)`. ([@rwjblue](https://github.com/rwjblue))
+
+#### :house: Internal
+* [#1091](https://github.com/hjdivad/ember-m3/pull/1091) Updated pinned yarn version ([@hjdivad](https://github.com/hjdivad))
+* [#1047](https://github.com/hjdivad/ember-m3/pull/1047) Refactor warning capturing and testing. ([@rwjblue](https://github.com/rwjblue))
+* [#822](https://github.com/hjdivad/ember-m3/pull/822) Remove work around for Ember < 2.12 relying on `setOwner` enumerability ([@rwjblue](https://github.com/rwjblue))
+* [#789](https://github.com/hjdivad/ember-m3/pull/789) and [#793](https://github.com/hjdivad/ember-m3/pull/793) TrackedArrays and ReferenceArrays are now unified as a ManagedArray ([@igorT](https://github.com/igorT))
+
+#### Committers: 7
+- Alberto Cantú Gómez ([@betocantu93](https://github.com/betocantu93))
+- Chris Garrett ([@pzuraq](https://github.com/pzuraq))
+- Chris Thoburn ([@runspired](https://github.com/runspired))
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- Igor Terzic ([@igorT](https://github.com/igorT))
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+- Steven Pham ([@spham92](https://github.com/spham92))
+
+
 ## v3.0.7 (2021-03-17)
 
 #### :bug: Bug Fix
