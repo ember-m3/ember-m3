@@ -16,6 +16,13 @@
 
     {{content-for "head-footer"}}
     {{content-for "test-head-footer"}}
+
+    <style>
+      /* We don't want to see an empty white box for this test suit? */
+      #ember-testing-container {
+        display: none;
+      }
+    </style>
   </head>
   <body>
     {{content-for "body"}}

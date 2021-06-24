@@ -57,16 +57,32 @@ module('integration/model-invalidation-render', function (hooks) {
       Customers: <span class=customers>{{bookstore.customers}}</span>
     `);
 
-    let renderedName = this.element.querySelector('.name').innerText;
-    let renderedCustomerCount = this.element.querySelector('.customers').innerText;
+    let renderedName = this.element
+      .querySelector('.name')
+      .innerText.replace(/\s+/g, ' ')
+      .replace(/^\s*/, '')
+      .replace(/\s*$/, '');
+    let renderedCustomerCount = this.element
+      .querySelector('.customers')
+      .innerText.replace(/\s+/g, ' ')
+      .replace(/^\s*/, '')
+      .replace(/\s*$/, '');
     assert.equal(renderedName, "Books 'n stuff", 'component is rendered correctly');
     assert.equal(renderedCustomerCount, '0', 'outer property rendered correctyl');
     assert.equal(this.renderCount, 1, 'initial render');
 
     run(() => bookstore.incrementProperty('customers'));
 
-    renderedName = this.element.querySelector('.name').innerText;
-    renderedCustomerCount = this.element.querySelector('.customers').innerText;
+    renderedName = this.element
+      .querySelector('.name')
+      .innerText.replace(/\s+/g, ' ')
+      .replace(/^\s*/, '')
+      .replace(/\s*$/, '');
+    renderedCustomerCount = this.element
+      .querySelector('.customers')
+      .innerText.replace(/\s+/g, ' ')
+      .replace(/^\s*/, '')
+      .replace(/\s*$/, '');
     assert.equal(renderedName, "Books 'n stuff", 'component is rendered correctly');
     assert.equal(renderedCustomerCount, '1', 'outer property rendered correctyl');
     assert.equal(this.renderCount, 1, 'rerender succeeds and does not dirty the model');

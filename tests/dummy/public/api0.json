@@ -66,7 +66,11 @@
         "commenter": {
           "$type": "com.example.bookstore.Commenter",
           "name": "Some User",
-          "favouriteBook": "isbn:9780760768587"
+          "favouriteBook": "isbn:9780760768587",
+          "reputation": {
+            "$type": "com.example.bookstore.Reputation",
+            "booksReviewed": 10
+          }
         },
         "body": "This book is great"
       }
@@ -77,7 +81,11 @@
       "attributes": {
         "commenter": {
           "$type": "com.example.bookstore.Commenter",
-          "name": "Some Other User"
+          "name": "Some Other User",
+          "reputation": {
+            "$type": "com.example.bookstore.Reputation",
+            "booksReviewed": 8
+          }
         },
         "body": "I agree"
       }

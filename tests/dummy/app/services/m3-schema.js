@@ -27,16 +27,18 @@ function computeNestedModel(key, value) {
 }
 
 export default class Schema extends DefaultSchema {
-  computeAttribute(key, value, modelName, schemaInterface) {
-    let ref = computeAttributeReference(key, value, modelName, schemaInterface);
+  computeAttribute(key, rawValue, modelName, schemaInterface) {
+    let transformedValue = this.transformValue(modelName, key, rawValue);
+    let ref = computeAttributeReference(key, transformedValue, modelName, schemaInterface);
+
     if (Array.isArray(ref)) {
       return schemaInterface.managedArray(ref.map((v) => schemaInterface.reference(v)));
     } else if (ref) {
       return schemaInterface.reference(ref);
     }
 
-    if (Array.isArray(value)) {
-      let nested = value.map((v) => {
+    if (Array.isArray(transformedValue)) {
+      let nested = transformedValue.map((v) => {
         if (typeof v === 'object') {
           let computed = computeNestedModel(key, v, modelName, schemaInterface);
           return computed ? schemaInterface.nested(computed) : v;
@@ -51,18 +53,29 @@ export default class Schema extends DefaultSchema {
       });
       return schemaInterface.managedArray(nested);
     } else {
-      let nested = computeNestedModel(key, value, modelName, schemaInterface);
+      let nested = computeNestedModel(key, transformedValue, modelName, schemaInterface);
       if (nested) {
         return schemaInterface.nested(nested);
       }
     }
+
+    return transformedValue;
+  }
+
+  getTransformFor(modelName, key) {
+    let transform = this.models?.[modelName]?.transforms?.[key];
+    return transform;
+  }
+
+  transformValue(modelName, key, rawValue) {
+    let transform = this.getTransformFor(modelName, key);
+    return transform ? transform(rawValue) : rawValue;
   }
 
   includesModel(modelName) {
     return BookStoreRegExp.test(modelName);
   }
 }
-
 Schema.prototype.models = {
   'com.example.bookstore.book': {
     transforms: {
