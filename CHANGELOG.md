@@ -1,3 +1,7 @@
+## v4.0.2 (2021-06-24)
+Internal release - no user-visible changes
+
+
 ## v4.0.1 (2021-06-24)
 Internal release - no user-visible changes
 
