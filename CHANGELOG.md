@@ -1,3 +1,79 @@
+## v3.0.7 (2021-03-17)
+
+#### :bug: Bug Fix
+
+- [#1041](https://github.com/hjdivad/ember-m3/pull/1041) Only execute callback once per key for eachAttribute (backport #1022) ([@betocantu93](https://github.com/betocantu93))
+
+#### Committers: 1
+
+- Alberto Cantú Gómez ([@betocantu93](https://github.com/betocantu93))
+
+## v3.0.6 (2021-03-15)
+
+#### :bug: Bug Fix
+
+- [#1033](https://github.com/hjdivad/ember-m3/pull/1033) fix: outer object replacement and nested property change (backport #1031) ([@spham92](https://github.com/spham92))
+
+#### :house: Internal
+
+- [#1036](https://github.com/hjdivad/ember-m3/pull/1036) chore: bump release-it, release-it-lerna-changelog ([@hjdivad](https://github.com/hjdivad))
+
+#### Committers: 2
+
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- Steven Pham ([@spham92](https://github.com/spham92))
+
+## v3.0.5 (2021-01-05)
+
+#### :rocket: Enhancement
+
+- [#784](Add queryParams option for Store.queryURL) (backported via #980)
+
+#### Committers: 1
+
+- ([@2hu](https://github.com/2hu12))
+
+## v3.0.4 (2020-09-29)
+
+#### :bug: Bug Fix
+
+- [#892](https://github.com/hjdivad/ember-m3/pull/892) Fix keeping embedded records in sync inside projections ([@igorT](https://github.com/igorT))
+
+#### Committers: 1
+
+- Igor Terzic ([@igorT](https://github.com/igorT))
+
+## v3.0.3 (2020-08-28)
+
+#### :rocket: Enhancement
+
+- [#852](https://github.com/hjdivad/ember-m3/pull/852) queryURL can resolve primitive values ([@hjdivad](https://github.com/hjdivad))
+
+#### Committers: 1
+
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+
+## v3.0.2 (2020-08-20)
+
+#### :rocket: Enhancement
+
+- [#837](https://github.com/hjdivad/ember-m3/pull/837) Avoid checking project dependencies more than once per project ([@hjdivad](https://github.com/hjdivad))
+
+#### Committers: 2
+
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
+## v3.0.1 (2020-08-20)
+
+#### :bug: Bug Fix
+
+Avoid `checker.check` when project depends on ember-data for a performance gain
+
+#### Committers: 1
+
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
 ## v3.0.0 (2020-06-09)
 
 #### :boom: Breaking Change
