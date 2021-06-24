@@ -31,7 +31,7 @@ jobs:
           experiment-serve-command:  cd m3-perf-testing-app &&  ./node_modules/ember-cli/bin/ember s --path dist-experiment --port 4201
           control-build-command:  cd m3-perf-testing-app &&  ./node_modules/ember-cli/bin/ember  build -e production --output-path dist-control
           control-serve-command:  cd m3-perf-testing-app &&  ./node_modules/ember-cli/bin/ember s --path dist-control
-          control-sha: 04a1315c40c6c6c7e4e28e2b72881bdb938202e6
+          control-sha: 8d9c392545d063376264886626040944745c0b5a
           scenarios: |
             {
               "loading": {
