@@ -8,7 +8,7 @@ const ISBNRegExp = /^isbn:/;
 const URNRegExp = /^urn:/;
 
 function computeAttributeReference(key, value) {
-  if (typeof value === 'string' && (ISBNRegExp.test(value) || URNRegExp.test(value))) {
+  if (typeof value === 'string' && (value.includes('isbn:') || value.includes('urn:'))) {
     return {
       type: null,
       id: value,
