@@ -3,7 +3,7 @@ const path = require('path');
 
 const GITHUB_SHA = process.argv[2];
 
-const analysisPath = path.resolve(__dirname, `../../tracerbench-results/analysis-output.json`);
+const analysisPath = path.resolve(__dirname, `../../m3-perf-testing-app/tracerbench-results/analysis-output.json`);
 let analysisJSON = JSON.parse(fs.readFileSync(analysisPath, 'utf-8'));
 let commentText = `Performance Report for ${GITHUB_SHA}`;
 
