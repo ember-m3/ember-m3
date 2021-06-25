@@ -327,7 +327,7 @@ the runtime cost of relationships.
 
 ### API
 
-`Schema` is a service registered from `app/services/m3-schema.js`. For convenience
+`Schema` is a service registered from `app/services/m3-schema.js`. For convenience,
 you can extend a default schema from `ember-m3/services/schema`. The `schema` should
 have following properties.
 
@@ -361,7 +361,7 @@ If you are returning a nested m3 model, return:
 If you are returning a managed array, return:
 `schemaInterface.managedArray([schemaInterface.nested(obj), someOtherValue])`
 
-If you are returning the a value you can return the raw value without passing it
+If you are returning the value you can return the raw value without passing it
 through the schemaInterface call
 
 For example, if we have a book object:
@@ -501,6 +501,10 @@ and `bestChapter` a nested m3 model and not a simple object.
       }
     }
     ```
+
+- `useUnderlyingErrorsValue(modelName)` Helps the `model.js` determine whether to treat the `errors` attribute
+  should be read from the underlying data payload. The default return is false which creates an object compatible with
+  how Ember Data treats `errors` property. Return true to read from the data payload for the model.
 
 ## Serializer / Adapter
 

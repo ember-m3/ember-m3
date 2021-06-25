@@ -103,6 +103,18 @@ export default class DefaultSchema extends Service {
     }
   }
 
+  /**
+   * Default return value to false. This is for child classes to override.
+   *
+   * `modelName` parameter is passed to this but removed to pass eslint linting rule
+   *
+   * @param {string} modelName - Name of model to determine if `errors` property in the payload should be used
+   * @returns {boolean}
+   */
+  useUnderlyingErrorsValue() {
+    return false;
+  }
+
   /*
     models: {
       'my-model-name': {
