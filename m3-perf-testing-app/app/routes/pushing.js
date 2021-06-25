@@ -126,11 +126,7 @@ export default Route.extend({
   model() {
     performance.mark('start-loading');
     this.store.pushPayload('com.example.bookstore.search-results',generateSampleData(1));
-    this.store.peekAll('com.example.bookstore.search-results').map((result) => { 
-      debugger
-      result.get('results')
-    });
-    return { message: 'hello'};
+    return this.store.peekAll('com.example.bookstore.search-results');
   },
 
   @action
