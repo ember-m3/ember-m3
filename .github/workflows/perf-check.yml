@@ -27,9 +27,9 @@ jobs:
           cd m3-perf-testing-app && yarn
       - uses: tracerbench/tracerbench-compare-action@master
         with:
-          experiment-build-command: cd m3-perf-testing-app && ./node_modules/ember-cli/bin/ember build -e production --output-path dist-experiment
+          experiment-build-command: cd m3-perf-testing-app && yarn && ./node_modules/ember-cli/bin/ember build -e production --output-path dist-experiment
           experiment-serve-command:  cd m3-perf-testing-app &&  ./node_modules/ember-cli/bin/ember s --path dist-experiment --port 4201
-          control-build-command:  cd m3-perf-testing-app &&  ./node_modules/ember-cli/bin/ember  build -e production --output-path dist-control
+          control-build-command:  cd m3-perf-testing-app && yarn &&  ./node_modules/ember-cli/bin/ember  build -e production --output-path dist-control
           control-serve-command:  cd m3-perf-testing-app &&  ./node_modules/ember-cli/bin/ember s --path dist-control
           control-sha: 28b3acabdecd3adb398f1bb0e84f9cf9c3652a69
           scenarios: |
