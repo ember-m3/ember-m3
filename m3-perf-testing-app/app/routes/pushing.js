@@ -125,7 +125,10 @@ function  generateSampleData(iteration) {
 export default Route.extend({
   model() {
     performance.mark('start-loading');
-    this.store.pushPayload('com.example.bookstore.search-results',generateSampleData(1));
+    for (let i = 0; i < 100; i++) {
+      this.store.pushPayload('com.example.bookstore.search-results',generateSampleData(i));
+    }
+    performance.mark('pushed-payload');
     return this.store.peekAll('com.example.bookstore.search-results');
   },
 
