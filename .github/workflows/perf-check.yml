@@ -37,7 +37,7 @@ jobs:
               "loading": {
                 "control": "http://localhost:4200/pushing",
                 "experiment": "http://localhost:4201/pushing",
-                "markers": "start-loading,pushed-payload,end-loading"
+                "markers": "start-loading,end-loading"
               }
             }
           fidelity: 60
