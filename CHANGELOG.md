@@ -1,3 +1,12 @@
+## v4.1.0 (2021-06-25)
+
+#### :rocket: Enhancement
+* [#1145](https://github.com/hjdivad/ember-m3/pull/1145) Make errors attribute configurable ([@spham92](https://github.com/spham92))
+
+#### Committers: 1
+- Steven Pham ([@spham92](https://github.com/spham92))
+
+
 ## v4.0.2 (2021-06-24)
 Internal release - no user-visible changes
 
