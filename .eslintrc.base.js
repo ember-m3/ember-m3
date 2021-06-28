@@ -32,6 +32,7 @@ module.exports = {
         'bin/**/*.js',
         'node-tests/**/*.js',
         'src/**/*.js',
+        'scripts/**/*.js',
       ],
       parserOptions: {
         sourceType: 'script',
