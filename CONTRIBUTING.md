@@ -18,6 +18,10 @@
 
 - `ember build`
 
+### Performance testing
+
+- Performance impact of changes is monitored by the perf-testing CI job, which uses the dummy performance testing app at [`./m3-perf-testing-app`](m3-perf-testing-app/). The perf scenarios tested are described in the [README](m3-perf-testing-app/README.md). We keep the performance app dependencies up to date manually. 
+
 For more information on using ember-cli, visit [https://ember-cli.com/](https://ember-cli.com/).
 
 [json-api:primary-data]: http://jsonapi.org/format/#document-top-level
