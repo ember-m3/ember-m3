@@ -1,8 +1,6 @@
-import { assign } from '@ember/polyfills';
-
 export default class ApplicationSerializer {
   constructor(createArgs) {
-    assign(this, createArgs);
+    Object.assign(this, createArgs);
   }
   normalizeResponse(store, primaryModelClass, payload /*, id, requestType */) {
     return payload;
