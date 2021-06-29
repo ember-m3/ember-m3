@@ -65,6 +65,20 @@ jobs:
       - name: test:feature-flags
         run: yarn run ember try:one ember-data-packages-canary --- ember test --query enableproxy
 
+  test-performance-app:
+    name: performance-app
+    needs: [lint]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12.x' # min node version
+      - name: yarn install
+        run: cd m3-perf-testing-app && yarn --frozen-lockfile --install
+      - name: test:performance-app
+        run: cd m3-perf-testing-app && yarn test 
+
   test-node:
     name: 't:' # rely on matrix for most of name
     needs: [lint, test, test-feature-flags]
