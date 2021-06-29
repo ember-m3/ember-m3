@@ -4,7 +4,7 @@ import generateSampleData from '../models/sample-data';
 
 export default class Rendering extends Route {
   model() {
-    let sampleData = [...Array(100)].map((e,i) => generateSampleData(i));
+    let sampleData = [...Array(100)].map((e, i) => generateSampleData(i));
 
     performance.mark('start-loading');
     for (let i = 0; i < 100; i++) {
