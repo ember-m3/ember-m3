@@ -5,7 +5,7 @@ import generateSampleData from '../models/sample-data';
 export default class Materializing extends Route {
   model() {
     performance.mark('start-loading');
-    for (let i = 0; i < 10000; i++) {
+    for (let i = 0; i < 3000; i++) {
       this.store.pushPayload(
         'com.example.bookstore.search-results',
         generateSampleData(i)
