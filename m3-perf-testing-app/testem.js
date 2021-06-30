@@ -6,6 +6,7 @@ module.exports = {
   launch_in_ci: ['Chrome'],
   launch_in_dev: ['Chrome'],
   browser_start_timeout: 120,
+  browser_disconnect_timeout: 60,
   browser_args: {
     Chrome: {
       ci: [
