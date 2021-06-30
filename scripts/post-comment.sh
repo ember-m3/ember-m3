@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copied from ember-data https://github.com/emberjs/data/blob/master/scripts/asset-size-tracking/src/post-comment.sh
+# Copied from ember-data https://github.com/emberjs/data/blob/a3f4eb933c4100b5811ad7945a18bf432d2b698f/scripts/asset-size-tracking/src/post-comment.sh
 # Shamelessly stolen from the very awesome ShakingFingerAction
 #  Written by the amazing https://twitter.com/jessfraz
 #  https://github.com/jessfraz/shaking-finger-action

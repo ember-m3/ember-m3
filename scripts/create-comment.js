@@ -1,4 +1,4 @@
-// Adapted from ember-data https://github.com/emberjs/data/blob/master/scripts/perf-tracking/create-comment.js
+// Adapted from ember-data https://github.com/emberjs/data/blob/a3f4eb933c4100b5811ad7945a18bf432d2b698f/scripts/perf-tracking/create-comment.js
 const fs = require('fs');
 const path = require('path');
 
