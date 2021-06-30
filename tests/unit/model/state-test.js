@@ -5,9 +5,7 @@ import { isArray } from '@ember/array';
 import Component from '@ember/component';
 import { hbs } from 'ember-cli-htmlbars';
 import { render } from '@ember/test-helpers';
-import {
-  gte
-} from 'ember-compatibility-helpers';
+import { gte } from 'ember-compatibility-helpers';
 
 import DefaultSchema from 'ember-m3/services/m3-schema';
 
