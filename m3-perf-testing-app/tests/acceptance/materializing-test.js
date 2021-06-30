@@ -18,7 +18,12 @@ module('Acceptance | materializing', function (hooks) {
       iterations,
       `generated ${iterations} sample payloads`
     );
-    searches.forEach((search) => {
+    searches.forEach((search, i) => {
+      // Sample the array for correctness, otherwise the test generates too
+      // many assertions and take too long
+      if (i % 50 !== 0) {
+        return;
+      }
       let results = search.get('results');
       assert.equal(results.length, 4, 'there are four results');
       assert.deepEqual(
