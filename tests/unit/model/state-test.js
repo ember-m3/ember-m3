@@ -3,7 +3,7 @@ import { setupTest, setupRenderingTest } from 'ember-qunit';
 import { run } from '@ember/runloop';
 import { isArray } from '@ember/array';
 import Component from '@ember/component';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import { render } from '@ember/test-helpers';
 import {
   gte
