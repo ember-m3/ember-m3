@@ -2,6 +2,8 @@ import { module, test } from 'qunit';
 import { visit, currentURL } from '@ember/test-helpers';
 import { setupApplicationTest } from 'ember-qunit';
 
+const iterations = 8000;
+
 module('Acceptance | materializing', function (hooks) {
   setupApplicationTest(hooks);
 
@@ -11,7 +13,7 @@ module('Acceptance | materializing', function (hooks) {
     assert.equal(currentURL(), '/materializing');
     let store = this.owner.lookup('service:store');
     let searches = store.peekAll('com.example.bookstore.SearchResults');
-    assert.equal(searches.length, 3000, 'generated 1000 sample payloads');
+    assert.equal(searches.length, iterations, 'generated 1000 sample payloads');
     searches.forEach((search) => {
       let results = search.get('results');
       assert.equal(results.length, 4, 'there are four results');
