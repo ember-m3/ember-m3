@@ -1,8 +1,14 @@
 import { module, test, skip } from 'qunit';
-import { setupTest } from 'ember-qunit';
-
+import { setupTest, setupRenderingTest } from 'ember-qunit';
 import { run } from '@ember/runloop';
 import { isArray } from '@ember/array';
+import Component from '@ember/component';
+import hbs from 'htmlbars-inline-precompile';
+import { render } from '@ember/test-helpers';
+import {
+  gte
+} from 'ember-compatibility-helpers';
+
 import DefaultSchema from 'ember-m3/services/m3-schema';
 
 let computeNestedModel = function computeNestedModel(key, value) {
@@ -227,3 +233,55 @@ for (let testRun = 0; testRun < 2; testRun++) {
     }
   );
 }
+
+module('unit/model/state with rendering', function (hooks) {
+  setupRenderingTest(hooks);
+
+  hooks.beforeEach(function () {
+    this.owner.register('service:m3-schema', TestSchema);
+    this.store = this.owner.lookup('service:store');
+  });
+
+  if (gte('3.24.0')) {
+    test('updating isDirty flag does not cause rerenders', async function (assert) {
+      this.owner.register(
+        'component:show-dirtyness',
+        class ShowDirtyness extends Component {
+          layout = hbs`
+          {{#if this.myBook.isDirty}}
+            Book is dirty
+          {{/if}}
+      `;
+
+          get myBook() {
+            this.book.get('rating').set('property', 'prop');
+            return this.book;
+          }
+        }
+      );
+
+      let book = this.store.push({
+        data: {
+          id: 1,
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: 'The Winds of Winter',
+            author: 'George R. R. Martin',
+            rating: {
+              avg: 10,
+            },
+          },
+        },
+      });
+
+      this.set('book', book);
+      book.get('isDirty');
+
+      await render(hbs`
+        {{show-dirtyness book=this.book}}
+      `);
+
+      assert.equal(this.element.innerText, 'Book is dirty', 'Book renders as dirty');
+    });
+  }
+});
