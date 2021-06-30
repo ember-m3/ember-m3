@@ -2,6 +2,7 @@ import { dasherize } from '@ember/string';
 import { recordDataFor } from './-private';
 import { EmbeddedMegamorphicModel, EmbeddedSnapshot } from './model';
 import { A } from '@ember/array';
+import { get } from '@ember/object';
 import ManagedArray from './managed-array';
 import { schemaTypesInfo, NESTED, REFERENCE, MANAGED_ARRAY } from './utils/schema-types-info';
 import {
@@ -215,7 +216,7 @@ function resolveManagedArray(content, key, value, modelName, store, schema, reco
       record,
     });
     array._setInternalModels(
-      content.map((c) => c._internalModel || c),
+      content.map((c) => get(c, '_internalModel') || c),
       false
     );
     return array;

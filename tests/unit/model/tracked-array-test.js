@@ -6,6 +6,7 @@ import { setupTest } from 'ember-qunit';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import { A } from '@ember/array';
 import ManagedArray from 'ember-m3/managed-array';
+import ObjectProxy from '@ember/object/proxy';
 
 function computeNestedModel(key, value /*, modelName, schemaInterface */) {
   if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
@@ -336,6 +337,55 @@ for (let testRun = 0; testRun < 2; testRun++) {
         assert.equal(chapters, A(chapters), 'Ember.A doesnt replace the tracked array');
         assert.equal(push, A(chapters).push, 'Ember.A doesnt modify native array methods');
         assert.equal(objectAt, A(chapters).objectAt, 'Ember.A doesnt modify ember array methods');
+      });
+
+      // We have found instances in the wild of users wrapping models in an ember object proxy and returning
+      // those as array members from schema hooks. While not recommneded and bound to go away in modern ember, this test asserts
+      // that we do not accidentally trigger the object proxy property access assertions.
+      test('ember proxy objects can be pushed into nested arrays', function (assert) {
+        this.schema = this.owner.lookup('service:m3-schema');
+
+        let chapter = this.store.push({
+          data: {
+            id: 'chapter',
+            type: 'com.example.bookstore.Chapter',
+            attributes: {
+              name: `Chapter 1`,
+            },
+          },
+        });
+        this.schema.computeAttribute = (key, value, modelName, schemaInterface) => {
+          if (value instanceof Array) {
+            return schemaInterface.managedArray([
+              ObjectProxy.create({
+                content: chapter,
+              }),
+            ]);
+          } else {
+            return value;
+          }
+        };
+
+        let book = this.store.push({
+          data: {
+            id: 'isbn:9780439708180',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Sorcerer's Stone`,
+              chapters: [
+                {
+                  name: 'The Boy Who Lived',
+                },
+              ],
+            },
+          },
+        });
+
+        assert.strictEqual(
+          book.get('chapters').objectAt(0).get('name'),
+          'Chapter 1',
+          'Returning an object proxy as a member of a managed array does not error out'
+        );
       });
     }
   );
