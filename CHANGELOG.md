@@ -1,3 +1,17 @@
+## v4.1.1 (2021-06-30)
+
+#### :bug: Bug Fix
+* [#1167](https://github.com/hjdivad/ember-m3/pull/1167) Allow custom ObjectProxy instances to be wrapped around an M3Model instance  ([@igorT](https://github.com/igorT))
+
+#### :house: Internal
+* [#1157](https://github.com/hjdivad/ember-m3/pull/1157) Add CI workflow for running TracerBench ([@igorT](https://github.com/igorT))
+* [#1156](https://github.com/hjdivad/ember-m3/pull/1156) Add a performance testing app ([@igorT](https://github.com/igorT))
+
+#### Committers: 2
+- Igor Terzic ([@igorT](https://github.com/igorT))
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
+
 ## v4.1.0 (2021-06-25)
 
 #### :rocket: Enhancement
