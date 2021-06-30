@@ -3,7 +3,6 @@ import { setupTest } from 'ember-qunit';
 
 import { run } from '@ember/runloop';
 import { isArray } from '@ember/array';
-
 import DefaultSchema from 'ember-m3/services/m3-schema';
 
 let computeNestedModel = function computeNestedModel(key, value) {
@@ -101,8 +100,39 @@ for (let testRun = 0; testRun < 2; testRun++) {
       });
 
       skip('isEmpty', function () {});
-      skip('isLoading', function () {});
-      skip('isLoaded', function () {});
+      // There is no way to observe this in the true state
+      test('isLoading', function (assert) {
+        let data = {
+          data: {
+            id: 1,
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              title: 'The Storm Before the Storm',
+              author: 'Mike Duncan',
+            },
+          },
+        };
+
+        let record = this.store.push(data);
+        assert.equal(record.get('isLoading'), false, 'record is not loading');
+      });
+
+      // There is no way to observe this in the false state
+      test('isLoaded', function (assert) {
+        let data = {
+          data: {
+            id: 1,
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              title: 'The Storm Before the Storm',
+              author: 'Mike Duncan',
+            },
+          },
+        };
+
+        let record = this.store.push(data);
+        assert.equal(record.get('isLoaded'), true, 'record is loaded');
+      });
       skip('isSaving', function () {});
       skip('isDeleted', function () {});
       skip('isValid', function () {});
@@ -125,7 +155,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
         existingRecord.deleteRecord();
 
-        assert.equal(existingRecord.get('isDirty'), true, 'existingRecor.delete() -> isDirty');
+        assert.equal(existingRecord.get('isDirty'), true, 'existingRecord.delete() -> isDirty');
 
         let newRecord = this.store.createRecord('com.example.bookstore.Book', {
           title: 'Something is Going On',
