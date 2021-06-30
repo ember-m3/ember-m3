@@ -339,6 +339,9 @@ for (let testRun = 0; testRun < 2; testRun++) {
         assert.equal(objectAt, A(chapters).objectAt, 'Ember.A doesnt modify ember array methods');
       });
 
+      // We have found instances in the wild of users wrapping models in an ember object proxy and returning
+      // those as array members from schema hooks. While not recommneded and bound to go away in modern ember, this test asserts
+      // that we do not accidentally trigger the object proxy property access assertions.
       test('ember proxy objects can be pushed into nested arrays', function (assert) {
         this.schema = this.owner.lookup('service:m3-schema');
 
