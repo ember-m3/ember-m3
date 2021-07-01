@@ -232,15 +232,15 @@ for (let testRun = 0; testRun < 2; testRun++) {
   );
 }
 
-module('unit/model/state with rendering', function (hooks) {
-  setupRenderingTest(hooks);
+if (gte('3.24.0')) {
+  module('unit/model/state with rendering', function (hooks) {
+    setupRenderingTest(hooks);
 
-  hooks.beforeEach(function () {
-    this.owner.register('service:m3-schema', TestSchema);
-    this.store = this.owner.lookup('service:store');
-  });
+    hooks.beforeEach(function () {
+      this.owner.register('service:m3-schema', TestSchema);
+      this.store = this.owner.lookup('service:store');
+    });
 
-  if (gte('3.24.0')) {
     test('updating isDirty flag does not cause rerenders', async function (assert) {
       this.owner.register(
         'component:show-dirtyness',
@@ -281,5 +281,5 @@ module('unit/model/state with rendering', function (hooks) {
 
       assert.equal(this.element.innerText, 'Book is dirty', 'Book renders as dirty');
     });
-  }
-});
+  });
+}
