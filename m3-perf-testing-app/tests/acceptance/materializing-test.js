@@ -21,7 +21,7 @@ module('Acceptance | materializing', function (hooks) {
     searches.forEach((search, i) => {
       // Sample the array for correctness, otherwise the test generates too
       // many assertions and take too long
-      if (i % 100 !== 0) {
+      if (i % 400 !== 0) {
         return;
       }
       let results = search.get('results');
