@@ -64,6 +64,7 @@
     "broccoli-funnel": "^3.0.8",
     "ember-cli-babel": "^7.26.6",
     "ember-cli-version-checker": "^5.1.2",
+    "ember-compatibility-helpers": "^1.2.4",
     "semver": "^7.3.5"
   },
   "devDependencies": {
