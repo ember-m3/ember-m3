@@ -32,8 +32,8 @@ module.exports = function () {
           name: 'ember-lts-n-1',
           npm: {
             devDependencies: {
-              'ember-source': '~3.20.0',
-              'ember-data': '~3.20.0',
+              'ember-source': '~3.12.0',
+              'ember-data': '~3.16.0',
               '@ember-data/store': null,
               '@ember-data/debug': null,
               '@ember-data/model': null,
@@ -48,8 +48,8 @@ module.exports = function () {
           name: 'ember-lts',
           npm: {
             devDependencies: {
-              'ember-source': '~3.24.0',
-              'ember-data': '~3.24.0',
+              'ember-source': '~3.16.0',
+              'ember-data': '~3.16.0',
               '@ember-data/store': null,
               '@ember-data/debug': null,
               '@ember-data/model': null,

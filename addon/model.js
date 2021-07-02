@@ -243,7 +243,6 @@ export default class MegamorphicModel extends EmberObject {
 
   _updateCurrentState(state) {
     if (CUSTOM_MODEL_CLASS) {
-      notifyPropertyChange(this, 'isDirty');
       notifyPropertyChange(this, 'isDeleted');
       notifyPropertyChange(this, 'isNew');
       // TODO need to walk the chain down as well to notify changes
@@ -251,6 +250,12 @@ export default class MegamorphicModel extends EmberObject {
     if (this !== this._topModel) {
       this._topModel._updateCurrentState(!CUSTOM_MODEL_CLASS && state);
       return;
+    }
+
+    // isDirty for embedded models depends on the parent state
+    // se we only notify changes for top level models
+    if (CUSTOM_MODEL_CLASS) {
+      notifyPropertyChange(this, 'isDirty');
     }
     // assert we don't need this anymore
     if (!CUSTOM_MODEL_CLASS) {

@@ -5625,7 +5625,7 @@ ember-cli@~3.26.1:
     workerpool "^6.0.3"
     yam "^1.0.0"
 
-ember-compatibility-helpers@^1.2.0, ember-compatibility-helpers@^1.2.1:
+ember-compatibility-helpers@^1.2.0, ember-compatibility-helpers@^1.2.1, ember-compatibility-helpers@^1.2.4:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/ember-compatibility-helpers/-/ember-compatibility-helpers-1.2.4.tgz#70e0fef7048969141626eed6006f3880df612cd1"
   integrity sha512-qjzQVtogyYJrSs6I4DuyCDwDCaj5JWBVNPoZDZBk8pt7caNoN0eBYRYJdin95QKaNMQODxTLPWaI4UUDQ1YWhg==
