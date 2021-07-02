@@ -58,7 +58,7 @@ if (!CUSTOM_MODEL_CLASS) {
 // takes in a single computedValue returned by schema hooks and resolves it as either
 // a reference or a nestedModel
 
-function resolveSingleValue(computedValue, key, store, record, recordData, parentIdx) {
+function resolveSingleValue(computedValue, key, store, record, recordData, parentIdx, schemaType) {
   // we received a resolved record and need to transfer it to the new record data
   if (computedValue instanceof EmbeddedMegamorphicModel) {
     // transfer ownership to the new RecordData
@@ -66,8 +66,7 @@ function resolveSingleValue(computedValue, key, store, record, recordData, paren
     return computedValue;
   }
 
-  let valueType = schemaTypesInfo.get(computedValue);
-  if (valueType === REFERENCE) {
+  if (schemaType === REFERENCE) {
     let reference = computedValue;
     let { id } = reference;
     if (reference.type === null) {
@@ -86,7 +85,7 @@ function resolveSingleValue(computedValue, key, store, record, recordData, paren
         ? store.peekRecord(reference.type, reference.id)
         : null;
     }
-  } else if (valueType === NESTED) {
+  } else if (schemaType === NESTED) {
     return createNestedModel(store, record, recordData, key, computedValue, parentIdx);
   } else {
     return computedValue;
@@ -174,13 +173,13 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
   let valueType = schemaTypesInfo.get(computedValue);
 
   if (valueType === REFERENCE || valueType === NESTED) {
-    return resolveSingleValue(computedValue, key, store, record, recordData, parentIdx);
+    return resolveSingleValue(computedValue, key, store, record, recordData, parentIdx, valueType);
   } else if (valueType === MANAGED_ARRAY) {
     if (schemaTypesInfo.get(computedValue[0]) === REFERENCE) {
       return resolveRecordArray(store, record, key, computedValue);
     } else {
       let content = computedValue.map((v, i) =>
-        resolveSingleValue(v, key, store, record, recordData, i)
+        resolveSingleValue(v, key, store, record, recordData, i, schemaTypesInfo.get(v))
       );
       return resolveManagedArray(content, key, value, modelName, store, schema, record);
     }
