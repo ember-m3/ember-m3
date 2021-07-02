@@ -1,3 +1,15 @@
+## v4.1.2 (2021-07-02)
+
+#### :bug: Bug Fix
+* [#1180](https://github.com/hjdivad/ember-m3/pull/1180) Fix feature flag infra code for node ([@igorT](https://github.com/igorT))
+
+#### :house: Internal
+* [#1174](https://github.com/hjdivad/ember-m3/pull/1174) Make perfomance testing app more robust to slow tests ([@igorT](https://github.com/igorT))
+
+#### Committers: 1
+- Igor Terzic ([@igorT](https://github.com/igorT))
+
+
 ## v4.1.1 (2021-06-30)
 
 #### :bug: Bug Fix
