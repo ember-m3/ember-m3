@@ -21,7 +21,9 @@ function dataFlagState(flagName) {
 }
 
 function m3FlagState(flagName) {
-  return window.M3ENV?.FEATURES?.[flagName];
+  if (window && window.M3ENV && window.M3ENV.FEATURES) {
+    return window.M3ENV.FEATURES[flagName];
+  }
 }
 
 export const CUSTOM_MODEL_CLASS = dataFlagState('CUSTOM_MODEL_CLASS');
