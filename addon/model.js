@@ -783,8 +783,8 @@ if (CUSTOM_MODEL_CLASS) {
 }
 
 // STATE PROPS
-defineProperty(MegamorphicModel.prototype, 'isLoading', isLoaded);
-defineProperty(MegamorphicModel.prototype, 'isLoaded', isLoading);
+defineProperty(MegamorphicModel.prototype, 'isLoading', isLoading);
+defineProperty(MegamorphicModel.prototype, 'isLoaded', isLoaded);
 defineProperty(MegamorphicModel.prototype, 'dirtyType', dirtyType);
 
 defineProperty(MegamorphicModel.prototype, 'isDirty', isDirty);
