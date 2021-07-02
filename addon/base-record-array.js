@@ -254,7 +254,7 @@ if (CUSTOM_MODEL_CLASS) {
       this._resolve();
       let internalModel = this._internalModels[idx];
       return internalModel !== null && internalModel !== undefined
-        ? internalModel.getRecord
+        ? typeof internalModel === 'object' && 'getRecord' in internalModel
           ? internalModel.getRecord()
           : internalModel
         : undefined;
@@ -330,7 +330,12 @@ if (CUSTOM_MODEL_CLASS) {
 
         // allow refs to point to resources not in the store
         // TODO: instead add a schema missing ref hook; #254
-        if (internalModel !== null && internalModel !== undefined && internalModel._recordArrays) {
+        if (
+          internalModel !== null &&
+          internalModel !== undefined &&
+          typeof internalModel === 'object' &&
+          '_recordArrays' in internalModel
+        ) {
           internalModel._recordArrays.add(this);
         }
       }
