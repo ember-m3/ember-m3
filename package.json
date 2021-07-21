@@ -75,7 +75,7 @@
     "@ember/optional-features": "^2.0.0",
     "@ember/test-helpers": "^2.2.8",
     "@malleatus/nyx": "^0.2.0",
-    "@octokit/rest": "^18.6.7",
+    "@octokit/rest": "^18.6.8",
     "babel-eslint": "^10.1.0",
     "broccoli-asset-rev": "^3.0.0",
     "ember-cli": "~3.26.1",
