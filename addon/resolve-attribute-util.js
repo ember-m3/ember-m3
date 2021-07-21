@@ -184,7 +184,9 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
       return resolveManagedArray(content, key, value, modelName, store, schema, record);
     }
   } else if (Array.isArray(computedValue)) {
-    return computedValue.map((v, i) => resolveSingleValue(v, key, store, record, recordData, i));
+    return computedValue.map((v, i) =>
+      resolveSingleValue(v, key, store, record, recordData, i, schemaTypesInfo.get(v))
+    );
   } else if (computedValue) {
     return computedValue;
   } else {
