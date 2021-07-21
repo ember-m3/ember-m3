@@ -387,6 +387,48 @@ for (let testRun = 0; testRun < 2; testRun++) {
           'Returning an object proxy as a member of a managed array does not error out'
         );
       });
+
+      // This is true of references as well in the CUSTOM_MODEL_CLASS world
+      test('tracked arrays do not access _internalModel of non references', function (assert) {
+        this.schema = this.owner.lookup('service:m3-schema');
+
+        this.schema.computeAttribute = (key, value, modelName, schemaInterface) => {
+          if (value instanceof Array) {
+            return schemaInterface.managedArray([
+              {
+                name: 'Chapter 1',
+                get _internalModel() {
+                  assert.ok(false, 'accessed _internalModel in a pojo');
+                  return null;
+                },
+              },
+            ]);
+          } else {
+            return value;
+          }
+        };
+
+        let book = this.store.push({
+          data: {
+            id: 'isbn:9780439708180',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Sorcerer's Stone`,
+              chapters: [
+                {
+                  name: 'The Boy Who Lived',
+                },
+              ],
+            },
+          },
+        });
+
+        assert.strictEqual(
+          book.get('chapters').objectAt(0).name,
+          'Chapter 1',
+          'We accessed the first chapter and did not touch the _internalModel property'
+        );
+      });
     }
   );
 }
