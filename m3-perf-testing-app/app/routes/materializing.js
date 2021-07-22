@@ -2,10 +2,9 @@ import Route from '@ember/routing/route';
 import { action } from '@ember/object';
 import generateSampleData from '../models/sample-data';
 
-const iterations = 12000;
-
 export default class Materializing extends Route {
-  model() {
+  model(params) {
+    let iterations = parseInt(params.count);
     let sampleData = [...Array(iterations)].map((e, i) =>
       generateSampleData(i)
     );

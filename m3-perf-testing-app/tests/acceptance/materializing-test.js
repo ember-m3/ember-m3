@@ -1,29 +1,18 @@
 import { module, test } from 'qunit';
-import { visit, currentURL } from '@ember/test-helpers';
+import { visit } from '@ember/test-helpers';
 import { setupApplicationTest } from 'ember-qunit';
-
-const iterations = 12000;
 
 module('Acceptance | materializing', function (hooks) {
   setupApplicationTest(hooks);
 
   test('visiting /materializing', async function (assert) {
-    await visit('/materializing');
+    await visit('/materializing/50');
 
-    assert.equal(currentURL(), '/materializing');
     let store = this.owner.lookup('service:store');
     let searches = store.peekAll('com.example.bookstore.SearchResults');
-    assert.equal(
-      searches.length,
-      iterations,
-      `generated ${iterations} sample payloads`
-    );
-    searches.forEach((search, i) => {
-      // Sample the array for correctness, otherwise the test generates too
-      // many assertions and take too long
-      if (i % 1000 !== 0) {
-        return;
-      }
+    assert.equal(searches.length, 50, `generated 50 sample payloads`);
+    for (let i = 0; i < 50; i++) {
+      let search = searches.objectAt(i);
       let results = search.get('results');
       assert.equal(results.length, 4, 'there are four results');
       assert.deepEqual(
@@ -46,6 +35,6 @@ module('Acceptance | materializing', function (hooks) {
         'This book is great,I agree,,,Yup,',
         'correct reader comments'
       );
-    });
+    }
   });
 });
