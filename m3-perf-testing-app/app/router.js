@@ -8,5 +8,5 @@ export default class Router extends EmberRouter {
 
 Router.map(function () {
   this.route('rendering');
-  this.route('materializing');
+  this.route('materializing', { path: '/materializing/:count' });
 });
