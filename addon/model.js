@@ -3,7 +3,7 @@
 
 import EmberObject, { computed, get, set, defineProperty } from '@ember/object';
 import { isArray } from '@ember/array';
-import { assert, warn } from '@ember/debug';
+import { assert, warn, deprecate } from '@ember/debug';
 import { readOnly } from '@ember/object/computed';
 import { recordDataToRecordMap } from './utils/caches';
 
@@ -17,7 +17,7 @@ import {
   flushChanges,
 } from './utils/notify-changes';
 import { DEBUG } from '@glimmer/env';
-import { CUSTOM_MODEL_CLASS, PROXY_MODEL_CLASS } from 'ember-m3/-infra/features';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import { RootState, Errors as StoreErrors } from '@ember-data/store/-private';
 import { Errors as ModelErrors } from '@ember-data/model/-private';
 import { REFERENCE, schemaTypesInfo } from './utils/schema-types-info';
@@ -76,13 +76,9 @@ const YesManAttributes = new YesManAttributesSingletonClass();
 //      CP or setknownProperty can rely on any initialization
 let initProperites = Object.create(null);
 
-let megamorphicModelProxyHandler;
+let megamorphicModelProxyHandler, megamorphicNativeDeprecationHandler;
 
-if (PROXY_MODEL_CLASS) {
-  console.warn(
-    'You have enabled experimental M3 proxy support. This is a canary feature that is still under development, and can only be used in development mode for testing purposes. It will NOT work in production builds'
-  );
-
+if (CUSTOM_MODEL_CLASS) {
   const MegamorphicModelProxyHandler = class {
     get(target, key, receiver) {
       if (typeof key !== 'string' || key in target) {
@@ -116,21 +112,56 @@ if (PROXY_MODEL_CLASS) {
   };
 
   megamorphicModelProxyHandler = new MegamorphicModelProxyHandler();
+
+  const MegamorphicNativeDeprecationProxyHandler = class {
+    // Need to implement the getter for the Ember Proxy assertions to work
+    get(target, key) {
+      return Reflect.get(target, key);
+    }
+
+    set(target, key, value, receiver) {
+      Reflect.set(target, key, value, receiver);
+      if (!(key in MegamorphicModel.prototype)) {
+        deprecate(
+          `You set the property '${key}' on a '${target._modelName}' with id '${target.id}'. In order to migrate to using native property access for m3 fields, you need to migrate away from setting other values on the model.`,
+          false,
+          {
+            id: 'm3.model.native-property',
+            until: '5.0',
+          }
+        );
+      }
+      return true;
+    }
+  };
+
+  megamorphicNativeDeprecationHandler = new MegamorphicNativeDeprecationProxyHandler();
 }
 
 export default class MegamorphicModel extends EmberObject {
   static create(...args) {
     let instance = super.create(...args);
+    if (CUSTOM_MODEL_CLASS) {
+      let useNative = instance._schema.useNativeProperties(instance._modelName);
 
-    if (PROXY_MODEL_CLASS) {
-      assert('CUSTOM_MODEL_CLASS must be enabled to use PROXY_MODEL_CLASS', CUSTOM_MODEL_CLASS);
+      if (useNative === true) {
+        let proxy = new Proxy(instance, megamorphicModelProxyHandler);
 
-      let proxy = new Proxy(instance, megamorphicModelProxyHandler);
+        // Update the mapping to point to the proxy instead of the instance
+        recordDataToRecordMap.set(instance._recordData, proxy);
 
-      // Update the mapping to point to the proxy instead of the instance
-      recordDataToRecordMap.set(instance._recordData, proxy);
+        return proxy;
+      }
+      if (DEBUG) {
+        if (useNative === false) {
+          let proxy = new Proxy(instance, megamorphicNativeDeprecationHandler);
 
-      return proxy;
+          // Update the mapping to point to the proxy instead of the instance
+          recordDataToRecordMap.set(instance._recordData, proxy);
+
+          return proxy;
+        }
+      }
     }
 
     return instance;

@@ -2,6 +2,7 @@ import Service, { inject } from '@ember/service';
 import { defineProperty } from '@ember/object';
 import { assert } from '@ember/debug';
 import DefaultSchema from './m3-schema';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 let useComputeAttributeCache = new WeakMap();
 
 export default class SchemaManager extends Service {
@@ -75,6 +76,22 @@ export default class SchemaManager extends Service {
    */
   includesModel(modelName) {
     return this.get('schema').includesModel(modelName);
+  }
+
+  /*
+   * Whether we should instantiate a record that has native proxy access
+   */
+  useNativeProperties(modelName) {
+    if (this.get('schema').useNativeProperties) {
+      if (!CUSTOM_MODEL_CLASS) {
+        throw new Error(
+          'In order to use nativeProperties you need to be on a version of Ember Data 3.28 or higher'
+        );
+      }
+      return this.get('schema').useNativeProperties(modelName);
+    } else {
+      return false;
+    }
   }
 
   /**
