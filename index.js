@@ -76,7 +76,7 @@ module.exports = {
 
     for (let newPlugin of newPlugins) {
       let wasPreviouslyAdded = plugins.find(
-        (existingPlugin) => Array.isArray(existingPlugin) && existingPlugin[2] === newPlugin[2]
+        existingPlugin => Array.isArray(existingPlugin) && existingPlugin[2] === newPlugin[2]
       );
       if (!wasPreviouslyAdded) {
         plugins.push(newPlugin);
