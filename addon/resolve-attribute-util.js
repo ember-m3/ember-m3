@@ -2,7 +2,6 @@ import { dasherize } from '@ember/string';
 import { recordDataFor } from './-private';
 import { EmbeddedMegamorphicModel, EmbeddedSnapshot } from './model';
 import { A } from '@ember/array';
-import { get } from '@ember/object';
 import ManagedArray from './managed-array';
 import { schemaTypesInfo, NESTED, REFERENCE, MANAGED_ARRAY } from './utils/schema-types-info';
 import {
@@ -165,7 +164,14 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
         let content = value.map((v, i) =>
           transferOrResolveValue(store, schema, record, recordData, modelName, key, v, i)
         );
-        return resolveManagedArray(content, key, value, modelName, store, schema, record);
+        let array = resolveManagedArray(content, key, value, modelName, store, schema, record);
+        if (!CUSTOM_MODEL_CLASS) {
+          array._setInternalModels(
+            content.map((c) => c._internalModel || c),
+            false
+          );
+        }
+        return array;
       }
     }
   }
@@ -181,7 +187,16 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
       let content = computedValue.map((v, i) =>
         resolveSingleValue(v, key, store, record, recordData, i, schemaTypesInfo.get(v))
       );
-      return resolveManagedArray(content, key, value, modelName, store, schema, record);
+      let array = resolveManagedArray(content, key, value, modelName, store, schema, record);
+      if (!CUSTOM_MODEL_CLASS) {
+        array._setInternalModels(
+          content.map((c, i) => {
+            return schemaTypesInfo.get(computedValue[i]) === REFERENCE ? c._internalModel : c;
+          }),
+          false
+        );
+      }
+      return array;
     }
   } else if (Array.isArray(computedValue)) {
     return computedValue.map((v, i) =>
@@ -216,10 +231,6 @@ function resolveManagedArray(content, key, value, modelName, store, schema, reco
       model: record,
       record,
     });
-    array._setInternalModels(
-      content.map((c) => get(c, '_internalModel') || c),
-      false
-    );
     return array;
   }
 }
