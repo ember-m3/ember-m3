@@ -91,6 +91,17 @@ Internal release - no user-visible changes
 - Steven Pham ([@spham92](https://github.com/spham92))
 
 
+## v3.0.8 (2021-07-28)
+
+#### :bug: Bug Fix
+* [#1131](https://github.com/hjdivad/ember-m3/pull/1131) Ensure we do not add custom babel plugins multiple times ([@rwjblue](https://github.com/rwjblue))
+* [#1121](https://github.com/hjdivad/ember-m3/pull/1121) Avoid invalid imports in production app tree ([@rwjblue](https://github.com/rwjblue))
+* [#1099](https://github.com/hjdivad/ember-m3/pull/1099) Fix state notifications when CUSTOM_MODEL_CLASS is active ([@runspired](https://github.com/runspired))
+
+#### :house: Internal
+* [#1047](https://github.com/hjdivad/ember-m3/pull/1047) Refactor warning capturing and testing. ([@rwjblue](https://github.com/rwjblue))
+
+
 ## v3.0.7 (2021-03-17)
 
 #### :bug: Bug Fix
