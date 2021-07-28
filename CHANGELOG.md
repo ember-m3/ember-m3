@@ -1,3 +1,21 @@
+
+## v4.1.3 (2021-07-27)
+
+#### :bug: Bug Fix
+* [#1226](https://github.com/hjdivad/ember-m3/pull/1226) Fix array resolving for non references when CUSTOM_MODEL_CLASS is off ([@igorT](https://github.com/igorT))
+* [#1169](https://github.com/hjdivad/ember-m3/pull/1169) Custom Model Classes: Ensure isDirty for embedded records doesn't recursively loop ([@igorT](https://github.com/igorT))
+* [#1175](https://github.com/hjdivad/ember-m3/pull/1175) Custom Model Classs: Fix isLoading and isLoaded flags on model ([@igorT](https://github.com/igorT))
+
+#### :house: Internal
+* [#1184](https://github.com/hjdivad/ember-m3/pull/1184) Use  operator instead of property access for existence checks ([@igorT](https://github.com/igorT))
+* [#1183](https://github.com/hjdivad/ember-m3/pull/1183) Avoid repeatedly looking up the schema type when resolving ([@igorT](https://github.com/igorT))
+* [#1179](https://github.com/hjdivad/ember-m3/pull/1179) Make perfomance testing app more robust to slow tests ([@igorT](https://github.com/igorT))
+* [#1172](https://github.com/hjdivad/ember-m3/pull/1172) Upgrade ember-lts versions to actual latest and latest-1 ([@igorT](https://github.com/igorT))
+
+#### Committers: 1
+- Igor Terzic ([@igorT](https://github.com/igorT))
+
+
 ## v4.1.2 (2021-07-02)
 
 #### :bug: Bug Fix
