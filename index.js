@@ -54,14 +54,35 @@ module.exports = {
     return this._super.treeForAddon.call(this, tree);
   },
 
+  treeForApp(tree) {
+    const isProd = process.env.EMBER_ENV === 'production';
+
+    if (isProd) {
+      tree = new Funnel(tree, {
+        exclude: ['data-adapter.js'],
+      });
+    }
+
+    return this._super.treeForApp.call(this, tree);
+  },
+
   configureBabelOptions() {
     let app = this._findHost();
 
     this.options = this.options || {};
     this.options.babel = this.options.babel || {};
-    let plugins = this.options.babel.plugins;
-    let newPlugins = getDebugMacros(app, this.isDevelopingAddon());
-    this.options.babel.plugins = Array.isArray(plugins) ? plugins.concat(newPlugins) : newPlugins;
+    let plugins = this.options.babel.plugins ? this.options.babel.plugins.slice() : [];
+    let newPlugins = getDebugMacros(app);
+
+    for (let newPlugin of newPlugins) {
+      let wasPreviouslyAdded = plugins.find(
+        existingPlugin => Array.isArray(existingPlugin) && existingPlugin[2] === newPlugin[2]
+      );
+      if (!wasPreviouslyAdded) {
+        plugins.push(newPlugin);
+      }
+    }
+    this.options.babel.plugins = plugins;
 
     this.options.babel.loose = true;
   },

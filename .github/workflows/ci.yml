@@ -49,7 +49,7 @@ jobs:
       - name: yarn install
         run: yarn --frozen-lockfile --install
       - name: test:feature-flags
-        run: yarn run ember try:one canary-channel --- ember test --query enableoptionalfeatures
+        run: yarn run ember try:one ember-data-packages-canary --- ember test --query enableoptionalfeatures
 
   test-node:
     name: 't:' # rely on matrix for most of name
