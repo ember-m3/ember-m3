@@ -14,10 +14,9 @@ import {
   deferPropertyChange,
   flushChanges,
 } from './utils/notify-changes';
-import { CUSTOM_MODEL_CLASS, PROXY_MODEL_CLASS } from 'ember-m3/-infra/features';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import { recordDataToRecordMap, recordToRecordArrayMap } from './utils/caches';
 import { recordIdentifierFor } from '@ember-data/store';
-import { assert } from '@ember/debug';
 
 /**
  * BaseRecordArray
@@ -27,7 +26,7 @@ import { assert } from '@ember/debug';
 let BaseRecordArray;
 let baseRecordArrayProxyHandler;
 
-if (PROXY_MODEL_CLASS) {
+if (CUSTOM_MODEL_CLASS) {
   const convertToInt = (prop) => {
     if (typeof prop === 'symbol') return null;
 
@@ -53,7 +52,7 @@ if (PROXY_MODEL_CLASS) {
       let index = convertToInt(key);
 
       if (index !== null) {
-        receiver.replaceAt(index, value);
+        receiver.replace(index, 1, [value]);
       } else {
         Reflect.set(target, key, value, receiver);
       }
@@ -72,15 +71,13 @@ if (CUSTOM_MODEL_CLASS) {
    * @class BaseRecordArray
    */
   BaseRecordArray = class BaseRecordArray extends EmberObject.extend(MutableArray) {
+    [Symbol.iterator] = Array.prototype.values;
+
     // public RecordArray API
     static create(...args) {
       let instance = super.create(...args);
 
-      if (PROXY_MODEL_CLASS) {
-        return new Proxy(instance, baseRecordArrayProxyHandler);
-      }
-
-      return instance;
+      return new Proxy(instance, baseRecordArrayProxyHandler);
     }
 
     init() {
@@ -217,8 +214,6 @@ if (CUSTOM_MODEL_CLASS) {
     // public RecordArray API
     static create(...args) {
       let instance = super.create(...args);
-
-      assert('CUSTOM_MODEL_CLASS must be enabled to use PROXY_MODEL_CLASS', !PROXY_MODEL_CLASS);
 
       return instance;
     }
@@ -360,9 +355,18 @@ if (CUSTOM_MODEL_CLASS) {
   };
 }
 
-if (PROXY_MODEL_CLASS) {
+if (CUSTOM_MODEL_CLASS) {
   // Add native array methods here
   Object.assign(BaseRecordArray.prototype, {
+    values: Array.prototype.values,
+    keys: Array.prototype.keys,
+    entries: Array.prototype.entries,
+    copyWithin: Array.prototype.copyWithin,
+    fill: Array.prototype.fill,
+    findIndex: Array.prototype.findIndex,
+    at: Array.prototype.at,
+    join: Array.prototype.join,
+
     push(...values) {
       return this.pushObjects(values);
     },
@@ -383,8 +387,26 @@ if (PROXY_MODEL_CLASS) {
       return this.replace(idx, amt, values);
     },
 
+    some(callback) {
+      return this.any(callback);
+    },
+
+    concat(values) {
+      return this.toArray().concat(...values);
+    },
+
     reverse() {
-      return this.reverseObjects();
+      let reversed = this.toArray().reverse();
+      this.replace(0, this.length, reversed);
+    },
+
+    reduceRight(callback, init) {
+      return this.toArray().reduceRight(callback, init);
+    },
+
+    sort(callback) {
+      let sorted = this.toArray().sort(callback);
+      this.replace(0, this.length, sorted);
     },
   });
 }

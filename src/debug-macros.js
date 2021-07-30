@@ -36,9 +36,7 @@ function buildDebugMacros(flags) {
   return plugins;
 }
 
-const M3_FEATURES = {
-  PROXY_MODEL_CLASS: null,
-};
+const M3_FEATURES = {};
 
 function getM3Features(isProd) {
   let features = Object.assign({}, M3_FEATURES);
