@@ -10470,10 +10470,10 @@ prepend-http@^2.0.0:
   resolved "https://registry.yarnpkg.com/prepend-http/-/prepend-http-2.0.0.tgz#e92434bfa5ea8c19f41cdfd401d741a3c819d897"
   integrity sha1-6SQ0v6XqjBn0HN/UAddBo8gZ2Jc=
 
-pretender@^3.4.5:
-  version "3.4.5"
-  resolved "https://registry.yarnpkg.com/pretender/-/pretender-3.4.5.tgz#3e6a06c886e5c00c41f614a924df6241bac1754a"
-  integrity sha512-MV8oR4700shk2qGuHi1A/YBVYTSLtzrppZEvyvnvVgxMShoKZUHNOYGANBu0LgcPtjSJ5RBbvcn9PDknoU7xlA==
+pretender@^3.4.6:
+  version "3.4.6"
+  resolved "https://registry.yarnpkg.com/pretender/-/pretender-3.4.6.tgz#3c7b32731c3de4179515dcde420e862779089fc1"
+  integrity sha512-osOg7ydwQfN/Os5pY9Pl3JpX9cdlS29WD4rCHMFvNY06XIZok3kBh98eNEZe/U2QRgTfyOxSBbQZ6uodMMIztg==
   dependencies:
     fake-xml-http-request "^2.1.2"
     route-recognizer "^0.3.3"
