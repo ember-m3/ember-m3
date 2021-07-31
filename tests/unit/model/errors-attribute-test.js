@@ -173,7 +173,7 @@ module('unit/model/errors-attribute', function (hooks) {
     });
     const getErrorsSpy = this.sinon.spy(model, 'errors', ['get']);
     model._removeError('author');
-    assert.equal(getErrorsSpy.get.callCount, 1, 'get errors is called');
+    assert.ok(getErrorsSpy.get.callCount > 0, 'get errors is called');
   });
 
   test('schema with no flag property returns Errors object instance', function (assert) {
