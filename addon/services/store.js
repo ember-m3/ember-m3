@@ -157,6 +157,7 @@ export default class M3Store extends Store {
         if (value === 'state') {
           record.notifyPropertyChange('isNew');
           record.notifyPropertyChange('isDeleted');
+          record.notifyPropertyChange('isDirty');
         } else if (value === 'identity') {
           record.notifyPropertyChange('id');
         }
