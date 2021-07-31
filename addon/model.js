@@ -645,8 +645,15 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   _removeError(key) {
+    // Skip if `useUnderlyingErrorsValue` returns true meaning we are treating `errors` as an
+    // attribute from the payload
+    if (this._schema.useUnderlyingErrorsValue(this._modelName)) {
+      return;
+    }
+
     // Remove errors for the property
     this.errors.remove(key);
+
     if (CUSTOM_MODEL_CLASS) {
       if (get(this.errors, 'length') === 0) {
         this._clearInvalidRequestErrors();
