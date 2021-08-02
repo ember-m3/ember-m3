@@ -111,31 +111,38 @@ if (CUSTOM_MODEL_CLASS) {
     }
   };
 
-  megamorphicModelProxyHandler = new MegamorphicModelProxyHandler();
+  if (DEBUG) {
+    megamorphicModelProxyHandler = new MegamorphicModelProxyHandler();
 
-  const MegamorphicNativeDeprecationProxyHandler = class {
-    // Need to implement the getter for the Ember Proxy assertions to work
-    get(target, key) {
-      return Reflect.get(target, key);
-    }
-
-    set(target, key, value, receiver) {
-      Reflect.set(target, key, value, receiver);
-      if (!(key in MegamorphicModel.prototype)) {
-        deprecate(
-          `You set the property '${key}' on a '${target._modelName}' with id '${target.id}'. In order to migrate to using native property access for m3 fields, you need to migrate away from setting other values on the model.`,
-          false,
-          {
-            id: 'm3.model.native-property',
-            until: '5.0',
-          }
-        );
+    const MegamorphicNativeDeprecationProxyHandler = class {
+      // Need to implement the getter for the Ember Proxy assertions to work
+      get(target, key) {
+        return Reflect.get(target, key);
       }
-      return true;
-    }
-  };
 
-  megamorphicNativeDeprecationHandler = new MegamorphicNativeDeprecationProxyHandler();
+      set(target, key, value, receiver) {
+        Reflect.set(target, key, value, receiver);
+        if (!(key in MegamorphicModel.prototype)) {
+          deprecate(
+            `You set the property '${key}' on a '${target._modelName}' with id '${target.id}'. In order to migrate to using native property access for m3 fields, you need to migrate away from setting other values on the model.`,
+            false,
+            {
+              id: 'm3.model.native-property',
+              until: '5.0',
+              for: 'ember-m3',
+              since: {
+                available: '4.2.0',
+                enabled: '4.2.0',
+              },
+            }
+          );
+        }
+        return true;
+      }
+    };
+
+    megamorphicNativeDeprecationHandler = new MegamorphicNativeDeprecationProxyHandler();
+  }
 }
 
 export default class MegamorphicModel extends EmberObject {
