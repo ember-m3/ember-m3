@@ -45,7 +45,7 @@ export function resolveReferencesWithRecords(store, references) {
         // If we have a cached recordData with the same id, but we have not seen a record with the same { type, id } pair
         // We could be a projection, in which case we want to push in a projected record with the new type
         let cachedRD = store._globalM3RecordDataCache[reference.id];
-        if (!record && cachedRD) {
+        if (cachedRD) {
           let baseTypeName = dasherize(store._schemaManager.computeBaseModelName(normalizedType));
           // We are a projection
           if (baseTypeName) {
