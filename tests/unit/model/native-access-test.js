@@ -121,7 +121,9 @@ if (CUSTOM_MODEL_CLASS) {
         'native property access can loookup an undefined value'
       );
 
-      book.name = 'Temp title';
+      assert.expectNoDeprecation(() => {
+        book.name = 'Temp title';
+      });
 
       assert.equal(book.name, 'Temp title', 'native property access write changes the value');
       assert.throws(

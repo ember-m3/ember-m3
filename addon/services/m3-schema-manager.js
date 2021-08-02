@@ -90,7 +90,7 @@ export default class SchemaManager extends Service {
       }
       return this.get('schema').useNativeProperties(modelName);
     } else {
-      return false;
+      return undefined;
     }
   }
 
