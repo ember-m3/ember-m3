@@ -27,14 +27,13 @@ If you do currently access your models using `.`, you will need to migrate away 
 once you enable native property access, those values will be treated as attributes to be sent to 
 the server.
 
-For a smooth and piecemeal migration, you can define
+For a smooth and piecemeal migration, you can define the following in your schema:
 
 ```js
   useNativeProperties(/* modelName */) {
     return false;
   }
 ```
-in your schema. 
 
 Returning false from `useNativeProperties` will trigger a deprecation every time you set a value on
 your m3 model by using `.`. Once you have migrated the existing native access, you can turn the
