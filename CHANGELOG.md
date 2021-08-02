@@ -1,4 +1,29 @@
 
+
+## v4.2.0 (2021-08-02)
+
+#### :rocket: Enhancement
+* [#1238](https://github.com/hjdivad/ember-m3/pull/1238) Add nattive property access for arrays ([@igorT](https://github.com/igorT))
+* [#1232](https://github.com/hjdivad/ember-m3/pull/1232) Add native property access for models ([@igorT](https://github.com/igorT))
+
+#### :bug: Bug Fix
+* [#1241](https://github.com/hjdivad/ember-m3/pull/1241) fix: skip this.errors.remove if useUnderlyingErrorsValue ([@spham92](https://github.com/spham92))
+* [#1243](https://github.com/hjdivad/ember-m3/pull/1243) Fix isError and adapterError with CUSTOM_MODEL_CLASSES ([@igorT](https://github.com/igorT))
+* [#1240](https://github.com/hjdivad/ember-m3/pull/1240) Fix for projected models resolving in projected arrays, when CUSTOM_MODEL_CLASS is on ([@igorT](https://github.com/igorT))
+* [#1249](https://github.com/hjdivad/ember-m3/pull/1249) Fix isSaving for embedded records when CUSTOM MODEL CLASS is on ([@igorT](https://github.com/igorT))
+* [#1242](https://github.com/hjdivad/ember-m3/pull/1242) Fix isDirty for inflight records and set _topModel to the proxy value ([@igorT](https://github.com/igorT))
+
+#### :memo: Documentation
+* [#1252](https://github.com/hjdivad/ember-m3/pull/1252) Add documentation for native property access ([@igorT](https://github.com/igorT))
+
+#### :house: Internal
+* [#1251](https://github.com/hjdivad/ember-m3/pull/1251) Cleanup the invalid errors test ([@igorT](https://github.com/igorT))
+
+#### Committers: 2
+- Igor Terzic ([@igorT](https://github.com/igorT))
+- Steven Pham ([@spham92](https://github.com/spham92))
+
+
 ## v4.1.3 (2021-07-27)
 
 #### :bug: Bug Fix
