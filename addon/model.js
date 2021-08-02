@@ -187,8 +187,6 @@ export default class MegamorphicModel extends EmberObject {
       // and might just keep the properties.
       // TODO investigate that in ED and if so, we should simplify this case as well
       this._invalidRequests = [];
-      this._errorRequests = [];
-      this._lastErrorRequest = null;
     }
     this._store = properties.store;
     this._cache = Object.create(null);
@@ -206,17 +204,16 @@ export default class MegamorphicModel extends EmberObject {
       this._identifier = identifier;
       this._store.getRequestStateService().subscribeForRecord(this._identifier, (request) => {
         if (request.state === 'rejected') {
-          // TODO filter out queries
-          this._lastErrorRequest = request;
-          if (!(request.result && isInvalidError(request.result.error))) {
-            this._errorRequests.push(request);
+          if (!(request.response && isInvalidError(request.response.data))) {
+            this.set('isError', true);
+            this.set('adapterError', request.response && request.response.data);
           } else {
             this._invalidRequests.push(request);
           }
         } else if (request.state === 'fulfilled') {
+          this.set('isError', false);
+          this.set('adapterError', null);
           this._invalidRequests = [];
-          this._errorRequests = [];
-          this._lastErrorRequest = null;
         }
         this._notifyNetworkChanges();
       });
@@ -698,8 +695,6 @@ MegamorphicModel.prototype._parentModel = null;
 MegamorphicModel.prototype._topModel = null;
 MegamorphicModel.prototype._errors = null;
 MegamorphicModel.prototype._invalidRequests = null;
-MegamorphicModel.prototype._errorRequests = null;
-MegamorphicModel.prototype._lastErrorRequest = null;
 MegamorphicModel.prototype.currentState = null;
 MegamorphicModel.prototype.isError = null;
 MegamorphicModel.prototype.adapterError = null;

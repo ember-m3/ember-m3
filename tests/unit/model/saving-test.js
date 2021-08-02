@@ -165,6 +165,72 @@ for (let testRun = 0; testRun < 2; testRun++) {
         });
       });
 
+      test('record.isError is true after a rejected save', async function (assert) {
+        assert.expect(5);
+        let count = 0;
+
+        this.owner.register(
+          'adapter:-ember-m3',
+          class TestAdapter {
+            static create() {
+              return new TestAdapter(...arguments);
+            }
+
+            updateRecord(store, type, snapshot) {
+              if (count === 0) {
+                count++;
+                assert.equal(snapshot.record.get('isSaving'), true, 'record is saving');
+                return Promise.reject(new Error('Some error'));
+              } else {
+                return Promise.resolve({
+                  data: {
+                    id: 1,
+                    type: 'com.example.bookstore.Book',
+                    attributes: {
+                      name: 'The Winds of Winter',
+                    },
+                  },
+                });
+              }
+            }
+          }
+        );
+
+        let record = this.store.push({
+          data: {
+            id: 1,
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: 'The Winds of Winter',
+              estimatedPubDate: 'January 2622',
+            },
+          },
+        });
+
+        try {
+          await record.save();
+        } catch (e) {
+          assert.equal(
+            record.get('isError'),
+            true,
+            'rejecting a save sets the `isError` flag to true'
+          );
+          assert.equal(
+            record.get('adapterError').message,
+            'Some error',
+            'rejecting a save populates the adapterError field'
+          );
+        }
+
+        await record.save();
+        assert.equal(record.get('isError'), false, 'sucessfully saving sets `isError` to false');
+        assert.equal(
+          record.get('adapterError'),
+          null,
+          'sucessfully saving sets adapterError to null'
+        );
+      });
+
       test('.save disallows saving embedded models', function (assert) {
         assert.expect(1);
 
