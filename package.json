@@ -1,6 +1,6 @@
 {
   "name": "ember-m3",
-  "version": "4.1.3",
+  "version": "4.2.0",
   "isCanary": true,
   "description": "Alternative to @ember-data/model in which attributes and relationships are derived from API Payloads",
   "keywords": [
