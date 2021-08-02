@@ -1,12 +1,9 @@
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import { run } from '@ember/runloop';
-import EmberObject, { get, set, computed } from '@ember/object';
+import { get } from '@ember/object';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import { Errors as ModelErrors } from '@ember-data/model/-private';
-import { Errors as StoreErrors } from '@ember-data/store/-private';
-
-const Errors = ModelErrors || StoreErrors;
 
 class TestSchemaFlagOn extends DefaultSchema {
   includesModel(modelName) {
