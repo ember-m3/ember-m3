@@ -506,7 +506,7 @@ and `bestChapter` a nested m3 model and not a simple object.
   should be read from the underlying data payload. The default return is false which creates an object compatible with
   how Ember Data treats `errors` property. Return true to read from the data payload for the model.
 
-- `useNativeProperties(modelName)` When set to true, removes the need to use `.set` and `.get` on m3 record of a given type.
+- `useNativeProperties(modelName)` If `true` is returned, removes the need to use `.set` and `.get` on m3 record of a given type.
 Instead of `model.get('someAttribute')` and `model.set('someAttribute)`, you can do `model.someAttribute` and 
 `model.someAttribute = value`. When set to `false` deprecates your current `.` access to aid in the migration. For migration
 and deprecation guide see the [deprecations guide](DEPRECATIONS.md).
