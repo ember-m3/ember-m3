@@ -533,7 +533,7 @@ To learn how to debug `m3` records, refer to the [debugging documentation](DEBUG
 
 ## Deprecations
 
-For help with migrating deprecatitons refer to the [deprecations guide](DEPRECATIONS.md)
+For help with migrating deprecations refer to the [deprecations guide](DEPRECATIONS.md)
 
 ## Customizing Store
 
