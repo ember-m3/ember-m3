@@ -14,7 +14,6 @@ import { isArray } from '@ember/array';
 
 import MegamorphicModel from 'ember-m3/model';
 import DefaultSchema from 'ember-m3/services/m3-schema';
-import require from 'require';
 
 import { capturedWarnings, captureWarnings } from '../helpers/warning-handler';
 import { watchProperty } from '../helpers/watch-property';
@@ -3099,16 +3098,10 @@ for (let testRun = 0; testRun < 2; testRun++) {
       assert.expect(10);
 
       const modelName = 'com.example.bookstore.Book';
-      function makeInvalidError(errors) {
-        // TODO: This is only used for ember-data 3.12
-        if (require.has('ember-data/adapters/errors')) {
-          const InvalidError = require('ember-data/adapters/errors').InvalidError;
-          return new InvalidError(errors);
-        }
+      function makeInvalidError() {
         const error = new Error('The adapter rejected the commit because it was invalid');
         error.code = 'InvalidError';
         error.isAdapterError = true;
-        error.errors = errors;
         return error;
       }
 
@@ -3117,39 +3110,21 @@ for (let testRun = 0; testRun < 2; testRun++) {
         EmberObject.extend({
           updateRecord(store, type, snapshot) {
             assert.equal(snapshot.record.get('isSaving'), true, 'record is saving');
-            return Promise.reject(
-              makeInvalidError([
-                {
-                  source: 'estimatedPubDate',
-                  detail: 'Please enter valid estimated publish date',
-                },
-                {
-                  source: 'name',
-                  detail: 'Please enter valid name',
-                },
-              ])
-            );
+            return Promise.reject(makeInvalidError());
           },
         })
       );
-
       this.owner.register(
         'serializer:-ember-m3',
         EmberObject.extend({
-          extractErrors(store, typeClass, payload, id) {
-            if (payload && typeof payload === 'object' && payload.errors) {
-              const record = store.peekRecord(modelName, id);
-              payload.errors.forEach((error) => {
-                if (error.source) {
-                  const errorField = error.source;
-                  record.get('errors').add(errorField, error.detail);
-                }
-              });
-            }
+          extractErrors() {
+            return {
+              estimatedPubDate: 'Please enter valid estimated publish date',
+              name: 'Please enter valid name',
+            };
           },
         })
       );
-
       let model = run(() => {
         return this.store.push({
           data: {
