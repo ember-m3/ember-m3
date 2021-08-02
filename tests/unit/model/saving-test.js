@@ -106,6 +106,53 @@ for (let testRun = 0; testRun < 2; testRun++) {
         });
       });
 
+      test('.save creates via the store', function (assert) {
+        assert.expect(6);
+
+        this.owner.register(
+          'adapter:-ember-m3',
+          class TestAdapter {
+            static create() {
+              return new TestAdapter(...arguments);
+            }
+
+            createRecord(store, type, snapshot) {
+              assert.equal(snapshot.record.get('isSaving'), true, 'record is saving');
+              return Promise.resolve({
+                data: {
+                  id: 1,
+                  type: 'com.example.bookstore.Book',
+                  attributes: {
+                    name: 'The Winds of Winter',
+                    estimatedRating: '11/10',
+                  },
+                },
+              });
+            }
+          }
+        );
+
+        let record = this.store.createRecord('com.example.bookstore.Book', {
+          name: 'The Storm Before the Storm',
+        });
+
+        assert.equal(record.get('isSaving'), false, 'initially record not saving');
+        assert.equal(record.get('isDirty'), true, 'record is dirty');
+
+        return record.save().then(() => {
+          assert.equal(record.get('isSaving'), false, 'record done saving');
+          assert.equal(record.get('isDirty'), false, 'record is no longer dirty');
+          assert.deepEqual(
+            recordDataFor(record)._data,
+            {
+              name: 'The Winds of Winter',
+              estimatedRating: '11/10',
+            },
+            'data post save resolve'
+          );
+        });
+      });
+
       test('.save disallows saving embedded models', function (assert) {
         assert.expect(1);
 

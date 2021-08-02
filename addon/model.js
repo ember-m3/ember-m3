@@ -141,6 +141,7 @@ if (CUSTOM_MODEL_CLASS) {
 export default class MegamorphicModel extends EmberObject {
   static create(...args) {
     let instance = super.create(...args);
+    let value = instance;
     if (CUSTOM_MODEL_CLASS) {
       let useNative = instance._schema.useNativeProperties(instance._modelName);
 
@@ -149,8 +150,7 @@ export default class MegamorphicModel extends EmberObject {
 
         // Update the mapping to point to the proxy instead of the instance
         recordDataToRecordMap.set(instance._recordData, proxy);
-
-        return proxy;
+        value = proxy;
       }
       if (DEBUG) {
         if (useNative === false) {
@@ -158,13 +158,15 @@ export default class MegamorphicModel extends EmberObject {
 
           // Update the mapping to point to the proxy instead of the instance
           recordDataToRecordMap.set(instance._recordData, proxy);
-
-          return proxy;
+          value = proxy;
         }
       }
     }
-
-    return instance;
+    if (!value._topModel) {
+      value._topModel = value;
+    }
+    value._flushInitProperties();
+    return value;
   }
 
   init(properties) {
@@ -184,16 +186,12 @@ export default class MegamorphicModel extends EmberObject {
     this._store = properties.store;
     this._cache = Object.create(null);
     this._schema = get(properties.store, '_schemaManager');
-
-    this._topModel = this._topModel || this;
     this._parentModel = this._parentModel || null;
     this._errors = null;
     this._init = true;
     if (!CUSTOM_MODEL_CLASS) {
       this._internalModel = properties._internalModel;
     }
-
-    this._flushInitProperties();
   }
 
   _setIdentifier(identifier) {
@@ -312,7 +310,7 @@ export default class MegamorphicModel extends EmberObject {
       // just super and move on for state flags
       // this needs to match whatever we are notifying
       // in our subscription to the notificationManager
-      if (['isNew', 'isDeleted'].indexOf(key) !== -1) {
+      if (['isNew', 'isDeleted', 'isDirty'].indexOf(key) !== -1) {
         super.notifyPropertyChange(key);
         return;
       }
@@ -738,7 +736,7 @@ if (CUSTOM_MODEL_CLASS) {
 let isDirty;
 if (CUSTOM_MODEL_CLASS) {
   isDirty = computed('_topModel.isDirty', function () {
-    if (this._topModel !== this) {
+    if (this !== this._topModel) {
       return this._topModel.get('isDirty');
     }
     return (
