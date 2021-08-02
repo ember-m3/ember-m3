@@ -37,7 +37,28 @@ export function resolveReferencesWithRecords(store, references) {
   if (CUSTOM_MODEL_CLASS) {
     return references.map((reference) => {
       if (reference.type) {
-        return store.peekRecord(dasherize(reference.type), reference.id);
+        let normalizedType = dasherize(reference.type);
+        let record = store.peekRecord(normalizedType, reference.id);
+        if (record) {
+          return record;
+        }
+        // If we have a cached recordData with the same id, but we have not seen a record with the same { type, id } pair
+        // We could be a projection, in which case we want to push in a projected record with the new type
+        let cachedRD = store._globalM3RecordDataCache[reference.id];
+        if (cachedRD) {
+          let baseTypeName = dasherize(store._schemaManager.computeBaseModelName(normalizedType));
+          // We are a projection
+          if (baseTypeName) {
+            // Our projection matches the cached one
+            if (
+              baseTypeName === cachedRD.modelName ||
+              baseTypeName === store._schemaManager.computeBaseModelName(cachedRD.modelName)
+            )
+              return store.push({
+                data: { type: normalizedType, id: reference.id, attributes: {} },
+              });
+          }
+        }
       } else {
         let rd = store._globalM3RecordDataCache[reference.id];
         if (rd) {
