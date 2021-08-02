@@ -884,6 +884,16 @@ export class EmbeddedMegamorphicModel extends MegamorphicModel {
   }
 }
 
+if (CUSTOM_MODEL_CLASS) {
+  defineProperty(
+    EmbeddedMegamorphicModel.prototype,
+    'isSaving',
+    computed('_topModel.isSaving', function () {
+      return this._topModel.isSaving;
+    }).readOnly()
+  );
+}
+
 export class EmbeddedSnapshot {
   constructor(record) {
     this.record = record;
