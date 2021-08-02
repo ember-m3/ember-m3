@@ -104,13 +104,14 @@ module('unit/model/errors-attribute', function (hooks) {
           id: 'urn:book:1',
           type: 'com.example.bookstore.Book',
           attributes: {
-            author: ['urn:author:1'],
+            title: 'Goblins',
           },
         },
       });
     });
     const getErrorsSpy = this.sinon.spy(model, 'errors', ['get']);
-    model._removeError('author');
+    // `setUnknownProperty` calls `_removeError` which calls `this.errors`
+    model.setUnknownProperty('title', 'Harry Potter');
     assert.equal(getErrorsSpy.get.callCount, 0, 'get errors is not called');
   });
 
@@ -166,13 +167,14 @@ module('unit/model/errors-attribute', function (hooks) {
           id: 'urn:book:1',
           type: 'com.example.bookstore.Book',
           attributes: {
-            author: ['urn:author:1'],
+            title: 'Goblins',
           },
         },
       });
     });
     const getErrorsSpy = this.sinon.spy(model, 'errors', ['get']);
-    model._removeError('author');
+    // `setUnknownProperty` calls `_removeError` which calls `this.errors`
+    model.setUnknownProperty('title', 'Harry Potter');
     assert.ok(getErrorsSpy.get.callCount > 0, 'get errors is called');
   });
 
