@@ -48,7 +48,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
       });
 
       test('.save saves via the store', function (assert) {
-        assert.expect(4);
+        assert.expect(7);
 
         this.owner.register(
           'adapter:-ember-m3',
@@ -59,6 +59,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
             updateRecord(store, type, snapshot) {
               assert.equal(snapshot.record.get('isSaving'), true, 'record is saving');
+              assert.equal(snapshot.record.get('author.isSaving'), true, 'nested record is saving');
               return Promise.resolve({
                 data: {
                   id: 1,
@@ -66,6 +67,9 @@ for (let testRun = 0; testRun < 2; testRun++) {
                   attributes: {
                     name: 'The Winds of Winter',
                     estimatedRating: '11/10',
+                    author: {
+                      name: 'George R. R. Martin',
+                    },
                   },
                 },
               });
@@ -81,24 +85,32 @@ for (let testRun = 0; testRun < 2; testRun++) {
               attributes: {
                 name: 'The Winds of Winter',
                 estimatedPubDate: 'January 2622',
+                author: {
+                  name: 'George R. R. Martin',
+                },
               },
             },
           });
         });
 
         assert.equal(record.get('isSaving'), false, 'initially record not saving');
+        assert.equal(record.get('author.isSaving'), false, 'initially nested record not saving');
 
         return run(() => {
           record.set('estimatedPubDate', '2231?');
 
           return record.save().then(() => {
             assert.equal(record.get('isSaving'), false, 'record done saving');
+            assert.equal(record.get('author.isSaving'), false, 'nested record done saving');
             assert.deepEqual(
               recordDataFor(record)._data,
               {
                 name: 'The Winds of Winter',
                 estimatedRating: '11/10',
                 estimatedPubDate: '2231?',
+                author: {
+                  name: 'George R. R. Martin',
+                },
               },
               'data post save resolve'
             );
