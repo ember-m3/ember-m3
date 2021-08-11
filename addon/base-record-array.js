@@ -159,6 +159,7 @@ function registerWithObjects(objects, recordArray) {
     associateRecordWithRecordArray(object, recordArray);
   });
 }
+const MANAGED_ARRAYS = new WeakSet();
 
 if (CUSTOM_MODEL_CLASS) {
   const convertToInt = (prop) => {
@@ -230,6 +231,7 @@ if (CUSTOM_MODEL_CLASS) {
       let recordArrayState = new ArrayState(stateArgs);
       let proxy = new Proxy(instance, baseRecordArrayProxyHandler);
       ArrayStateMap.set(proxy, recordArrayState);
+      MANAGED_ARRAYS.add(proxy);
       return proxy;
     }
 
@@ -535,4 +537,4 @@ export function associateRecordWithRecordArray(record, recordArray) {
 }
 
 export default BaseRecordArray;
-export { ArrayStateMap };
+export { ArrayStateMap, MANAGED_ARRAYS };
