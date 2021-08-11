@@ -21,6 +21,7 @@ import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import { RootState, Errors as StoreErrors } from '@ember-data/store/-private';
 import { Errors as ModelErrors } from '@ember-data/model/-private';
 import { REFERENCE, schemaTypesInfo } from './utils/schema-types-info';
+import { MANAGED_ARRAYS } from './base-record-array';
 
 // Errors moved from @ember-data/store to @ember-data/model as of 3.15.0
 const Errors = ModelErrors || StoreErrors;
@@ -143,6 +144,16 @@ if (CUSTOM_MODEL_CLASS) {
 
     megamorphicNativeDeprecationHandler = new MegamorphicNativeDeprecationProxyHandler();
   }
+}
+
+// If a value returned from unknownProperty is a ManagedArray we need to access '[]'
+// to keep parity with how ember treats arrays
+// see https://github.com/emberjs/ember.js/blob/3ce13cea235cde8a87d89473533c453523412764/packages/%40ember/-internals/metal/lib/property_get.ts#L136
+function accessBracketsIfArray(maybeArray) {
+  if (MANAGED_ARRAYS.has(maybeArray)) {
+    get(maybeArray, '[]');
+  }
+  return maybeArray;
 }
 
 export default class MegamorphicModel extends EmberObject {
@@ -494,7 +505,7 @@ export default class MegamorphicModel extends EmberObject {
 
   unknownProperty(key) {
     if (key in this._cache) {
-      return this._cache[key];
+      return accessBracketsIfArray(this._cache[key]);
     }
 
     if (!this._schema.isAttributeIncluded(this._modelName, key)) {
@@ -516,19 +527,21 @@ export default class MegamorphicModel extends EmberObject {
 
       // If default value is not defined, resolve the key for reference
       if (defaultValue !== undefined) {
-        return (this._cache[key] = defaultValue);
+        return accessBracketsIfArray((this._cache[key] = defaultValue));
       }
     }
 
     let value = this._schema.transformValue(this._modelName, key, rawValue);
-    return (this._cache[key] = resolveValue(
-      key,
-      value,
-      this._modelName,
-      this._store,
-      this._schema,
-      this
-    ));
+    return accessBracketsIfArray(
+      (this._cache[key] = resolveValue(
+        key,
+        value,
+        this._modelName,
+        this._store,
+        this._schema,
+        this
+      ))
+    );
   }
 
   get id() {
