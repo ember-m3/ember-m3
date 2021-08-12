@@ -45,7 +45,7 @@ if (CUSTOM_MODEL_CLASS) {
         return target.objectAt(key);
       }
 
-      return Reflect.get(target, key, receiver);
+      return Reflect.get(target, key, target);
     }
 
     set(target, key, value, receiver) {
