@@ -85,7 +85,7 @@ if (CUSTOM_MODEL_CLASS) {
       super.init(...arguments);
       this._references = [];
       if (!this._objects) {
-        this._objects = A();
+        this._objects = [];
       }
       this._resolved = false;
       this.store = this.store || null;
@@ -102,7 +102,7 @@ if (CUSTOM_MODEL_CLASS) {
         }
       }
 
-      this._objects.replace(idx, removeAmt, newObjects);
+      this._objects.splice(idx, removeAmt, ...newObjects);
       this.arrayContentDidChange(idx, removeAmt, newObjects.length);
       this._registerWithObjects(newObjects);
       this._resolved = true;
@@ -117,13 +117,16 @@ if (CUSTOM_MODEL_CLASS) {
 
     _removeObject(object) {
       if (this._resolved) {
-        this._objects.removeObject(object);
-        deferArrayPropertyChange(this.store, this, 0, 1, 0);
-        deferPropertyChange(this.store, this, '[]');
-        deferPropertyChange(this.store, this, 'length');
-        // eager change events here; we're not processing payloads (that goes
-        // through `_setInternalModels`); we're doing `unloadRecord`
-        flushChanges(this.store);
+        let index = this._objects.indexOf(object);
+        if (index > -1) {
+          this._objects.splice(index,1);
+          deferArrayPropertyChange(this.store, this, index, 1, 0);
+          deferPropertyChange(this.store, this, '[]');
+          deferPropertyChange(this.store, this, 'length');
+          // eager change events here; we're not processing payloads (that goes
+          // through `_setInternalModels`); we're doing `unloadRecord`
+          flushChanges(this.store);
+        }
       } else {
         for (let j = 0; j < this._references.length; ++j) {
           let { id, type } = this._references[j];
@@ -142,7 +145,8 @@ if (CUSTOM_MODEL_CLASS) {
     _setObjects(objects, triggerChange = true) {
       let originalLength = this._objects.length;
       if (triggerChange) {
-        this._objects.replace(0, this._objects.length, objects);
+        // TODO make sure we are not setting this tot query array when returrning results from queries
+        this._objects = objects;
         deferArrayPropertyChange(this.store, this, 0, originalLength, this._objects.length);
         deferPropertyChange(this.store, this, '[]');
         deferPropertyChange(this.store, this, 'length');
@@ -178,7 +182,7 @@ if (CUSTOM_MODEL_CLASS) {
         }
         let index = this._objects.indexOf(record);
         if (index > -1) {
-          this._objects.removeObject(record);
+          this._objects.splice(index, 1);
           this.arrayContentDidChange(index, 1, 0);
         }
       }
