@@ -42,7 +42,7 @@ if (CUSTOM_MODEL_CLASS) {
       let index = convertToInt(key);
 
       if (index !== null) {
-        return receiver.objectAt(key);
+        return target.objectAt(key);
       }
 
       return Reflect.get(target, key, receiver);
@@ -75,10 +75,8 @@ if (CUSTOM_MODEL_CLASS) {
 
     // public RecordArray API
     static create(...args) {
-
       let instance = super.create(...args);
-      return instance;
-      // return new Proxy(instance, baseRecordArrayProxyHandler);
+      return new Proxy(instance, baseRecordArrayProxyHandler);
     }
 
     init() {
