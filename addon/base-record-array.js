@@ -75,9 +75,10 @@ if (CUSTOM_MODEL_CLASS) {
 
     // public RecordArray API
     static create(...args) {
-      let instance = super.create(...args);
 
-      return new Proxy(instance, baseRecordArrayProxyHandler);
+      let instance = super.create(...args);
+      return instance;
+      // return new Proxy(instance, baseRecordArrayProxyHandler);
     }
 
     init() {
