@@ -26,6 +26,16 @@ import { recordIdentifierFor } from '@ember-data/store';
 let BaseRecordArray;
 let baseRecordArrayProxyHandler;
 
+const RecordArrayState = new WeakMap();
+
+class ArrayState {
+  constructor(store, objects) {
+    this._references = [];
+    this._objects = objects || A();
+    this._resolved = false;
+    this.store = this.store || null;
+  }
+}
 if (CUSTOM_MODEL_CLASS) {
   const convertToInt = (prop) => {
     if (typeof prop === 'symbol') return null;
@@ -39,6 +49,9 @@ if (CUSTOM_MODEL_CLASS) {
 
   const BaseRecordArrayProxyHandler = class {
     get(target, key, receiver) {
+      if (key === 'objectAt') {
+        return target.objectAt(key);
+      }
       let index = convertToInt(key);
 
       if (index !== null) {
@@ -49,6 +62,7 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     set(target, key, value, receiver) {
+      debugger
       let index = convertToInt(key);
 
       if (index !== null) {
@@ -80,13 +94,8 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     init() {
+      debugger
       super.init(...arguments);
-      this._references = [];
-      if (!this._objects) {
-        this._objects = A();
-      }
-      this._resolved = false;
-      this.store = this.store || null;
     }
 
     replace(idx, removeAmt, newRecords) {
