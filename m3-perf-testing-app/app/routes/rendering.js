@@ -1,6 +1,7 @@
 import Route from '@ember/routing/route';
 import { action } from '@ember/object';
 import generateSampleData from '../models/sample-data';
+import { run } from '@ember/runloop';
 
 export default class Rendering extends Route {
   model() {
@@ -17,8 +18,12 @@ export default class Rendering extends Route {
     return this.store.peekAll('com.example.bookstore.search-results');
   }
 
+  markEndLoading() {
+    performance.mark('end-loading');
+  }
+
   @action
   didTransition() {
-    performance.mark('end-loading');
+    run.scheduleOnce('afterRender', this, this.markEndLoading);
   }
 }
