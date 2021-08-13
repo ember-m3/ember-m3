@@ -5088,10 +5088,9 @@ ember-compatibility-helpers@^1.1.2, ember-compatibility-helpers@^1.2.0, ember-co
     fs-extra "^9.1.0"
     semver "^5.4.1"
 
-ember-data@3.28.0-beta.3:
+"ember-data@file:./ember-data-3.28.0-beta.3.tgz":
   version "3.28.0-beta.3"
-  resolved "https://registry.yarnpkg.com/ember-data/-/ember-data-3.28.0-beta.3.tgz#5e61ee5ea0a3745d73a1e8dd67eae46e97278d9b"
-  integrity sha512-ZxR7q/pyYRRt+RokIQDM8Sxe6do1A1kJdaJQ1hyhBpSkeHY2/DMLcDNokTOvWzaWqtOIRUePV3efQN49XjWUFg==
+  resolved "file:./ember-data-3.28.0-beta.3.tgz#5e61ee5ea0a3745d73a1e8dd67eae46e97278d9b"
   dependencies:
     "@ember-data/adapter" "3.28.0-beta.3"
     "@ember-data/debug" "3.28.0-beta.3"
