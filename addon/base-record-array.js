@@ -177,7 +177,7 @@ if (CUSTOM_MODEL_CLASS) {
 
       if (index !== null) {
         let state = ArrayStateMap.get(receiver);
-        return state.objectAt(idx, receiver);
+        return state.objectAt(index, receiver);
       }
 
       return Reflect.get(target[0], key, receiver);
@@ -187,7 +187,7 @@ if (CUSTOM_MODEL_CLASS) {
       let index = convertToInt(key);
 
       if (index !== null) {
-        target[0].replace(index, 1, [value]);
+        receiver.replace(index, 1, [value]);
       } else {
         Reflect.set(target[0], key, value, receiver);
       }
