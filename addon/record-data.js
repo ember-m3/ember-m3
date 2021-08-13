@@ -569,7 +569,7 @@ export default class M3RecordData {
     if (CUSTOM_MODEL_CLASS) {
       this.removeFromRecordArrays();
       let queryCache = recordDataToQueryCache.get(this);
-      let record = recordDataToRecordMap.get(this);
+      let record = recordDataToRecordMap[this.clientId];
       if (record) {
         queryCache.unloadRecord(record);
       }
@@ -1206,7 +1206,7 @@ export default class M3RecordData {
 
   _notifyRecordProperties(changedKeys) {
     if (CUSTOM_MODEL_CLASS) {
-      let record = recordDataToRecordMap.get(this);
+      let record = recordDataToRecordMap[this.clientId];
       if (record) {
         record._notifyProperties(changedKeys);
       }

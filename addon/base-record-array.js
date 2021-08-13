@@ -176,7 +176,7 @@ if (CUSTOM_MODEL_CLASS) {
 
     _removeRecordData(recordData) {
       if (this._resolved) {
-        let record = recordDataToRecordMap.get(recordData);
+        let record = recordDataToRecordMap[recordData.clientId];
         if (!record) {
           return;
         }

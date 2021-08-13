@@ -156,7 +156,7 @@ export default class MegamorphicModel extends EmberObject {
         let proxy = new Proxy(instance, megamorphicModelProxyHandler);
 
         // Update the mapping to point to the proxy instead of the instance
-        recordDataToRecordMap.set(instance._recordData, proxy);
+        recordDataToRecordMap[instance._recordData.clientId] = proxy;
         value = proxy;
       }
       if (DEBUG) {
@@ -164,7 +164,7 @@ export default class MegamorphicModel extends EmberObject {
           let proxy = new Proxy(instance, megamorphicNativeDeprecationHandler);
 
           // Update the mapping to point to the proxy instead of the instance
-          recordDataToRecordMap.set(instance._recordData, proxy);
+          recordDataToRecordMap[instance._recordData.clientId] =  proxy;
           value = proxy;
         }
       }
@@ -180,7 +180,7 @@ export default class MegamorphicModel extends EmberObject {
     // Drop Ember.Object subclassing instead
     super.init(...arguments);
     if (CUSTOM_MODEL_CLASS) {
-      recordDataToRecordMap.set(properties._recordData, this);
+      recordDataToRecordMap[properties._recordData.clientId] =  this;
       this._recordData = properties._recordData;
       // Invalid and error requests mimic the current ED implementation
       // @hjdivad suggested that we might not need to keep arrays of requests
