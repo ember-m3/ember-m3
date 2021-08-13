@@ -233,9 +233,9 @@ if (CUSTOM_MODEL_CLASS) {
     static create(args, stateArgs) {
       let instance = super.create(args);
       let recordArrayState = new ArrayState(stateArgs);
-      let proxy = new Proxy(instance, baseRecordArrayProxyHandler);
-      ArrayStateMap.set(proxy, recordArrayState);
-      return  proxy;
+      // let proxy = new Proxy(instance, baseRecordArrayProxyHandler);
+      ArrayStateMap.set(instance, recordArrayState);
+      return  instance;
     }
 
     replace(idx, removeAmt, newRecords) {

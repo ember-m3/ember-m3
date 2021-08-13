@@ -222,7 +222,7 @@ export default class QueryCache {
 
     if (array) {
       if (CUSTOM_MODEL_CLASS) {
-        array._setObjects(internalModelOrModels.toArray());
+        array._setObjects(internalModelOrModels);
       } else {
         array._setInternalModels(internalModelOrModels);
       }
