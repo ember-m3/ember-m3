@@ -41,7 +41,7 @@ class ArrayState {
     resolved
   }) {
     this._references = [];
-    this._objects = objects || A();
+    this._objects = objects || [];
     this._resolved = false;
     this.store = store || null;
     this._isAllReference = _isAllReference;
@@ -61,7 +61,8 @@ class ArrayState {
   // returns the original length to notify
   _setObjects(objects, array) {
     let originalLength = this._objects.length;
-    this._objects.replace(0, this._objects.length, objects);
+    // TODO fix for query array to not copy real arrays
+    this._objects =  objects;
     this._resolved = true;
     registerWithObjects(objects, array);
     return originalLength;
@@ -89,8 +90,11 @@ class ArrayState {
 
   _removeObject(object) {
     if (this._resolved) {
-      this._objects.removeObject(object);
-      return true;
+      let index = this._objects.indexOf(object);
+      if (index > -1) {
+        this._objects.splice(index, 1);
+        return true;
+      }
     } else {
       for (let j = 0; j < this._references.length; ++j) {
         let { id, type } = this._references[j];
@@ -110,7 +114,7 @@ class ArrayState {
     this._references = references;
     this._resolved = false;
     let originalLength = this._objects.length;
-    this._objects = A();
+    this._objects = [];
     return originalLength;
   }
 
@@ -122,7 +126,7 @@ class ArrayState {
       }
       let index = this._objects.indexOf(record);
       if (index > -1) {
-        this._objects.removeObject(record);
+        this._objects.splice(index, 1);
         return index;
       }
     }
@@ -143,7 +147,7 @@ class ArrayState {
       }
     }
 
-    this._objects.replace(idx, removeAmt, newObjects);
+    this._objects.splice(idx, removeAmt, ...newObjects);
     registerWithObjects(newObjects, array);
     this._resolved = true;
   }
@@ -211,7 +215,13 @@ if (CUSTOM_MODEL_CLASS) {
    * @class BaseRecordArray
    */
   BaseRecordArray = class BaseRecordArray extends EmberObject.extend(MutableArray) {
-    // [Symbol.iterator] = Array.prototype.values;
+    [Symbol.iterator]() {
+      let state = ArrayStateMap.get(this);
+      state._resolve(this);
+      // Sketch for modification untill confirmed
+      return state._objects[Symbol.iterator]();
+    }
+
 
     // public RecordArray API
     static create(args, stateArgs) {
