@@ -38,7 +38,7 @@ class ArrayState {
     schema,
     model,
     record,
-    resolved
+    resolved,
   }) {
     this._references = [];
     this._objects = objects || [];
@@ -55,14 +55,13 @@ class ArrayState {
     this.record = record;
     this._record = model;
     this._resolved = resolved || false;
-
   }
 
   // returns the original length to notify
   _setObjects(objects, array) {
     let originalLength = this._objects.length;
     // TODO fix for query array to not copy real arrays
-    this._objects =  objects;
+    this._objects = objects;
     this._resolved = true;
     registerWithObjects(objects, array);
     return originalLength;
@@ -151,20 +150,15 @@ class ArrayState {
     registerWithObjects(newObjects, array);
     this._resolved = true;
   }
-
 }
 function registerWithObjects(objects, recordArray) {
   objects.forEach((object) => {
     if (!object || !isResolvedValue(object)) {
       return;
     }
-    if (!recordArray) {
-      debugger
-    }
     associateRecordWithRecordArray(object, recordArray);
   });
 }
-
 
 if (CUSTOM_MODEL_CLASS) {
   const convertToInt = (prop) => {
@@ -180,7 +174,7 @@ if (CUSTOM_MODEL_CLASS) {
   const BaseRecordArrayProxyHandler = class {
     get(target, key, receiver) {
       if (key === 'objectAt') {
-        return Reflect.get(target, key, receiver); 
+        return Reflect.get(target, key, receiver);
       }
       let index = convertToInt(key);
 
@@ -208,7 +202,6 @@ if (CUSTOM_MODEL_CLASS) {
 }
 
 if (CUSTOM_MODEL_CLASS) {
-
   /**
    * BaseRecordArray
    *
@@ -238,7 +231,7 @@ if (CUSTOM_MODEL_CLASS) {
       let recordArrayState = new ArrayState(stateArgs);
       let proxy = new Proxy(instance, baseRecordArrayProxyHandler);
       ArrayStateMap.set(proxy, recordArrayState);
-      return  proxy;
+      return proxy;
     }
 
     replace(idx, removeAmt, newRecords) {
@@ -281,7 +274,6 @@ if (CUSTOM_MODEL_CLASS) {
         isLoaded: true,
         isUpdating: false,
       });
-
     }
 
     _setReferences(references) {

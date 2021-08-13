@@ -43,7 +43,7 @@ module('unit/record-array', function (hooks) {
       });
     });
     this.createRecordArray = function () {
-      let recordArray = BaseRecordArray.create({}, {store: this.store});
+      let recordArray = BaseRecordArray.create({}, { store: this.store });
       recordArray.store = this.store;
       return recordArray;
     };
@@ -68,7 +68,7 @@ module('unit/record-array', function (hooks) {
     recordArray = this.createRecordArray();
     // assert.equal(recordArray._resolved, false, 'initialy unresolved');
     assert.strictEqual(recordArray.get('firstObject'), undefined, 'array is empty');
-   //  assert.equal(recordArray._resolved, true, 'requesting object resolved array');
+    //  assert.equal(recordArray._resolved, true, 'requesting object resolved array');
   });
 
   test('references can be resolved to records lazily', function (assert) {

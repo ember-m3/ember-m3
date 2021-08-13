@@ -264,18 +264,20 @@ export default class QueryCache {
   _createQueryArray(internalModelsOrModels, query, payload) {
     let array;
     if (CUSTOM_MODEL_CLASS) {
-
-      array = M3QueryArray.create({
-        modelName: '-ember-m3',
-        queryCache: this,
-        query,
-        meta: assign({}, payload.meta),
-      }, { store: this._store });
+      array = M3QueryArray.create(
+        {
+          modelName: '-ember-m3',
+          queryCache: this,
+          query,
+          meta: assign({}, payload.meta),
+        },
+        { store: this._store }
+      );
 
       //TODO consider not setting models eagerly
       array._setObjects(internalModelsOrModels);
     } else {
-       array = M3QueryArray.create({
+      array = M3QueryArray.create({
         modelName: '-ember-m3',
         store: this._store,
         manager: this._recordArrayManager,

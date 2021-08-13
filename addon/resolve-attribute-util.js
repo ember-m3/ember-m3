@@ -97,14 +97,16 @@ export function resolveRecordArray(store, record, key, references) {
   let array;
 
   if (CUSTOM_MODEL_CLASS) {
-    array = ManagedArray.create({}, {
-      modelName: '-ember-m3',
-      _isAllReference: true,
-      key,
-      record,
-      store,
-      _isAllReference: true,
-    });
+    array = ManagedArray.create(
+      {},
+      {
+        modelName: '-ember-m3',
+        _isAllReference: true,
+        key,
+        record,
+        store,
+      }
+    );
 
     let records = resolveReferencesWithRecords(store, references);
     array._setObjects(records, false);
@@ -222,15 +224,20 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
 
 function resolveManagedArray(content, key, value, modelName, store, schema, record) {
   if (CUSTOM_MODEL_CLASS) {
-    return ManagedArray.create({}, {
-      key,
-      _value: value,
-      modelName,
-      schema,
-      model: record,
-      record,
-      objects: A(content), store: store, resolved: true
-    });
+    return ManagedArray.create(
+      {},
+      {
+        key,
+        _value: value,
+        modelName,
+        schema,
+        model: record,
+        record,
+        objects: A(content),
+        store: store,
+        resolved: true,
+      }
+    );
   } else {
     let array = ManagedArray.create({
       key,
