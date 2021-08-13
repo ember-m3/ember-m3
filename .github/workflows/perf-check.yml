@@ -1,3 +1,4 @@
+# Adapted from ember-data https://github.com/emberjs/data/blob/master/.github/workflows/perf-check.yml
 name: Performance Checks
 
 on:
@@ -15,8 +16,10 @@ jobs:
           fetch-depth: 0
       - name: Check SHA
         run: |
-          # sha=$(git rev-parse --short=8 HEAD)
-          # echo "HEAD sha=$sha"
+          # Github actions have had a race condition where sometimes they don't check out the correct sha
+          # Here we log our starting state in case we run into that again
+          sha=$(git rev-parse --short=8 HEAD)
+          echo "HEAD sha=$sha"
           echo "HEAD sha=$GITHUB_SHA"
           echo "GITHUB_SHA sha=$GITHUB_SHA"
           mkdir -p tmp
@@ -30,13 +33,17 @@ jobs:
           experiment-serve-command:  cd m3-perf-testing-app &&  ./node_modules/ember-cli/bin/ember s --path dist-experiment --port 4201
           control-build-command:  cd m3-perf-testing-app && rm -rf node_modules &&  yarn &&  ./node_modules/ember-cli/bin/ember  build -e production --output-path dist-control
           control-serve-command:  cd m3-perf-testing-app &&  ./node_modules/ember-cli/bin/ember s --path dist-control
-          control-sha: 28b3acabdecd3adb398f1bb0e84f9cf9c3652a69
           scenarios: |
             {
-              "loading": {
-                "control": "http://localhost:4200/pushing",
-                "experiment": "http://localhost:4201/pushing",
-                "markers": "start-loading,end-loading"
+              "materializing": {
+                "control": "http://localhost:4200/materializing/12000",
+                "experiment": "http://localhost:4201/materializing/12000",
+                "markers": "start-loading,pushed-payload,end-loading"
+              },
+              "rendering": {
+                "control": "http://localhost:4200/rendering",
+                "experiment": "http://localhost:4201/rendering",
+                "markers": "start-loading,pushed-payload,end-loading"
               }
             }
           fidelity: 60

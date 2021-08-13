@@ -1,0 +1,48 @@
+{{outlet}}
+
+<div id="all-results">
+  {{#each this.model as |search|}}
+    <ul class='result'>
+      {{#each search.results as |book|}}
+        <li class='book'>
+          <br>
+          id: <span class='id'>{{book.id}}</span>
+          <ul>
+            <li>name: <span class='name'>{{book.name}}</span></li>
+            <li>author: <span class='author'>{{book.author.name}}</span></li>
+            {{#if book.readerComments}}
+              <li>
+                <ul class='comments'>
+                  {{#each book.readerComments as |comment|}}
+                  <li>
+                    {{#with comment.commenter as |commenter|}}
+                      {{commenter.name}}
+                      {{#if commenter.favouriteBook}}
+                        (<em>Favourite: ({{commenter.favouriteBook.name}})</em>)
+                      {{/if}}
+                    {{/with}}
+                    <br>
+                    {{#if comment.body}}
+                      <span class='comment-body'>
+                        {{comment.body}}
+                      </span>
+                    {{else}}{{#if comment.parts}}
+                      <ul class='comment-parts'>
+                      {{#each comment.parts as |part|}}
+                        <li>{{part.value}}</li>
+                      {{/each}}
+                      </ul>
+                    {{/if}}
+                    {{/if}}
+                    <br>
+                  </li>
+                  {{/each}}
+                </ul>
+              </li>
+            {{/if}}
+          </ul>
+        </li>
+      {{/each}}
+    </ul>
+  {{/each}}
+</div>
