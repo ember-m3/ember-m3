@@ -211,7 +211,7 @@ if (CUSTOM_MODEL_CLASS) {
    * @class BaseRecordArray
    */
   BaseRecordArray = class BaseRecordArray extends EmberObject.extend(MutableArray) {
-    [Symbol.iterator] = Array.prototype.values;
+    // [Symbol.iterator] = Array.prototype.values;
 
     // public RecordArray API
     static create(args, stateArgs) {
