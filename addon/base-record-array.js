@@ -206,6 +206,7 @@ if (CUSTOM_MODEL_CLASS) {
    */
   BaseRecordArray = class BaseRecordArray extends EmberObject.extend(MutableArray) {
     [Symbol.iterator]() {
+      get(this, '[]');
       let state = ArrayStateMap.get(this);
       state._resolve(this);
       // Sketch for modification untill confirmed
@@ -213,6 +214,7 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     forEach(callback, target = null) {
+      get(this, '[]');
       let state = ArrayStateMap.get(this);
       state._resolve(this);
       let objects = state._objects;
@@ -238,6 +240,7 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     objectAt(idx) {
+      get(this, '[]');
       let state = ArrayStateMap.get(this);
       return state.objectAt(idx, this);
     }
@@ -295,6 +298,7 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     get length() {
+      get(this, '[]');
       let state = ArrayStateMap.get(this);
       return state.length;
     }
