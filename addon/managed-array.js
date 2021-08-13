@@ -1,7 +1,7 @@
 import { get } from '@ember/object';
 import { resolveValue } from './resolve-attribute-util';
 import { isResolvedValue } from './utils/resolve';
-import BaseRecordArray, { ArrayStateMap} from './base-record-array';
+import BaseRecordArray, { ArrayStateMap } from './base-record-array';
 import { recordDataFor } from './-private';
 import { deprecate } from '@ember/debug';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
@@ -17,7 +17,6 @@ import { recordIdentifierFor } from '@ember-data/store';
 let ManagedArray;
 if (CUSTOM_MODEL_CLASS) {
   ManagedArray = class ManagedArray extends BaseRecordArray {
-
     get content() {
       let state = ArrayStateMap.get(this);
       deprecate('Accessing content on an M3TrackedArray was private and is deprecated.', false, {
@@ -64,12 +63,7 @@ if (CUSTOM_MODEL_CLASS) {
 
       // Update childRecordDatas array
       // mapping to array of nested models
-      recordDataFor(record)._resizeChildRecordData(
-        key,
-        idx,
-        removeAmt,
-        newItems.length
-      );
+      recordDataFor(record)._resizeChildRecordData(key, idx, removeAmt, newItems.length);
 
       newItems = newItems.map((item, index) => {
         if (isResolvedValue(item)) {

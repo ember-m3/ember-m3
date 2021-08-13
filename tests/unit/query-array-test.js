@@ -25,7 +25,8 @@ module('unit/query-array', function (hooks) {
             query: 'query',
           },
           options
-        ), {store: this.store}
+        ),
+        { store: this.store }
       );
     };
   });
