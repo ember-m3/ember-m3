@@ -222,6 +222,15 @@ if (CUSTOM_MODEL_CLASS) {
       return state._objects[Symbol.iterator]();
     }
 
+    forEach(callback, target = null) {
+      let state = ArrayStateMap.get(this);
+      state._resolve(this);
+      let objects = state._objects;
+
+      for (let index = 0; index < objects.length; index++) {
+        callback.call(target, objects[index], index, this);
+      }
+    }
 
     // public RecordArray API
     static create(args, stateArgs) {
