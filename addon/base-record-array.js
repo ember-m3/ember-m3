@@ -158,9 +158,6 @@ function registerWithObjects(objects, recordArray) {
     if (!object || !isResolvedValue(object)) {
       return;
     }
-    if (!recordArray) {
-      debugger
-    }
     associateRecordWithRecordArray(object, recordArray);
   });
 }
