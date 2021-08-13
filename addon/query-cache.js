@@ -241,8 +241,9 @@ export default class QueryCache {
   _addResultToReverseCache(result, cacheKey) {
     if (result.constructor === M3QueryArray) {
       if (CUSTOM_MODEL_CLASS) {
-        for (let i = 0; i < result._objects.length; ++i) {
-          this._addRecordToReverseCache(result._objects[i], cacheKey);
+        // TODO look into optimizing
+        for (let i = 0; i < result.length; ++i) {
+          this._addRecordToReverseCache(result.objectAt(i), cacheKey);
         }
       } else {
         for (let i = 0; i < result._internalModels.length; ++i) {
@@ -261,20 +262,29 @@ export default class QueryCache {
   }
 
   _createQueryArray(internalModelsOrModels, query, payload) {
-    let array = M3QueryArray.create({
-      modelName: '-ember-m3',
-      store: this._store,
-      manager: this._recordArrayManager,
-
-      queryCache: this,
-      query,
-      meta: assign({}, payload.meta),
-    });
-
+    let array;
     if (CUSTOM_MODEL_CLASS) {
+
+      array = M3QueryArray.create({
+        modelName: '-ember-m3',
+        queryCache: this,
+        query,
+        meta: assign({}, payload.meta),
+      }, { store: this._store });
+
       //TODO consider not setting models eagerly
       array._setObjects(internalModelsOrModels);
     } else {
+       array = M3QueryArray.create({
+        modelName: '-ember-m3',
+        store: this._store,
+        manager: this._recordArrayManager,
+
+        queryCache: this,
+        query,
+        meta: assign({}, payload.meta),
+      });
+
       array._setInternalModels(internalModelsOrModels, false);
       this._recordArrayManager._adapterPopulatedRecordArrays.push(array);
     }
