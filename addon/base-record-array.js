@@ -173,13 +173,10 @@ if (CUSTOM_MODEL_CLASS) {
 
   const BaseRecordArrayProxyHandler = class {
     get(target, key, receiver) {
-      if (key === 'objectAt') {
-        return Reflect.get(target, key, receiver);
-      }
       let index = convertToInt(key);
 
       if (index !== null) {
-        return receiver.objectAt(key);
+        return receiver.objectAt(index);
       }
 
       return Reflect.get(target, key, receiver);
