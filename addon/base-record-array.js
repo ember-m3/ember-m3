@@ -26,16 +26,17 @@ import { recordIdentifierFor } from '@ember-data/store';
 let BaseRecordArray;
 let baseRecordArrayProxyHandler;
 
-const RecordArrayState = new WeakMap();
+const ArrayStateMap = new WeakMap();
 
 class ArrayState {
   constructor(store, objects) {
     this._references = [];
-    this._objects = objects || A();
+    this._objects = objects || [];
     this._resolved = false;
-    this.store = this.store || null;
+    this.store = store || null;
   }
 }
+
 if (CUSTOM_MODEL_CLASS) {
   const convertToInt = (prop) => {
     if (typeof prop === 'symbol') return null;
@@ -79,6 +80,15 @@ if (CUSTOM_MODEL_CLASS) {
 }
 
 if (CUSTOM_MODEL_CLASS) {
+  function registerWithObjects(objects, recordArray) {
+    objects.forEach((object) => {
+      if (!object || !isResolvedValue(object)) {
+        return;
+      }
+      associateRecordWithRecordArray(object, recordArray);
+    });
+  }
+
   /**
    * BaseRecordArray
    *
@@ -89,13 +99,22 @@ if (CUSTOM_MODEL_CLASS) {
 
     // public RecordArray API
     static create(...args) {
+      debugger
       let instance = super.create(...args);
+      let recordArrayState = new ArrayState();
+      ArrayStateMap.set(instance, recordArrayState);
       return new Proxy(instance, baseRecordArrayProxyHandler);
     }
 
     init() {
       debugger
       super.init(...arguments);
+            this._references = [];
+      if (!this._objects) {
+        this._objects = A();
+      }
+      this._resolved = false;
+      this.store = this.store || null;
     }
 
     replace(idx, removeAmt, newRecords) {
@@ -111,7 +130,7 @@ if (CUSTOM_MODEL_CLASS) {
 
       this._objects.replace(idx, removeAmt, newObjects);
       this.arrayContentDidChange(idx, removeAmt, newObjects.length);
-      this._registerWithObjects(newObjects);
+      registerWithObjects(newObjects, this);
       this._resolved = true;
     }
 
@@ -162,7 +181,7 @@ if (CUSTOM_MODEL_CLASS) {
         isUpdating: false,
       });
 
-      this._registerWithObjects(objects);
+      registerWithObjects(objects, this);
       this._resolved = true;
     }
 
@@ -191,14 +210,6 @@ if (CUSTOM_MODEL_CLASS) {
       }
     }
 
-    _registerWithObjects(objects) {
-      objects.forEach((object) => {
-        if (!object || !isResolvedValue(object)) {
-          return;
-        }
-        associateRecordWithRecordArray(object, this);
-      });
-    }
 
     _resolve() {
       if (this._resolved) {
@@ -440,8 +451,6 @@ export function associateRecordWithRecordArray(record, recordArray) {
         recordArrays.push(recordArray);
       }
     }
-  } else {
-    record._internalModel._recordArrays.add(recordArray);
   }
 }
 
