@@ -231,7 +231,7 @@ if (CUSTOM_MODEL_CLASS) {
       let recordArrayState = new ArrayState(stateArgs);
       let proxy = new Proxy(instance, baseRecordArrayProxyHandler);
       ArrayStateMap.set(proxy, recordArrayState);
-      MANAGED_ARRAYS.add(proxy);
+      //MANAGED_ARRAYS.add(proxy);
       return proxy;
     }
 
