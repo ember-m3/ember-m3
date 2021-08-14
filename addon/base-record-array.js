@@ -71,13 +71,14 @@ if (CUSTOM_MODEL_CLASS) {
    * @class BaseRecordArray
    */
   BaseRecordArray = class BaseRecordArray extends EmberObject.extend(MutableArray) {
-    [Symbol.iterator] = Array.prototype.values;
+    // [Symbol.iterator] = Array.prototype.values;
 
     // public RecordArray API
     static create(...args) {
       let instance = super.create(...args);
+      return instance;
 
-      return new Proxy(instance, baseRecordArrayProxyHandler);
+      //return new Proxy(instance, baseRecordArrayProxyHandler);
     }
 
     init() {
@@ -357,6 +358,7 @@ if (CUSTOM_MODEL_CLASS) {
 
 if (CUSTOM_MODEL_CLASS) {
   // Add native array methods here
+  /*
   Object.assign(BaseRecordArray.prototype, {
     values: Array.prototype.values,
     keys: Array.prototype.keys,
@@ -409,6 +411,7 @@ if (CUSTOM_MODEL_CLASS) {
       this.replace(0, this.length, sorted);
     },
   });
+  */
 }
 
 export function associateRecordWithRecordArray(record, recordArray) {
