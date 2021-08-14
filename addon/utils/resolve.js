@@ -75,8 +75,8 @@ export function isResolvedValue(value) {
 
 export function getOrCreateRecordFromRecordData(rd, store) {
   if (CUSTOM_MODEL_CLASS) {
-    let record = recordDataToRecordMap[rd.clientId];
-    if (record) {
+    let record = recordDataToRecordMap.get(rd);
+    if (recordDataToRecordMap.get(rd)) {
       return record;
     } else {
       return store.peekRecord(rd.modelName, rd.id);
