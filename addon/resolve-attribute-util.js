@@ -92,11 +92,11 @@ function resolveSingleValue(computedValue, key, store, record, recordData, paren
 }
 
 export function resolveRecordArray(store, record, key, references) {
-  let recordArrayManager = store._recordArrayManager;
 
   let array;
 
   if (CUSTOM_MODEL_CLASS) {
+    let records = resolveReferencesWithRecords(store, references);
     array = ManagedArray.create(
       {},
       {
@@ -105,12 +105,11 @@ export function resolveRecordArray(store, record, key, references) {
         key,
         record,
         store,
+        objects: records
       }
     );
-
-    let records = resolveReferencesWithRecords(store, references);
-    array._setObjects(records, false);
   } else {
+    let recordArrayManager = store._recordArrayManager;
     array = ManagedArray.create({
       modelName: '-ember-m3',
       store: store,

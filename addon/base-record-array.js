@@ -39,7 +39,7 @@ class ArrayState {
     model,
     record,
     resolved,
-  }) {
+  }, array) {
     this._references = [];
     this._objects = objects || [];
     this._resolved = false;
@@ -55,6 +55,9 @@ class ArrayState {
     this.record = record;
     this._record = model;
     this._resolved = resolved || false;
+    if (objects) {
+      this._setObjects(objects, array);
+    }
   }
 
   // returns the original length to notify
@@ -228,8 +231,8 @@ if (CUSTOM_MODEL_CLASS) {
     // public RecordArray API
     static create(args, stateArgs) {
       let instance = super.create(args);
-      let recordArrayState = new ArrayState(stateArgs);
       let proxy = new Proxy(instance, baseRecordArrayProxyHandler);
+      let recordArrayState = new ArrayState(stateArgs, proxy);
       ArrayStateMap.set(proxy, recordArrayState);
       MANAGED_ARRAYS.add(proxy);
       return proxy;
