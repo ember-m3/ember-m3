@@ -21,7 +21,7 @@ import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import { RootState, Errors as StoreErrors } from '@ember-data/store/-private';
 import { Errors as ModelErrors } from '@ember-data/model/-private';
 import { REFERENCE, schemaTypesInfo } from './utils/schema-types-info';
-import { MANAGED_ARRAYS } from './base-record-array';
+import { IS_MANAGED_PROXY } from './base-record-array';
 
 // Errors moved from @ember-data/store to @ember-data/model as of 3.15.0
 const Errors = ModelErrors || StoreErrors;
@@ -496,7 +496,7 @@ export default class MegamorphicModel extends EmberObject {
   unknownProperty(key) {
     if (key in this._cache) {
       let returnValue = this._cache[key];
-      if (MANAGED_ARRAYS.has(returnValue)) {
+      if (returnValue && typeof returnValue === 'object' && IS_MANAGED_PROXY in returnValue) {
         get(returnValue, '[]');
       }
       return returnValue;
@@ -534,7 +534,7 @@ export default class MegamorphicModel extends EmberObject {
       this._schema,
       this
     ));
-    if (MANAGED_ARRAYS.has(returnValue)) {
+    if (returnValue && typeof returnValue === 'object' && IS_MANAGED_PROXY in returnValue) {
       get(returnValue, '[]');
     }
     return returnValue;

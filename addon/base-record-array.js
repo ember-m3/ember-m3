@@ -18,6 +18,9 @@ import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import { recordDataToRecordMap, recordToRecordArrayMap } from './utils/caches';
 import { recordIdentifierFor } from '@ember-data/store';
 
+
+let IS_MANAGED_PROXY = Symbol('IS_MANAGED_PROXY');
+
 /**
  * BaseRecordArray
  *
@@ -162,7 +165,6 @@ function registerWithObjects(objects, recordArray) {
     associateRecordWithRecordArray(object, recordArray);
   });
 }
-const MANAGED_ARRAYS = new WeakSet();
 
 if (CUSTOM_MODEL_CLASS) {
   const convertToInt = (prop) => {
@@ -197,6 +199,13 @@ if (CUSTOM_MODEL_CLASS) {
 
       return true;
     }
+    has(target, key) {
+    if (key === IS_MANAGED_PROXY) {
+      return true;
+    }
+    return Reflect.has(target, key);
+  }
+
   };
 
   baseRecordArrayProxyHandler = new BaseRecordArrayProxyHandler();
@@ -234,7 +243,6 @@ if (CUSTOM_MODEL_CLASS) {
       let proxy = new Proxy(instance, baseRecordArrayProxyHandler);
       let recordArrayState = new ArrayState(stateArgs, proxy);
       ArrayStateMap.set(proxy, recordArrayState);
-      MANAGED_ARRAYS.add(proxy);
       return proxy;
     }
 
@@ -542,4 +550,4 @@ export function associateRecordWithRecordArray(record, recordArray) {
 }
 
 export default BaseRecordArray;
-export { ArrayStateMap, MANAGED_ARRAYS };
+export { ArrayStateMap, IS_MANAGED_PROXY };
