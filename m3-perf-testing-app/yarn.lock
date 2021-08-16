@@ -1026,10 +1026,9 @@
     ember-compatibility-helpers "^1.2.0"
     inflection "~1.13.1"
 
-"@ember-data/private-build-infra@3.28.0-beta.3":
-  version "3.28.0-beta.3"
-  resolved "https://registry.yarnpkg.com/@ember-data/private-build-infra/-/private-build-infra-3.28.0-beta.3.tgz#44b66aa2749112dc6278efa072a7e777c63ea8a6"
-  integrity sha512-Wu4XQgIr2tWggbZrDuwYZKN4nIKUAqewvNcs6wL/zpip8bWZU7irAQg060IljNYIwh7GPXPRMexDieMpmUn3ZA==
+"@ember-data/private-build-infra@./ember-data-private-build-infra-v3.28.0-beta.4.tgz", "@ember-data/private-build-infra@3.28.0-beta.3":
+  version "3.28.0-beta.4"
+  resolved "./ember-data-private-build-infra-v3.28.0-beta.4.tgz#a6243bba5640742c455dd4cdf74d6e03c25e32ec"
   dependencies:
     "@babel/plugin-transform-block-scoping" "^7.8.3"
     "@ember-data/canary-features" "3.28.0-beta.3"
@@ -4680,10 +4679,10 @@ ember-cache-primitive-polyfill@^1.0.1:
     ember-compatibility-helpers "^1.2.1"
     silent-error "^1.1.1"
 
-ember-cached-decorator-polyfill@^0.1.4:
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/ember-cached-decorator-polyfill/-/ember-cached-decorator-polyfill-0.1.4.tgz#f1e2c65cc78d0d9c4ac0e047e643af477eb85ace"
-  integrity sha512-JOK7kBCWsTVCzmCefK4nr9BACDJk0owt9oIUaVt6Q0UtQ4XeAHmoK5kQ/YtDcxQF1ZevHQFdGhsTR3JLaHNJgA==
+ember-cached-decorator-polyfill@0.1.3, ember-cached-decorator-polyfill@^0.1.4:
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/ember-cached-decorator-polyfill/-/ember-cached-decorator-polyfill-0.1.3.tgz#9da71cacad87330e8bf090f922984cb827588a60"
+  integrity sha512-I3AJ3sJkPoJdSOnXw8E1ww8h9Ly62djVugLySrQhNerOnTSGmbSx/iAXtojFfepo7q29HfUlFcM7DSFp5shQ7g==
   dependencies:
     "@glimmer/tracking" "^1.0.4"
     ember-cache-primitive-polyfill "^1.0.1"
@@ -5088,9 +5087,10 @@ ember-compatibility-helpers@^1.1.2, ember-compatibility-helpers@^1.2.0, ember-co
     fs-extra "^9.1.0"
     semver "^5.4.1"
 
-"ember-data@file:./ember-data-3.28.0-beta.3.tgz":
+ember-data@3.28.0-beta.3:
   version "3.28.0-beta.3"
-  resolved "file:./ember-data-3.28.0-beta.3.tgz#5e61ee5ea0a3745d73a1e8dd67eae46e97278d9b"
+  resolved "https://registry.yarnpkg.com/ember-data/-/ember-data-3.28.0-beta.3.tgz#5e61ee5ea0a3745d73a1e8dd67eae46e97278d9b"
+  integrity sha512-ZxR7q/pyYRRt+RokIQDM8Sxe6do1A1kJdaJQ1hyhBpSkeHY2/DMLcDNokTOvWzaWqtOIRUePV3efQN49XjWUFg==
   dependencies:
     "@ember-data/adapter" "3.28.0-beta.3"
     "@ember-data/debug" "3.28.0-beta.3"
