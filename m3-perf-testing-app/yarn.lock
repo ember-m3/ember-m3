@@ -1086,10 +1086,9 @@
     ember-cli-test-info "^1.0.0"
     ember-cli-typescript "^4.1.0"
 
-"@ember-data/store@3.28.0-beta.3":
-  version "3.28.0-beta.3"
-  resolved "https://registry.yarnpkg.com/@ember-data/store/-/store-3.28.0-beta.3.tgz#781393c405739b55ae2ac692f27b0c56d060947f"
-  integrity sha512-HuzdongyjW/1a1gugvuvIbgBnTyNoYBqRtjahju5nU0995F/GwlVx4iQ9Qug5WDM0agiMDtCv1AwN+oDjWLwLw==
+"@ember-data/store@./ember-data-store-v3.28.0-beta.4.tgz", "@ember-data/store@3.28.0-beta.3":
+  version "3.28.0-beta.4"
+  resolved "./ember-data-store-v3.28.0-beta.4.tgz#4e26ee7ccc50f1382e8c74ce315a8fbe40170a64"
   dependencies:
     "@ember-data/canary-features" "3.28.0-beta.3"
     "@ember-data/private-build-infra" "3.28.0-beta.3"
