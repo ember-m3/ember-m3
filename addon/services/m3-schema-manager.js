@@ -24,7 +24,7 @@ export default class SchemaManager extends Service {
    * @returns {Object}
    */
   computeAttributeReference(key, value, modelName, schemaInterface) {
-    return this.get('schema').computeAttributeReference(key, value, modelName, schemaInterface);
+    return this.schema.computeAttributeReference(key, value, modelName, schemaInterface);
   }
 
   /**
@@ -38,15 +38,15 @@ export default class SchemaManager extends Service {
    * @returns {Object}
    */
   computeNestedModel(key, value, modelName, schemaInterface) {
-    return this.get('schema').computeNestedModel(key, value, modelName, schemaInterface);
+    return this.schema.computeNestedModel(key, value, modelName, schemaInterface);
   }
 
   computeAttribute(key, value, modelName, schemaInterface) {
-    return this.get('schema').computeAttribute(key, value, modelName, schemaInterface);
+    return this.schema.computeAttribute(key, value, modelName, schemaInterface);
   }
 
   useComputeAttribute() {
-    let schema = this.get('schema');
+    let schema = this.schema;
     let useComputeAttribute = useComputeAttributeCache.get(schema);
     if (useComputeAttribute === undefined) {
       let defaultPrototype = DefaultSchema.prototype;
@@ -64,7 +64,7 @@ export default class SchemaManager extends Service {
    * @returns {boolean}
    */
   useUnderlyingErrorsValue(modelName) {
-    let schema = this.get('schema');
+    let schema = this.schema;
     return schema.useUnderlyingErrorsValue(modelName);
   }
 
@@ -75,20 +75,20 @@ export default class SchemaManager extends Service {
    * @returns {boolean}
    */
   includesModel(modelName) {
-    return this.get('schema').includesModel(modelName);
+    return this.schema.includesModel(modelName);
   }
 
   /*
    * Whether we should instantiate a record that has native proxy access
    */
   useNativeProperties(modelName) {
-    if (this.get('schema').useNativeProperties) {
+    if (this.schema.useNativeProperties) {
       if (!CUSTOM_MODEL_CLASS) {
         throw new Error(
           'In order to use nativeProperties you need to be on a version of Ember Data 3.28 or higher'
         );
       }
-      return this.get('schema').useNativeProperties(modelName);
+      return this.schema.useNativeProperties(modelName);
     } else {
       return undefined;
     }
@@ -105,7 +105,7 @@ export default class SchemaManager extends Service {
    * @returns {string}
    */
   computeBaseModelName(projectionModelName) {
-    let result = this.get('schema').computeBaseModelName(projectionModelName);
+    let result = this.schema.computeBaseModelName(projectionModelName);
     assert(
       `computeBaseModelName('${projectionModelName}') === '${result}'.  This creates a projection cycle.  If ${projectionModelName} is not a projection, return null from computeBaseModelName.`,
       typeof result !== 'string' || result !== projectionModelName
@@ -145,7 +145,7 @@ export default class SchemaManager extends Service {
    * @returns {Array<string>}
    */
   computeAttributes(keys, modelName) {
-    let schema = this.get('schema');
+    let schema = this.schema;
     if (schema.computeAttributes && typeof schema.computeAttributes === 'function') {
       return schema.computeAttributes(keys, modelName);
     }
@@ -162,11 +162,11 @@ export default class SchemaManager extends Service {
    * @param {M3SchemaInterface} schemaInterface
    */
   setAttribute(modelName, attrName, value, schemaInterface) {
-    this.get('schema').setAttribute(modelName, attrName, value, schemaInterface);
+    this.schema.setAttribute(modelName, attrName, value, schemaInterface);
   }
 
   isAttributeResolved(modelName, attrName, value, schemaInterface) {
-    return this.get('schema').isAttributeResolved(modelName, attrName, value, schemaInterface);
+    return this.schema.isAttributeResolved(modelName, attrName, value, schemaInterface);
   }
 
   transformValue(modelName, attrName, value) {
@@ -177,7 +177,7 @@ export default class SchemaManager extends Service {
   }
 
   _modelSchema(modelName) {
-    let models = this.get('schema').models;
+    let models = this.schema.models;
     return models && models[modelName];
   }
 

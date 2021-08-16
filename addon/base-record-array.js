@@ -272,10 +272,12 @@ if (CUSTOM_MODEL_CLASS) {
       }
 
       // TODO check that his actually isn't needed in other paths that are now in the state object
+      /*
       this.setProperties({
         isLoaded: true,
         isUpdating: false,
       });
+      */
     }
 
     _setReferences(references) {
