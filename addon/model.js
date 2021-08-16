@@ -496,9 +496,11 @@ export default class MegamorphicModel extends EmberObject {
   unknownProperty(key) {
     if (key in this._cache) {
       let returnValue = this._cache[key];
+      /*
       if (MANAGED_ARRAYS.has(returnValue)) {
         get(returnValue, '[]');
       }
+      */
       return returnValue;
     }
 
@@ -534,9 +536,11 @@ export default class MegamorphicModel extends EmberObject {
       this._schema,
       this
     ));
+    /*
     if (MANAGED_ARRAYS.has(returnValue)) {
       get(returnValue, '[]');
     }
+    */
     return returnValue;
   }
 

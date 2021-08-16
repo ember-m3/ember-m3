@@ -36,8 +36,8 @@ jobs:
           scenarios: |
             {
               "materializing": {
-                "control": "http://localhost:4200/materializing/100",
-                "experiment": "http://localhost:4201/materializing/100",
+                "control": "http://localhost:4200/materializing/12000",
+                "experiment": "http://localhost:4201/materializing/12000",
                 "markers": "start-loading,pushed-payload,end-loading"
               },
               "rendering": {
