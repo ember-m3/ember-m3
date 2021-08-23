@@ -149,7 +149,7 @@ if (CUSTOM_MODEL_CLASS) {
 // If a value returned from unknownProperty is a ManagedArray we need to access '[]'
 // to keep parity with how ember treats arrays
 // see https://github.com/emberjs/ember.js/blob/3ce13cea235cde8a87d89473533c453523412764/packages/%40ember/-internals/metal/lib/property_get.ts#L136
-function accessBracketsIfArray(maybeArray) {
+function readCachedValue(maybeArray) {
   if (MANAGED_ARRAYS.has(maybeArray)) {
     get(maybeArray, '[]');
   }
@@ -505,7 +505,7 @@ export default class MegamorphicModel extends EmberObject {
 
   unknownProperty(key) {
     if (key in this._cache) {
-      return accessBracketsIfArray(this._cache[key]);
+      return readCachedValue(this._cache[key]);
     }
 
     if (!this._schema.isAttributeIncluded(this._modelName, key)) {
@@ -527,12 +527,12 @@ export default class MegamorphicModel extends EmberObject {
 
       // If default value is not defined, resolve the key for reference
       if (defaultValue !== undefined) {
-        return accessBracketsIfArray((this._cache[key] = defaultValue));
+        return readCachedValue((this._cache[key] = defaultValue));
       }
     }
 
     let value = this._schema.transformValue(this._modelName, key, rawValue);
-    return accessBracketsIfArray(
+    return readCachedValue(
       (this._cache[key] = resolveValue(
         key,
         value,

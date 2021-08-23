@@ -112,6 +112,8 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     objectAt(idx) {
+      // Need to get '[]' in order to entangle tracked properties, as ember won't treat us as an ember array when we are a proxy
+      // See https://github.com/emberjs/ember.js/issues/19139#issuecomment-694487616 for context
       get(this, '[]');
       this._resolve();
       // TODO make this lazy again
@@ -211,6 +213,8 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     get length() {
+      // Need to get '[]' in order to entangle tracked properties, as ember won't treat us as an ember array when we are a proxy
+      // See https://github.com/emberjs/ember.js/issues/19139#issuecomment-694487616 for context
       get(this, '[]');
       return this._resolved ? this._objects.length : this._references.length;
     }
