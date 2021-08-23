@@ -112,7 +112,7 @@
     "qunit": "^2.16.0",
     "release-it": "^14.11.5",
     "release-it-lerna-changelog": "^3.1.0",
-    "testem": "^3.4.2"
+    "testem": "^3.4.3"
   },
   "engines": {
     "node": ">= 12.* < 16.*"
