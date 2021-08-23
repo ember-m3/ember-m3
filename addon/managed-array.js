@@ -1,7 +1,7 @@
 import { get } from '@ember/object';
 import { resolveValue } from './resolve-attribute-util';
 import { isResolvedValue } from './utils/resolve';
-import BaseRecordArray from './base-record-array';
+import BaseRecordArray, { ArrayStateMap } from './base-record-array';
 import { recordDataFor } from './-private';
 import { deprecate } from '@ember/debug';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
@@ -17,65 +17,57 @@ import { recordIdentifierFor } from '@ember-data/store';
 let ManagedArray;
 if (CUSTOM_MODEL_CLASS) {
   ManagedArray = class ManagedArray extends BaseRecordArray {
-    init() {
-      super.init(...arguments);
-      this._key = get(this, 'key');
-      this._modelName = get(this, 'modelName');
-      this._schema = get(this, 'schema');
-      this._record = get(this, 'model');
-      this._resolved = true;
-    }
-
     get content() {
+      let state = ArrayStateMap.get(this);
       deprecate('Accessing content on an M3TrackedArray was private and is deprecated.', false, {
         id: 'm3.tracked-array.value',
         until: '4.0',
       });
-      return this._objects;
+      return state._objects;
     }
 
     get value() {
+      let state = ArrayStateMap.get(this);
+
       deprecate('Accessing value on an M3TrackedArray was private and is deprecated.', false, {
         id: 'm3.tracked-array.value',
         until: '1.0',
       });
-      return this._value;
+      return state._value;
     }
 
     replace(idx, removeAmt, newItems) {
+      let state = ArrayStateMap.get(this);
+
       // if we are empty, and haven't affirmed we are a reference array
       // and somebody gave us records, we need to check whether we should
       // a reference or a nested array
-      if (!this._isAllReference && this.length === 0) {
+      if (!state._isAllReference && state.length === 0) {
         let firstItem = newItems[0];
         if (
           firstItem &&
           isResolvedValue(firstItem) &&
           !(firstItem instanceof EmbeddedMegamorphicModel)
         ) {
-          this._isAllReference = true;
+          state._isAllReference = true;
         }
       }
 
-      if (this._isAllReference) {
+      let { key, record } = state;
+      if (state._isAllReference) {
         super.replace(idx, removeAmt, newItems);
         // update attr in recordData and model state
-        this.record._setAttribute(this.key, this, true);
+        record._setAttribute(this.key, this, true);
         return;
       }
 
       // Update childRecordDatas array
       // mapping to array of nested models
-      recordDataFor(this._record)._resizeChildRecordData(
-        this._key,
-        idx,
-        removeAmt,
-        newItems.length
-      );
+      recordDataFor(record)._resizeChildRecordData(key, idx, removeAmt, newItems.length);
 
       newItems = newItems.map((item, index) => {
         if (isResolvedValue(item)) {
-          let parentRecordData = recordDataFor(this._record);
+          let parentRecordData = recordDataFor(record);
           let childRecordData;
           if (item instanceof MegamorphicModel) {
             childRecordData = recordDataFor(item);
@@ -90,17 +82,17 @@ if (CUSTOM_MODEL_CLASS) {
           // TODO: clean up this ridiculous hack
           // adding a resolved value to a tracked array requires the child model
           // data stitching to be maintained
-          parentRecordData._setChildRecordData(this._key, index + idx, childRecordData);
+          parentRecordData._setChildRecordData(key, index + idx, childRecordData);
           return item;
         }
 
         return resolveValue(
-          this._key,
+          key,
           item,
-          this._modelName,
-          this.store,
-          this._schema,
-          this._record,
+          state._modelName,
+          state.store,
+          state._schema,
+          record,
           index + idx
         );
       });
@@ -108,7 +100,7 @@ if (CUSTOM_MODEL_CLASS) {
 
       // Set attribute in recordData and update model state and changedAttributes
       // object
-      this._record._setAttribute(this._key, this._objects, true);
+      record._setAttribute(key, state._objects, true);
     }
   };
 } else {

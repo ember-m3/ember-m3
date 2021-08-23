@@ -26,6 +26,144 @@ import { recordIdentifierFor } from '@ember-data/store';
 let BaseRecordArray;
 let baseRecordArrayProxyHandler;
 
+const ArrayStateMap = new WeakMap();
+
+class ArrayState {
+  constructor({
+    store,
+    objects,
+    _isAllReference,
+    key,
+    modelName,
+    schema,
+    model,
+    record,
+    resolved,
+  }, array) {
+    this._references = [];
+    this._objects = objects || [];
+    this._resolved = false;
+    this.store = store || null;
+    this._isAllReference = _isAllReference;
+
+    // ManagedArray
+    this._key = key;
+    this.key = key;
+    this._modelName = modelName;
+    this._schema = schema;
+    // TODO Clean this up
+    this.record = record;
+    this._record = model;
+    this._resolved = resolved || false;
+    if (objects) {
+      this._setObjects(objects, array);
+    }
+  }
+
+  // returns the original length to notify
+  _setObjects(objects, array) {
+    let originalLength = this._objects.length;
+    // TODO fix for query array to not copy real arrays
+    this._objects = objects;
+    this._resolved = true;
+    registerWithObjects(objects, array);
+    return originalLength;
+  }
+
+  objectAt(idx, array) {
+    this._resolve(array);
+    // TODO make this lazy again
+    let record = this._objects[idx];
+    return record;
+  }
+
+  _resolve(array) {
+    if (this._resolved) {
+      return;
+    }
+
+    if (this._references !== null) {
+      let objects = resolveReferencesWithRecords(this.store, this._references);
+      this._setObjects(objects, array);
+    }
+
+    this._resolved = true;
+  }
+
+  _removeObject(object) {
+    if (this._resolved) {
+      let index = this._objects.indexOf(object);
+      if (index > -1) {
+        this._objects.splice(index, 1);
+        return true;
+      }
+    } else {
+      for (let j = 0; j < this._references.length; ++j) {
+        let { id, type } = this._references[j];
+        let dtype = type && dasherize(type);
+        // TODO we might not need the second condition
+        let identifier = recordIdentifierFor(object);
+        if ((dtype === null || dtype === identifier.type) && id === identifier.id) {
+          this._references.splice(j, 1);
+          break;
+        }
+      }
+    }
+  }
+
+  _setReferences(references) {
+    this._isAllReference = true;
+    this._references = references;
+    this._resolved = false;
+    let originalLength = this._objects.length;
+    this._objects = [];
+    return originalLength;
+  }
+
+  _removeRecordData(recordData) {
+    if (this._resolved) {
+      let record = recordDataToRecordMap.get(recordData);
+      if (!record) {
+        return;
+      }
+      let index = this._objects.indexOf(record);
+      if (index > -1) {
+        this._objects.splice(index, 1);
+        return index;
+      }
+    }
+  }
+
+  get length() {
+    return this._resolved ? this._objects.length : this._references.length;
+  }
+
+  replace(idx, removeAmt, newRecords, array) {
+    let addAmt = get(newRecords, 'length');
+    let newObjects = new Array(addAmt);
+
+    if (addAmt > 0) {
+      let _newRecords = A(newRecords);
+      for (let i = 0; i < newObjects.length; ++i) {
+        newObjects[i] = _newRecords.objectAt(i);
+      }
+    }
+
+    this._objects.splice(idx, removeAmt, ...newObjects);
+    registerWithObjects(newObjects, array);
+    this._resolved = true;
+  }
+}
+function registerWithObjects(objects, recordArray) {
+  objects.forEach((object) => {
+    if (!object || !isResolvedValue(object)) {
+      return;
+    }
+    associateRecordWithRecordArray(object, recordArray);
+  });
+}
+const MANAGED_ARRAYS = new WeakSet();
+
 if (CUSTOM_MODEL_CLASS) {
   const convertToInt = (prop) => {
     if (typeof prop === 'symbol') return null;
@@ -42,7 +180,7 @@ if (CUSTOM_MODEL_CLASS) {
       let index = convertToInt(key);
 
       if (index !== null) {
-        return receiver.objectAt(key);
+        return receiver.objectAt(index);
       }
 
       return Reflect.get(target, key, receiver);
@@ -71,142 +209,110 @@ if (CUSTOM_MODEL_CLASS) {
    * @class BaseRecordArray
    */
   BaseRecordArray = class BaseRecordArray extends EmberObject.extend(MutableArray) {
-    [Symbol.iterator] = Array.prototype.values;
-
-    // public RecordArray API
-    static create(...args) {
-      let instance = super.create(...args);
-
-      return new Proxy(instance, baseRecordArrayProxyHandler);
+    [Symbol.iterator]() {
+      get(this, '[]');
+      let state = ArrayStateMap.get(this);
+      state._resolve(this);
+      // Sketch for modification untill confirmed
+      return state._objects[Symbol.iterator]();
     }
 
-    init() {
-      super.init(...arguments);
-      this._references = [];
-      if (!this._objects) {
-        this._objects = A();
+    forEach(callback, target = null) {
+      get(this, '[]');
+      let state = ArrayStateMap.get(this);
+      state._resolve(this);
+      let objects = state._objects;
+
+      for (let index = 0; index < objects.length; index++) {
+        callback.call(target, objects[index], index, this);
       }
-      this._resolved = false;
-      this.store = this.store || null;
+    }
+
+    // public RecordArray API
+    static create(args, stateArgs) {
+      let instance = super.create(args);
+      let proxy = new Proxy(instance, baseRecordArrayProxyHandler);
+      let recordArrayState = new ArrayState(stateArgs, proxy);
+      ArrayStateMap.set(proxy, recordArrayState);
+      MANAGED_ARRAYS.add(proxy);
+      return proxy;
     }
 
     replace(idx, removeAmt, newRecords) {
-      let addAmt = get(newRecords, 'length');
-      let newObjects = new Array(addAmt);
-
-      if (addAmt > 0) {
-        let _newRecords = A(newRecords);
-        for (let i = 0; i < newObjects.length; ++i) {
-          newObjects[i] = _newRecords.objectAt(i);
-        }
-      }
-
-      this._objects.replace(idx, removeAmt, newObjects);
-      this.arrayContentDidChange(idx, removeAmt, newObjects.length);
-      this._registerWithObjects(newObjects);
-      this._resolved = true;
+      let state = ArrayStateMap.get(this);
+      state.replace(idx, removeAmt, newRecords, this);
+      this.arrayContentDidChange(idx, removeAmt, newRecords.length);
     }
 
     objectAt(idx) {
-      this._resolve();
-      // TODO make this lazy again
-      let record = this._objects[idx];
-      return record;
+      get(this, '[]');
+      let state = ArrayStateMap.get(this);
+      return state.objectAt(idx, this);
     }
 
     _removeObject(object) {
-      if (this._resolved) {
-        this._objects.removeObject(object);
-        deferArrayPropertyChange(this.store, this, 0, 1, 0);
-        deferPropertyChange(this.store, this, '[]');
-        deferPropertyChange(this.store, this, 'length');
+      let state = ArrayStateMap.get(this);
+      if (state._removeObject(object)) {
+        let store = state.store;
+        deferArrayPropertyChange(store, this, 0, 1, 0);
+        deferPropertyChange(store, this, '[]');
+        deferPropertyChange(store, this, 'length');
         // eager change events here; we're not processing payloads (that goes
         // through `_setInternalModels`); we're doing `unloadRecord`
-        flushChanges(this.store);
-      } else {
-        for (let j = 0; j < this._references.length; ++j) {
-          let { id, type } = this._references[j];
-          let dtype = type && dasherize(type);
-          // TODO we might not need the second condition
-          let identifier = recordIdentifierFor(object);
-          if ((dtype === null || dtype === identifier.type) && id === identifier.id) {
-            this._references.splice(j, 1);
-            break;
-          }
-        }
+        flushChanges(store);
       }
     }
 
     // Private API
     _setObjects(objects, triggerChange = true) {
-      let originalLength = this._objects.length;
+      let state = ArrayStateMap.get(this);
+      let originalLength = state._setObjects(objects, this);
       if (triggerChange) {
-        this._objects.replace(0, this._objects.length, objects);
-        deferArrayPropertyChange(this.store, this, 0, originalLength, this._objects.length);
-        deferPropertyChange(this.store, this, '[]');
-        deferPropertyChange(this.store, this, 'length');
-      } else {
-        this._objects.splice(0, this._objects.length, ...objects);
+        let store = state.store;
+        deferArrayPropertyChange(store, this, 0, originalLength, objects.length);
+        deferPropertyChange(store, this, '[]');
+        deferPropertyChange(store, this, 'length');
       }
 
+      // TODO check that his actually isn't needed in other paths that are now in the state object
+      /*
       this.setProperties({
         isLoaded: true,
         isUpdating: false,
       });
-
-      this._registerWithObjects(objects);
-      this._resolved = true;
+      */
     }
 
     _setReferences(references) {
-      this._isAllReference = true;
-      this._references = references;
-      this._resolved = false;
-      let originalLength = this._objects.length;
-      this._objects = A();
-      deferArrayPropertyChange(this.store, this, 0, originalLength, this._objects.length);
-      deferPropertyChange(this.store, this, '[]');
-      deferPropertyChange(this.store, this, 'length');
+      let state = ArrayStateMap.get(this);
+      let originalLength = state._setReferences(references);
+      let store = state.store;
+      deferArrayPropertyChange(store, this, 0, originalLength, references.length);
+      deferPropertyChange(store, this, '[]');
+      deferPropertyChange(store, this, 'length');
     }
 
     _removeRecordData(recordData) {
-      if (this._resolved) {
-        let record = recordDataToRecordMap.get(recordData);
-        if (!record) {
-          return;
-        }
-        let index = this._objects.indexOf(record);
-        if (index > -1) {
-          this._objects.removeObject(record);
-          this.arrayContentDidChange(index, 1, 0);
-        }
+      let state = ArrayStateMap.get(this);
+      let index = state._removeRecordData(recordData);
+      if (index > -1) {
+        this.arrayContentDidChange(index, 1, 0);
       }
     }
-
-    _registerWithObjects(objects) {
-      objects.forEach((object) => {
-        if (!object || !isResolvedValue(object)) {
-          return;
-        }
-        associateRecordWithRecordArray(object, this);
-      });
-    }
-
-    _resolve() {
-      if (this._resolved) {
-        return;
-      }
-
-      if (this._references !== null) {
-        let objects = resolveReferencesWithRecords(this.store, this._references);
-        this._setObjects(objects, false);
-      }
-
-      this._resolved = true;
+    get _isAllReference() {
+      let state = ArrayStateMap.get(this);
+      return state._isAllReference;
     }
 
     get length() {
-      return this._resolved ? this._objects.length : this._references.length;
+      get(this, '[]');
+      let state = ArrayStateMap.get(this);
+      return state.length;
+    }
+
+    get _key() {
+      let state = ArrayStateMap.get(this);
+      return state.key;
     }
   };
 } else {
@@ -432,9 +538,8 @@ export function associateRecordWithRecordArray(record, recordArray) {
         recordArrays.push(recordArray);
       }
     }
-  } else {
-    record._internalModel._recordArrays.add(recordArray);
   }
 }
 
 export default BaseRecordArray;
+export { ArrayStateMap, MANAGED_ARRAYS };

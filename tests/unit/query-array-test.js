@@ -25,7 +25,8 @@ module('unit/query-array', function (hooks) {
             query: 'query',
           },
           options
-        )
+        ),
+        { store: this.store }
       );
     };
   });
@@ -60,7 +61,7 @@ module('unit/query-array', function (hooks) {
   });
 
   test('QueryArray requires a query', function (assert) {
-    let queryArray = M3QueryArray.create();
+    let queryArray = M3QueryArray.create({}, {});
 
     assert.throws(() => {
       queryArray.update();

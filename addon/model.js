@@ -21,6 +21,7 @@ import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import { RootState, Errors as StoreErrors } from '@ember-data/store/-private';
 import { Errors as ModelErrors } from '@ember-data/model/-private';
 import { REFERENCE, schemaTypesInfo } from './utils/schema-types-info';
+import { MANAGED_ARRAYS } from './base-record-array';
 
 // Errors moved from @ember-data/store to @ember-data/model as of 3.15.0
 const Errors = ModelErrors || StoreErrors;
@@ -494,7 +495,11 @@ export default class MegamorphicModel extends EmberObject {
 
   unknownProperty(key) {
     if (key in this._cache) {
-      return this._cache[key];
+      let returnValue = this._cache[key];
+      if (MANAGED_ARRAYS.has(returnValue)) {
+        get(returnValue, '[]');
+      }
+      return returnValue;
     }
 
     if (!this._schema.isAttributeIncluded(this._modelName, key)) {
@@ -521,7 +526,7 @@ export default class MegamorphicModel extends EmberObject {
     }
 
     let value = this._schema.transformValue(this._modelName, key, rawValue);
-    return (this._cache[key] = resolveValue(
+    let returnValue = (this._cache[key] = resolveValue(
       key,
       value,
       this._modelName,
@@ -529,6 +534,10 @@ export default class MegamorphicModel extends EmberObject {
       this._schema,
       this
     ));
+    if (MANAGED_ARRAYS.has(returnValue)) {
+      get(returnValue, '[]');
+    }
+    return returnValue;
   }
 
   get id() {
