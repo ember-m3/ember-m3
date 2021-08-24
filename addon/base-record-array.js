@@ -26,6 +26,8 @@ import { recordIdentifierFor } from '@ember-data/store';
 let BaseRecordArray;
 let baseRecordArrayProxyHandler;
 
+const MANAGED_ARRAYS = new WeakSet();
+
 if (CUSTOM_MODEL_CLASS) {
   const convertToInt = (prop) => {
     if (typeof prop === 'symbol') return null;
@@ -77,7 +79,9 @@ if (CUSTOM_MODEL_CLASS) {
     static create(...args) {
       let instance = super.create(...args);
 
-      return new Proxy(instance, baseRecordArrayProxyHandler);
+      let proxy = new Proxy(instance, baseRecordArrayProxyHandler);
+      MANAGED_ARRAYS.add(proxy);
+      return proxy;
     }
 
     init() {
@@ -108,6 +112,9 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     objectAt(idx) {
+      // Need to get '[]' in order to entangle tracked properties, as ember won't treat us as an ember array when we are a proxy
+      // See https://github.com/emberjs/ember.js/issues/19139#issuecomment-694487616 for context
+      get(this, '[]');
       this._resolve();
       // TODO make this lazy again
       let record = this._objects[idx];
@@ -206,6 +213,9 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     get length() {
+      // Need to get '[]' in order to entangle tracked properties, as ember won't treat us as an ember array when we are a proxy
+      // See https://github.com/emberjs/ember.js/issues/19139#issuecomment-694487616 for context
+      get(this, '[]');
       return this._resolved ? this._objects.length : this._references.length;
     }
   };
@@ -375,8 +385,8 @@ if (CUSTOM_MODEL_CLASS) {
       return this.popObjects(values);
     },
 
-    shift(...values) {
-      return this.shiftObjects(values);
+    shift() {
+      return this.shiftObject();
     },
 
     unshift(...values) {
@@ -438,3 +448,4 @@ export function associateRecordWithRecordArray(record, recordArray) {
 }
 
 export default BaseRecordArray;
+export { MANAGED_ARRAYS };

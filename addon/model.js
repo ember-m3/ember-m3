@@ -21,6 +21,7 @@ import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import { RootState, Errors as StoreErrors } from '@ember-data/store/-private';
 import { Errors as ModelErrors } from '@ember-data/model/-private';
 import { REFERENCE, schemaTypesInfo } from './utils/schema-types-info';
+import { MANAGED_ARRAYS } from './base-record-array';
 
 // Errors moved from @ember-data/store to @ember-data/model as of 3.15.0
 const Errors = ModelErrors || StoreErrors;
@@ -493,42 +494,49 @@ export default class MegamorphicModel extends EmberObject {
   }
 
   unknownProperty(key) {
+    let returnValue;
     if (key in this._cache) {
-      return this._cache[key];
-    }
-
-    if (!this._schema.isAttributeIncluded(this._modelName, key)) {
+      returnValue = this._cache[key];
+    } else if (!this._schema.isAttributeIncluded(this._modelName, key)) {
       return;
-    }
+    } else {
+      let rawValue = recordDataFor(this).getAttr(key);
+      // TODO IGOR DAVID
+      // figure out if any of the below should be moved into recordData
+      if (rawValue === undefined) {
+        let attrAlias = this._schema.getAttributeAlias(this._modelName, key);
+        if (attrAlias) {
+          const cp = readOnly(attrAlias);
+          defineProperty(this, key, cp);
+          return get(this, key);
+        }
 
-    let rawValue = recordDataFor(this).getAttr(key);
-    // TODO IGOR DAVID
-    // figure out if any of the below should be moved into recordData
-    if (rawValue === undefined) {
-      let attrAlias = this._schema.getAttributeAlias(this._modelName, key);
-      if (attrAlias) {
-        const cp = readOnly(attrAlias);
-        defineProperty(this, key, cp);
-        return get(this, key);
+        let defaultValue = this._schema.getDefaultValue(this._modelName, key);
+
+        // If default value is not defined, resolve the key for reference
+        if (defaultValue !== undefined) {
+          returnValue = this._cache[key] = defaultValue;
+        }
       }
-
-      let defaultValue = this._schema.getDefaultValue(this._modelName, key);
-
-      // If default value is not defined, resolve the key for reference
-      if (defaultValue !== undefined) {
-        return (this._cache[key] = defaultValue);
+      if (returnValue === undefined) {
+        let value = this._schema.transformValue(this._modelName, key, rawValue);
+        returnValue = this._cache[key] = resolveValue(
+          key,
+          value,
+          this._modelName,
+          this._store,
+          this._schema,
+          this
+        );
       }
     }
-
-    let value = this._schema.transformValue(this._modelName, key, rawValue);
-    return (this._cache[key] = resolveValue(
-      key,
-      value,
-      this._modelName,
-      this._store,
-      this._schema,
-      this
-    ));
+    // If a value returned from unknownProperty is a ManagedArray we need to access '[]'
+    // to keep parity with how ember treats arrays
+    // see https://github.com/emberjs/ember.js/blob/3ce13cea235cde8a87d89473533c453523412764/packages/%40ember/-internals/metal/lib/property_get.ts#L136
+    if (MANAGED_ARRAYS.has(returnValue)) {
+      get(returnValue, '[]');
+    }
+    return returnValue;
   }
 
   get id() {

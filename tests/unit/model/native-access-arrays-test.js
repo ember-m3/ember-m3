@@ -99,17 +99,6 @@ if (CUSTOM_MODEL_CLASS) {
       assert.equal(slicedChapters[0].get('name'), 'The Boy Who Lived', `Array.slice still works`);
       assert.notEqual(slicedChapters, chapters, `Array.slice still works`);
 
-      let shiftedChapters = chapters.slice();
-      let shiftedChapter = shiftedChapters.shift();
-
-      assert.equal(shiftedChapters[0].get('name'), 'The Boy Who Lived', `Array.shift works`);
-      assert.equal(shiftedChapters.length, 1, `Array.shift works`);
-      assert.equal(shiftedChapter.get('name'), 'The Vanishing Glass', 'Array.shift works');
-
-      shiftedChapters.unshift(shiftedChapter);
-      assert.equal(shiftedChapters[0].get('name'), 'The Vanishing Glass', `Array.unshift works`);
-      assert.equal(shiftedChapters.length, 2, `Array.unshift works`);
-
       let toReverse = chapters.slice();
       toReverse.reverse();
       assert.equal(toReverse[0].get('name'), 'The Boy Who Lived', `Array.reverse works`);
@@ -177,6 +166,35 @@ if (CUSTOM_MODEL_CLASS) {
 
       chapters.fill({ name: 'Another name' });
       assert.equal(chapters[0].get('name'), 'Another name', 'Array.fill works');
+    });
+
+    test('managed arrays can be shifted and unshifted', function (assert) {
+      let model = this.store.push({
+        data: {
+          id: 'isbn:9780439708180',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            name: `Harry Potter and the Sorcerer's Stone`,
+            chapters: [
+              { name: 'Prologue' },
+              {
+                name: 'The Boy Who Lived',
+              },
+            ],
+          },
+        },
+      });
+
+      let chapters = model.get('chapters');
+
+      let shiftedChapter = chapters.shift();
+
+      assert.equal(chapters[0].get('name'), 'The Boy Who Lived', `Array.shift works`);
+      assert.equal(chapters.length, 1, `Array.shift works`);
+
+      chapters.unshift(shiftedChapter);
+      assert.equal(chapters[0].get('name'), 'Prologue', `Array.unshift works`);
+      assert.equal(chapters.length, 2, `Array.unshift works`);
     });
   });
 }
