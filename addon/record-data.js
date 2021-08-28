@@ -714,7 +714,11 @@ export default class M3RecordData {
     if (this._baseRecordData) {
       return this._baseRecordData.rollbackAttributes(...arguments);
     }
-    let dirtyKeys;
+    let dirtyKeys = [];
+    if (this.isDeleted()) {
+      this.setIsDeleted(false);
+      dirtyKeys.push('isDeleted');
+    }
     if (this.hasChangedAttributes()) {
       dirtyKeys = Object.keys(this._attributes);
       this._attributes = null;
@@ -737,7 +741,7 @@ export default class M3RecordData {
       }
     }
 
-    if (!(dirtyKeys && dirtyKeys.length > 0)) {
+    if (dirtyKeys.length === 0) {
       // nothing dirty on this record and we've already handled nested records
       return;
     }

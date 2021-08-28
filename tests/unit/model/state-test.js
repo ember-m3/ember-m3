@@ -138,7 +138,29 @@ for (let testRun = 0; testRun < 2; testRun++) {
         assert.equal(record.get('isLoaded'), true, 'record is loaded');
       });
       skip('isSaving', function () {});
-      skip('isDeleted', function () {});
+      test('isDeleted', function (assert) {
+        let data = {
+          data: {
+            id: 1,
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              title: 'The Storm Before the Storm',
+              author: 'Mike Duncan',
+            },
+          },
+        };
+        let record = this.store.push(data);
+        assert.equal(record.get('isDeleted'), false, 'record starts off not deleted');
+        record.deleteRecord();
+        assert.equal(record.get('isDeleted'), true, 'record is now deleted');
+        record.rollbackAttributes();
+        assert.equal(
+          record.get('isDeleted'),
+          false,
+          'after rollbackAttributes record is no longer deleted'
+        );
+      });
+
       skip('isValid', function () {});
 
       test('isNew', function (assert) {
