@@ -6,7 +6,7 @@ import Component from '@ember/component';
 import { hbs } from 'ember-cli-htmlbars';
 import { render } from '@ember/test-helpers';
 import { gte } from 'ember-compatibility-helpers';
-
+import propGet from '../../helpers/prop-get';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 
 let computeNestedModel = function computeNestedModel(key, value) {
@@ -41,6 +41,9 @@ let computeAttributeReference = function computeAttributeReference(
 };
 
 class TestSchema extends DefaultSchema {
+  useNativeProperties() {
+    return gte('@ember-data/model', '3.28.0') || gte('ember-data', '3.28.0');
+  }
   includesModel() {
     return true;
   }
@@ -76,6 +79,10 @@ class TestSchema extends DefaultSchema {
 }
 
 class TestSchemaOldHooks extends DefaultSchema {
+  useNativeProperties() {
+    return gte('@ember-data/model', '3.28.0') || gte('ember-data', '3.28.0');
+  }
+
   includesModel() {
     return true;
   }
@@ -118,7 +125,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         };
 
         let record = this.store.push(data);
-        assert.equal(record.get('isLoading'), false, 'record is not loading');
+        assert.equal(propGet(record, 'isLoading'), false, 'record is not loading');
       });
 
       // There is no way to observe this in the false state
@@ -135,7 +142,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         };
 
         let record = this.store.push(data);
-        assert.equal(record.get('isLoaded'), true, 'record is loaded');
+        assert.equal(propGet(record, 'isLoaded'), true, 'record is loaded');
       });
       skip('isSaving', function () {});
       test('isDeleted', function (assert) {
@@ -150,12 +157,12 @@ for (let testRun = 0; testRun < 2; testRun++) {
           },
         };
         let record = this.store.push(data);
-        assert.equal(record.get('isDeleted'), false, 'record starts off not deleted');
+        assert.equal(propGet(record, 'isDeleted'), false, 'record starts off not deleted');
         record.deleteRecord();
-        assert.equal(record.get('isDeleted'), true, 'record is now deleted');
+        assert.equal(propGet(record, 'isDeleted'), true, 'record is now deleted');
         record.rollbackAttributes();
         assert.equal(
-          record.get('isDeleted'),
+          propGet(record, 'isDeleted'),
           false,
           'after rollbackAttributes record is no longer deleted'
         );
@@ -177,18 +184,22 @@ for (let testRun = 0; testRun < 2; testRun++) {
           })
         );
 
-        assert.equal(existingRecord.get('isNew'), false, 'existingRecord.isNew');
+        assert.equal(propGet(existingRecord, 'isDeleted'), false, 'existingRecord.isNew');
 
         existingRecord.deleteRecord();
 
-        assert.equal(existingRecord.get('isDirty'), true, 'existingRecord.delete() -> isDirty');
+        assert.equal(
+          propGet(existingRecord, 'isDeleted'),
+          true,
+          'existingRecord.delete() -> isDirty'
+        );
 
         let newRecord = this.store.createRecord('com.example.bookstore.Book', {
           title: 'Something is Going On',
           author: 'Just Some Friendly Guy',
         });
 
-        assert.equal(newRecord.get('isNew'), true, 'newRecord.isNew');
+        assert.equal(propGet(newRecord, 'isNew'), true, 'newRecord.isNew');
 
         newRecord.deleteRecord();
 
@@ -213,39 +224,55 @@ for (let testRun = 0; testRun < 2; testRun++) {
           });
         });
 
-        assert.equal(record.get('isDirty'), false, 'record not dirty');
-        assert.equal(record.get('rating.isDirty'), false, 'nested record not dirty');
+        assert.equal(propGet(record, 'isDirty'), false, 'record not dirty');
+        assert.equal(
+          propGet(propGet(record, 'rating'), 'isDirty'),
+          false,
+          'nested record not dirty'
+        );
 
         record.set('author', 'Nobody yet');
 
-        assert.equal(record.get('isDirty'), true, 'record dirty');
+        assert.equal(propGet(record, 'isDirty'), true, 'record dirty');
         assert.equal(
-          record.get('rating.isDirty'),
+          propGet(propGet(record, 'rating'), 'isDirty'),
           true,
           'nested record shares dirty state with parent'
         );
 
         record.rollbackAttributes();
 
-        assert.equal(record.get('isDirty'), false, 'record no longer dirty');
-        assert.equal(record.get('rating.isDirty'), false, 'nested record no longer dirty');
+        assert.equal(propGet(record, 'isDirty'), false, 'record no longer dirty');
+        assert.equal(
+          propGet(propGet(record, 'rating'), 'isDirty'),
+          false,
+          'nested record no longer dirty'
+        );
 
         record.set('rating.avg', 11);
 
-        assert.equal(record.get('isDirty'), true, 'record shares state with nested record');
-        assert.equal(record.get('rating.isDirty'), true, 'nested record dirty');
+        assert.equal(propGet(record, 'isDirty'), true, 'record shares state with nested record');
+        assert.equal(propGet(propGet(record, 'rating'), 'isDirty'), true, 'nested record dirty');
 
         record.rollbackAttributes();
 
         record.set('name', 'The Winds of Never Published');
-        assert.equal(record.get('isDirty'), true, 'record is dirty from outside nested record');
+        assert.equal(
+          propGet(record, 'isDirty'),
+          true,
+          'record is dirty from outside nested record'
+        );
 
         record.set('rating.avg', 11);
-        assert.equal(record.get('rating.isDirty'), true, 'nested record dirty from its own attr');
+        assert.equal(
+          propGet(propGet(record, 'rating'), 'isDirty'),
+          true,
+          'nested record dirty from its own attr'
+        );
 
         record.set('rating.avg', 10);
         assert.equal(
-          record.get('isDirty'),
+          propGet(record, 'isDirty'),
           true,
           'record is not un-dirtied from resetting nested value'
         );
