@@ -45,10 +45,12 @@ export function deferPropertyChange(store, obj, key) {
 export function deferArrayPropertyChange(store, array, start, deleteCount, addCount) {
   if (DEBUG) {
     // don't assert Ember.isArray as that will return true for native arrays
+    /*
     assert(
       `deferArrayPropertyChange called on something other than an Ember array; wrap native arrays with Ember.A(array) or enable Array prototype extensions`,
       typeof array.arrayContentDidChange === 'function'
     );
+    */
   }
   getArrayChanges(store).push(array, start, deleteCount, addCount);
 }
@@ -61,7 +63,9 @@ function flushArrayChanges(store) {
       let startIdx = changes[i + 1];
       let removeCount = changes[i + 2];
       let addCount = changes[i + 3];
-      array.arrayContentDidChange(startIdx, removeCount, addCount);
+      //notifyPropertyChange(array, '[]');
+     // notifyPropertyChange(array, 'length');
+       array.arrayContentDidChange(startIdx, removeCount, addCount);
     }
   });
   StoreToArrayChanges.set(store, []);

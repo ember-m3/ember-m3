@@ -17,6 +17,7 @@ import {
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import { recordDataToRecordMap, recordToRecordArrayMap } from './utils/caches';
 import { recordIdentifierFor } from '@ember-data/store';
+import { notifyPropertyChange } from '@ember/object';
 
 /**
  * BaseRecordArray
@@ -26,6 +27,7 @@ import { recordIdentifierFor } from '@ember-data/store';
 let BaseRecordArray;
 let baseRecordArrayProxyHandler;
 
+let props =["firstObject", "lastObject", "hasArrayObservers", "[]", "addArrayObserver", "removeArrayObserver", "arrayContentWillChange", "arrayContentDidChange",  "beginPropertyChanges", "endPropertyChanges", "notifyPropertyChange", "addObserver", "removeObserver", "hasObserverFor", "cacheFor"];
 const MANAGED_ARRAYS = new WeakSet();
 
 if (CUSTOM_MODEL_CLASS) {
@@ -44,10 +46,17 @@ if (CUSTOM_MODEL_CLASS) {
       let index = convertToInt(key);
 
       if (index !== null) {
-        return receiver.objectAt(key);
+        debugger
+        return target._instance.objectAt(key);
+      }
+      
+      if (props.indexOf(key) > -1) {
+        console.log(key);
+        debugger
+        return Reflect.get(target, key, receiver);
       }
 
-      return Reflect.get(target, key, receiver);
+      return Reflect.get(target._instance, key, receiver);
     }
 
     set(target, key, value, receiver) {
@@ -55,8 +64,12 @@ if (CUSTOM_MODEL_CLASS) {
 
       if (index !== null) {
         receiver.replace(index, 1, [value]);
-      } else {
+      } else if (props.indexOf(key) > -1) {
+        console.log(key);
+        debugger
         Reflect.set(target, key, value, receiver);
+      } else  {
+        Reflect.set(target._instance, key, value);
       }
 
       return true;
@@ -73,13 +86,20 @@ if (CUSTOM_MODEL_CLASS) {
    * @class BaseRecordArray
    */
   BaseRecordArray = class BaseRecordArray extends EmberObject.extend(MutableArray) {
-    [Symbol.iterator] = Array.prototype.values;
+   // [Symbol.iterator] = Array.prototype.values;
 
     // public RecordArray API
     static create(...args) {
       let instance = super.create(...args);
 
-      let proxy = new Proxy(instance, baseRecordArrayProxyHandler);
+      let emberArr = A();
+      debugger
+      emberArr._instance = instance;
+      let proxy = new Proxy( emberArr, baseRecordArrayProxyHandler);
+      instance._proxy = proxy;
+      window.proxy =  proxy;
+      window.instance = instance;
+      window.arr = emberArr; 
       MANAGED_ARRAYS.add(proxy);
       return proxy;
     }
@@ -95,6 +115,7 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     replace(idx, removeAmt, newRecords) {
+      debugger
       let addAmt = get(newRecords, 'length');
       let newObjects = new Array(addAmt);
 
@@ -106,15 +127,14 @@ if (CUSTOM_MODEL_CLASS) {
       }
 
       this._objects.replace(idx, removeAmt, newObjects);
+      notifyPropertyChange(this, '[]');
       this.arrayContentDidChange(idx, removeAmt, newObjects.length);
       this._registerWithObjects(newObjects);
       this._resolved = true;
     }
 
     objectAt(idx) {
-      // Need to get '[]' in order to entangle tracked properties, as ember won't treat us as an ember array when we are a proxy
-      // See https://github.com/emberjs/ember.js/issues/19139#issuecomment-694487616 for context
-      get(this, '[]');
+      debugger
       this._resolve();
       // TODO make this lazy again
       let record = this._objects[idx];
@@ -185,6 +205,8 @@ if (CUSTOM_MODEL_CLASS) {
         let index = this._objects.indexOf(record);
         if (index > -1) {
           this._objects.removeObject(record);
+
+         // notifyPropertyChange(this._proxy, '[]');
           this.arrayContentDidChange(index, 1, 0);
         }
       }
@@ -215,7 +237,7 @@ if (CUSTOM_MODEL_CLASS) {
     get length() {
       // Need to get '[]' in order to entangle tracked properties, as ember won't treat us as an ember array when we are a proxy
       // See https://github.com/emberjs/ember.js/issues/19139#issuecomment-694487616 for context
-      get(this, '[]');
+    //  get(this, '[]');
       return this._resolved ? this._objects.length : this._references.length;
     }
   };
@@ -368,7 +390,7 @@ if (CUSTOM_MODEL_CLASS) {
 if (CUSTOM_MODEL_CLASS) {
   // Add native array methods here
   Object.assign(BaseRecordArray.prototype, {
-    values: Array.prototype.values,
+  //  values: Array.prototype.values,
     keys: Array.prototype.keys,
     entries: Array.prototype.entries,
     copyWithin: Array.prototype.copyWithin,

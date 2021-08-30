@@ -530,12 +530,6 @@ export default class MegamorphicModel extends EmberObject {
         );
       }
     }
-    // If a value returned from unknownProperty is a ManagedArray we need to access '[]'
-    // to keep parity with how ember treats arrays
-    // see https://github.com/emberjs/ember.js/blob/3ce13cea235cde8a87d89473533c453523412764/packages/%40ember/-internals/metal/lib/property_get.ts#L136
-    if (MANAGED_ARRAYS.has(returnValue)) {
-      get(returnValue, '[]');
-    }
     return returnValue;
   }
 

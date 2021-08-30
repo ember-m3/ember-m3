@@ -33,7 +33,15 @@ if (CUSTOM_MODEL_CLASS) {
                   })
                 )
               );
-            } else if (typeof value === 'object') {
+            }
+            else if (Array.isArray(value)) {
+              return schemaInterface.managedArray(
+                value.map((val) =>
+                 schemaInterface.nested({ attributes: val })
+                  )
+                )
+            }
+            else if (typeof value === 'object') {
               return schemaInterface.nested({ attributes: value });
             }
 
@@ -47,7 +55,7 @@ if (CUSTOM_MODEL_CLASS) {
       this.store = this.owner.lookup('service:store');
     });
 
-    test('mutating reference arrays cause re-renders', async function (assert) {
+    test('mutating reference arrays cause re-renders igor', async function (assert) {
       this.store.push({
         data: {
           id: 'urn:bookstore:1',
@@ -90,48 +98,54 @@ if (CUSTOM_MODEL_CLASS) {
         'component:first-book',
         class FirstBookComponent extends Component {
           get firstBook() {
-            return this.bookstore.books[0];
+            debugger
+            // let bookstore = this.store.peekRecord('com.example.Bookstore', 'urn:bookstore:1');
+            let bookstore = this.store.createRecord('com.example.Bookstore', { books: [{ name: 'hi' }, { name: 'hello' }] });
+
+            if (bookstore.books.length > 1) {
+              bookstore.books.shift();
+              bookstore.books[0];
+            }
           }
         }
       );
       this.owner.register(
         'template:components/first-book',
-        hbs`<h1>{{this.firstBook.author.name}}</h1>
+        hbs`<h1>{{this.firstBook.name}}</h1>
       `
       );
 
-      let bookstore = this.store.peekRecord('com.example.Bookstore', 'urn:bookstore:1');
-      let books = bookstore.books;
 
-      this.set('bookstore', bookstore);
       await render(hbs`
-    {{first-book bookstore=this.bookstore}}
+    {{first-book store=this.store}}
   `);
-
-      let renderedAuthor = this.element.querySelector('h1');
-      assert.equal(
-        renderedAuthor.innerText,
-        'Edward Gibbons',
-        'Started with the correct book in position 0'
-      );
-
-      books.shift();
-      await settled();
-      renderedAuthor = this.element.querySelector('h1');
-      assert.equal(
-        renderedAuthor.innerText,
-        'Winston Churchill',
-        'Recomputed the first book after removal'
-      );
-
-      await settled(books.unshift(this.store.peekRecord('com.example.Book', 'urn:book:3')));
-
-      renderedAuthor = this.element.querySelector('h1');
-      assert.equal(
-        renderedAuthor.innerText,
-        'George R. R. Martin',
-        'Recomputed the first book after addition'
-      );
+      /*
+    
+          let renderedAuthor = this.element.querySelector('h1');
+          assert.equal(
+            renderedAuthor.innerText,
+            'Edward Gibbons',
+            'Started with the correct book in position 0'
+          );
+    
+          books.shift();
+          await settled();
+          renderedAuthor = this.element.querySelector('h1');
+          assert.equal(
+            renderedAuthor.innerText,
+            'Winston Churchill',
+            'Recomputed the first book after removal'
+          );
+    
+          await settled(books.unshift(this.store.peekRecord('com.example.Book', 'urn:book:3')));
+    
+          renderedAuthor = this.element.querySelector('h1');
+          assert.equal(
+            renderedAuthor.innerText,
+            'George R. R. Martin',
+            'Recomputed the first book after addition'
+          );
+          */
     });
 
     test('mutating arrays causes length tracked properties to recompute', async function (assert) {

@@ -237,6 +237,7 @@ for (let i = 0; i < 2; i++) {
         'author names rendered initially'
       );
 
+      debugger
       run(() =>
         this.store.pushPayload('com.example.Bookstore', {
           data: [
