@@ -33,6 +33,10 @@ if (CUSTOM_MODEL_CLASS) {
                   })
                 )
               );
+            } else if (Array.isArray(value)) {
+              return schemaInterface.managedArray(
+                value.map((val) => schemaInterface.nested({ attributes: val }))
+              );
             } else if (typeof value === 'object') {
               return schemaInterface.nested({ attributes: value });
             }
@@ -132,6 +136,37 @@ if (CUSTOM_MODEL_CLASS) {
         'George R. R. Martin',
         'Recomputed the first book after addition'
       );
+    });
+
+    // We have run into scenarios like these with users stashing M3 Arrays on POJOs in services, and then accessing them and
+    // modifying during a render
+    test('Can modify a managed array after creation without triggering rerendering assertions', async function (assert) {
+      let bookstore = this.store.createRecord('com.example.Bookstore', {
+        books: [{ name: 'Igor' }, { name: 'David' }],
+      });
+
+      let books = bookstore.books;
+
+      this.owner.register(
+        'component:first-book',
+        class FirstBookComponent extends Component {
+          get firstBook() {
+            books.shift();
+            return books[0];
+          }
+        }
+      );
+      this.owner.register(
+        'template:components/first-book',
+        hbs`<h1>{{this.firstBook.name}}</h1>
+      `
+      );
+
+      await render(hbs`
+    {{first-book}}
+  `);
+      let text = this.element.textContent.trim();
+      assert.equal(text, 'David', 'Rendered the component');
     });
 
     test('mutating arrays causes length tracked properties to recompute', async function (assert) {

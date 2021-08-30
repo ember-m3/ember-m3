@@ -26,8 +26,6 @@ import { recordIdentifierFor } from '@ember-data/store';
 let BaseRecordArray;
 let baseRecordArrayProxyHandler;
 
-const MANAGED_ARRAYS = new WeakSet();
-
 if (CUSTOM_MODEL_CLASS) {
   const convertToInt = (prop) => {
     if (typeof prop === 'symbol') return null;
@@ -40,14 +38,17 @@ if (CUSTOM_MODEL_CLASS) {
   };
 
   const BaseRecordArrayProxyHandler = class {
+    getPrototypeOf(target) {
+      return Object.getPrototypeOf(target._instance);
+    }
     get(target, key, receiver) {
       let index = convertToInt(key);
 
       if (index !== null) {
-        return receiver.objectAt(key);
+        return target._instance.objectAt(key);
       }
 
-      return Reflect.get(target, key, receiver);
+      return Reflect.get(target._instance, key, receiver);
     }
 
     set(target, key, value, receiver) {
@@ -56,7 +57,7 @@ if (CUSTOM_MODEL_CLASS) {
       if (index !== null) {
         receiver.replace(index, 1, [value]);
       } else {
-        Reflect.set(target, key, value, receiver);
+        Reflect.set(target._instance, key, value);
       }
 
       return true;
@@ -79,9 +80,9 @@ if (CUSTOM_MODEL_CLASS) {
     static create(...args) {
       let instance = super.create(...args);
 
-      let proxy = new Proxy(instance, baseRecordArrayProxyHandler);
-      MANAGED_ARRAYS.add(proxy);
-      return proxy;
+      let arr = [];
+      arr._instance = instance;
+      return new Proxy(arr, baseRecordArrayProxyHandler);
     }
 
     init() {
@@ -112,9 +113,6 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     objectAt(idx) {
-      // Need to get '[]' in order to entangle tracked properties, as ember won't treat us as an ember array when we are a proxy
-      // See https://github.com/emberjs/ember.js/issues/19139#issuecomment-694487616 for context
-      get(this, '[]');
       this._resolve();
       // TODO make this lazy again
       let record = this._objects[idx];
@@ -199,6 +197,23 @@ if (CUSTOM_MODEL_CLASS) {
       });
     }
 
+    // Need to subclass `removeAt`, `pushObject`, and `insertAt` because the default implementations by
+    // MutableArray will end up calling replaceInNativeArray and not our own replace after an `isArray` check
+    // https://github.com/emberjs/ember.js/blob/21bd70c773dcc4bfe4883d7943e8a68d203b5bad/packages/%40ember/-internals/metal/lib/array.ts#L27
+    // https://github.com/emberjs/ember.js/blob/21bd70c773dcc4bfe4883d7943e8a68d203b5bad/packages/%40ember/-internals/metal/lib/array.ts#L38
+    removeAt(index, len = 1) {
+      this.replace(index, len, []);
+      return this;
+    }
+
+    pushObject(obj) {
+      return this.insertAt(this.length, obj);
+    }
+
+    insertAt(idx, object) {
+      return this.replace(idx, 0, [object]);
+    }
+
     _resolve() {
       if (this._resolved) {
         return;
@@ -213,9 +228,6 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     get length() {
-      // Need to get '[]' in order to entangle tracked properties, as ember won't treat us as an ember array when we are a proxy
-      // See https://github.com/emberjs/ember.js/issues/19139#issuecomment-694487616 for context
-      get(this, '[]');
       return this._resolved ? this._objects.length : this._references.length;
     }
   };
@@ -448,4 +460,3 @@ export function associateRecordWithRecordArray(record, recordArray) {
 }
 
 export default BaseRecordArray;
-export { MANAGED_ARRAYS };
