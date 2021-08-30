@@ -303,5 +303,30 @@ if (gte('3.24.0')) {
 
       assert.equal(this.element.innerText, 'Book is dirty', 'Book renders as dirty');
     });
+
+    test('creating a record does not cause rerenders from reading `isDirty` when key values are undefined', async function (assert) {
+      this.owner.register(
+        'component:show-dirtyness',
+        class ShowDirtyness extends Component {
+          layout = hbs`
+          {{#if this.myBook.isDirty}}
+            Book is dirty
+          {{/if}}
+      `;
+
+          get myBook() {
+            return this.store.createRecord('com.example.bookstore.book', { someKey: undefined });
+          }
+        }
+      );
+
+      this.set('store', this.store);
+
+      await render(hbs`
+        {{show-dirtyness store=this.store}}
+      `);
+
+      assert.equal(this.element.innerText, 'Book is dirty', 'Book renders as dirty');
+    });
   });
 }
