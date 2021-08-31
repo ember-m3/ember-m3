@@ -5,6 +5,8 @@ import hbs from 'htmlbars-inline-precompile';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import Component from '@ember/component';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
+import { tracked } from '@glimmer/tracking';
+import { A } from '@ember/array';
 
 if (CUSTOM_MODEL_CLASS) {
   module('integration/managed-array-tracked', function (hooks) {
@@ -138,19 +140,18 @@ if (CUSTOM_MODEL_CLASS) {
       );
     });
 
-    // We have run into scenarios like these with users stashing M3 Arrays on POJOs in services, and then accessing them and
-    // modifying during a render
-    test('Can modify a managed array after creation without triggering rerendering assertions', async function (assert) {
+    test('Managed array triggers rerenders', async function (assert) {
       let bookstore = this.store.createRecord('com.example.Bookstore', {
         books: [{ name: 'Igor' }, { name: 'David' }],
       });
 
-      let books = bookstore.books;
+      this.set('bookstore', bookstore);
 
       this.owner.register(
         'component:first-book',
         class FirstBookComponent extends Component {
           get firstBook() {
+            let books = this.bookstore.books;
             books.shift();
             return books[0];
           }
@@ -163,7 +164,40 @@ if (CUSTOM_MODEL_CLASS) {
       );
 
       await render(hbs`
-    {{first-book}}
+    {{first-book bookstore=this.bookstore}}
+  `);
+      let text = this.element.textContent.trim();
+      assert.equal(text, 'David', 'Rendered the component');
+    });
+
+    test('Ember array triggers rerenders', async function (assert) {
+      class BooksStore {
+        @tracked books;
+      }
+
+      let bookstore = new BooksStore();
+      bookstore.books = A([{ name: 'Igor' }, { name: 'David' }]);
+
+      this.set('bookstore', bookstore);
+
+      this.owner.register(
+        'component:first-book',
+        class FirstBookComponent extends Component {
+          get firstBook() {
+            let books = this.bookstore.books;
+            books.replace(0, 1, []);
+            return books[0];
+          }
+        }
+      );
+      this.owner.register(
+        'template:components/first-book',
+        hbs`<h1>{{this.firstBook.name}}</h1>
+      `
+      );
+
+      await render(hbs`
+    {{first-book bookstore=this.bookstore}}
   `);
       let text = this.element.textContent.trim();
       assert.equal(text, 'David', 'Rendered the component');
