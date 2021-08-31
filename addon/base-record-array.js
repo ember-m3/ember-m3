@@ -39,16 +39,16 @@ if (CUSTOM_MODEL_CLASS) {
 
   const BaseRecordArrayProxyHandler = class {
     getPrototypeOf(target) {
-      return Object.getPrototypeOf(target._instance);
+      return Object.getPrototypeOf(target.__recordArray);
     }
     get(target, key, receiver) {
       let index = convertToInt(key);
 
       if (index !== null) {
-        return target._instance.objectAt(key);
+        return target.__recordArray.objectAt(key);
       }
 
-      return Reflect.get(target._instance, key, receiver);
+      return Reflect.get(target.__recordArray, key, receiver);
     }
 
     set(target, key, value, receiver) {
@@ -57,7 +57,7 @@ if (CUSTOM_MODEL_CLASS) {
       if (index !== null) {
         receiver.replace(index, 1, [value]);
       } else {
-        Reflect.set(target._instance, key, value);
+        Reflect.set(target.__recordArray, key, value);
       }
 
       return true;
@@ -81,7 +81,7 @@ if (CUSTOM_MODEL_CLASS) {
       let instance = super.create(...args);
 
       let arr = [];
-      arr._instance = instance;
+      arr.__recordArray = instance;
       return new Proxy(arr, baseRecordArrayProxyHandler);
     }
 
