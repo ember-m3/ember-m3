@@ -24,19 +24,7 @@ function computeAttributeReference(key, value, modelName, schemaInterface, model
       id: value,
       type: BOOK_CLASS_PATH,
     };
-  } else if (/^urn:([^:]+):(.*)/.test(value)) {
-    let parts = /^urn:([^:]+):(.*)/.exec(value);
-    let type = parts[1];
-    let modelSchema = models[modelName];
-
-    if (modelSchema && modelSchema.attributesTypes && modelSchema.attributesTypes[key]) {
-      type = modelSchema.attributesTypes[key];
-    }
-    return {
-      type,
-      id: parts[2],
-    };
-  } else if (Array.isArray(value)) {
+  }   else if (Array.isArray(value)) {
     if (key === 'similarAuthors') {
       return;
     }
@@ -48,13 +36,26 @@ function computeAttributeReference(key, value, modelName, schemaInterface, model
         if (modelSchema && modelSchema.attributesTypes && modelSchema.attributesTypes[key]) {
           type = modelSchema.attributesTypes[key];
         }
-
+        let id =  /^urn:([^:]+):(.*)/.exec(value)[2];
         return {
           type,
-          id: v.id,
+          id,
         };
       })
       .filter(Boolean);
+    }
+   else if (/^urn:([^:]+):(.*)/.test(value)) {
+    let parts = /^urn:([^:]+):(.*)/.exec(value);
+    let type = parts[1];
+    let modelSchema = models[modelName];
+
+    if (modelSchema && modelSchema.attributesTypes && modelSchema.attributesTypes[key]) {
+      type = modelSchema.attributesTypes[key];
+    }
+    return {
+      type,
+      id: parts[2],
+    };
   }
 }
 function computeNestedModel(key, value, modelName, schemaInterface, models) {
@@ -118,6 +119,7 @@ export class TestSchema extends DefaultSchema {
   }
 
   computeAttribute(key, value, modelName, schemaInterface) {
+    debugger
     let reference = computeAttributeReference(key, value, modelName, schemaInterface, this.models);
     if (Array.isArray(reference)) {
       return schemaInterface.managedArray(reference.map((r) => schemaInterface.reference(r)));

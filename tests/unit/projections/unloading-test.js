@@ -212,7 +212,7 @@ for (let { name, setupTest } of setupTestPerSchema()) {
       assert.equal(get(projectedPreview, 'title'), BOOK_TITLE);
     });
 
-    skip('Unloading a record removes it from record arrays, which have reference to it', function (assert) {
+    test('Unloading a record removes it from record arrays, which have reference to it', function (assert) {
       // we need additional records to be able to resolve the references
       run(() => {
         this.store.push({
@@ -233,13 +233,14 @@ for (let { name, setupTest } of setupTestPerSchema()) {
         });
       });
 
-      let { baseModel, projectedPreview } = this.records;
+      let { baseRecord, projectedPreview } = this.records;
 
       // load the record arrays
-      let booksInSeriesBase = get(baseModel, 'otherBooksInSeries');
+      let booksInSeriesBase = get(baseRecord, 'otherBooksInSeries');
       let booksInSeriesProjectedPreview = get(projectedPreview, 'otherBooksInSeries');
       let otherProjectedPreview = get(booksInSeriesProjectedPreview, 'firstObject');
 
+      debugger
       // precondition
       assert.equal(
         get(booksInSeriesBase, 'length'),
@@ -268,7 +269,7 @@ for (let { name, setupTest } of setupTestPerSchema()) {
         'Expected otherBooksInSeries length to be unchanged for projected preview'
       );
       assert.equal(
-        booksInSeriesProjectedPreview.getObjectAt(0),
+        booksInSeriesProjectedPreview.objectAt(0),
         null,
         'Expected the projected preview to have been replaced with null in the record array'
       );
