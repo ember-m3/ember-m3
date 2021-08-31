@@ -483,10 +483,16 @@ export default class M3RecordData {
   }
 
   setIsDeleted(value) {
+    if (this._baseRecordData) {
+      return this._baseRecordData.setIsDeleted(value);
+    }
     this._isDeleted = value;
   }
 
   isDeleted() {
+    if (this._baseRecordData) {
+      return this._baseRecordData.isDeleted();
+    }
     return this._isDeleted;
   }
 

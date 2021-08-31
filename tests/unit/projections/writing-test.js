@@ -10,6 +10,7 @@ import {
   PUBLISHER_CLASS,
   PROJECTED_PUBLISHER_CLASS,
 } from './common';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 
 for (let { name, setupTest } of setupTestPerSchema()) {
   module(`unit/projections/writing: ${name}`, function (hooks) {
@@ -442,6 +443,98 @@ for (let { name, setupTest } of setupTestPerSchema()) {
         'The projection should be dirty after mutating its state'
       );
     });
+
+    if (CUSTOM_MODEL_CLASS) {
+      test('Projections share the deleted value with the base model', function (assert) {
+        let projectedExcerpt = this.store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {
+              title: BOOK_TITLE_1,
+              author: {
+                name: BOOK_AUTHOR_NAME_1,
+              },
+            },
+          },
+        });
+        // Base record
+        let baseRecord = this.store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              title: BOOK_TITLE_1,
+            },
+          },
+        });
+
+        projectedExcerpt.deleteRecord();
+
+        assert.equal(
+          projectedExcerpt.get('isDeleted'),
+          true,
+          'The projection is in a deleted state'
+        );
+
+        assert.equal(baseRecord.get('isDeleted'), true, 'The base model is also deleted');
+
+        projectedExcerpt.rollbackAttributes();
+
+        assert.equal(
+          projectedExcerpt.get('isDeleted'),
+          false,
+          'The projection has been rolled back'
+        );
+
+        assert.equal(baseRecord.get('isDeleted'), false, 'The base model has been rolled back');
+      });
+
+      test('Base models share the deleted value with the projections', function (assert) {
+        let projectedExcerpt = this.store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_EXCERPT_PROJECTION_CLASS_PATH,
+            attributes: {
+              title: BOOK_TITLE_1,
+              author: {
+                name: BOOK_AUTHOR_NAME_1,
+              },
+            },
+          },
+        });
+        // Base record
+        let baseRecord = this.store.push({
+          data: {
+            id: BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {
+              title: BOOK_TITLE_1,
+            },
+          },
+        });
+
+        baseRecord.deleteRecord();
+
+        assert.equal(
+          projectedExcerpt.get('isDeleted'),
+          true,
+          'The projection is in a deleted state'
+        );
+
+        assert.equal(baseRecord.get('isDeleted'), true, 'The base model is also deleted');
+
+        baseRecord.rollbackAttributes();
+
+        assert.equal(
+          projectedExcerpt.get('isDeleted'),
+          false,
+          'The projection has been rolled back'
+        );
+
+        assert.equal(baseRecord.get('isDeleted'), false, 'The base model has been rolled back');
+      });
+    }
 
     test('.debugJSON returns expected JSON for projections', function (assert) {
       const expectedJSON = {
