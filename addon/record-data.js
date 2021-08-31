@@ -587,6 +587,10 @@ export default class M3RecordData {
 
   removeFromRecordArrays() {
     if (CUSTOM_MODEL_CLASS) {
+      // No need to remove us from record arrays if the store is beeing destroyed
+      if (this.globalM3CacheRD._storeIsDestroying) {
+        return;
+      }
       this._recordArrays.forEach((recordArray) => {
         recordArray._removeRecordData(this);
       });

@@ -178,6 +178,14 @@ export default class M3Store extends Store {
     return super.teardownRecord(record);
   }
 
+  willDestroy() {
+    if (CUSTOM_MODEL_CLASS) {
+      this._globalM3RecordDataCache._storeIsDestroying = true;
+    }
+
+    return super.willDestroy(...arguments);
+  }
+
   /**
    * A thin wrapper around the API response that knows how to look up references
    *
