@@ -50,11 +50,13 @@ if (CUSTOM_MODEL_CLASS) {
         return target._instance.objectAt(key);
       }
       
+      /*
       if (props.indexOf(key) > -1) {
         console.log(key);
         debugger
         return Reflect.get(target, key, receiver);
       }
+      */
 
       return Reflect.get(target._instance, key, receiver);
     }
@@ -64,10 +66,12 @@ if (CUSTOM_MODEL_CLASS) {
 
       if (index !== null) {
         receiver.replace(index, 1, [value]);
+        /*
       } else if (props.indexOf(key) > -1) {
         console.log(key);
         debugger
         Reflect.set(target, key, value, receiver);
+        */
       } else  {
         Reflect.set(target._instance, key, value);
       }
@@ -86,8 +90,10 @@ if (CUSTOM_MODEL_CLASS) {
    * @class BaseRecordArray
    */
   BaseRecordArray = class BaseRecordArray extends EmberObject.extend(MutableArray) {
-   // [Symbol.iterator] = Array.prototype.values;
+   [Symbol.iterator] = Array.prototype.values;
 
+   _isM3Array = true;
+   
     // public RecordArray API
     static create(...args) {
       let instance = super.create(...args);

@@ -44,7 +44,6 @@ module('unit/record-array', function (hooks) {
     });
     this.createRecordArray = function () {
       let recordArray = BaseRecordArray.create();
-      debugger
       recordArray.store = this.store;
       return recordArray;
     };
@@ -104,6 +103,8 @@ module('unit/record-array', function (hooks) {
       { id: 'isbn:2', type: 'com.example.bookstore.Book' },
     ]);
     assert.equal(recordArray._resolved, false, 'unresolved after setting references');
+    
+    debugger
     assert.equal(recordArray.get('firstObject.title'), 'pretty good book', 'reference resolved');
     assert.equal(recordArray._resolved, true, 'lazily resolved');
 
