@@ -197,7 +197,7 @@ if (CUSTOM_MODEL_CLASS) {
       });
     }
 
-    // Need to subclass `removeAt`, `pushObject`, and `insertAt` because the default implementations by
+    // Need to override `removeAt`, `pushObject`, and `insertAt` because the default implementations by
     // MutableArray will end up calling replaceInNativeArray and not our own replace after an `isArray` check
     // https://github.com/emberjs/ember.js/blob/21bd70c773dcc4bfe4883d7943e8a68d203b5bad/packages/%40ember/-internals/metal/lib/array.ts#L27
     // https://github.com/emberjs/ember.js/blob/21bd70c773dcc4bfe4883d7943e8a68d203b5bad/packages/%40ember/-internals/metal/lib/array.ts#L38
