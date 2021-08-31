@@ -42,6 +42,9 @@ if (CUSTOM_MODEL_CLASS) {
   };
 
   const BaseRecordArrayProxyHandler = class {
+    getPrototypeOf(target) {
+      return Object.getPrototypeOf(target._instance);
+    }
     get(target, key, receiver) {
       let index = convertToInt(key);
 
@@ -93,7 +96,7 @@ if (CUSTOM_MODEL_CLASS) {
    [Symbol.iterator] = Array.prototype.values;
 
    _isM3Array = true;
-   
+
     // public RecordArray API
     static create(...args) {
       let instance = super.create(...args);
@@ -122,7 +125,6 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     replace(idx, removeAmt, newRecords) {
-      debugger
       let addAmt = get(newRecords, 'length');
       let newObjects = new Array(addAmt);
 
@@ -135,13 +137,12 @@ if (CUSTOM_MODEL_CLASS) {
 
       this._objects.replace(idx, removeAmt, newObjects);
       notifyPropertyChange(this, '[]');
-      // this.arrayContentDidChange(idx, removeAmt, newObjects.length);
+      this.arrayContentDidChange(idx, removeAmt, newObjects.length);
       this._registerWithObjects(newObjects);
       this._resolved = true;
     }
 
     objectAt(idx) {
-      debugger
       this._resolve();
       // TODO make this lazy again
       let record = this._objects[idx];
@@ -212,9 +213,8 @@ if (CUSTOM_MODEL_CLASS) {
         let index = this._objects.indexOf(record);
         if (index > -1) {
           this._objects.removeObject(record);
-
           notifyPropertyChange(this, '[]');
-        // this.arrayContentDidChange(index, 1, 0);
+         this.arrayContentDidChange(index, 1, 0);
         }
       }
     }
@@ -411,7 +411,7 @@ if (CUSTOM_MODEL_CLASS) {
 if (CUSTOM_MODEL_CLASS) {
   // Add native array methods here
   Object.assign(BaseRecordArray.prototype, {
-  //  values: Array.prototype.values,
+    values: Array.prototype.values,
     keys: Array.prototype.keys,
     entries: Array.prototype.entries,
     copyWithin: Array.prototype.copyWithin,

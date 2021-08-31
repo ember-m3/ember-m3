@@ -98,7 +98,7 @@ export default class DefaultSchema extends Service {
         //
         // empty native arrays are treated as unresolved as this is the primary
         // way of setting arrays of new nested models
-        return !Array.isArray(value);
+        return !Array.isArray(value) || value._isM3Array;
       }
     }
   }

@@ -57,6 +57,7 @@ function flushArrayChanges(store) {
   let changes = StoreToArrayChanges.get(store) || [];
   changeProperties(() => {
     for (let i = 0; i < changes.length; i += 4) {
+      debugger
       let array = changes[i];
       let startIdx = changes[i + 1];
       let removeCount = changes[i + 2];
