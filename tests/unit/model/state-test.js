@@ -345,7 +345,7 @@ if (gte('3.24.0')) {
 
             get myBook() {
               // Passing `{ someKey: undefined }` will trigger a property change on the newly created model, but will not dirty the properties
-              // If we are not careful we could create a rerender cycle by notifying `isDiry` change on a record in the middle of instantiation
+              // If we are not careful we could create a rerender cycle by notifying `isDirty` change on a record in the middle of instantiation
               return this.store.createRecord('com.example.bookstore.book', { someKey: undefined });
             }
           }
