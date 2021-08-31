@@ -92,7 +92,8 @@ if (CUSTOM_MODEL_CLASS) {
     static create(...args) {
       let instance = super.create(...args);
 
-      let emberArr = A();
+      //let emberArr = A();
+      let emberArr = [];
       debugger
       emberArr._instance = instance;
       let proxy = new Proxy( emberArr, baseRecordArrayProxyHandler);
@@ -128,7 +129,7 @@ if (CUSTOM_MODEL_CLASS) {
 
       this._objects.replace(idx, removeAmt, newObjects);
       notifyPropertyChange(this, '[]');
-      this.arrayContentDidChange(idx, removeAmt, newObjects.length);
+      // this.arrayContentDidChange(idx, removeAmt, newObjects.length);
       this._registerWithObjects(newObjects);
       this._resolved = true;
     }
@@ -206,8 +207,8 @@ if (CUSTOM_MODEL_CLASS) {
         if (index > -1) {
           this._objects.removeObject(record);
 
-         // notifyPropertyChange(this._proxy, '[]');
-          this.arrayContentDidChange(index, 1, 0);
+          notifyPropertyChange(this, '[]');
+        // this.arrayContentDidChange(index, 1, 0);
         }
       }
     }
@@ -219,6 +220,19 @@ if (CUSTOM_MODEL_CLASS) {
         }
         associateRecordWithRecordArray(object, this);
       });
+    }
+  
+    removeAt(index, len = 1) {
+      this.replace(index, len, []);
+      return this;
+    }
+
+    pushObject(obj) {
+      return this.insertAt(this.length, obj);
+    }
+
+    insertAt(idx, object) {
+      return this.replace(idx, 0, [object]);
     }
 
     _resolve() {
@@ -274,7 +288,8 @@ if (CUSTOM_MODEL_CLASS) {
       this._registerWithInternalModels(newInternalModels);
       this._resolved = true;
 
-      this.arrayContentDidChange(idx, removeAmt, newRecords.length);
+      notifyPropertyChange(this, '[]');
+     // this.arrayContentDidChang/e(idx, removeAmt, newRecords.length);
     }
 
     objectAt(idx) {
@@ -408,6 +423,7 @@ if (CUSTOM_MODEL_CLASS) {
     },
 
     shift() {
+      debugger
       return this.shiftObject();
     },
 

@@ -94,17 +94,19 @@ if (CUSTOM_MODEL_CLASS) {
           },
         ],
       });
+      let bookstore = this.store.createRecord('com.example.Bookstore', { books: [{ name: 'hi' }, { name: 'hello' }] });
+
+      let books = bookstore.books;
       this.owner.register(
         'component:first-book',
         class FirstBookComponent extends Component {
           get firstBook() {
             debugger
             // let bookstore = this.store.peekRecord('com.example.Bookstore', 'urn:bookstore:1');
-            let bookstore = this.store.createRecord('com.example.Bookstore', { books: [{ name: 'hi' }, { name: 'hello' }] });
 
-            if (bookstore.books.length > 1) {
-              bookstore.books.shift();
-              bookstore.books[0];
+            if (books.length > 1) {
+              books.shift();
+              return books[0];
             }
           }
         }

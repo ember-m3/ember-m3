@@ -44,6 +44,7 @@ module('unit/record-array', function (hooks) {
     });
     this.createRecordArray = function () {
       let recordArray = BaseRecordArray.create();
+      debugger
       recordArray.store = this.store;
       return recordArray;
     };

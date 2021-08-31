@@ -63,9 +63,10 @@ function flushArrayChanges(store) {
       let startIdx = changes[i + 1];
       let removeCount = changes[i + 2];
       let addCount = changes[i + 3];
-      //notifyPropertyChange(array, '[]');
-     // notifyPropertyChange(array, 'length');
-       array.arrayContentDidChange(startIdx, removeCount, addCount);
+      debugger
+      notifyPropertyChange(array, '[]');
+      notifyPropertyChange(array, 'length');
+      // array.arrayContentDidChange(startIdx, removeCount, addCount);
     }
   });
   StoreToArrayChanges.set(store, []);
