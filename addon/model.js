@@ -21,7 +21,6 @@ import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import { RootState, Errors as StoreErrors } from '@ember-data/store/-private';
 import { Errors as ModelErrors } from '@ember-data/model/-private';
 import { REFERENCE, schemaTypesInfo } from './utils/schema-types-info';
-import { MANAGED_ARRAYS } from './base-record-array';
 
 // Errors moved from @ember-data/store to @ember-data/model as of 3.15.0
 const Errors = ModelErrors || StoreErrors;
@@ -529,12 +528,6 @@ export default class MegamorphicModel extends EmberObject {
           this
         );
       }
-    }
-    // If a value returned from unknownProperty is a ManagedArray we need to access '[]'
-    // to keep parity with how ember treats arrays
-    // see https://github.com/emberjs/ember.js/blob/3ce13cea235cde8a87d89473533c453523412764/packages/%40ember/-internals/metal/lib/property_get.ts#L136
-    if (MANAGED_ARRAYS.has(returnValue)) {
-      get(returnValue, '[]');
     }
     return returnValue;
   }

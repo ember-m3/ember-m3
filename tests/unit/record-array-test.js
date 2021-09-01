@@ -7,6 +7,8 @@ import { flushChanges } from 'ember-m3/utils/notify-changes';
 import { isArray } from '@ember/array';
 import MutableArray from '@ember/array/mutable';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
+import isM3Array from 'ember-m3/utils/is-m3-array';
+import EmberObject from '@ember/object';
 
 module('unit/record-array', function (hooks) {
   setupTest(hooks);
@@ -103,6 +105,7 @@ module('unit/record-array', function (hooks) {
       { id: 'isbn:2', type: 'com.example.bookstore.Book' },
     ]);
     assert.equal(recordArray._resolved, false, 'unresolved after setting references');
+
     assert.equal(recordArray.get('firstObject.title'), 'pretty good book', 'reference resolved');
     assert.equal(recordArray._resolved, true, 'lazily resolved');
 
@@ -282,6 +285,21 @@ module('unit/record-array', function (hooks) {
         assert.equal(recordArray._resolved, false, '_removeObjects does not resolve');
         assert.deepEqual(recordArray.toArray().mapBy('id'), ['isbn:1'], 'records removed');
       });
+    });
+
+    test('isM3Array detects m3 managed arrays', function (assert) {
+      let recordArray = this.createRecordArray();
+      assert.equal(isM3Array(recordArray), true, 'recordArray detected');
+
+      assert.equal(isM3Array([]), false, 'plain js arrays return false');
+      assert.equal(isM3Array(null), false, 'other objects also return false');
+      assert.equal(isM3Array(undefined), false, 'other objects also return false');
+      assert.equal(isM3Array('hi'), false, 'other objects also return false');
+      assert.equal(isM3Array({}), false, 'other objects also return false');
+      class EmberArray extends EmberObject.extend(MutableArray) {}
+
+      assert.equal(isM3Array(EmberArray.create()), false, 'other ember arrays return false');
+      assert.equal(isM3Array(EmberObject.create()), false, 'other ember objects return false');
     });
   }
 });
