@@ -2541,7 +2541,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
           'initial state as expected'
         );
 
-        run(() => this.store.destroy());
+        run(() => this.owner.destroy());
         assert.equal(didChangeCount, 0, 'Did not emit change events');
       });
     }
