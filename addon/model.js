@@ -636,12 +636,21 @@ export default class MegamorphicModel extends EmberObject {
     schemaInterface._suppressNotifications = priorSuppressNotifications;
 
     const hasDirtyAttr = recordData.hasChangedAttributes();
-    const isDirty = get(this, 'isDirty');
+    if (CUSTOM_MODEL_CLASS) {
+      const cachedIsDirty = this._topModel._isDirty;
 
-    if (hasDirtyAttr && !isDirty) {
-      this._updateCurrentState(!CUSTOM_MODEL_CLASS && updatedUncommitted);
-    } else if (!hasDirtyAttr && isDirty) {
-      this._updateCurrentState(!CUSTOM_MODEL_CLASS && loadedSaved);
+      // `isDirty` cached value does not match our current one -> we need to update our state
+      if (hasDirtyAttr !== cachedIsDirty) {
+        this._updateCurrentState();
+      }
+    } else {
+      const isDirty = get(this, 'isDirty');
+
+      if (hasDirtyAttr && !isDirty) {
+        this._updateCurrentState(updatedUncommitted);
+      } else if (!hasDirtyAttr && isDirty) {
+        this._updateCurrentState(loadedSaved);
+      }
     }
   }
 
@@ -707,6 +716,7 @@ MegamorphicModel.prototype.currentState = null;
 MegamorphicModel.prototype.isError = null;
 MegamorphicModel.prototype.adapterError = null;
 MegamorphicModel.prototype._identifier = null;
+MegamorphicModel.prototype._isDirty = null;
 
 MegamorphicModel.relationshipsByName = new Map();
 
@@ -749,11 +759,14 @@ if (CUSTOM_MODEL_CLASS) {
     if (this !== this._topModel) {
       return this._topModel.get('isDirty');
     }
-    return (
+
+    // We cache the `_isDirty` value so that we can use it in deciding whether to notify a property change
+    // without having to consume `isDirty` to avoid rerender loops and get a perf boost
+    this._isDirty =
       this._recordData.hasChangedAttributes() ||
       ((this._recordData.isNew() || this._recordData.isDeleted()) &&
-        this._recordData.isNew() !== this._recordData.isDeleted())
-    );
+        this._recordData.isNew() !== this._recordData.isDeleted());
+    return this._isDirty;
   });
 } else {
   isDirty = retrieveFromCurrentState;
@@ -857,15 +870,17 @@ export class EmbeddedMegamorphicModel extends MegamorphicModel {
   }
 
   _updateCurrentState(state) {
-    if (state === loadedSaved) {
-      let topRecordData = recordDataFor(this._topModel);
-      if (topRecordData.hasChangedAttributes()) {
-        // Nested models maintain state with their parents; this makes sense
-        // until we let people save nested models independently.  However, it
-        // means that nested models should not reset their parents to "not
-        // dirty" when their last changed attribute is set to its original
-        // value, if their parent has some other dirty attribute
-        return;
+    if (!CUSTOM_MODEL_CLASS) {
+      if (state === loadedSaved) {
+        let topRecordData = recordDataFor(this._topModel);
+        if (topRecordData.hasChangedAttributes()) {
+          // Nested models maintain state with their parents; this makes sense
+          // until we let people save nested models independently.  However, it
+          // means that nested models should not reset their parents to "not
+          // dirty" when their last changed attribute is set to its original
+          // value, if their parent has some other dirty attribute
+          return;
+        }
       }
     }
     return super._updateCurrentState(state);

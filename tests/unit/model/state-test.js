@@ -8,6 +8,7 @@ import { render } from '@ember/test-helpers';
 import { gte } from 'ember-compatibility-helpers';
 import propGet from '../../helpers/prop-get';
 import DefaultSchema from 'ember-m3/services/m3-schema';
+import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 
 let computeNestedModel = function computeNestedModel(key, value) {
   if (value && typeof value === 'object' && !isArray(value)) {
@@ -330,5 +331,34 @@ if (gte('3.24.0')) {
 
       assert.equal(this.element.innerText, 'Book is dirty', 'Book renders as dirty');
     });
+
+    if (CUSTOM_MODEL_CLASS) {
+      test('creating a record does not cause rerenders from reading `isDirty` when key values are undefined', async function (assert) {
+        this.owner.register(
+          'component:show-dirtyness',
+          class ShowDirtyness extends Component {
+            layout = hbs`
+          {{#if this.myBook.isDirty}}
+            Book is dirty
+          {{/if}}
+      `;
+
+            get myBook() {
+              // Passing `{ someKey: undefined }` will trigger a property change on the newly created model, but will not dirty the properties
+              // If we are not careful we could create a rerender cycle by notifying `isDirty` change on a record in the middle of instantiation
+              return this.store.createRecord('com.example.bookstore.book', { someKey: undefined });
+            }
+          }
+        );
+
+        this.set('store', this.store);
+
+        await render(hbs`
+        {{show-dirtyness store=this.store}}
+      `);
+
+        assert.equal(this.element.innerText, 'Book is dirty', 'Book renders as dirty');
+      });
+    }
   });
 }
