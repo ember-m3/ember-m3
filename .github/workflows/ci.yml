@@ -119,8 +119,8 @@ jobs:
           node-version: '14.x' # preferred node version
       - name: yarn install
         run: yarn --frozen-lockfile --install
-      - name: lint
+      - name: test
         env:
           TESTEM_CI_LAUNCHER: IE
           CI: true
-        run: yarn lint
+        run: yarn test
