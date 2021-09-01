@@ -18,6 +18,8 @@ import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import { recordDataToRecordMap, recordToRecordArrayMap } from './utils/caches';
 import { recordIdentifierFor } from '@ember-data/store';
 
+const HAS_NATIVE_PROXY = typeof Proxy === 'function';
+
 /**
  * BaseRecordArray
  *
@@ -79,10 +81,14 @@ if (CUSTOM_MODEL_CLASS) {
     // public RecordArray API
     static create(...args) {
       let instance = super.create(...args);
-
-      let arr = [];
-      arr.__recordArray = instance;
-      return new Proxy(arr, baseRecordArrayProxyHandler);
+      if (HAS_NATIVE_PROXY) {
+        let arr = [];
+        arr.__recordArray = instance;
+        return new Proxy(arr, baseRecordArrayProxyHandler);
+        // IE11 support
+      } else {
+        return instance;
+      }
     }
 
     init() {
