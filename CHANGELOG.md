@@ -1,5 +1,55 @@
 
 
+
+## v5.0.0 (2021-09-02)
+
+#### :boom: Breaking Change
+* [#1299](https://github.com/hjdivad/ember-m3/pull/1299) `Array.isArray(value)` should not be used with M3 Arrays and will be returning `true` in the future.
+
+With Ember Data versions `3.28.0` and above M3 Arrays can be used as native JS arrays other than in IE11 which doesn't support proxies. For example, instead of having to do `m3Array.objectAt(0)` you can now do `m3Array[0]`. 
+
+However, because M3 Arrays are now proxying JavaScript native arrays, the return value of `Array.isArray(m3Array)` will change to now be `true`,
+so it is no longer safe to rely on `Array.isArray` to distinguish between native and m3 arrays. If you need to detect an M3 Array we have now provided a utility method `isM3Array`:
+
+```js
+import isM3Array from 'ember-m3/utils/is-m3-array'
+
+// To replicate old behavior of `Array.isArray(value)` you would need to do:
+let isJSArray = Array.isArray(value) && !isM3Array(value)
+```
+
+#### :rocket: Enhancement
+* [#1300](https://github.com/hjdivad/ember-m3/pull/1300) Do not emit array change events when app is being destroyed ([@igorT](https://github.com/igorT))
+* [#1301](https://github.com/hjdivad/ember-m3/pull/1301) Sync projections and base model deleted state with CUSTOM_MODEL_CLASS ([@igorT](https://github.com/igorT))
+* [#1238](https://github.com/hjdivad/ember-m3/pull/1238) Add array native access ([@igorT](https://github.com/igorT))
+* [#1232](https://github.com/hjdivad/ember-m3/pull/1232) Add native property access for models ([@igorT](https://github.com/igorT))
+
+#### :bug: Bug Fix
+* [#1315](https://github.com/hjdivad/ember-m3/pull/1315) Add IE testing and guard proxies when they are not present ([@igorT](https://github.com/igorT))
+* [#1298](https://github.com/hjdivad/ember-m3/pull/1298) Do not needlessly access `isDirty` ([@igorT](https://github.com/igorT))
+* [#1299](https://github.com/hjdivad/ember-m3/pull/1299) Switch m3 array proxies to proxy [] insted of BaseRecordArray ([@igorT](https://github.com/igorT))
+* [#1301](https://github.com/hjdivad/ember-m3/pull/1301) Sync projections and base model deleted state with CUSTOM_MODEL_CLASS ([@igorT](https://github.com/igorT))
+* [#1295](https://github.com/hjdivad/ember-m3/pull/1295) Fix isDeleted rollbackAttributes for Custom Model Class ([@igorT](https://github.com/igorT))
+* [#1241](https://github.com/hjdivad/ember-m3/pull/1241) fix: skip this.errors.remove if useUnderlyingErrorsValue ([@spham92](https://github.com/spham92))
+* [#1243](https://github.com/hjdivad/ember-m3/pull/1243) Fix isError and adapterError with CUSTOM_MODEL_CLASSES ([@igorT](https://github.com/igorT))
+* [#1240](https://github.com/hjdivad/ember-m3/pull/1240) Fix for projected models resolving in projected arrays, when CUSTOM_MODEL_CLASS is on ([@igorT](https://github.com/igorT))
+* [#1248](https://github.com/hjdivad/ember-m3/pull/1248) Add 'for' and 'since' to nativeProperties deprecation ([@igorT](https://github.com/igorT))
+* [#1249](https://github.com/hjdivad/ember-m3/pull/1249) Fix isSaving for embedded records when CUSTOM MODEL CLASS is on ([@igorT](https://github.com/igorT))
+* [#1242](https://github.com/hjdivad/ember-m3/pull/1242) Fix isDirty for inflight records and set _topModel to the proxy value ([@igorT](https://github.com/igorT))
+* [#1247](https://github.com/hjdivad/ember-m3/pull/1247) Don't trigger dot access deprecations when useNativeProperties hook isn't defined ([@igorT](https://github.com/igorT))
+
+#### :memo: Documentation
+* [#1252](https://github.com/hjdivad/ember-m3/pull/1252) Add documentation for native property access ([@igorT](https://github.com/igorT))
+
+#### :house: Internal
+* [#1296](https://github.com/hjdivad/ember-m3/pull/1296) Convert state tests to use native property access ([@igorT](https://github.com/igorT))
+* [#1251](https://github.com/hjdivad/ember-m3/pull/1251) Cleanup the invalid errors test ([@igorT](https://github.com/igorT))
+
+#### Committers: 2
+- Igor Terzic ([@igorT](https://github.com/igorT))
+- Steven Pham ([@spham92](https://github.com/spham92))
+
+
 ## v4.2.0 (2021-08-02)
 
 #### :rocket: Enhancement
