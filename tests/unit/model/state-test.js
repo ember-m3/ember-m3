@@ -78,10 +78,6 @@ class TestSchema extends DefaultSchema {
 }
 
 class TestSchemaOldHooks extends DefaultSchema {
-  useNativeProperties() {
-    return gte('@ember-data/model', '3.28.0') || gte('ember-data', '3.28.0');
-  }
-
   includesModel() {
     return true;
   }
