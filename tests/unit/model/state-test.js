@@ -332,10 +332,10 @@ if (gte('3.24.0')) {
         {{show-dirtyness book=this.book}}
       `);
 
-      assert.equal(this.element.innerText, 'Book is dirty', 'Book renders as dirty');
+      assert.equal(this.element.innerText.trim(), 'Book is dirty', 'Book renders as dirty');
     });
 
-    if (CUSTOM_MODEL_CLASS) {
+    if (CUSTOM_MODEL_CLASS && HAS_NATIVE_PROXY) {
       test('creating a record does not cause rerenders from reading `isDirty` when key values are undefined', async function (assert) {
         this.owner.register(
           'component:show-dirtyness',
