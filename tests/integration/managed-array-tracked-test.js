@@ -6,6 +6,7 @@ import DefaultSchema from 'ember-m3/services/m3-schema';
 import Component from '@ember/component';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import HAS_NATIVE_PROXY from 'ember-m3/utils/has-native-proxy';
+import propGet from '../helpers/prop-get';
 
 if (CUSTOM_MODEL_CLASS) {
   module('integration/managed-array-tracked', function (hooks) {
@@ -13,9 +14,6 @@ if (CUSTOM_MODEL_CLASS) {
 
     hooks.beforeEach(function () {
       class TestSchema extends DefaultSchema {
-        useNativeProperties() {
-          return true;
-        }
         computeAttribute(key, value, modelName, schemaInterface) {
           let refValue = schemaInterface.getAttr(`*${key}`);
           if (typeof refValue === 'string') {
@@ -98,7 +96,7 @@ if (CUSTOM_MODEL_CLASS) {
         'component:first-book',
         class FirstBookComponent extends Component {
           get firstBook() {
-            return this.bookstore.books[0];
+            return propGet(this.bookstore, 'books').objectAt(0);
           }
         }
       );
@@ -109,7 +107,7 @@ if (CUSTOM_MODEL_CLASS) {
       );
 
       let bookstore = this.store.peekRecord('com.example.Bookstore', 'urn:bookstore:1');
-      let books = bookstore.books;
+      let books = propGet(bookstore, 'books');
 
       this.set('bookstore', bookstore);
       await render(hbs`
