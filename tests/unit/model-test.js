@@ -2497,6 +2497,55 @@ for (let testRun = 0; testRun < 2; testRun++) {
       );
     });
 
+    if (CUSTOM_MODEL_CLASS) {
+      test('.unloadRecord doese not update reference record arrays when the store is being destroyed', function (assert) {
+        let model = run(() => {
+          return this.store.push({
+            data: {
+              id: 'isbn:9780439708180',
+              type: 'com.example.bookstore.Book',
+              attributes: {
+                name: `Harry Potter and the Sorcerer's Stone`,
+                '*relatedBooks': ['isbn:9780439064873', 'isbn:9780439136365'],
+              },
+            },
+            included: [
+              {
+                id: 'isbn:9780439064873',
+                type: 'com.example.bookstore.Book',
+                attributes: {
+                  name: `Harry Potter and the Chamber of Secrets`,
+                },
+              },
+              {
+                id: 'isbn:9780439136365',
+                type: 'com.example.bookstore.Book',
+                attributes: {
+                  name: `Harry Potter and the Prisoner of Azkaban`,
+                },
+              },
+            ],
+          });
+        });
+
+        let books = model.get('relatedBooks');
+        let didChangeCount = 0;
+        books.addArrayObserver({
+          arrayDidChange() {
+            ++didChangeCount;
+          },
+        });
+        assert.deepEqual(
+          model.get('relatedBooks').mapBy('name'),
+          [`Harry Potter and the Chamber of Secrets`, `Harry Potter and the Prisoner of Azkaban`],
+          'initial state as expected'
+        );
+
+        run(() => this.owner.destroy());
+        assert.equal(didChangeCount, 0, 'Did not emit change events');
+      });
+    }
+
     test('.unloadRecord on a nested model warns and does not error', function (assert) {
       let model = run(() => {
         return this.store.push({
