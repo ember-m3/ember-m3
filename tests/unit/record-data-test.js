@@ -902,6 +902,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
           this.child1Model = {
             _notifyProperties: this.sinon.spy(),
+            _updateCurrentState: () => {},
           };
 
           this.child1RecordData = this.topRecordData._getChildRecordData(
@@ -918,6 +919,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
           this.child2Model = {
             _notifyProperties: this.sinon.spy(),
+            _updateCurrentState: () => {},
           };
           this.child2RecordData = this.topRecordData._getChildRecordData(
             'child2',
@@ -932,6 +934,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
           this.child11Model = {
             _notifyProperties: this.sinon.spy(),
+            _updateCurrentState: () => {},
           };
           this.child11RecordData = this.child1RecordData._getChildRecordData(
             'child1_1',

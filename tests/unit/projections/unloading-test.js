@@ -70,89 +70,91 @@ for (let { name, setupTest } of setupTestPerSchema()) {
       };
     });
 
-    skip(`Deleting the base-record also deletes the projections`, function (assert) {
-      let { baseRecord, projectedPreview } = this.records;
+    if (CUSTOM_MODEL_CLASS) {
+      test(`Deleting the base-record also deletes the projections`, function (assert) {
+        let { baseRecord, projectedPreview } = this.records;
 
-      baseRecord.deleteRecord();
+        baseRecord.deleteRecord();
 
-      assert.equal(
-        get(projectedPreview, 'isDeleted'),
-        true,
-        'Expected projection record to be deleted as well'
-      );
-      assert.equal(
-        get(projectedPreview, 'isDirty'),
-        true,
-        'Expected projection record to be marked as dirty as well'
-      );
+        assert.equal(
+          get(projectedPreview, 'isDeleted'),
+          true,
+          'Expected projection record to be deleted as well'
+        );
+        assert.equal(
+          get(projectedPreview, 'isDirty'),
+          true,
+          'Expected projection record to be marked as dirty as well'
+        );
 
-      run(() => {
-        baseRecord.save().then(() => {
-          assert.equal(
-            get(projectedPreview, 'isDeleted'),
-            true,
-            'Expected the projection record to stay deleted'
-          );
-          assert.equal(
-            get(projectedPreview, 'isDirty'),
-            false,
-            'Expected the projection record to have been committed'
-          );
+        run(() => {
+          baseRecord.save().then(() => {
+            assert.equal(
+              get(projectedPreview, 'isDeleted'),
+              true,
+              'Expected the projection record to stay deleted'
+            );
+            assert.equal(
+              get(projectedPreview, 'isDirty'),
+              false,
+              'Expected the projection record to have been committed'
+            );
+          });
         });
       });
-    });
 
-    skip(`Deleting the projection also deletes the base-record`, function (assert) {
-      let { baseRecord, projectedPreview, projectedExcerpt } = this.records;
+      test(`Deleting the projection also deletes the base-record`, function (assert) {
+        let { baseRecord, projectedPreview, projectedExcerpt } = this.records;
 
-      projectedPreview.deleteRecord();
+        projectedPreview.deleteRecord();
 
-      assert.equal(
-        get(baseRecord, 'isDeleted'),
-        true,
-        'Expected the base record to be deleted as well'
-      );
-      assert.equal(
-        get(baseRecord, 'isDirty'),
-        true,
-        'Expected the base record to be marked as dirty as well'
-      );
-      assert.equal(
-        get(projectedExcerpt, 'isDeleted'),
-        true,
-        'Expected the other projection record to be deleted as well'
-      );
-      assert.equal(
-        get(projectedExcerpt, 'isDirty'),
-        true,
-        'Expected the other projection record to be marked as dirty as well'
-      );
+        assert.equal(
+          get(baseRecord, 'isDeleted'),
+          true,
+          'Expected the base record to be deleted as well'
+        );
+        assert.equal(
+          get(baseRecord, 'isDirty'),
+          true,
+          'Expected the base record to be marked as dirty as well'
+        );
+        assert.equal(
+          get(projectedExcerpt, 'isDeleted'),
+          true,
+          'Expected the other projection record to be deleted as well'
+        );
+        assert.equal(
+          get(projectedExcerpt, 'isDirty'),
+          true,
+          'Expected the other projection record to be marked as dirty as well'
+        );
 
-      run(() => {
-        projectedPreview.save().then(() => {
-          assert.equal(
-            get(baseRecord, 'isDeleted'),
-            true,
-            'Expected the base record to stay deleted'
-          );
-          assert.equal(
-            get(baseRecord, 'isDirty'),
-            false,
-            'Expected the base record to have been committed'
-          );
-          assert.equal(
-            get(projectedExcerpt, 'isDeleted'),
-            true,
-            'Expected the other projection record to stay deleted'
-          );
-          assert.equal(
-            get(projectedExcerpt, 'isDirty'),
-            false,
-            'Expected the other projection record to have been committed'
-          );
+        run(() => {
+          projectedPreview.save().then(() => {
+            assert.equal(
+              get(baseRecord, 'isDeleted'),
+              true,
+              'Expected the base record to stay deleted'
+            );
+            assert.equal(
+              get(baseRecord, 'isDirty'),
+              false,
+              'Expected the base record to have been committed'
+            );
+            assert.equal(
+              get(projectedExcerpt, 'isDeleted'),
+              true,
+              'Expected the other projection record to stay deleted'
+            );
+            assert.equal(
+              get(projectedExcerpt, 'isDirty'),
+              false,
+              'Expected the other projection record to have been committed'
+            );
+          });
         });
       });
-    });
+    }
 
     test(`Unloading a projection does not unload the base-record and other projections`, function (assert) {
       let { baseRecord, projectedPreview, projectedExcerpt } = this.records;
@@ -211,6 +213,112 @@ for (let { name, setupTest } of setupTestPerSchema()) {
       }
       assert.equal(get(projectedPreview, 'title'), BOOK_TITLE);
     });
+
+    if (CUSTOM_MODEL_CLASS) {
+      test('Deleting a projection removes it and the base record from record arrays, which have reference to it', async function (assert) {
+        // we need additional records to be able to resolve the references
+        this.store.push({
+          data: {
+            id: OTHER_BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {},
+          },
+        });
+
+        this.store.push({
+          data: {
+            id: OTHER_BOOK_ID,
+            type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+          },
+        });
+
+        let { baseRecord, projectedPreview } = this.records;
+
+        // load the record arrays
+        let booksInSeriesBase = get(baseRecord, 'otherBooksInSeries');
+        let booksInSeriesProjectedPreview = get(projectedPreview, 'otherBooksInSeries');
+
+        // Projection we are going to delete
+        let otherProjectedPreview = get(booksInSeriesProjectedPreview, 'firstObject');
+
+        // precondition
+        assert.equal(
+          get(booksInSeriesBase, 'length'),
+          1,
+          'Expected otherBooksInSeries length to be one for base'
+        );
+        assert.equal(
+          get(booksInSeriesProjectedPreview, 'length'),
+          1,
+          'Expected otherBooksInSeries length to be one for projected preview'
+        );
+
+        await otherProjectedPreview.destroyRecord();
+
+        assert.equal(
+          get(booksInSeriesBase, 'length'),
+          0,
+          'Expected the base record to be removed from the recordArray'
+        );
+        assert.equal(
+          get(booksInSeriesProjectedPreview, 'length'),
+          0,
+          'Expected the projection to be removed from the recordArray'
+        );
+      });
+
+      test('Deleting a base record removes it and the projctions from record arrays, which have reference to it', async function (assert) {
+        // we need additional records to be able to resolve the references
+        this.store.push({
+          data: {
+            id: OTHER_BOOK_ID,
+            type: BOOK_CLASS_PATH,
+            attributes: {},
+          },
+        });
+
+        this.store.push({
+          data: {
+            id: OTHER_BOOK_ID,
+            type: BOOK_PREVIEW_PROJECTION_CLASS_PATH,
+          },
+        });
+
+        let { baseRecord, projectedPreview } = this.records;
+
+        // load the record arrays
+        let booksInSeriesBase = get(baseRecord, 'otherBooksInSeries');
+        let booksInSeriesProjectedPreview = get(projectedPreview, 'otherBooksInSeries');
+
+        // Base record we are going to delete
+        let otherRecordBase = get(booksInSeriesBase, 'firstObject');
+
+        // precondition
+        assert.equal(
+          get(booksInSeriesBase, 'length'),
+          1,
+          'Expected otherBooksInSeries length to be one for base'
+        );
+        assert.equal(
+          get(booksInSeriesProjectedPreview, 'length'),
+          1,
+          'Expected otherBooksInSeries length to be one for projected preview'
+        );
+
+        await otherRecordBase.destroyRecord();
+
+        assert.equal(
+          get(booksInSeriesBase, 'length'),
+          0,
+          'Expected the base record to be removed from the recordArray'
+        );
+        assert.equal(
+          get(booksInSeriesProjectedPreview, 'length'),
+          0,
+          'Expected the projection to be removed from the recordArray'
+        );
+      });
+    }
 
     skip('Unloading a record removes it from record arrays, which have reference to it', function (assert) {
       // we need additional records to be able to resolve the references

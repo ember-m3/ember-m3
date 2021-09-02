@@ -177,10 +177,13 @@ export default class M3RecordData {
       if (!baseRecordData && !parentRecordData && id) {
         this.globalM3CacheRD[this.id] = this;
       }
-      this._isNew = false;
-      this._isDeleted = false;
+      // We keep the state of the lifecycle flags on the base RD, and projections read from there
+      if (!baseRecordData) {
+        this._isNew = false;
+        this._isDeleted = false;
+        this._isDeletionCommitted = false;
+      }
       this._isLoaded = false;
-      this._isDeletionCommited = false;
     } else {
       this._embeddedInternalModel = null;
     }
@@ -349,9 +352,8 @@ export default class M3RecordData {
   didCommit(jsonApiResource, notifyRecord = false) {
     if (CUSTOM_MODEL_CLASS) {
       this._isNew = false;
-      if (this._isDeleted) {
-        this._isDeletionCommited = true;
-        this.removeFromRecordArrays();
+      if (this.isDeleted()) {
+        this.setIsDeletionCommitted(true);
       }
     }
     if (jsonApiResource && jsonApiResource.id) {
@@ -479,7 +481,18 @@ export default class M3RecordData {
   }
 
   isNew() {
+    if (this._baseRecordData) {
+      return this._baseRecordData.isNew();
+    }
     return this._isNew;
+  }
+
+  setIsNew(value) {
+    if (this._baseRecordData) {
+      return this._baseRecordData.setIsNew(value);
+    }
+    this._isNew = value;
+    this._notifyStateChange();
   }
 
   setIsDeleted(value) {
@@ -487,6 +500,7 @@ export default class M3RecordData {
       return this._baseRecordData.setIsDeleted(value);
     }
     this._isDeleted = value;
+    this._notifyStateChange();
   }
 
   isDeleted() {
@@ -497,7 +511,33 @@ export default class M3RecordData {
   }
 
   isDeletionCommitted() {
-    return this._isDeletionCommited;
+    if (this._baseRecordData) {
+      return this._baseRecordData.isDeletionCommitted();
+    }
+    return this._isDeletionCommitted;
+  }
+
+  setIsDeletionCommitted(value) {
+    if (this._baseRecordData) {
+      return this._baseRecordData.setIsDeletionCommitted(value);
+    }
+    this._isDeletionCommitted = value;
+    this._notifyStateChange();
+  }
+
+  _notifyStateChange() {
+    let record = recordDataToRecordMap.get(this);
+    if (this.isDeletionCommitted()) {
+      this.removeFromRecordArrays();
+    }
+    if (record) {
+      record._updateCurrentState();
+    }
+    if (this._projections) {
+      for (let i = 1; i < this._projections.length; i++) {
+        this._projections[i]._notifyStateChange();
+      }
+    }
   }
 
   /**
@@ -727,7 +767,6 @@ export default class M3RecordData {
     let dirtyKeys = [];
     if (this.isDeleted()) {
       this.setIsDeleted(false);
-      dirtyKeys.push('isDeleted');
     }
     if (this.hasChangedAttributes()) {
       dirtyKeys = Object.keys(this._attributes);
@@ -751,9 +790,8 @@ export default class M3RecordData {
       }
     }
 
-    if (dirtyKeys.length === 0) {
-      // nothing dirty on this record and we've already handled nested records
-      return;
+    if (CUSTOM_MODEL_CLASS) {
+      this._notifyStateChange();
     }
 
     if (this._notifyProjectionProperties(dirtyKeys)) {

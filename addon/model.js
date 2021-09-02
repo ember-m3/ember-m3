@@ -461,7 +461,6 @@ export default class MegamorphicModel extends EmberObject {
   deleteRecord() {
     if (CUSTOM_MODEL_CLASS) {
       recordDataFor(this).setIsDeleted(true);
-      this._updateCurrentState();
     } else {
       let newState = get(this, 'isNew') ? deletedSaved : deletedUncommitted;
       this._updateCurrentState(newState);
@@ -483,11 +482,14 @@ export default class MegamorphicModel extends EmberObject {
       assertNoChanges(this._store);
     }
 
-    let dirtyKeys = recordDataFor(this).rollbackAttributes();
-    this._updateCurrentState(!CUSTOM_MODEL_CLASS && loadedSaved);
-
-    if (dirtyKeys && dirtyKeys.length > 0) {
-      this._notifyProperties(dirtyKeys);
+    if (CUSTOM_MODEL_CLASS) {
+      recordDataFor(this).rollbackAttributes(true);
+    } else {
+      let dirtyKeys = recordDataFor(this).rollbackAttributes();
+      this._updateCurrentState(loadedSaved);
+      if (dirtyKeys && dirtyKeys.length > 0) {
+        this._notifyProperties(dirtyKeys);
+      }
     }
     flushChanges(this._store);
   }
@@ -765,7 +767,8 @@ if (CUSTOM_MODEL_CLASS) {
     this._isDirty =
       this._recordData.hasChangedAttributes() ||
       ((this._recordData.isNew() || this._recordData.isDeleted()) &&
-        this._recordData.isNew() !== this._recordData.isDeleted());
+        !this._recordData.isDeletionCommitted());
+
     return this._isDirty;
   });
 } else {
