@@ -2,8 +2,9 @@ import { test, module } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
+import HAS_NATIVE_PROXY from 'ember-m3/utils/has-native-proxy';
 
-if (CUSTOM_MODEL_CLASS) {
+if (CUSTOM_MODEL_CLASS && HAS_NATIVE_PROXY) {
   class TestSchema extends DefaultSchema {
     includesModel(modelName) {
       return /^com.example.bookstore\./i.test(modelName);

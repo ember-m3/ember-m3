@@ -12,43 +12,46 @@ if (CUSTOM_MODEL_CLASS) {
     setupRenderingTest(hooks);
 
     hooks.beforeEach(function () {
-      this.owner.register(
-        'service:m3-schema',
-        class TestSchema extends DefaultSchema {
-          useNativeProperties() {
-            return true;
-          }
-          computeAttribute(key, value, modelName, schemaInterface) {
-            let refValue = schemaInterface.getAttr(`*${key}`);
-            if (typeof refValue === 'string') {
-              return schemaInterface.reference({
-                type: null,
-                id: refValue,
-              });
-            } else if (Array.isArray(refValue)) {
-              return schemaInterface.managedArray(
-                refValue.map((id) =>
-                  schemaInterface.reference({
-                    type: null,
-                    id,
-                  })
-                )
-              );
-            } else if (Array.isArray(value)) {
-              return schemaInterface.managedArray(
-                value.map((val) => schemaInterface.nested({ attributes: val }))
-              );
-            } else if (typeof value === 'object') {
-              return schemaInterface.nested({ attributes: value });
-            }
-
-            return value;
-          }
-          includesModel(modelName) {
-            return /^com\.example\./.test(modelName);
-          }
+      class TestSchema extends DefaultSchema {
+        useNativeProperties() {
+          return true;
         }
-      );
+        computeAttribute(key, value, modelName, schemaInterface) {
+          let refValue = schemaInterface.getAttr(`*${key}`);
+          if (typeof refValue === 'string') {
+            return schemaInterface.reference({
+              type: null,
+              id: refValue,
+            });
+          } else if (Array.isArray(refValue)) {
+            return schemaInterface.managedArray(
+              refValue.map((id) =>
+                schemaInterface.reference({
+                  type: null,
+                  id,
+                })
+              )
+            );
+          } else if (Array.isArray(value)) {
+            return schemaInterface.managedArray(
+              value.map((val) => schemaInterface.nested({ attributes: val }))
+            );
+          } else if (typeof value === 'object') {
+            return schemaInterface.nested({ attributes: value });
+          }
+
+          return value;
+        }
+        includesModel(modelName) {
+          return /^com\.example\./.test(modelName);
+        }
+      }
+      if (HAS_NATIVE_PROXY) {
+        TestSchema.prototype.useNativeProperties = function () {
+          return true;
+        };
+      }
+      this.owner.register('service:m3-schema', TestSchema);
       this.store = this.owner.lookup('service:store');
     });
 
