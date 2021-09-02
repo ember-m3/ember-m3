@@ -7,6 +7,7 @@ import { deprecate } from '@ember/debug';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import MegamorphicModel, { EmbeddedMegamorphicModel } from './model';
 import { recordIdentifierFor } from '@ember-data/store';
+import { A } from '@ember/array';
 
 /**
  * M3TrackedArray
@@ -31,7 +32,7 @@ if (CUSTOM_MODEL_CLASS) {
         id: 'm3.tracked-array.value',
         until: '4.0',
       });
-      return this._objects;
+      return A(this._objects);
     }
 
     get value() {
