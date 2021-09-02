@@ -15,21 +15,17 @@ function computeAttributeCompat(v2Schema, key, value, modelName, schemaInterface
     }
     return array;
   };
-  let compatSchemaInterface = new Proxy(schemaInterface, {
-    get(object, property) {
-      switch (property) {
-        case 'nested':
-          return isReference ? identity : addTarget;
-        case 'reference':
-          return isReference ? addTarget : identity;
-        case 'managedArray':
-          return managedArray;
-        default:
-          return object[property];
-      }
+  let compatSchemaInterface = {
+    get nested() {
+      return isReference ? identity : addTarget;
     },
-  });
-
+    get reference() {
+      return isReference ? addTarget : identity;
+    },
+    get managedArray() {
+      return managedArray;
+    },
+  };
   let result = v2Schema.computeAttribute(key, value, modelName, compatSchemaInterface);
   if (result === arrayTarget) {
     return arrayTarget;
