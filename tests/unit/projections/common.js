@@ -18,43 +18,33 @@ export const PROJECTED_PUBLISHER_CLASS = 'com.example.bookstore.projectedType.Pr
 export const NORM_PROJECTED_PUBLISHER_CLASS =
   'com.example.bookstore.projected-type.projected-publisher';
 
+function parseURN(urn, key, modelSchema) {
+  let parts = /^urn:([^:]+):(.*)/.exec(urn);
+  let id = parts[2];
+  let type = parts[1];
+
+  if (modelSchema && modelSchema.attributesTypes && modelSchema.attributesTypes[key]) {
+    type = modelSchema.attributesTypes[key];
+  }
+  return {
+    type,
+    id,
+  };
+}
+
 function computeAttributeReference(key, value, modelName, schemaInterface, models) {
   if (/^isbn:/.test(value)) {
     return {
       id: value,
       type: BOOK_CLASS_PATH,
     };
-  } else if (/^urn:([^:]+):(.*)/.test(value)) {
-    let parts = /^urn:([^:]+):(.*)/.exec(value);
-    let type = parts[1];
-    let modelSchema = models[modelName];
-
-    if (modelSchema && modelSchema.attributesTypes && modelSchema.attributesTypes[key]) {
-      type = modelSchema.attributesTypes[key];
-    }
-    return {
-      type,
-      id: parts[2],
-    };
   } else if (Array.isArray(value)) {
     if (key === 'similarAuthors') {
       return;
     }
-    return value
-      .map((v) => {
-        let type = null;
-        let modelSchema = models[modelName];
-
-        if (modelSchema && modelSchema.attributesTypes && modelSchema.attributesTypes[key]) {
-          type = modelSchema.attributesTypes[key];
-        }
-
-        return {
-          type,
-          id: v.id,
-        };
-      })
-      .filter(Boolean);
+    return value.map((v) => parseURN(v, key, models[modelName])).filter(Boolean);
+  } else if (/^urn:([^:]+):(.*)/.test(value)) {
+    return parseURN(value, key, models[modelName]);
   }
 }
 function computeNestedModel(key, value, modelName, schemaInterface, models) {
