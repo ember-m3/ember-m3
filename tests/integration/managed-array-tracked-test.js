@@ -216,7 +216,7 @@ if (CUSTOM_MODEL_CLASS) {
         'component:x-foo',
         class XFooComponent extends Component {
           get hasAnything() {
-            return this.bookstore.books.length > 0;
+            return propGet(propGet(this.bookstore, 'books'), 'length') > 0;
           }
         }
       );
@@ -233,7 +233,7 @@ if (CUSTOM_MODEL_CLASS) {
 
       this.set('bookstore', bookstore);
 
-      assert.equal(books.length, 0, 'initial books.length');
+      assert.equal(propGet(books, 'length'), 0, 'initial books.length');
       await render(hbs`
       {{x-foo bookstore=this.bookstore}}
     `);
@@ -252,7 +252,7 @@ if (CUSTOM_MODEL_CLASS) {
       });
 
       await settled();
-      assert.equal(books.length, 2, 'updated books.length');
+      assert.equal(propGet(books, 'length'), 2, 'updated books.length');
       text = this.element.textContent.trim();
       assert.equal(text, 'Has Content', 'length updated');
     });
@@ -301,7 +301,7 @@ if (CUSTOM_MODEL_CLASS) {
         'component:x-foo',
         class XFooComponent extends Component {
           get numberOfRenders() {
-            this.bookstore.books;
+            propGet(this.bookstore, 'books');
             count++;
             return count;
           }
@@ -316,7 +316,7 @@ if (CUSTOM_MODEL_CLASS) {
 
       this.set('bookstore', bookstore);
 
-      assert.equal(books.length, 0, 'initial books.length');
+      assert.equal(propGet(books, 'length'), 0, 'initial books.length');
       await render(hbs`
       {{x-foo bookstore=this.bookstore}}
     `);
