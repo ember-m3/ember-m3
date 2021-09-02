@@ -35,9 +35,14 @@ jobs:
           control-serve-command:  cd m3-perf-testing-app &&  ./node_modules/ember-cli/bin/ember s --path dist-control
           scenarios: |
             {
-              "materializing": {
+              "materializing-lots": {
                 "control": "http://localhost:4200/materializing/12000",
                 "experiment": "http://localhost:4201/materializing/12000",
+                "markers": "start-loading,pushed-payload,end-loading"
+              },
+              "materializing-small": {
+                "control": "http://localhost:4200/materializing/100",
+                "experiment": "http://localhost:4201/materializing/100",
                 "markers": "start-loading,pushed-payload,end-loading"
               },
               "rendering": {
@@ -46,7 +51,7 @@ jobs:
                 "markers": "start-loading,pushed-payload,end-loading"
               }
             }
-          fidelity: 60
+          fidelity: 90
           upload-traces: true
           upload-results: true
       - name: Report TracerBench Results
