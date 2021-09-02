@@ -5,7 +5,7 @@ import hbs from 'htmlbars-inline-precompile';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import Component from '@ember/component';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
-import HAS_NATIVE_PROXY from '../../addon/utils/has-native-proxy';
+import HAS_NATIVE_PROXY from 'ember-m3/utils/has-native-proxy';
 
 if (CUSTOM_MODEL_CLASS) {
   module('integration/managed-array-tracked', function (hooks) {
