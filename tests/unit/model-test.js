@@ -531,7 +531,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
             type: 'com.example.bookstore.Book',
             attributes: {
               name: `Harry Potter and the Sorcerer's Stone`,
-              pubDate: 'September 1989',
+              pubDate: '01 September 1989',
               chapters: {
                 one: {
                   title: 'The Boy Who Lived',
@@ -542,7 +542,7 @@ for (let testRun = 0; testRun < 2; testRun++) {
         })
       );
 
-      let sept1989 = new Date(Date.parse('September 1989')).getTime();
+      let sept1989 = new Date(Date.parse('01 September 1989')).getTime();
 
       assert.equal(
         get(model, 'title'),

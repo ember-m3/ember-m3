@@ -5,49 +5,51 @@ import hbs from 'htmlbars-inline-precompile';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import Component from '@ember/component';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
+import HAS_NATIVE_PROXY from 'ember-m3/utils/has-native-proxy';
+import propGet from '../helpers/prop-get';
 
 if (CUSTOM_MODEL_CLASS) {
   module('integration/managed-array-tracked', function (hooks) {
     setupRenderingTest(hooks);
 
     hooks.beforeEach(function () {
-      this.owner.register(
-        'service:m3-schema',
-        class TestSchema extends DefaultSchema {
-          useNativeProperties() {
-            return true;
+      class TestSchema extends DefaultSchema {
+        computeAttribute(key, value, modelName, schemaInterface) {
+          let refValue = schemaInterface.getAttr(`*${key}`);
+          if (typeof refValue === 'string') {
+            return schemaInterface.reference({
+              type: null,
+              id: refValue,
+            });
+          } else if (Array.isArray(refValue)) {
+            return schemaInterface.managedArray(
+              refValue.map((id) =>
+                schemaInterface.reference({
+                  type: null,
+                  id,
+                })
+              )
+            );
+          } else if (Array.isArray(value)) {
+            return schemaInterface.managedArray(
+              value.map((val) => schemaInterface.nested({ attributes: val }))
+            );
+          } else if (typeof value === 'object') {
+            return schemaInterface.nested({ attributes: value });
           }
-          computeAttribute(key, value, modelName, schemaInterface) {
-            let refValue = schemaInterface.getAttr(`*${key}`);
-            if (typeof refValue === 'string') {
-              return schemaInterface.reference({
-                type: null,
-                id: refValue,
-              });
-            } else if (Array.isArray(refValue)) {
-              return schemaInterface.managedArray(
-                refValue.map((id) =>
-                  schemaInterface.reference({
-                    type: null,
-                    id,
-                  })
-                )
-              );
-            } else if (Array.isArray(value)) {
-              return schemaInterface.managedArray(
-                value.map((val) => schemaInterface.nested({ attributes: val }))
-              );
-            } else if (typeof value === 'object') {
-              return schemaInterface.nested({ attributes: value });
-            }
 
-            return value;
-          }
-          includesModel(modelName) {
-            return /^com\.example\./.test(modelName);
-          }
+          return value;
         }
-      );
+        includesModel(modelName) {
+          return /^com\.example\./.test(modelName);
+        }
+      }
+      if (HAS_NATIVE_PROXY) {
+        TestSchema.prototype.useNativeProperties = function () {
+          return true;
+        };
+      }
+      this.owner.register('service:m3-schema', TestSchema);
       this.store = this.owner.lookup('service:store');
     });
 
@@ -94,7 +96,7 @@ if (CUSTOM_MODEL_CLASS) {
         'component:first-book',
         class FirstBookComponent extends Component {
           get firstBook() {
-            return this.bookstore.books[0];
+            return propGet(this.bookstore, 'books').objectAt(0);
           }
         }
       );
@@ -105,7 +107,7 @@ if (CUSTOM_MODEL_CLASS) {
       );
 
       let bookstore = this.store.peekRecord('com.example.Bookstore', 'urn:bookstore:1');
-      let books = bookstore.books;
+      let books = propGet(bookstore, 'books');
 
       this.set('bookstore', bookstore);
       await render(hbs`
@@ -138,36 +140,38 @@ if (CUSTOM_MODEL_CLASS) {
       );
     });
 
-    // We have run into scenarios like these with users stashing M3 Arrays on POJOs in services, and then accessing them and
-    // modifying during a render
-    test('Can modify a managed array after creation without triggering rerendering assertions', async function (assert) {
-      let bookstore = this.store.createRecord('com.example.Bookstore', {
-        books: [{ name: 'Igor' }, { name: 'David' }],
-      });
+    if (HAS_NATIVE_PROXY) {
+      // We have run into scenarios like these with users stashing M3 Arrays on POJOs in services, and then accessing them and
+      // modifying during a render
+      test('Can modify a managed array after creation without triggering rerendering assertions', async function (assert) {
+        let bookstore = this.store.createRecord('com.example.Bookstore', {
+          books: [{ name: 'Igor' }, { name: 'David' }],
+        });
 
-      let books = bookstore.books;
+        let books = bookstore.books;
 
-      this.owner.register(
-        'component:first-book',
-        class FirstBookComponent extends Component {
-          get firstBook() {
-            books.shift();
-            return books[0];
+        this.owner.register(
+          'component:first-book',
+          class FirstBookComponent extends Component {
+            get firstBook() {
+              books.shift();
+              return books[0];
+            }
           }
-        }
-      );
-      this.owner.register(
-        'template:components/first-book',
-        hbs`<h1>{{this.firstBook.name}}</h1>
+        );
+        this.owner.register(
+          'template:components/first-book',
+          hbs`<h1>{{this.firstBook.name}}</h1>
       `
-      );
+        );
 
-      await render(hbs`
+        await render(hbs`
     {{first-book}}
   `);
-      let text = this.element.textContent.trim();
-      assert.equal(text, 'David', 'Rendered the component');
-    });
+        let text = this.element.textContent.trim();
+        assert.equal(text, 'David', 'Rendered the component');
+      });
+    }
 
     test('mutating arrays causes length tracked properties to recompute', async function (assert) {
       this.store.pushPayload('com.example.Bookstore', {
@@ -212,7 +216,7 @@ if (CUSTOM_MODEL_CLASS) {
         'component:x-foo',
         class XFooComponent extends Component {
           get hasAnything() {
-            return this.bookstore.books.length > 0;
+            return propGet(propGet(this.bookstore, 'books'), 'length') > 0;
           }
         }
       );
@@ -229,7 +233,7 @@ if (CUSTOM_MODEL_CLASS) {
 
       this.set('bookstore', bookstore);
 
-      assert.equal(books.length, 0, 'initial books.length');
+      assert.equal(propGet(books, 'length'), 0, 'initial books.length');
       await render(hbs`
       {{x-foo bookstore=this.bookstore}}
     `);
@@ -248,7 +252,7 @@ if (CUSTOM_MODEL_CLASS) {
       });
 
       await settled();
-      assert.equal(books.length, 2, 'updated books.length');
+      assert.equal(propGet(books, 'length'), 2, 'updated books.length');
       text = this.element.textContent.trim();
       assert.equal(text, 'Has Content', 'length updated');
     });
@@ -297,7 +301,7 @@ if (CUSTOM_MODEL_CLASS) {
         'component:x-foo',
         class XFooComponent extends Component {
           get numberOfRenders() {
-            this.bookstore.books;
+            propGet(this.bookstore, 'books');
             count++;
             return count;
           }
@@ -312,7 +316,7 @@ if (CUSTOM_MODEL_CLASS) {
 
       this.set('bookstore', bookstore);
 
-      assert.equal(books.length, 0, 'initial books.length');
+      assert.equal(propGet(books, 'length'), 0, 'initial books.length');
       await render(hbs`
       {{x-foo bookstore=this.bookstore}}
     `);

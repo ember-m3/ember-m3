@@ -1,4 +1,5 @@
 import EmberObject from '@ember/object';
+import fetch from 'fetch';
 
 export default class Adapter extends EmberObject {
   async ajax(url) {

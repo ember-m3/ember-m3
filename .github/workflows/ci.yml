@@ -106,3 +106,20 @@ jobs:
         run: yarn --frozen-lockfile --install
       - name: try ${{matrix.try-scenario}}
         run: yarn run ember try:one ${{matrix.try-scenario}}
+
+  browser-tests:
+    needs: [lint]
+    runs-on: windows-latest
+    name: test-ie
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '14.x' # preferred node version
+      - name: yarn install
+        run: yarn --frozen-lockfile --install
+      - name: test
+        env:
+          TESTEM_CI_LAUNCHER: IE
+          CI: true
+        run: yarn test

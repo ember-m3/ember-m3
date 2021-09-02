@@ -5,6 +5,7 @@ import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
+import HAS_NATIVE_PROXY from 'ember-m3/utils/has-native-proxy';
 
 function computeNestedModel(key, value /*, modelName, schemaInterface */) {
   if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
@@ -37,7 +38,7 @@ class TestSchema extends DefaultSchema {
   }
 }
 
-if (CUSTOM_MODEL_CLASS) {
+if (CUSTOM_MODEL_CLASS && HAS_NATIVE_PROXY) {
   module(`unit/model/native-access-arrays`, function (hooks) {
     setupTest(hooks);
 

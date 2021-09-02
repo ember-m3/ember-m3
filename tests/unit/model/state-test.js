@@ -9,6 +9,7 @@ import { gte } from 'ember-compatibility-helpers';
 import propGet from '../../helpers/prop-get';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
+import HAS_NATIVE_PROXY from 'ember-m3/utils/has-native-proxy';
 
 let computeNestedModel = function computeNestedModel(key, value) {
   if (value && typeof value === 'object' && !isArray(value)) {
@@ -42,9 +43,6 @@ let computeAttributeReference = function computeAttributeReference(
 };
 
 class TestSchema extends DefaultSchema {
-  useNativeProperties() {
-    return gte('@ember-data/model', '3.28.0') || gte('ember-data', '3.28.0');
-  }
   includesModel() {
     return true;
   }
@@ -80,10 +78,6 @@ class TestSchema extends DefaultSchema {
 }
 
 class TestSchemaOldHooks extends DefaultSchema {
-  useNativeProperties() {
-    return gte('@ember-data/model', '3.28.0') || gte('ember-data', '3.28.0');
-  }
-
   includesModel() {
     return true;
   }
@@ -94,6 +88,15 @@ class TestSchemaOldHooks extends DefaultSchema {
   computeNestedModel(key, value, modelName, schemaInterface) {
     return computeNestedModel(key, value, modelName, schemaInterface);
   }
+}
+
+if ((gte('@ember-data/model', '3.28.0') || gte('ember-data', '3.28.0')) && HAS_NATIVE_PROXY) {
+  TestSchemaOldHooks.prototype.useNativeProperties = function () {
+    return true;
+  };
+  TestSchema.prototype.useNativeProperties = function () {
+    return true;
+  };
 }
 
 for (let testRun = 0; testRun < 2; testRun++) {
@@ -329,10 +332,10 @@ if (gte('3.24.0')) {
         {{show-dirtyness book=this.book}}
       `);
 
-      assert.equal(this.element.innerText, 'Book is dirty', 'Book renders as dirty');
+      assert.equal(this.element.innerText.trim(), 'Book is dirty', 'Book renders as dirty');
     });
 
-    if (CUSTOM_MODEL_CLASS) {
+    if (CUSTOM_MODEL_CLASS && HAS_NATIVE_PROXY) {
       test('creating a record does not cause rerenders from reading `isDirty` when key values are undefined', async function (assert) {
         this.owner.register(
           'component:show-dirtyness',
