@@ -17,8 +17,7 @@ import {
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import { recordDataToRecordMap, recordToRecordArrayMap } from './utils/caches';
 import { recordIdentifierFor } from '@ember-data/store';
-
-const HAS_NATIVE_PROXY = typeof Proxy === 'function';
+import HAS_NATIVE_PROXY from './utils/has-native-proxy';
 
 /**
  * BaseRecordArray

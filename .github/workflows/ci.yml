@@ -110,7 +110,6 @@ jobs:
   browser-tests:
     needs: [lint]
     runs-on: windows-latest
-
     name: test-ie
     steps:
       - uses: actions/checkout@v2
