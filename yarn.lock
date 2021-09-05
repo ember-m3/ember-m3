@@ -1159,14 +1159,6 @@
   dependencies:
     chalk "^4.0.0"
 
-"@ember-data/canary-features@3.28.1":
-  version "3.28.1"
-  resolved "https://registry.yarnpkg.com/@ember-data/canary-features/-/canary-features-3.28.1.tgz#6a9a8d4c7cd32494b612d658ce3fe67006811bc5"
-  integrity sha512-ddGcqJleLtmjbw0eqiFmc8cm3/Dpkmae0k/SP55lMdbZCrCyb4iZIU32ylJ6OtJ44MmqM9iRUKHPB4veJvol8Q==
-  dependencies:
-    ember-cli-babel "^7.26.6"
-    ember-cli-typescript "^4.1.0"
-
 "@ember-data/canary-features@3.28.2":
   version "3.28.2"
   resolved "https://registry.yarnpkg.com/@ember-data/canary-features/-/canary-features-3.28.2.tgz#45dea2353a653b371778d44a6ec2241afdbc3fb8"
@@ -1187,14 +1179,14 @@
     ember-cli-test-info "^1.0.0"
     ember-cli-typescript "^4.1.0"
 
-"@ember-data/model@3.28.1":
-  version "3.28.1"
-  resolved "https://registry.yarnpkg.com/@ember-data/model/-/model-3.28.1.tgz#758c9c410ec8a5ac1c7ce73c21feb961bfd1fd6a"
-  integrity sha512-RhOdWlhh6NSKWu+cse6JTA1ETb2u4BeY3+NrVN2xLuHvi+x3b1RnG5UoyXCdFQkOtpcj16lWNF3BrhgibQldzg==
+"@ember-data/model@3.28.2":
+  version "3.28.2"
+  resolved "https://registry.yarnpkg.com/@ember-data/model/-/model-3.28.2.tgz#4b50bf35d04484aa58d678d9f75aa507f0f4e73c"
+  integrity sha512-xzcJpTLf8cvU0B7HcEVSfRdFqk+GT666yr9Mleznj04VzS1MiBzxFW4KyZWDVZWcyNoH4Vrw5buW7CnQapGyPg==
   dependencies:
-    "@ember-data/canary-features" "3.28.1"
-    "@ember-data/private-build-infra" "3.28.1"
-    "@ember-data/store" "3.28.1"
+    "@ember-data/canary-features" "3.28.2"
+    "@ember-data/private-build-infra" "3.28.2"
+    "@ember-data/store" "3.28.2"
     "@ember/edition-utils" "^1.2.0"
     "@ember/string" "^1.0.0"
     ember-cached-decorator-polyfill "^0.1.4"
@@ -1204,38 +1196,6 @@
     ember-cli-typescript "^4.1.0"
     ember-compatibility-helpers "^1.2.0"
     inflection "~1.13.1"
-
-"@ember-data/private-build-infra@3.28.1":
-  version "3.28.1"
-  resolved "https://registry.yarnpkg.com/@ember-data/private-build-infra/-/private-build-infra-3.28.1.tgz#29ebf7e67bcdfa2500688afe4a408436b4f5cfdb"
-  integrity sha512-DDyR1buNCNSVaYNPAGdEyjzMlO6CcUQXEbay4BUdiWzwIhWI4EBpkHEAlaZIEntCzGJq1Ai8GY5nRXI0Auf5Eg==
-  dependencies:
-    "@babel/plugin-transform-block-scoping" "^7.8.3"
-    "@ember-data/canary-features" "3.28.1"
-    "@ember/edition-utils" "^1.2.0"
-    babel-plugin-debug-macros "^0.3.3"
-    babel-plugin-filter-imports "^4.0.0"
-    babel6-plugin-strip-class-callcheck "^6.0.0"
-    broccoli-debug "^0.6.5"
-    broccoli-file-creator "^2.1.1"
-    broccoli-funnel "^3.0.3"
-    broccoli-merge-trees "^4.2.0"
-    broccoli-rollup "^4.1.1"
-    calculate-cache-key-for-tree "^2.0.0"
-    chalk "^4.0.0"
-    ember-cli-babel "^7.26.6"
-    ember-cli-path-utils "^1.0.0"
-    ember-cli-string-utils "^1.1.0"
-    ember-cli-typescript "^4.1.0"
-    ember-cli-version-checker "^5.1.1"
-    esm "^3.2.25"
-    git-repo-info "^2.1.1"
-    glob "^7.1.6"
-    npm-git-info "^1.0.3"
-    rimraf "^3.0.2"
-    rsvp "^4.8.5"
-    semver "^7.1.3"
-    silent-error "^1.1.1"
 
 "@ember-data/private-build-infra@3.28.2":
   version "3.28.2"
@@ -1273,19 +1233,6 @@
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/@ember-data/rfc395-data/-/rfc395-data-0.0.4.tgz#ecb86efdf5d7733a76ff14ea651a1b0ed1f8a843"
   integrity sha512-tGRdvgC9/QMQSuSuJV45xoyhI0Pzjm7A9o/MVVA3HakXIImJbbzx/k/6dO9CUEQXIyS2y0fW6C1XaYOG7rY0FQ==
-
-"@ember-data/store@3.28.1":
-  version "3.28.1"
-  resolved "https://registry.yarnpkg.com/@ember-data/store/-/store-3.28.1.tgz#5ba93d5c306a15827bee4a7aedb15f7924a87586"
-  integrity sha512-0hGWk8oGLpC9nq3MDtLMCDNzRj7y1lh/V+qLcYt4Pdc3An1SMJxt5vSoymgS4YWJrnzX3lkqWrffFxueX2eN9g==
-  dependencies:
-    "@ember-data/canary-features" "3.28.1"
-    "@ember-data/private-build-infra" "3.28.1"
-    "@ember/string" "^1.0.0"
-    "@glimmer/tracking" "^1.0.4"
-    ember-cli-babel "^7.26.6"
-    ember-cli-path-utils "^1.0.0"
-    ember-cli-typescript "^4.1.0"
 
 "@ember-data/store@3.28.2":
   version "3.28.2"
