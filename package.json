@@ -116,7 +116,7 @@
     "testem": "^3.5.0"
   },
   "engines": {
-    "node": ">= 12.* < 16.*"
+    "node": ">= 12.* <= 16.*"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
