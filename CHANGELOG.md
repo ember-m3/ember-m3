@@ -1,6 +1,15 @@
 
 
 
+## v5.0.1 (2021-09-09)
+
+#### :rocket: Enhancement
+* [#1337](https://github.com/hjdivad/ember-m3/pull/1337) Add support for Node v16 ([@igorT](https://github.com/igorT))
+
+#### Committers: 1
+- Igor Terzic ([@igorT](https://github.com/igorT))
+
+
 ## v5.0.0 (2021-09-02)
 
 #### :boom: Breaking Change
