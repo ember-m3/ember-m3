@@ -3,7 +3,6 @@ import { dasherize } from '@ember/string';
 import EmberObject from '@ember/object';
 import MutableArray from '@ember/array/mutable';
 import { A } from '@ember/array';
-import MegamorphicModel, { EmbeddedMegamorphicModel } from './model';
 import {
   resolveReferencesWithInternalModels,
   resolveReferencesWithRecords,
@@ -18,6 +17,7 @@ import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import { recordDataToRecordMap, recordToRecordArrayMap } from './utils/caches';
 import { recordIdentifierFor } from '@ember-data/store';
 import HAS_NATIVE_PROXY from './utils/has-native-proxy';
+import require from 'require';
 
 /**
  * BaseRecordArray
@@ -441,7 +441,14 @@ if (CUSTOM_MODEL_CLASS) {
   });
 }
 
+let MegamorphicModel, EmbeddedMegamorphicModel;
 export function associateRecordWithRecordArray(record, recordArray) {
+  // Doing the require at runtime to avoid creating a circular dependency
+  if (MegamorphicModel === undefined) {
+    let modelModule = require('ember-m3/model');
+    MegamorphicModel = modelModule.default;
+    EmbeddedMegamorphicModel = modelModule.EmbeddedMegamorphicModel;
+  }
   if (record instanceof EmbeddedMegamorphicModel) {
     // embedded models can be added across tracked arrays (although this is
     // weird) but since they can't be unloaded there's no need to associate the

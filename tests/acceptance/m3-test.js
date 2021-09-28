@@ -2,7 +2,8 @@ import { module, test } from 'qunit';
 import { setupApplicationTest } from 'ember-qunit';
 import IndexPage from '../pages/index';
 import { click, currentURL, visit } from '@ember/test-helpers';
-import InteropDebugAdapter from 'ember-m3/adapters/interop-debug-adapter';
+import require from 'require';
+import { DEBUG } from '@glimmer/env';
 
 module('acceptance/m3', function (hooks) {
   setupApplicationTest(hooks);
@@ -53,9 +54,12 @@ module('acceptance/m3', function (hooks) {
     assert.equal(page.books()[0].name(), 'Vol I. The Birth of Britain');
   });
 
-  test('InteropDebugAdapter is registered as data-adapter:main', async function (assert) {
-    await visit('/');
+  if (DEBUG) {
+    test('InteropDebugAdapter is registered as data-adapter:main', async function (assert) {
+      let InteropDebugAdapter = require('ember-m3/adapters/interop-debug-adapter').default;
+      await visit('/');
 
-    assert.ok(this.owner.lookup('data-adapter:main') instanceof InteropDebugAdapter);
-  });
+      assert.ok(this.owner.lookup('data-adapter:main') instanceof InteropDebugAdapter);
+    });
+  }
 });

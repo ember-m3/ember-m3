@@ -3,6 +3,7 @@ import { setupTest } from 'ember-qunit';
 import { run } from '@ember/runloop';
 import { recordDataFor } from 'ember-m3/-private';
 import DefaultSchema from 'ember-m3/services/m3-schema';
+import { DEBUG } from '@glimmer/env';
 
 class TestSchema extends DefaultSchema {
   includesModel(modelName) {
@@ -231,44 +232,46 @@ for (let testRun = 0; testRun < 2; testRun++) {
         );
       });
 
-      test('.save disallows saving embedded models', function (assert) {
-        assert.expect(1);
+      if (DEBUG) {
+        test('.save disallows saving embedded models', function (assert) {
+          assert.expect(1);
 
-        this.owner.register(
-          'adapter:-ember-m3',
-          class TestAdapter {
-            static create() {
-              return new TestAdapter(...arguments);
+          this.owner.register(
+            'adapter:-ember-m3',
+            class TestAdapter {
+              static create() {
+                return new TestAdapter(...arguments);
+              }
+
+              updateRecord() {
+                assert.ok(false, 'Adapter updateRecord should not be invoked');
+              }
             }
+          );
 
-            updateRecord() {
-              assert.ok(false, 'Adapter updateRecord should not be invoked');
-            }
-          }
-        );
-
-        let record = run(() => {
-            return this.store.push({
-              data: {
-                id: 1,
-                type: 'com.example.bookstore.Book',
-                attributes: {
-                  author: {
-                    name: 'George R. R. Martin',
+          let record = run(() => {
+              return this.store.push({
+                data: {
+                  id: 1,
+                  type: 'com.example.bookstore.Book',
+                  attributes: {
+                    author: {
+                      name: 'George R. R. Martin',
+                    },
+                    name: 'The Winds of Winter',
+                    estimatedPubDate: 'January 2622',
                   },
-                  name: 'The Winds of Winter',
-                  estimatedPubDate: 'January 2622',
                 },
-              },
-            });
-          }),
-          author = record.get('author');
+              });
+            }),
+            author = record.get('author');
 
-        assert.throws(
-          () => author.save(),
-          /Nested models cannot be directly saved. Perhaps you meant to save the top level model, 'com.example.bookstore.book:1'/
-        );
-      });
+          assert.throws(
+            () => author.save(),
+            /Nested models cannot be directly saved. Perhaps you meant to save the top level model, 'com.example.bookstore.book:1'/
+          );
+        });
+      }
 
       test('.reload calls findRecord with reload: true and passes adapterOptions', function (assert) {
         assert.expect(3);

@@ -37,6 +37,20 @@ jobs:
       - name: test
         run: yarn test
 
+  test-production:
+    name: test production build
+    needs: [lint]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12.x' # min node version
+      - name: yarn install
+        run: yarn --frozen-lockfile --install
+      - name: test
+        run: yarn test:production
+
   test-feature-flags:
     name: feature flags
     needs: [lint]
