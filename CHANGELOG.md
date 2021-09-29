@@ -1,6 +1,16 @@
 
 
 
+
+## v5.0.2 (2021-09-29)
+
+#### :bug: Bug Fix
+* [#1376](https://github.com/hjdivad/ember-m3/pull/1376) Fix native property access in production ([@igorT](https://github.com/igorT))
+
+#### Committers: 1
+- Igor Terzic ([@igorT](https://github.com/igorT))
+
+
 ## v5.0.1 (2021-09-09)
 
 #### :rocket: Enhancement
