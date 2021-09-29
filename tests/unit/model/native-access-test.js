@@ -144,35 +144,40 @@ if (CUSTOM_MODEL_CLASS && HAS_NATIVE_PROXY) {
       }
     });
 
-    if (DEBUG) {
-      test('setting native properties deprecates when useNativeProperties is false', function (assert) {
-        class NonNativeSetSchema extends TestSchema {
-          setAttribute(modelName, attr, value, schemaInterface) {
-            assert.ok(false, 'should not call setAttribute when useNativeProperties is not true');
-            schemaInterface.setAttr('name', value);
-          }
-          useNativeProperties() {
-            return false;
-          }
+    test('setting native properties deprecates when useNativeProperties is false', function (assert) {
+      class NonNativeSetSchema extends TestSchema {
+        setAttribute(modelName, attr, value, schemaInterface) {
+          assert.ok(false, 'should not call setAttribute when useNativeProperties is not true');
+          schemaInterface.setAttr('name', value);
         }
-        this.owner.register('service:m3-schema', NonNativeSetSchema);
-        this.store.push({
-          data: {
-            id: 'urn:li:book:1',
-            type: 'com.example.bookstore.Book',
-            attributes: {
-              title: 'How to Win Friends and Influence People',
-            },
+        useNativeProperties() {
+          return false;
+        }
+      }
+      this.owner.register('service:m3-schema', NonNativeSetSchema);
+      this.store.push({
+        data: {
+          id: 'urn:li:book:1',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            title: 'How to Win Friends and Influence People',
           },
-        });
+        },
+      });
 
-        let book = this.store.peekRecord('com.example.bookstore.Book', 'urn:li:book:1');
+      let book = this.store.peekRecord('com.example.bookstore.Book', 'urn:li:book:1');
 
+      if (DEBUG) {
         assert.expectDeprecation(() => {
           book.name = 'Temp title';
         }, `You set the property 'name' on a 'com.example.bookstore.book' with id 'urn:li:book:1'`);
+      } else {
+        book.name = 'Temp title';
+      }
 
-        assert.equal(book.name, 'Temp title', 'native property access write changes the value');
+      assert.equal(book.name, 'Temp title', 'native property access write changes the value');
+
+      if (DEBUG) {
         assert.throws(
           () => {
             book.title;
@@ -180,8 +185,8 @@ if (CUSTOM_MODEL_CLASS && HAS_NATIVE_PROXY) {
           /You attempted to access the `title` property/,
           'Native access of an m3 property errors out'
         );
-      });
-    }
+      }
+    });
 
     if (DEBUG) {
       test('useNativeProperties can be set for each model type', function (assert) {

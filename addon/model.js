@@ -91,6 +91,15 @@ if (CUSTOM_MODEL_CLASS) {
       // have to use it. This is safe, because we already checked that the
       // property is not `in` the instance, so it will definitely call
       // `unknownProperty` and will not re-enter.
+
+      // We have to use `target.get` instead of `receiver.get` because
+      // `Ember.get` will access the property itself before calling
+      // `unknownProperty` causing an infinite recursion
+
+      // The only potential downside here is that the value of `this` in our
+      // `unknownProperty` handler will be set to the target MegamorphicModel
+      //  and not to the proxy, so we have to be careful when accessing WeakMaps
+      // inside our `unknonwProperty` code, but there isn't a user visible impact
       return target.get(key);
     }
 
