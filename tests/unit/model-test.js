@@ -2,6 +2,7 @@ import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import sinon from 'sinon';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
+import { DEBUG } from '@glimmer/env';
 import { recordDataFor } from 'ember-m3/-private';
 import { zip } from 'lodash';
 import { Errors as ModelErrors } from '@ember-data/model/-private';
@@ -2584,15 +2585,19 @@ for (let testRun = 0; testRun < 2; testRun++) {
       // nestedModel.unloadRecord();
       // assert.expectWarning(`Nested models cannot be directly unloaded.  Perhaps you meant to unload the top level model, 'com.example.bookstore.book:1'`);
 
-      captureWarnings();
+      if (DEBUG) {
+        captureWarnings();
+      }
 
       nestedModel.unloadRecord();
-      assert.deepEqual(capturedWarnings, [
-        [
-          "Nested models cannot be directly unloaded.  Perhaps you meant to unload the top level model, 'com.example.bookstore.book:1'",
-          { id: 'ember-m3.nested-model-unloadRecord' },
-        ],
-      ]);
+      if (DEBUG) {
+        assert.deepEqual(capturedWarnings, [
+          [
+            "Nested models cannot be directly unloaded.  Perhaps you meant to unload the top level model, 'com.example.bookstore.book:1'",
+            { id: 'ember-m3.nested-model-unloadRecord' },
+          ],
+        ]);
+      }
       assert.equal(
         this.store.hasRecordForId('com.example.bookstore.book', '1'),
         true,

@@ -6,6 +6,7 @@ import {
 } from 'ember-m3/utils/notify-changes';
 import { addObserver } from '@ember/object/observers';
 import { A } from '@ember/array';
+import { DEBUG } from '@glimmer/env';
 
 module('unit/utils/notify-changes', function (hooks) {
   hooks.beforeEach(function () {
@@ -120,24 +121,26 @@ module('unit/utils/notify-changes', function (hooks) {
     );
   });
 
-  test('deferArrayPropertyChange asserts if passed a non-Ember array', function (assert) {
-    assert.throws(
-      () => {
-        deferArrayPropertyChange(this.store, {}, 1, 2, 3);
-      },
-      /deferArrayPropertyChange called on something other than an Ember array/,
-      'assert if passed non-array'
-    );
+  if (DEBUG) {
+    test('deferArrayPropertyChange asserts if passed a non-Ember array', function (assert) {
+      assert.throws(
+        () => {
+          deferArrayPropertyChange(this.store, {}, 1, 2, 3);
+        },
+        /deferArrayPropertyChange called on something other than an Ember array/,
+        'assert if passed non-array'
+      );
 
-    assert.throws(
-      () => {
-        deferArrayPropertyChange(this.store, [], 1, 2, 3);
-      },
-      /deferArrayPropertyChange called on something other than an Ember array/,
-      'assert if passed native array with prototype extensions off'
-    );
+      assert.throws(
+        () => {
+          deferArrayPropertyChange(this.store, [], 1, 2, 3);
+        },
+        /deferArrayPropertyChange called on something other than an Ember array/,
+        'assert if passed native array with prototype extensions off'
+      );
 
-    // does not throw
-    deferArrayPropertyChange(this.store, A(), 1, 2, 3);
-  });
+      // does not throw
+      deferArrayPropertyChange(this.store, A(), 1, 2, 3);
+    });
+  }
 });

@@ -49,6 +49,7 @@
     "lint:js": "eslint .",
     "start": "ember server --port=0",
     "test": "yarn test:ember",
+    "test:production": "ember test -e production",
     "test:ember": "ember test",
     "prepublishOnly": "node ./src/prepublish.js",
     "postpublish": "node ./src/postpublish.js"

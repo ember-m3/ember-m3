@@ -3,6 +3,7 @@ import { setupTest } from 'ember-qunit';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import HAS_NATIVE_PROXY from 'ember-m3/utils/has-native-proxy';
+import { DEBUG } from '@glimmer/env';
 
 if (CUSTOM_MODEL_CLASS && HAS_NATIVE_PROXY) {
   class TestSchema extends DefaultSchema {
@@ -122,18 +123,25 @@ if (CUSTOM_MODEL_CLASS && HAS_NATIVE_PROXY) {
         'native property access can loookup an undefined value'
       );
 
-      assert.expectNoDeprecation(() => {
+      if (DEBUG) {
+        assert.expectNoDeprecation(() => {
+          book.name = 'Temp title';
+        });
+      } else {
         book.name = 'Temp title';
-      });
+      }
 
       assert.equal(book.name, 'Temp title', 'native property access write changes the value');
-      assert.throws(
-        () => {
-          book.title;
-        },
-        /You attempted to access the `title` property/,
-        'Native access of an m3 property errors out'
-      );
+
+      if (DEBUG) {
+        assert.throws(
+          () => {
+            book.title;
+          },
+          /You attempted to access the `title` property/,
+          'Native access of an m3 property errors out'
+        );
+      }
     });
 
     test('setting native properties deprecates when useNativeProperties is false', function (assert) {
@@ -159,87 +167,96 @@ if (CUSTOM_MODEL_CLASS && HAS_NATIVE_PROXY) {
 
       let book = this.store.peekRecord('com.example.bookstore.Book', 'urn:li:book:1');
 
-      assert.expectDeprecation(() => {
+      if (DEBUG) {
+        assert.expectDeprecation(() => {
+          book.name = 'Temp title';
+        }, `You set the property 'name' on a 'com.example.bookstore.book' with id 'urn:li:book:1'`);
+      } else {
         book.name = 'Temp title';
-      }, `You set the property 'name' on a 'com.example.bookstore.book' with id 'urn:li:book:1'`);
+      }
 
       assert.equal(book.name, 'Temp title', 'native property access write changes the value');
-      assert.throws(
-        () => {
-          book.title;
-        },
-        /You attempted to access the `title` property/,
-        'Native access of an m3 property errors out'
-      );
-    });
 
-    test('useNativeProperties can be set for each model type', function (assert) {
-      let useNativePropertiesCount = 0;
-      class DynamicSchema extends NativeSchema {
-        useNativeProperties(modelName) {
-          if (useNativePropertiesCount === 0) {
-            assert.equal(
-              modelName,
-              'com.example.bookstore.book',
-              'Passsed in the correct modelName to useNativeProperties hook'
-            );
-            useNativePropertiesCount++;
-            return true;
-          }
-
-          if (useNativePropertiesCount === 1) {
-            assert.equal(
-              modelName,
-              'com.example.bookstore.author',
-              'Passsed in the correct modelName to useNativeProperties hook'
-            );
-            useNativePropertiesCount++;
-            return false;
-          }
-          assert.ok(false, 'Should not reach useNativeProperties more than once per model');
-        }
+      if (DEBUG) {
+        assert.throws(
+          () => {
+            book.title;
+          },
+          /You attempted to access the `title` property/,
+          'Native access of an m3 property errors out'
+        );
       }
-      this.owner.register('service:m3-schema', DynamicSchema);
-
-      this.store.push({
-        data: {
-          id: 'urn:li:book:1',
-          type: 'com.example.bookstore.Book',
-          attributes: {
-            title: 'How to Win Friends and Influence People',
-          },
-        },
-      });
-
-      let book = this.store.peekRecord('com.example.bookstore.Book', 'urn:li:book:1');
-
-      assert.equal(
-        book.title,
-        'How to Win Friends and Influence People',
-        'accessed field via native property get'
-      );
-
-      let author = this.store.push({
-        data: {
-          id: 'urn:li:author:1',
-          type: 'com.example.bookstore.Author',
-          attributes: {
-            name: 'J.R.R. Tolkien',
-          },
-        },
-      });
-
-      assert.expectDeprecation(() => {
-        author.randomProp = 'random value';
-      }, `You set the property 'randomProp' on a 'com.example.bookstore.author' with id 'urn:li:author:1'`);
-
-      assert.throws(
-        () => {
-          author.name;
-        },
-        /You attempted to access the `name` property/,
-        'Native access of an m3 property errors out'
-      );
     });
+
+    if (DEBUG) {
+      test('useNativeProperties can be set for each model type', function (assert) {
+        let useNativePropertiesCount = 0;
+        class DynamicSchema extends NativeSchema {
+          useNativeProperties(modelName) {
+            if (useNativePropertiesCount === 0) {
+              assert.equal(
+                modelName,
+                'com.example.bookstore.book',
+                'Passsed in the correct modelName to useNativeProperties hook'
+              );
+              useNativePropertiesCount++;
+              return true;
+            }
+
+            if (useNativePropertiesCount === 1) {
+              assert.equal(
+                modelName,
+                'com.example.bookstore.author',
+                'Passsed in the correct modelName to useNativeProperties hook'
+              );
+              useNativePropertiesCount++;
+              return false;
+            }
+            assert.ok(false, 'Should not reach useNativeProperties more than once per model');
+          }
+        }
+        this.owner.register('service:m3-schema', DynamicSchema);
+
+        this.store.push({
+          data: {
+            id: 'urn:li:book:1',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              title: 'How to Win Friends and Influence People',
+            },
+          },
+        });
+
+        let book = this.store.peekRecord('com.example.bookstore.Book', 'urn:li:book:1');
+
+        assert.equal(
+          book.title,
+          'How to Win Friends and Influence People',
+          'accessed field via native property get'
+        );
+
+        let author = this.store.push({
+          data: {
+            id: 'urn:li:author:1',
+            type: 'com.example.bookstore.Author',
+            attributes: {
+              name: 'J.R.R. Tolkien',
+            },
+          },
+        });
+
+        assert.expectDeprecation(() => {
+          author.randomProp = 'random value';
+        }, `You set the property 'randomProp' on a 'com.example.bookstore.author' with id 'urn:li:author:1'`);
+
+        assert.throws(
+          () => {
+            author.name;
+          },
+          /You attempted to access the `name` property/,
+          'Native access of an m3 property errors out'
+        );
+      });
+    }
   });
 }
