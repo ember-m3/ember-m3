@@ -93,7 +93,7 @@
     "ember-inflector": "^4.0.2",
     "ember-load-initializers": "^2.1.2",
     "ember-lodash": "^4.17.5",
-    "ember-qunit": "^5.1.4",
+    "ember-qunit": "^5.1.5",
     "ember-qunit-assert-helpers": "^0.2.1",
     "ember-resolver": "^8.0.2",
     "ember-sinon": "^5.0.0",
