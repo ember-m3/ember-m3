@@ -106,7 +106,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.4.1",
     "husky": "^7.0.2",
-    "lint-staged": "^11.1.2",
+    "lint-staged": "^11.2.3",
     "loader.js": "^4.2.3",
     "moment": "^2.29.1",
     "pretender": "^3.4.7",
