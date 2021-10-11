@@ -1020,7 +1020,7 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@commitlint/cli@^13.1.0", "@commitlint/cli@^13.2.1":
+"@commitlint/cli@^13.2.1":
   version "13.2.1"
   resolved "https://registry.yarnpkg.com/@commitlint/cli/-/cli-13.2.1.tgz#80ebd46beef6ceed3bb0c0842bcda8d02a3c91de"
   integrity sha512-JGzYk2ay5JkRS5w+FLQzr0u/Kih52ds4HPpa3vnwVOQN8Q+S1VYr8Nk/6kRm6uNYsAcC1nejtuDxRdLcLh/9TA==
@@ -1146,12 +1146,12 @@
   dependencies:
     find-up "^5.0.0"
 
-"@commitlint/travis-cli@^13.1.0":
-  version "13.1.0"
-  resolved "https://registry.yarnpkg.com/@commitlint/travis-cli/-/travis-cli-13.1.0.tgz#f8290b1b5a949c45ae7774ce459d85077133c772"
-  integrity sha512-tk8oD89CH3xSAa+NDIoGpm2CBuln8A3duWevXsn/AwZm9yIVPvyJP2/Fs2euYmavLJzJUfcJOK9A/wTXJ+ICHg==
+"@commitlint/travis-cli@^13.2.1":
+  version "13.2.1"
+  resolved "https://registry.yarnpkg.com/@commitlint/travis-cli/-/travis-cli-13.2.1.tgz#e756127eec7eee0333d41d3c521721f82bafe80e"
+  integrity sha512-/J2sWpzyLUnJcQxvYlnFhlWRqVRgxxVX677ttSPRn8meKaQbmsobxGu1Q3BiRMSwoNmuNub+qsbHgJ3dOoifQQ==
   dependencies:
-    "@commitlint/cli" "^13.1.0"
+    "@commitlint/cli" "^13.2.1"
     execa "^5.0.0"
 
 "@commitlint/types@^13.2.0":
