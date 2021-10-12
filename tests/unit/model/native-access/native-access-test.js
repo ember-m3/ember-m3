@@ -21,7 +21,7 @@ if (CUSTOM_MODEL_CLASS && HAS_NATIVE_PROXY) {
     }
   }
 
-  module('unit/model/native-access', function (hooks) {
+  module('unit/model/native-access/native-access', function (hooks) {
     setupTest(hooks);
 
     hooks.beforeEach(function () {

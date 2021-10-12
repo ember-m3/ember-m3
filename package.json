@@ -75,6 +75,7 @@
     "@ember-data/store": "3.28.3",
     "@ember/optional-features": "^2.0.0",
     "@ember/test-helpers": "^2.5.0",
+    "@glimmer/component": "^1.0.4",
     "@malleatus/nyx": "^0.2.0",
     "@octokit/rest": "^18.12.0",
     "babel-eslint": "^10.1.0",
@@ -152,7 +153,7 @@
     }
   },
   "volta": {
-    "node": "14.8.0",
+    "node": "14.18.1",
     "yarn": "1.22.10"
   }
 }
