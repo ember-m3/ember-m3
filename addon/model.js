@@ -85,6 +85,10 @@ if (CUSTOM_MODEL_CLASS) {
     }
 
     get(target, key, receiver) {
+      if (key === 'unknownProperty' || key === 'setUnknownProperty') {
+        return undefined;
+      }
+
       if (typeof key !== 'string' || key in target) {
         return Reflect.get(target, key, receiver);
       }
@@ -117,27 +121,18 @@ if (CUSTOM_MODEL_CLASS) {
       // to trigger `unknownProperty`, as otherwise we will end up in an infinite loop
       // of repeatadly calling `receiver.get`
 
-      if (!DEBUG) {
-        if (this.getting === key) {
-          this.getting = undefined;
-          return undefined;
-        }
-        this.getting = key;
-      }
-      return get(receiver, key);
+      return receiver.get(key);
     }
 
     set(target, key, value, receiver) {
+      if (key === 'unknownProperty' || key === 'setUnknownProperty') {
+        return undefined;
+      }
+
       if (key in target) {
-        if (DEBUG) {
-          // Do this to get around MANDATORY_SETTER
-          // TODO: Figure out a way to fix this
-          target.set(key, value);
-        } else {
-          Reflect.set(target, key, value, receiver);
-        }
+        Reflect.set(target, key, value, receiver);
       } else {
-        receiver.setUnknownProperty(key, value);
+        target._setUnknownProperty(key, value);
       }
 
       return true;
@@ -274,7 +269,7 @@ export default class MegamorphicModel extends EmberObject {
       for (let i = 0; i < keys.length; ++i) {
         let key = keys[i];
         let value = propertiesToFlush[key];
-        this.setUnknownProperty(key, value);
+        this._setUnknownProperty(key, value);
       }
     }
   }
@@ -592,8 +587,12 @@ export default class MegamorphicModel extends EmberObject {
     );
   }
 
-  // TODO: drop change events for unretrieved properties
   setUnknownProperty(key, value) {
+    return this._setUnknownProperty(key, value);
+  }
+
+  // TODO: drop change events for unretrieved properties
+  _setUnknownProperty(key, value) {
     if (!this._init) {
       initProperites[key] = value;
       return;
@@ -927,7 +926,7 @@ export class EmbeddedMegamorphicModel extends MegamorphicModel {
   }
 
   set id(value) {
-    this.setUnknownProperty('id', value);
+    this._setUnknownProperty('id', value);
   }
 
   static toString() {
