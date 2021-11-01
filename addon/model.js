@@ -115,14 +115,20 @@ if (CUSTOM_MODEL_CLASS) {
       // to trigger `unknownProperty`, as otherwise we will end up in an infinite loop
       // of repeatadly calling `receiver.get`
 
-      if (!DEBUG) {
-        if (this.getting === key) {
-          this.getting = undefined;
-          return undefined;
-        }
-        this.getting = key;
-      }
-      return get(receiver, key);
+     if (this.getting === key) {
+       return undefined;
+     }
+     
+     let shouldReset = this.getting === '';
+     this.getting = key;
+     
+     try {
+       return get(receiver, key);
+     } finally {
+       if (shouldReset) {
+         this.getting = '';
+       }
+     }
     }
 
     set(target, key, value, receiver) {
