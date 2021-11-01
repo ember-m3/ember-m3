@@ -39,7 +39,7 @@ class TestSchema extends DefaultSchema {
 }
 
 if (CUSTOM_MODEL_CLASS && HAS_NATIVE_PROXY) {
-  module(`unit/model/native-access-arrays`, function (hooks) {
+  module(`unit/model/native-access/native-access-arrays`, function (hooks) {
     setupTest(hooks);
 
     hooks.beforeEach(function () {

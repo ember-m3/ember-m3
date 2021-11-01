@@ -80,6 +80,8 @@ let megamorphicModelProxyHandler, megamorphicNativeDeprecationHandler;
 
 if (CUSTOM_MODEL_CLASS) {
   const MegamorphicModelProxyHandler = class {
+    getting = '';
+
     get(target, key, receiver) {
       if (typeof key !== 'string' || key in target) {
         return Reflect.get(target, key, receiver);
@@ -88,19 +90,45 @@ if (CUSTOM_MODEL_CLASS) {
       // Ideally we would do `receiver.unknownProperty(key)` here, but
       // unfortunately `unknownProperty` does not entangle the property
       // tag. `Ember.get` is the only thing that does, actually, so we
-      // have to use it. This is safe, because we already checked that the
-      // property is not `in` the instance, so it will definitely call
-      // `unknownProperty` and will not re-enter.
+      // have to use it. However we need to be careful that we do not end
+      // up in an infinite loop when relying on `Ember.get` calling
+      // `.unknownProperty`
 
-      // We have to use `target.get` instead of `receiver.get` because
-      // `Ember.get` will access the property itself before calling
-      // `unknownProperty` causing an infinite recursion
+      // `Ember.get` is going to check whether `receiver` has the `key`
+      // property defined, and if not, call `.unknownProperty`
 
-      // The only potential downside here is that the value of `this` in our
-      // `unknownProperty` handler will be set to the target MegamorphicModel
-      //  and not to the proxy, so we have to be careful when accessing WeakMaps
-      // inside our `unknonwProperty` code, but there isn't a user visible impact
-      return target.get(key);
+      // However, the way that check is implemented differs slightly
+      // between the DEBUG and production ember builds.
+      // See: https://github.com/emberjs/ember.js/blob/3ce13cea235cde8a87d89473533c453523412764/packages/%40ember/-internals/metal/lib/property_get.ts#L110
+
+      // In DEBUG, Ember will have it's own debug proxies installed before this proxy,
+      // and Ember's proxy will have stashed the `target` (in this case the m3 model) under a symbol.
+      // See: https://github.com/emberjs/ember.js/blob/3ce13cea235cde8a87d89473533c453523412764/packages/%40ember/-internals/metal/lib/property_get.ts#L22
+      // To check whether it should call `unknonwnProperty`, `Ember.get` will check for property existance
+      // on the stashed target. Because we have already checked that `key` is not `in target`,
+      // we know the target check will return false, and we are not going re-enter and cause an infinite loop.
+
+      // In production, without Ember's debug Proxies, we will go through
+      // a more straightforward path, where `Ember.get` will do a `receiver[key]` check
+      // to decided whether to call `.unknownProperty`. In that case, we need to make sure
+      // that the second time this getter is called with the key, we return `undefined`
+      // to trigger `unknownProperty`, as otherwise we will end up in an infinite loop
+      // of repeatadly calling `receiver.get`
+
+      if (this.getting === key) {
+        return undefined;
+      }
+
+      let shouldReset = this.getting === '';
+      this.getting = key;
+
+      try {
+        return get(receiver, key);
+      } finally {
+        if (shouldReset) {
+          this.getting = '';
+        }
+      }
     }
 
     set(target, key, value, receiver) {
