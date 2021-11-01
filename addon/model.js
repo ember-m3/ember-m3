@@ -80,9 +80,7 @@ let megamorphicModelProxyHandler, megamorphicNativeDeprecationHandler;
 
 if (CUSTOM_MODEL_CLASS) {
   const MegamorphicModelProxyHandler = class {
-    constructor() {
-      this.getting = '';
-    }
+    this.getting = '';
 
     get(target, key, receiver) {
       if (typeof key !== 'string' || key in target) {
