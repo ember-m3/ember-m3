@@ -2,6 +2,16 @@
 
 
 
+
+## v5.0.3 (2021-11-01)
+
+#### :bug: Bug Fix
+* [#1403](https://github.com/hjdivad/ember-m3/pull/1403) Fix for tracked properties updating when using m3 native properties ([@igorT](https://github.com/igorT))
+
+#### Committers: 1
+- Igor Terzic ([@igorT](https://github.com/igorT))
+
+
 ## v5.0.2 (2021-09-29)
 
 #### :bug: Bug Fix
