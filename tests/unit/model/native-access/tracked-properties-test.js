@@ -72,7 +72,43 @@ if (CUSTOM_MODEL_CLASS && HAS_NATIVE_PROXY) {
       await settled();
 
       renderedTitle = this.element.querySelector('.title').innerText;
-      assert.equal(renderedTitle, 'Title: New title', 'component is rendered correctly');
+      assert.equal(renderedTitle, 'Title: New title', 'component is updated correctly');
+    });
+
+    test('Template getters which depend on m3 native properties update correctly', async function (assert) {
+      this.owner.register('service:m3-schema', TestSchema);
+      this.owner.register(
+        'template:components/show-book',
+        hbs`<h1 class="title">{{@model.title}}</h1>
+    `
+      );
+
+      this.store.push({
+        data: {
+          id: 'urn:li:book:1',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            title: 'How to Win Friends and Influence People',
+          },
+        },
+      });
+
+      let book = (this.book = this.store.peekRecord('com.example.bookstore.Book', 'urn:li:book:1'));
+      await render(hbs`
+        {{show-book model=this.book}}
+      `);
+
+      let renderedTitle = this.element.querySelector('.title').innerText;
+      assert.equal(
+        renderedTitle,
+        'How to Win Friends and Influence People',
+        'template is rendered correctly'
+      );
+      book.title = 'New title';
+      await settled();
+
+      renderedTitle = this.element.querySelector('.title').innerText;
+      assert.equal(renderedTitle, 'New title', 'template is updated correctly');
     });
 
     test('Component getters which depend on m3 native properties update acrross nested models correctly', async function (assert) {
@@ -134,7 +170,7 @@ if (CUSTOM_MODEL_CLASS && HAS_NATIVE_PROXY) {
       await settled();
 
       renderedTitle = this.element.querySelector('.title').innerText;
-      assert.equal(renderedTitle, 'Title: New title', 'component is rendered correctly');
+      assert.equal(renderedTitle, 'Title: New title', 'component is updated correctly');
     });
   });
 }
