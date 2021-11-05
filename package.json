@@ -80,6 +80,7 @@
     "@octokit/rest": "^18.12.0",
     "babel-eslint": "^10.1.0",
     "broccoli-asset-rev": "^3.0.0",
+    "ember-auto-import": "^2.2.3",
     "ember-cli": "~3.28.4",
     "ember-cli-dependency-checker": "^3.0.0",
     "ember-cli-htmlbars": "^6.0.0",
@@ -115,7 +116,8 @@
     "qunit": "^2.17.2",
     "release-it": "^14.11.7",
     "release-it-lerna-changelog": "^4.0.1",
-    "testem": "^3.6.0"
+    "testem": "^3.6.0",
+    "webpack": "^5.62.1"
   },
   "engines": {
     "node": ">= 12.* <= 16.*"
