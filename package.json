@@ -71,7 +71,7 @@
     "@commitlint/cli": "^14.1.0",
     "@commitlint/travis-cli": "^14.1.0",
     "@ember-data/debug": "3.28.3",
-    "@ember-data/model": "3.28.3",
+    "@ember-data/model": "3.28.4",
     "@ember-data/store": "3.28.3",
     "@ember/optional-features": "^2.0.0",
     "@ember/test-helpers": "^2.6.0",
