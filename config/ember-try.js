@@ -64,7 +64,8 @@ module.exports = function () {
           name: 'ember-data-packages-latest',
           npm: {
             devDependencies: {
-              'ember-source': 'latest',
+              // TODO: change this back to `latest` once Ember 4 compatibility has landed
+              'ember-source': '^3.28.0',
               'ember-data': null,
               '@ember-data/store': 'latest',
               '@ember-data/debug': null, // available in 3.15
@@ -80,7 +81,8 @@ module.exports = function () {
           name: 'ember-data-packages-beta',
           npm: {
             devDependencies: {
-              'ember-source': 'latest',
+              // TODO: change this back to `latest` once Ember 4 compatibility has landed
+              'ember-source': '^3.28.0',
               'ember-data': null,
               '@ember-data/store': 'beta',
               '@ember-data/debug': 'beta',
@@ -96,7 +98,8 @@ module.exports = function () {
           name: 'ember-data-packages-canary',
           npm: {
             devDependencies: {
-              'ember-source': 'latest',
+              // TODO: change this back to `latest` once Ember 4 compatibility has landed
+              'ember-source': '^3.28.0',
               'ember-data': null,
               '@ember-data/store': 'canary',
               '@ember-data/debug': 'canary',
