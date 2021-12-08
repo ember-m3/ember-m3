@@ -76,7 +76,7 @@
     "@ember/optional-features": "^2.0.0",
     "@ember/test-helpers": "^2.6.0",
     "@glimmer/component": "^1.0.4",
-    "@malleatus/nyx": "^0.2.0",
+    "@malleatus/nyx": "^0.3.0",
     "@octokit/rest": "^18.12.0",
     "babel-eslint": "^10.1.0",
     "broccoli-asset-rev": "^3.0.0",

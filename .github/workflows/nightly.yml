@@ -5,6 +5,7 @@ on:
   schedule:
     # minute hour day-of-month month day-of-week
     - cron: '0 14 * * *' # 1400 UTC / 0600 PT
+  workflow_dispatch:
 
 jobs:
   test-floating-deps:
@@ -38,8 +39,7 @@ jobs:
         run: yarn run ember try:one ${{matrix.try-scenario}}
       - name: create issue
         if: failure()
-        # TODO: can't run via yarn script due to bug in nyx@0.2.0
-        run: node ./node_modules/.bin/nyx report-failure
+        run: yarn nyx report-failure
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUN_ID: ${{ github.run_id }}
