@@ -129,6 +129,8 @@ module.exports = function () {
         },
         {
           name: 'release-channel',
+          // TODO: Remove this when we land Ember 4 compatibility
+          allowedToFail: true,
           npm: {
             devDependencies: {
               'ember-source': urls[0],

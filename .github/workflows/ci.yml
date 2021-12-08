@@ -69,7 +69,7 @@ jobs:
     name: performance-app
     needs: [lint]
     runs-on: ubuntu-latest
-    
+
     # run all of the commands below inside the perf test app
     defaults:
       run:
@@ -83,7 +83,7 @@ jobs:
       - name: yarn install
         run: yarn --frozen-lockfile --install
       - name: test:performance-app
-        run: yarn test 
+        run: yarn test
 
   test-node:
     name: 't:' # rely on matrix for most of name
