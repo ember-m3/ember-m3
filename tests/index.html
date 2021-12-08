@@ -33,11 +33,11 @@
     <script src="{{ rootURL }}assets/test-support.js"></script>
     <script>
       // Handle testing feature flags
-      if (QUnit.urlParams.enableoptionalfeatures) {
+      if (location.search.includes('enableoptionalfeatures')) {
         window.EmberDataENV = { ENABLE_OPTIONAL_FEATURES: true };
       }
 
-      if (QUnit.urlParams.enableproxy) {
+      if (location.search.includes('enableproxy')) {
         window.EmberDataENV = { ENABLE_OPTIONAL_FEATURES: true };
         window.M3ENV = { FEATURES: { } };
       }
