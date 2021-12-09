@@ -22,7 +22,7 @@ jobs:
         run: yarn test
 
   test-canaries:
-    name: 't:' # rely on matrix for most of name
+    name: "t:${{matrix.try-scenario}}"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
