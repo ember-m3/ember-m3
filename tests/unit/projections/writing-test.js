@@ -1,3 +1,4 @@
+import { DEBUG } from '@glimmer/env';
 import { module, test, skip } from 'qunit';
 import EmberObject, { get, set } from '@ember/object';
 import { run } from '@ember/runloop';
@@ -118,15 +119,20 @@ for (let { name, setupTest } of setupTestPerSchema()) {
         this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
           id: BOOK_ID,
         });
-        assert.expectAssertion(
-          () => {
-            this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
-              id: BOOK_ID,
-            });
-          },
-          /has already been used/,
-          'Expected create record for same projection and ID to throw an error'
-        );
+
+        if (DEBUG) {
+          assert.throws(
+            () => {
+              this.store.createRecord(BOOK_PREVIEW_PROJECTION_CLASS_PATH, {
+                id: BOOK_ID,
+              });
+            },
+            /has already been used/,
+            'Expected create record for same projection and ID to throw an error'
+          );
+        } else {
+          assert.ok(true, 'no assertions happen in production builds');
+        }
       });
     });
 

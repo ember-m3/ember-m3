@@ -1,5 +1,6 @@
 import { test, module } from 'qunit';
 import { setupTest } from 'ember-qunit';
+import { getDeprecationsDuringCallback } from '@ember/test-helpers';
 import DefaultSchema from 'ember-m3/services/m3-schema';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import HAS_NATIVE_PROXY from 'ember-m3/utils/has-native-proxy';
@@ -124,9 +125,14 @@ if (CUSTOM_MODEL_CLASS && HAS_NATIVE_PROXY) {
       );
 
       if (DEBUG) {
-        assert.expectNoDeprecation(() => {
+        const deprecations = getDeprecationsDuringCallback(() => {
           book.name = 'Temp title';
         });
+        assert.deepEqual(
+          deprecations,
+          [],
+          'set does not deprecate when useNativeProperties is undefined'
+        );
       } else {
         book.name = 'Temp title';
       }
@@ -168,9 +174,17 @@ if (CUSTOM_MODEL_CLASS && HAS_NATIVE_PROXY) {
       let book = this.store.peekRecord('com.example.bookstore.Book', 'urn:li:book:1');
 
       if (DEBUG) {
-        assert.expectDeprecation(() => {
+        const deprecations = getDeprecationsDuringCallback(() => {
           book.name = 'Temp title';
-        }, `You set the property 'name' on a 'com.example.bookstore.book' with id 'urn:li:book:1'`);
+        }).map((x) => x.message);
+
+        assert.deepEqual(
+          deprecations,
+          [
+            `You set the property 'name' on a 'com.example.bookstore.book' with id 'urn:li:book:1'. In order to migrate to using native property access for m3 fields, you need to migrate away from setting other values on the model.`,
+          ],
+          'deprecate native setter when useNativeProperties is false'
+        );
       } else {
         book.name = 'Temp title';
       }
@@ -245,9 +259,13 @@ if (CUSTOM_MODEL_CLASS && HAS_NATIVE_PROXY) {
           },
         });
 
-        assert.expectDeprecation(() => {
+        const deprecations = getDeprecationsDuringCallback(() => {
           author.randomProp = 'random value';
-        }, `You set the property 'randomProp' on a 'com.example.bookstore.author' with id 'urn:li:author:1'`);
+        }).map((x) => x.message);
+
+        assert.deepEqual(deprecations, [
+          `You set the property 'randomProp' on a 'com.example.bookstore.author' with id 'urn:li:author:1'. In order to migrate to using native property access for m3 fields, you need to migrate away from setting other values on the model.`,
+        ]);
 
         assert.throws(
           () => {
