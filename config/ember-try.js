@@ -32,8 +32,8 @@ module.exports = function () {
           name: 'ember-lts-n-1',
           npm: {
             devDependencies: {
-              'ember-source': '~3.12.0',
-              'ember-data': '~3.16.0',
+              'ember-source': '~3.24.0',
+              'ember-data': '~3.24.0',
               '@ember-data/store': null,
               '@ember-data/debug': null,
               '@ember-data/model': null,
@@ -48,8 +48,8 @@ module.exports = function () {
           name: 'ember-lts',
           npm: {
             devDependencies: {
-              'ember-source': '~3.16.0',
-              'ember-data': '~3.16.0',
+              'ember-source': '~3.28.0',
+              'ember-data': '~3.28.0',
               '@ember-data/store': null,
               '@ember-data/debug': null,
               '@ember-data/model': null,
@@ -64,7 +64,8 @@ module.exports = function () {
           name: 'ember-data-packages-latest',
           npm: {
             devDependencies: {
-              'ember-source': 'latest',
+              // TODO: change this back to `latest` once Ember 4 compatibility has landed
+              'ember-source': '^3.28.0',
               'ember-data': null,
               '@ember-data/store': 'latest',
               '@ember-data/debug': null, // available in 3.15
@@ -80,7 +81,8 @@ module.exports = function () {
           name: 'ember-data-packages-beta',
           npm: {
             devDependencies: {
-              'ember-source': 'latest',
+              // TODO: change this back to `latest` once Ember 4 compatibility has landed
+              'ember-source': '^3.28.0',
               'ember-data': null,
               '@ember-data/store': 'beta',
               '@ember-data/debug': 'beta',
@@ -96,7 +98,8 @@ module.exports = function () {
           name: 'ember-data-packages-canary',
           npm: {
             devDependencies: {
-              'ember-source': 'latest',
+              // TODO: change this back to `latest` once Ember 4 compatibility has landed
+              'ember-source': '^3.28.0',
               'ember-data': null,
               '@ember-data/store': 'canary',
               '@ember-data/debug': 'canary',
@@ -112,8 +115,8 @@ module.exports = function () {
           name: 'release-n-1',
           npm: {
             devDependencies: {
-              'ember-source': '~3.17.0',
-              'ember-data': '~3.17.0',
+              'ember-source': '~3.28.0',
+              'ember-data': '~3.28.0',
               '@ember-data/store': null,
               '@ember-data/debug': null,
               '@ember-data/model': null,
@@ -126,6 +129,8 @@ module.exports = function () {
         },
         {
           name: 'release-channel',
+          // TODO: Remove this when we land Ember 4 compatibility
+          allowedToFail: true,
           npm: {
             devDependencies: {
               'ember-source': urls[0],
