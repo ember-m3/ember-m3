@@ -22,7 +22,7 @@ jobs:
         run: yarn test
 
   test-canaries:
-    name: 't:' # rely on matrix for most of name
+    name: "t:${{matrix.try-scenario}}"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -39,9 +39,6 @@ jobs:
         run: yarn run ember try:one ${{matrix.try-scenario}}
       - name: create issue
         if: failure()
-        run: yarn nyx report-failure
+        run: "yarn nyx report-failure --owner hjdivad --repo ember-m3 --run-id ${{github.run_id}}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RUN_ID: ${{ github.run_id }}
-          OWNER: hjdivad
-          REPO: ember-m3
