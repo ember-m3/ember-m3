@@ -86,7 +86,7 @@ jobs:
         run: yarn test
 
   test-node:
-    name: 't:' # rely on matrix for most of name
+    name: "t:${{matrix.node}}"
     needs: [lint, test, test-feature-flags]
     runs-on: ubuntu-latest
     strategy:
@@ -104,7 +104,7 @@ jobs:
         run: yarn test
 
   test-ember:
-    name: 't:' # rely on matrix for most of name
+    name: "t:${{matrix.try-scenario}}"
     needs: [lint, test, test-feature-flags]
     runs-on: ubuntu-latest
     strategy:
