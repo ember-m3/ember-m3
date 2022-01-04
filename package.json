@@ -63,7 +63,7 @@
   "dependencies": {
     "babel-plugin-debug-macros": "^0.3.3",
     "broccoli-funnel": "^3.0.8",
-    "ember-cli-babel": "^7.26.6",
+    "ember-cli-babel": "^7.26.11",
     "ember-cli-version-checker": "^5.1.2",
     "semver": "^7.3.5"
   },
