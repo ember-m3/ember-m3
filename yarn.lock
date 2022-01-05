@@ -1499,14 +1499,15 @@
     ember-cli-babel "^7.26.6"
     ember-cli-typescript "^4.1.0"
 
-"@ember-data/debug@3.28.3":
-  version "3.28.3"
-  resolved "https://registry.yarnpkg.com/@ember-data/debug/-/debug-3.28.3.tgz#d928a4d93f3fe1cb20c65bf20bd17b1a99d0c5cd"
-  integrity sha512-4eudplK48o4TVGP8/onmbJuEFLep0HDzYS+wMdrwNlJZx+0y+3NLq3Bifx8IvQ42aSjFrxTJCBNczFMO0iE61A==
+"@ember-data/debug@4.1.0":
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/@ember-data/debug/-/debug-4.1.0.tgz#91c8e0d8a0247a8f5492f0c6fe5e6a24a93c2f42"
+  integrity sha512-c8ftofepCEGzWkJ21IEo690q6Z0zE2ZrAzE+H+kbcOKXGzVHJFJS573nblzL22IRcsIC6kHIHwSZ1abkKIgnIw==
   dependencies:
-    "@ember-data/private-build-infra" "3.28.3"
+    "@ember-data/private-build-infra" "4.1.0"
     "@ember/edition-utils" "^1.2.0"
     "@ember/string" "^3.0.0"
+    ember-auto-import "^2.2.4"
     ember-cli-babel "^7.26.6"
     ember-cli-test-info "^1.0.0"
     ember-cli-typescript "^4.1.0"
