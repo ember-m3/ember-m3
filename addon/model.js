@@ -741,6 +741,12 @@ export default class MegamorphicModel extends EmberObject {
     }
     return this._errors;
   }
+
+  set errors(value) {
+    if (this._schema.useUnderlyingErrorsValue(this._modelName)) {
+      return this.setUnknownProperty('errors', value);
+    }
+  }
 }
 
 MegamorphicModel.prototype.store = null;
