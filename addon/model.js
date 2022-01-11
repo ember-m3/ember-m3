@@ -744,7 +744,12 @@ export default class MegamorphicModel extends EmberObject {
 
   set errors(value) {
     if (this._schema.useUnderlyingErrorsValue(this._modelName)) {
-      return this.setUnknownProperty('errors', value);
+      this.setUnknownProperty('errors', value);
+    } else {
+      this._errors.clear();
+      for (const error of value) {
+        this._errors.pushObject(error);
+      }
     }
   }
 }

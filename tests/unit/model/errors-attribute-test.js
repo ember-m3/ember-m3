@@ -141,6 +141,37 @@ module('unit/model/errors-attribute', function (hooks) {
     );
   });
 
+  test('schema with flag set to false returns Errors object instance and can set errors', function (assert) {
+    this.owner.register('service:m3-schema', TestSchemaFlagOff);
+
+    let model = run(() => {
+      return this.store.push({
+        data: {
+          id: 'urn:book:1',
+          type: 'com.example.bookstore.Book',
+          attributes: {
+            author: ['urn:author:1']
+          },
+        },
+      });
+    });
+
+    const oldErrors = get(model, 'errors');
+
+    assert.ok(
+      oldErrors instanceof ModelErrors,
+      "schema's useUnderlyingErrorsValue returns false should return ModelsError object instance"
+    );
+
+    set(model, 'errors', [{ message: 'hello world', cause: 'earth' }]);
+
+    assert.deepEqual(
+      oldErrors.get('firstObject'),
+      { message: 'hello world', cause: 'earth' },
+      'should return the set errors'
+    );
+  });
+
   test('schema with no flag property returns Errors object instance', function (assert) {
     this.owner.register('service:m3-schema', TestSchemaNoOverride);
 
