@@ -150,7 +150,7 @@ module('unit/model/errors-attribute', function (hooks) {
           id: 'urn:book:1',
           type: 'com.example.bookstore.Book',
           attributes: {
-            author: ['urn:author:1']
+            author: ['urn:author:1'],
           },
         },
       });
