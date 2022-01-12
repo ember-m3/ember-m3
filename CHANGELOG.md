@@ -3,6 +3,21 @@
 
 
 
+
+## v5.0.4 (2022-01-12)
+
+#### :bug: Bug Fix
+* [#1534](https://github.com/hjdivad/ember-m3/pull/1534) [bugfix] ensure that errors can be updated when using useUnderlyingErrorsValue ([@gabrielcsapo](https://github.com/gabrielcsapo))
+
+#### :house: Internal
+* [#1531](https://github.com/hjdivad/ember-m3/pull/1531) Remove ember-cli-shims ([@rwjblue](https://github.com/rwjblue))
+
+#### Committers: 3
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- Gabriel Csapo ([@gabrielcsapo](https://github.com/gabrielcsapo))
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+
+
 ## v5.0.3 (2021-11-01)
 
 #### :bug: Bug Fix
