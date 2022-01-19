@@ -1319,10 +1319,10 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@commitlint/cli@^16.0.2":
-  version "16.0.2"
-  resolved "https://registry.yarnpkg.com/@commitlint/cli/-/cli-16.0.2.tgz#393b03793fc59b93e5f4dd7dd535a6cc5a7413ca"
-  integrity sha512-Jt7iaBjoLGC5Nq4dHPTvTYnqPGkElFPBtTXTvBpTgatZApczyjI2plE0oG4GYWPp1suHIS/VdVDOMpPZjGVusg==
+"@commitlint/cli@^16.0.2", "@commitlint/cli@^16.0.3":
+  version "16.0.3"
+  resolved "https://registry.yarnpkg.com/@commitlint/cli/-/cli-16.0.3.tgz#003c891f68ae1a2994191ae3e1dee067d44be2cc"
+  integrity sha512-SB1od4/1ek5SShNKjKgUdpqiVNulNVgCkjkV4Zz9zLKrxn3sPcgvXMQNh/wy0/T4WPUVgHrHGcxWYOYXxrGwpg==
   dependencies:
     "@commitlint/format" "^16.0.0"
     "@commitlint/lint" "^16.0.0"
@@ -1456,12 +1456,12 @@
   dependencies:
     find-up "^5.0.0"
 
-"@commitlint/travis-cli@^16.0.2":
-  version "16.0.2"
-  resolved "https://registry.yarnpkg.com/@commitlint/travis-cli/-/travis-cli-16.0.2.tgz#a7d3ab7b4ea45c49ff9b0e8065caac9a3b38f04d"
-  integrity sha512-5yy3H0K+Txo7/g/UuuHLc08mwIST20ruWgHRuFxWkbBnCSClUP9ElXDIkVudWVhmX0+8oQWdCW94E8xytIVBJw==
+"@commitlint/travis-cli@^16.0.3":
+  version "16.0.3"
+  resolved "https://registry.yarnpkg.com/@commitlint/travis-cli/-/travis-cli-16.0.3.tgz#5971e55e005eeb23307d8928cd960f3b034c266a"
+  integrity sha512-ecjtQS5nu6pSLxCCBHhY2PiWDZ9Fc8+WC3g8UbKbqhOllb4u9TCwd8gwsAg0Bg2c6clr8RI5BZ/0v8oEyEvFvw==
   dependencies:
-    "@commitlint/cli" "^16.0.2"
+    "@commitlint/cli" "^16.0.3"
     execa "^5.0.0"
 
 "@commitlint/types@^16.0.0":
