@@ -111,7 +111,7 @@ if (CUSTOM_MODEL_CLASS && HAS_NATIVE_PROXY) {
       assert.equal(renderedTitle, 'New title', 'template is updated correctly');
     });
 
-    test('Component getters which depend on m3 native properties update acrross nested models correctly', async function (assert) {
+    test('Component getters which depend on m3 native properties update across nested models correctly', async function (assert) {
       this.owner.register('service:m3-schema', TestSchema);
       this.owner.register(
         'template:components/show-book',
