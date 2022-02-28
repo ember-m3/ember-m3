@@ -72,7 +72,7 @@
     "@commitlint/travis-cli": "^16.0.3",
     "@ember-data/debug": "4.1.0",
     "@ember-data/model": "4.1.0",
-    "@ember-data/store": "3.28.3",
+    "@ember-data/store": "4.2.0",
     "@ember/optional-features": "^2.0.0",
     "@ember/test-helpers": "^2.6.0",
     "@glimmer/component": "^1.0.4",
