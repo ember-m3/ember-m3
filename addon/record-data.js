@@ -724,6 +724,7 @@ export default class M3RecordData {
       let nestedKeys = Object.keys(this._childRecordDatas);
       for (let i = 0; i < nestedKeys.length; ++i) {
         let childKey = nestedKeys[i];
+
         let childRecordDatas = this._childRecordDatas[childKey];
         if (Array.isArray(childRecordDatas)) {
           let changes = null;
@@ -741,6 +742,27 @@ export default class M3RecordData {
             _changedAttributes[childKey] = changes;
           }
         } else {
+          // Larry: check if the childKey is a union alias. This check is needed
+          // for non-graphal applications, whereas change to the resolution field
+          // should be ignored when generating the delta to send to server.
+          // One example is: whenever 'get' a resolution field, it sometimes
+          // create a new node in the data tree and therefore the resolution field
+          // would be added to the changed attributes. For non-graphql usage, this
+          // is incorrect as it generates an unwanted patch.
+          // The code below tries to detect this situation, and exclude such change
+          // from changed attributes.
+          const modelName = childRecordDatas.modelName?.split(':::')[0];
+          const model = modelName ? childRecordDatas._schema?.schema?.models?.[modelName] : null;
+          if (
+            model?.resolutions &&
+            model.resolutions[childKey] &&
+            !model.resolutions[childKey].isGraphQL &&
+            model.resolutions[childKey].isUnionAlias &&
+            model.resolutions[childKey].resolutionField === childKey
+          ) {
+            continue;
+          }
+
           let childChangedAttributes = childRecordDatas.changedAttributes();
           if (Object.keys(childChangedAttributes).length > 0) {
             if (
