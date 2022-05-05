@@ -1,5 +1,5 @@
 import { get } from '@ember/object';
-import { resolveValue } from './resolve-attribute-util';
+import { resolveValue, ACCESS_WRITE } from './resolve-attribute-util';
 import { isResolvedValue } from './utils/resolve';
 import BaseRecordArray from './base-record-array';
 import { recordDataFor } from './-private';
@@ -102,7 +102,8 @@ if (CUSTOM_MODEL_CLASS) {
           this.store,
           this._schema,
           this._record,
-          index + idx
+          index + idx,
+          ACCESS_WRITE
         );
       });
       super.replace(idx, removeAmt, newItems);
@@ -188,7 +189,8 @@ if (CUSTOM_MODEL_CLASS) {
           this._store,
           this._schema,
           this._record,
-          index + idx
+          index + idx,
+          ACCESS_WRITE
         );
       });
 

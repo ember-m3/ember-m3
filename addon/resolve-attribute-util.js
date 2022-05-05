@@ -14,6 +14,9 @@ import {
 } from './utils/resolve';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 
+export const ACCESS_READ = 'READ';
+export const ACCESS_WRITE = 'WRITE';
+
 let EmbeddedInternalModel;
 if (!CUSTOM_MODEL_CLASS) {
   // TODO: shouldn't need this anymore; this level of indirection for nested recordData isn't useful
@@ -56,8 +59,19 @@ if (!CUSTOM_MODEL_CLASS) {
 
 // takes in a single computedValue returned by schema hooks and resolves it as either
 // a reference or a nestedModel
-
-function resolveSingleValue(computedValue, key, store, record, recordData, parentIdx, schemaType) {
+// accessType: whether this is called for a READ or WRITE operation, used to tell
+// the subsequent functions whether to add the corresponding change(s) to the
+// changedAttributes.
+function resolveSingleValue(
+  computedValue,
+  key,
+  store,
+  record,
+  recordData,
+  parentIdx,
+  schemaType,
+  accessType = ACCESS_READ
+) {
   // we received a resolved record and need to transfer it to the new record data
   if (computedValue instanceof EmbeddedMegamorphicModel) {
     // transfer ownership to the new RecordData
@@ -85,7 +99,7 @@ function resolveSingleValue(computedValue, key, store, record, recordData, paren
         : null;
     }
   } else if (schemaType === NESTED) {
-    return createNestedModel(store, record, recordData, key, computedValue, parentIdx);
+    return createNestedModel(store, record, recordData, key, computedValue, parentIdx, accessType);
   } else {
     return computedValue;
   }
@@ -124,7 +138,16 @@ export function resolveRecordArray(store, record, key, references) {
  * 3. Single nested model -> EmbeddedMegaMorphicModel
  * 4. Array of nested models -> array of EmbeddedMegaMorphicModel
  */
-export function resolveValue(key, value, modelName, store, schema, record, parentIdx) {
+export function resolveValue(
+  key,
+  value,
+  modelName,
+  store,
+  schema,
+  record,
+  parentIdx,
+  accessType = ACCESS_READ
+) {
   const recordData = recordDataFor(record);
   const schemaInterface = recordData.schemaInterface;
 
@@ -162,7 +185,17 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
         // and process each element individually
       } else if (Array.isArray(value)) {
         let content = value.map((v, i) =>
-          transferOrResolveValue(store, schema, record, recordData, modelName, key, v, i)
+          transferOrResolveValue(
+            store,
+            schema,
+            record,
+            recordData,
+            modelName,
+            key,
+            v,
+            i,
+            accessType
+          )
         );
         let array = resolveManagedArray(content, key, value, modelName, store, schema, record);
         if (!CUSTOM_MODEL_CLASS) {
@@ -185,7 +218,7 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
       return resolveRecordArray(store, record, key, computedValue);
     } else {
       let content = computedValue.map((v, i) =>
-        resolveSingleValue(v, key, store, record, recordData, i, schemaTypesInfo.get(v))
+        resolveSingleValue(v, key, store, record, recordData, i, schemaTypesInfo.get(v), accessType)
       );
       let array = resolveManagedArray(content, key, value, modelName, store, schema, record);
       if (!CUSTOM_MODEL_CLASS) {
@@ -200,7 +233,7 @@ export function resolveValue(key, value, modelName, store, schema, record, paren
     }
   } else if (Array.isArray(computedValue)) {
     return computedValue.map((v, i) =>
-      resolveSingleValue(v, key, store, record, recordData, i, schemaTypesInfo.get(v))
+      resolveSingleValue(v, key, store, record, recordData, i, schemaTypesInfo.get(v), accessType)
     );
   } else if (computedValue) {
     return computedValue;
@@ -235,17 +268,35 @@ function resolveManagedArray(content, key, value, modelName, store, schema, reco
   }
 }
 
-function transferOrResolveValue(store, schema, record, recordData, modelName, key, value, index) {
+function transferOrResolveValue(
+  store,
+  schema,
+  record,
+  recordData,
+  modelName,
+  key,
+  value,
+  index,
+  accessType = ACCESS_READ
+) {
   if (value instanceof EmbeddedMegamorphicModel) {
     // transfer ownership to the new RecordData
     recordData._setChildRecordData(key, index, recordDataFor(value));
     return value;
   }
 
-  return resolveValue(key, value, modelName, store, schema, record, index);
+  return resolveValue(key, value, modelName, store, schema, record, index, accessType);
 }
 
-function createNestedModel(store, record, recordData, key, nestedValue, parentIdx = null) {
+function createNestedModel(
+  store,
+  record,
+  recordData,
+  key,
+  nestedValue,
+  parentIdx = null,
+  accessType = ACCESS_READ
+) {
   if (parentIdx !== null && nestedValue instanceof EmbeddedMegamorphicModel) {
     recordData._setChildRecordData(key, parentIdx, recordDataFor(nestedValue));
     return nestedValue;
@@ -289,7 +340,13 @@ function createNestedModel(store, record, recordData, key, nestedValue, parentId
     internalModel.record = nestedModel;
     nestedRecordData = recordDataFor(internalModel);
   }
+
+  // debugger
+
+  // const isWriting = Object.keys(recordData.changedAttributes())?.length;
+
   if (
+    accessType === ACCESS_READ ||
     !recordData.getServerAttr ||
     (recordData.getServerAttr(key) !== null && recordData.getServerAttr(key) !== undefined)
   ) {
