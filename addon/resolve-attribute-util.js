@@ -289,6 +289,8 @@ function createNestedModel(store, record, recordData, key, nestedValue, parentId
     internalModel.record = nestedModel;
     nestedRecordData = recordDataFor(internalModel);
   }
+
+  // add a comment to test perf
   if (
     !recordData.getServerAttr ||
     (recordData.getServerAttr(key) !== null && recordData.getServerAttr(key) !== undefined)
