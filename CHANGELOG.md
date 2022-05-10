@@ -5,6 +5,16 @@
 
 
 
+
+## v5.0.6 (2022-05-10)
+
+#### :bug: Bug Fix
+* [#1612](https://github.com/hjdivad/ember-m3/pull/1612) Fixed a bug caused by using '&&=' syntax ([@larry-x-yu](https://github.com/larry-x-yu))
+
+#### Committers: 1
+- [@larry-x-yu](https://github.com/larry-x-yu)
+
+
 ## v5.0.5 (2022-05-10)
 
 #### :bug: Bug Fix
