@@ -4,6 +4,19 @@
 
 
 
+
+## v5.0.5 (2022-05-10)
+
+#### :bug: Bug Fix
+* [#1601](https://github.com/hjdivad/ember-m3/pull/1601) Fix lazy nested model creation for newly written attributes ([@larry-x-yu](https://github.com/larry-x-yu))
+
+#### :house: Internal
+* [#1607](https://github.com/hjdivad/ember-m3/pull/1607) Move feature-flags from CI to nightly ([@hjdivad](https://github.com/hjdivad))
+
+#### Committers: 2
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- [@larry-x-yu](https://github.com/larry-x-yu)
+
 ## v5.0.4 (2022-01-12)
 
 #### :bug: Bug Fix
