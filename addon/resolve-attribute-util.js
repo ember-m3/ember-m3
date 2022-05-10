@@ -292,11 +292,11 @@ function createNestedModel(store, record, recordData, key, nestedValue, parentId
 
   // Detect whether the nested model itself is replaced or new, e.g. from a user having done
   // `model.set('nestedModel', { ...newAttributes });`
-  let createDirtyNestedModel =
-    recordData.__attributes && Object.prototype.hasOwnProperty.call(recordData.__attributes, key);
+  // let createDirtyNestedModel =
+  // recordData.__attributes && Object.prototype.hasOwnProperty.call(recordData.__attributes, key);
 
   // Detect whether creating model from server payload
-  createDirtyNestedModel &&= recordData.getServerAttr && !recordData.getServerAttr(key);
+  let createDirtyNestedModel = recordData.getServerAttr && !recordData.getServerAttr(key);
 
   if (createDirtyNestedModel) {
     Object.keys(nestedValue.attributes).forEach((key) => {
