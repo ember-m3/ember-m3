@@ -289,10 +289,20 @@ function createNestedModel(store, record, recordData, key, nestedValue, parentId
     internalModel.record = nestedModel;
     nestedRecordData = recordDataFor(internalModel);
   }
-  if (
-    !recordData.getServerAttr ||
-    (recordData.getServerAttr(key) !== null && recordData.getServerAttr(key) !== undefined)
-  ) {
+
+  // Detect whether the nested model itself is replaced or new, e.g. from a user having done
+  // `model.set('nestedModel', { ...newAttributes });`
+  let createDirtyNestedModel =
+    recordData.__attributes && Object.keys(recordData.__attributes).indexOf(key) >= 0;
+
+  // Detect whether creating model from server payload
+  createDirtyNestedModel &&= recordData.getServerAttr && !recordData.getServerAttr(key);
+
+  if (createDirtyNestedModel) {
+    Object.keys(nestedValue.attributes).forEach((key) => {
+      nestedRecordData.setAttr(key, nestedValue.attributes[key], true);
+    });
+  } else {
     nestedRecordData.pushData(
       {
         attributes: nestedValue.attributes,
@@ -301,10 +311,6 @@ function createNestedModel(store, record, recordData, key, nestedValue, parentId
       false,
       true
     );
-  } else {
-    Object.keys(nestedValue.attributes).forEach((key) => {
-      nestedRecordData.setAttr(key, nestedValue.attributes[key], true);
-    });
   }
 
   return nestedModel;
