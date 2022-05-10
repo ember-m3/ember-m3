@@ -296,7 +296,8 @@ function createNestedModel(store, record, recordData, key, nestedValue, parentId
     recordData.__attributes && Object.keys(recordData.__attributes).indexOf(key) >= 0;
 
   // Detect whether creating model from server payload
-  createDirtyNestedModel &&= recordData.getServerAttr && !recordData.getServerAttr(key);
+  createDirtyNestedModel =
+    createDirtyNestedModel && recordData.getServerAttr && !recordData.getServerAttr(key);
 
   if (createDirtyNestedModel) {
     Object.keys(nestedValue.attributes).forEach((key) => {
