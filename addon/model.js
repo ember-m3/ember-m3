@@ -158,7 +158,7 @@ if (CUSTOM_MODEL_CLASS) {
 
       set(target, key, value, receiver) {
         Reflect.set(target, key, value, receiver);
-        if (!(key in MegamorphicModel.prototype)) {
+        if (typeof key !== 'symbol' && !(key in MegamorphicModel.prototype)) {
           deprecate(
             `You set the property '${key}' on a '${target._modelName}' with id '${target.id}'. In order to migrate to using native property access for m3 fields, you need to migrate away from setting other values on the model.`,
             false,
