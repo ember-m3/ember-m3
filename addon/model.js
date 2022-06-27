@@ -766,6 +766,7 @@ MegamorphicModel.prototype.isError = null;
 MegamorphicModel.prototype.adapterError = null;
 MegamorphicModel.prototype._identifier = null;
 MegamorphicModel.prototype._isDirty = null;
+MegamorphicModel.prototype._oldWillDestroy = null;
 
 MegamorphicModel.relationshipsByName = new Map();
 
