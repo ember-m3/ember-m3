@@ -6,6 +6,26 @@
 
 
 
+
+## v5.0.7 (2022-06-28)
+
+#### :bug: Bug Fix
+* [#1633](https://github.com/hjdivad/ember-m3/pull/1633) Update Ember-Inspector Compatibility ([@pete-the-pete](https://github.com/pete-the-pete))
+* [#1568](https://github.com/hjdivad/ember-m3/pull/1568) Don't deprecate setting symbols ([@runspired](https://github.com/runspired))
+
+#### :memo: Documentation
+* [#1626](https://github.com/hjdivad/ember-m3/pull/1626) A test case to show how to use a symbol as an attribute name ([@larry-x-yu](https://github.com/larry-x-yu))
+
+#### :house: Internal
+* [#1571](https://github.com/hjdivad/ember-m3/pull/1571) Fix typo in test description ([@mrloop](https://github.com/mrloop))
+
+#### Committers: 4
+- Chris Thoburn ([@runspired](https://github.com/runspired))
+- Ewan McDougall ([@mrloop](https://github.com/mrloop))
+- Pete ([@pete-the-pete](https://github.com/pete-the-pete))
+- [@larry-x-yu](https://github.com/larry-x-yu)
+
+
 ## v5.0.6 (2022-05-10)
 
 #### :bug: Bug Fix
