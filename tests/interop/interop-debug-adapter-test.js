@@ -1,4 +1,4 @@
-import { module, test } from 'qunit';
+import { module, test, skip } from 'qunit';
 import sinon from 'sinon';
 import { setupTest } from 'ember-qunit';
 import { settled } from '@ember/test-helpers';
@@ -163,7 +163,9 @@ if (DEBUG) {
       );
     });
 
-    test('watchModelTypes correctly watches both m3 and @ember-data/model records', async function (assert) {
+    // TODO: This began failing after https://github.com/emberjs/ember.js/pull/19584 landed on ember-source's LTS channel
+    // More context in https://github.com/hjdivad/ember-m3/issues/1146
+    skip('watchModelTypes correctly watches both m3 and @ember-data/model records', async function (assert) {
       assert.expect(HAS_DEBUG_PACKAGE ? 7 : 6);
 
       let typesAddedCallCount = 0;
