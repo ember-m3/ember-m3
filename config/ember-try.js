@@ -62,6 +62,7 @@ module.exports = function () {
         },
         {
           name: 'ember-data-packages-latest',
+          allowedToFail: true,
           npm: {
             devDependencies: {
               // TODO: change this back to `latest` once Ember 4 compatibility has landed
