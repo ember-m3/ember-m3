@@ -3146,6 +3146,11 @@ for (let testRun = 0; testRun < 2; testRun++) {
       const errors = get(model, 'errors');
       assert.ok(errors);
       assert.ok(errors instanceof Errors);
+
+      errors.addObjects([{}]);
+
+      assert.deepEqual(get(errors, 'firstObject'), {});
+      assert.deepEqual(get(errors, '0'), {});
     });
 
     test('.save errors getting updated via the store and removed upon setting a new value', function (assert) {
