@@ -7,6 +7,19 @@
 
 
 
+
+## v5.0.8 (2022-12-07)
+
+#### :house: Internal
+* [#1688](https://github.com/hjdivad/ember-m3/pull/1688) [ember 4] Add `for` and `since` in deprecate() to be ember 4 compat ([@serinyoon](https://github.com/serinyoon))
+* [#1667](https://github.com/hjdivad/ember-m3/pull/1667) Cancel prior CI jobs for the same PR/branch. ([@rwjblue](https://github.com/rwjblue))
+* [#1664](https://github.com/hjdivad/ember-m3/pull/1664) Fixup CI Runs ([@rwjblue](https://github.com/rwjblue))
+
+#### Committers: 2
+- Robert Jackson ([@rwjblue](https://github.com/rwjblue))
+- [@serinyoon](https://github.com/serinyoon)
+
+
 ## v5.0.7 (2022-06-28)
 
 #### :bug: Bug Fix
