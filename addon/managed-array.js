@@ -31,6 +31,10 @@ if (CUSTOM_MODEL_CLASS) {
       deprecate('Accessing content on an M3TrackedArray was private and is deprecated.', false, {
         id: 'm3.tracked-array.value',
         until: '4.0',
+        for: 'ember-m3',
+        since: {
+          enabled: '4.0.0',
+        },
       });
       return A(this._objects);
     }
@@ -39,6 +43,10 @@ if (CUSTOM_MODEL_CLASS) {
       deprecate('Accessing value on an M3TrackedArray was private and is deprecated.', false, {
         id: 'm3.tracked-array.value',
         until: '1.0',
+        for: 'ember-m3',
+        since: {
+          enabled: '4.0.0',
+        },
       });
       return this._value;
     }
@@ -127,6 +135,10 @@ if (CUSTOM_MODEL_CLASS) {
       deprecate('Accessing value on an M3TrackedArray was private and is deprecated.', false, {
         id: 'm3.tracked-array.value',
         until: '1.0',
+        for: 'ember-m3',
+        since: {
+          enabled: '4.0.0',
+        },
       });
       return this._value;
     }
@@ -135,6 +147,10 @@ if (CUSTOM_MODEL_CLASS) {
       deprecate('Accessing content on an M3TrackedArray was private and is deprecated.', false, {
         id: 'm3.tracked-array.value',
         until: '4.0',
+        for: 'ember-m3',
+        since: {
+          enabled: '4.0.0',
+        },
       });
       return this.toArray();
     }
