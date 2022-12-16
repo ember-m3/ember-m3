@@ -1,6 +1,9 @@
 import Route from '@ember/routing/route';
+import { inject as service } from '@ember/service';
 
 export default Route.extend({
+  store: service('store'),
+
   init(...args) {
     this._super(...args);
     this.invocation = 0;
