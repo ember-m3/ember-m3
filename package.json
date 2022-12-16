@@ -155,5 +155,8 @@
   "volta": {
     "node": "14.18.1",
     "yarn": "1.22.10"
+  },
+  "ember": {
+    "edition": "octane"
   }
 }
