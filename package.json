@@ -117,9 +117,6 @@
     "testem": "^3.6.0",
     "webpack": "^5.75.0"
   },
-  "engines": {
-    "node": ">= 12.* <= 16.*"
-  },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
   },
