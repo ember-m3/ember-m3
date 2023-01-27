@@ -42,7 +42,7 @@ jobs:
         run: yarn test
 
   test-production:
-    name: test production build
+    name: production build
     needs: [lint]
     runs-on: ubuntu-latest
     steps:
@@ -56,7 +56,7 @@ jobs:
         run: yarn test:production
 
   test-performance-app:
-    name: performance-app
+    name: performance app
     needs: [lint]
     runs-on: ubuntu-latest
 
@@ -76,7 +76,7 @@ jobs:
         run: yarn test
 
   test-node:
-    name: "t:${{matrix.node}}"
+    name: "node:${{matrix.node}}"
     needs: [lint, test]
     runs-on: ubuntu-latest
     strategy:
@@ -100,7 +100,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        try-scenario: [release-channel, release-n-1, ember-lts, ember-lts-n-1, ember-data-packages-latest]
+        try-scenario: [ember-release, ember-release-1, ember-lts, ember-lts-1, ember-data-lts-3-x]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
@@ -126,4 +126,4 @@ jobs:
         env:
           TESTEM_CI_LAUNCHER: IE
           CI: true
-        run: yarn test
+        run: yarn run ember try:one ember-data-lts-3-x
