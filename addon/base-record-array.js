@@ -1,6 +1,6 @@
 import { get } from '@ember/object';
 import { dasherize } from '@ember/string';
-import EmberObject from '@ember/object';
+import EmberObject, { notifyPropertyChange } from '@ember/object';
 import MutableArray from '@ember/array/mutable';
 import { A } from '@ember/array';
 import {
@@ -112,7 +112,7 @@ if (CUSTOM_MODEL_CLASS) {
       }
 
       this._objects.splice(idx, removeAmt, ...newObjects);
-      this.arrayContentDidChange(idx, removeAmt, newObjects.length);
+      notifyPropertyChange(this, '[]');
       this._registerWithObjects(newObjects);
       this._resolved = true;
     }
@@ -191,7 +191,7 @@ if (CUSTOM_MODEL_CLASS) {
         let index = this._objects.indexOf(record);
         if (index > -1) {
           this._objects.splice(index, 1);
-          this.arrayContentDidChange(index, 1, 0);
+          notifyPropertyChange(this, '[]');
         }
       }
     }
@@ -272,7 +272,7 @@ if (CUSTOM_MODEL_CLASS) {
       this._registerWithInternalModels(newInternalModels);
       this._resolved = true;
 
-      this.arrayContentDidChange(idx, removeAmt, newRecords.length);
+      notifyPropertyChange(this, '[]');
     }
 
     objectAt(idx) {
