@@ -76,7 +76,7 @@ for (let i = 0; i < 2; i++) {
           layout: hbs`
         Authors:
         <ul>
-        {{#each authorNames as |authorName|}}
+        {{#each this.authorNames as |authorName|}}
           <li>{{authorName}}</li>
         {{/each}}
         </ul>
@@ -130,7 +130,7 @@ for (let i = 0; i < 2; i++) {
 
       this.set('bookstore', bookstore);
       await render(hbs`
-      {{show-bookstore bookstore=bookstore}}
+      {{show-bookstore bookstore=this.bookstore}}
     `);
 
       let renderedItems = this.element.querySelectorAll('ul li');
@@ -225,7 +225,7 @@ for (let i = 0; i < 2; i++) {
 
       this.set('bookstore', bookstore);
       await render(hbs`
-      {{show-bookstore bookstore=bookstore}}
+      {{show-bookstore bookstore=this.bookstore}}
     `);
 
       let renderedItems = this.element.querySelectorAll('ul li');

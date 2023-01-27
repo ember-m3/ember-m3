@@ -1,4 +1,4 @@
-Name: {{model._internalModel.modelName}}<br>
+Name: {{this.model._internalModel.modelName}}<br>
 
 <button {{action "updateData" target=this.target}} class='update-data'>
   Update Data (via existing ED subsystem)
@@ -9,7 +9,7 @@ Name: {{model._internalModel.modelName}}<br>
 </button>
 
 <ul class='books'>
-{{#each model.results as |book|}}
+{{#each this.model.results as |book|}}
   <li>
     {{book._internalModel.modelName}}
     <br>
@@ -24,13 +24,13 @@ Name: {{model._internalModel.modelName}}<br>
             {{#each book.readerComments as |comment|}}
             <li>
               {{comment._internalModel.modelName}}: {{comment.id}}<br>
-              {{#with comment.commenter as |commenter|}}
+              {{#let comment.commenter as |commenter|}}
                 {{commenter._internalModel.modelName}}: {{commenter.id}}<br>
                 {{commenter.name}}
                 {{#if commenter.favouriteBook}}
                   (<em>Favourite: ({{commenter.favouriteBook.name}})</em>)
                 {{/if}}
-              {{/with}}
+              {{/let}}
               <br>
               {{#if comment.body}}
                 <span class='comment-body'>
