@@ -1,7 +1,13 @@
 // This lint error disables "this.attrs" everywhere.  What could go wrong?
 /* eslint-disable ember/no-attrs-in-components */
 
-import EmberObject, { computed, get, set, defineProperty } from '@ember/object';
+import EmberObject, {
+  notifyPropertyChange,
+  computed,
+  get,
+  set,
+  defineProperty,
+} from '@ember/object';
 import { isArray } from '@ember/array';
 import { assert, warn, deprecate } from '@ember/debug';
 import { readOnly } from '@ember/object/computed';
@@ -10,12 +16,7 @@ import { recordDataToRecordMap } from './utils/caches';
 import { recordDataFor } from './-private';
 import { resolveValue } from './resolve-attribute-util';
 import { computeAttributeReference, computeAttribute } from './utils/resolve';
-import {
-  assertNoChanges,
-  notifyPropertyChange,
-  deferPropertyChange,
-  flushChanges,
-} from './utils/notify-changes';
+import { assertNoChanges, deferPropertyChange, flushChanges } from './utils/notify-changes';
 import { DEBUG } from '@glimmer/env';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import { RootState, Errors as StoreErrors } from '@ember-data/store/-private';

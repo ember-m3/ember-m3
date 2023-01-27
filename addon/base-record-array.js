@@ -1,6 +1,6 @@
 import { get } from '@ember/object';
 import { dasherize } from '@ember/string';
-import EmberObject from '@ember/object';
+import EmberObject, { notifyPropertyChange } from '@ember/object';
 import MutableArray from '@ember/array/mutable';
 import { A } from '@ember/array';
 import {
@@ -58,6 +58,23 @@ if (CUSTOM_MODEL_CLASS) {
       if (index !== null) {
         receiver.replace(index, 1, [value]);
       } else {
+        if (typeof value === 'function') {
+          // TODO: we don't really need to ignore all functions
+          // We want to ignore the functions from Ember.A(proxy) as they will
+          // clobber our own implementations
+          //
+          // We have to do this because BaseRecordArray.create -> init ->
+          // setEmerArray occurs before the proxy can be created.
+          //
+          // Later, if a user Ember.A(recordArrayProxy) Ember.A will mistakenly
+          // think it's not an ember array and apply the NativeArray mixin to
+          // the proxy.
+          //
+          // We should stop extending EmberObject.extend(MutableArray), but we
+          // still need to prevent Ember.A from clobbering our own objectAt &c.
+          return true;
+        }
+
         Reflect.set(target.__recordArray, key, value);
       }
 
@@ -112,7 +129,7 @@ if (CUSTOM_MODEL_CLASS) {
       }
 
       this._objects.splice(idx, removeAmt, ...newObjects);
-      this.arrayContentDidChange(idx, removeAmt, newObjects.length);
+      notifyPropertyChange(this, '[]');
       this._registerWithObjects(newObjects);
       this._resolved = true;
     }
@@ -191,7 +208,7 @@ if (CUSTOM_MODEL_CLASS) {
         let index = this._objects.indexOf(record);
         if (index > -1) {
           this._objects.splice(index, 1);
-          this.arrayContentDidChange(index, 1, 0);
+          notifyPropertyChange(this, '[]');
         }
       }
     }
@@ -272,7 +289,7 @@ if (CUSTOM_MODEL_CLASS) {
       this._registerWithInternalModels(newInternalModels);
       this._resolved = true;
 
-      this.arrayContentDidChange(idx, removeAmt, newRecords.length);
+      notifyPropertyChange(this, '[]');
     }
 
     objectAt(idx) {
