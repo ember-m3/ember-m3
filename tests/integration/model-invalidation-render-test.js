@@ -26,7 +26,7 @@ module('integration/model-invalidation-render', function (hooks) {
       'component:show-bookstore',
       Component.extend({
         layout: hbs`
-        Name: <span class=name>{{bookstore.name}}</span>
+        Name: <span class=name>{{this.bookstore.name}}</span>
       `,
         didRender() {
           ++ctx.renderCount;
@@ -54,7 +54,7 @@ module('integration/model-invalidation-render', function (hooks) {
     await render(hbs`
       {{show-bookstore bookstore=this.bookstore}}
       <br>
-      Customers: <span class=customers>{{bookstore.customers}}</span>
+      Customers: <span class=customers>{{this.bookstore.customers}}</span>
     `);
 
     let renderedName = this.element.querySelector('.name').innerText;

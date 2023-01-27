@@ -9,6 +9,7 @@ import MutableArray from '@ember/array/mutable';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import isM3Array from 'ember-m3/utils/is-m3-array';
 import EmberObject from '@ember/object';
+import { addObserver } from '@ember/object/observers';
 
 module('unit/record-array', function (hooks) {
   setupTest(hooks);
@@ -80,19 +81,12 @@ module('unit/record-array', function (hooks) {
       { id: 'isbn:2', type: 'com.example.bookstore.Book' },
     ]);
 
-    let willChangeCount = 0;
     let didChangeCount = 0;
-    recordArray.addArrayObserver({
-      arrayWillChange() {
-        ++willChangeCount;
-      },
-      arrayDidChange() {
-        ++didChangeCount;
-      },
+    addObserver(recordArray, '[]', function () {
+      ++didChangeCount;
     });
 
     assert.deepEqual(recordArray.mapBy('title'), ['pretty good book', 'pretty okay book']);
-    assert.equal(willChangeCount, 0, 'resolving references does not trigger change events');
     assert.equal(didChangeCount, 0, 'resolving references does not trigger change events');
   });
 
@@ -149,80 +143,42 @@ module('unit/record-array', function (hooks) {
 
   test('setting references triggers a deferred didChange event', function (assert) {
     let recordArray = this.createRecordArray();
-    let willChangeCount = 0;
-    let didChangeArray = null;
     let didChangeCount = 0;
-    let didChangeArgs = [];
-    recordArray.addArrayObserver({
-      arrayWillChange() {
-        ++willChangeCount;
-      },
-      arrayDidChange(array, ...args) {
-        ++didChangeCount;
-        didChangeArray = array;
-        didChangeArgs.push(args);
-      },
+    addObserver(recordArray, '[]', function () {
+      ++didChangeCount;
     });
     recordArray._setReferences([{ id: 'isbn:1', type: null }]);
 
-    assert.equal(willChangeCount, 0, 'no eager willChange');
     assert.equal(didChangeCount, 0, 'no eager didChange');
 
     flushChanges(this.store);
 
     // don't store enough info for willChange
-    assert.equal(willChangeCount, 0, 'deferred willChange');
     assert.equal(didChangeCount, 1, 'deferred didChange');
-    assert.strictEqual(didChangeArray, recordArray, 'didChange array is correct');
-    assert.deepEqual(didChangeArgs, [[0, 0, 0]], 'didChange args are correct');
   });
 
   test('replacing records triggers an eager didChange event', function (assert) {
     let recordArray = this.createRecordArray();
-    let willChangeCount = 0;
     let didChangeCount = 0;
-    let didChangeArray = null;
-    let didChangeArgs = [];
-    recordArray.addArrayObserver({
-      arrayWillChange() {
-        ++willChangeCount;
-      },
-      arrayDidChange(array, ...args) {
-        ++didChangeCount;
-        didChangeArray = array;
-        didChangeArgs.push(args);
-      },
+    addObserver(recordArray, '[]', function () {
+      ++didChangeCount;
     });
+
     let book1 = this.store.peekRecord('com.example.bookstore.Book', 'isbn:1');
     recordArray.pushObject(book1);
 
-    assert.equal(willChangeCount, 0, 'eager willChange not fired');
     assert.equal(didChangeCount, 1, 'eager didChange fired');
-    assert.strictEqual(didChangeArray, recordArray, 'eager didChange fired - array');
-    assert.deepEqual(didChangeArgs, [[0, 0, 1]], 'eager didChange fired - args');
-
-    didChangeArray = null;
-    didChangeArgs = [];
 
     recordArray.popObject();
 
-    assert.equal(willChangeCount, 0, 'eager willChange not fired');
     assert.equal(didChangeCount, 2, 'eager didChange fired');
-    assert.strictEqual(didChangeArray, recordArray, 'eager didChange fired - second call - array');
-    assert.deepEqual(didChangeArgs, [[0, 1, 0]], 'eager didChange fired - second call - args');
 
     recordArray.pushObject(book1);
     recordArray.pushObject(book1);
-
-    didChangeArray = null;
-    didChangeArgs = [];
 
     recordArray.popObject(book1);
 
-    assert.equal(willChangeCount, 0, 'eager willChange not fired');
     assert.equal(didChangeCount, 5, 'eager didChange fired');
-    assert.strictEqual(didChangeArray, recordArray, 'eager didChange fired - third call - array');
-    assert.deepEqual(didChangeArgs, [[1, 1, 0]], 'eager didChange fired - third call - args');
   });
 
   if (!CUSTOM_MODEL_CLASS) {

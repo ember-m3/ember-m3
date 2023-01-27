@@ -7,6 +7,7 @@ import { recordDataFor } from 'ember-m3/-private';
 import { zip } from 'lodash';
 import { Errors as ModelErrors } from '@ember-data/model/-private';
 import { Errors as StoreErrors } from '@ember-data/store/-private';
+import { addObserver } from '@ember/object/observers';
 
 import EmberObject, { get, set, computed } from '@ember/object';
 import { Promise } from 'rsvp';
@@ -2531,10 +2532,8 @@ for (let testRun = 0; testRun < 2; testRun++) {
 
         let books = model.get('relatedBooks');
         let didChangeCount = 0;
-        books.addArrayObserver({
-          arrayDidChange() {
-            ++didChangeCount;
-          },
+        addObserver(books, '[]', function () {
+          ++didChangeCount;
         });
         assert.deepEqual(
           model.get('relatedBooks').mapBy('name'),
