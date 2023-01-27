@@ -1,8 +1,5 @@
 'use strict';
 
-// eslint-disable-next-line node/no-unpublished-require
-const getChannelURL = require('ember-source-channel-url');
-
 module.exports = async function () {
   return {
     useYarn: true,
@@ -27,7 +24,7 @@ module.exports = async function () {
         name: 'ember-lts-1',
         npm: {
           devDependencies: {
-            'ember-source': '~4.0.0',
+            'ember-source': '~4.4.0',
           },
         },
       },
@@ -35,23 +32,15 @@ module.exports = async function () {
         name: 'ember-lts',
         npm: {
           devDependencies: {
-            'ember-source': '~4.4.0',
-          },
-        },
-      },
-      {
-        name: 'ember-release-1',
-        npm: {
-          devDependencies: {
             'ember-source': '~4.8.0',
           },
         },
       },
       {
-        name: 'ember-release',
+        name: 'ember-latest',
         npm: {
           devDependencies: {
-            'ember-source': await getChannelURL('release'),
+            'ember-source': 'latest',
           },
         },
       },
@@ -59,15 +48,15 @@ module.exports = async function () {
         name: 'ember-beta',
         npm: {
           devDependencies: {
-            'ember-source': await getChannelURL('beta'),
+            'ember-source': 'beta',
           },
         },
       },
       {
-        name: 'ember-canary',
+        name: 'ember-alpha',
         npm: {
           devDependencies: {
-            'ember-source': await getChannelURL('canary'),
+            'ember-source': 'alpha',
           },
         },
       },
@@ -75,11 +64,11 @@ module.exports = async function () {
         name: 'ember-data-lts',
         npm: {
           devDependencies: {
-            'ember-source': '~4.4.0',
+            'ember-source': '~4.8.0',
             'ember-data': null,
-            '@ember-data/store': '~4.4.0',
-            '@ember-data/debug': null,
-            '@ember-data/model': '~4.4.0',
+            '@ember-data/store': '~4.8.0',
+            '@ember-data/debug': '~4.8.0',
+            '@ember-data/model': '~4.8.0',
             '@ember-data/serializer': null,
             '@ember-data/adapter': null,
             '@ember-data/record-data': null,
@@ -91,7 +80,7 @@ module.exports = async function () {
         name: 'ember-data-beta',
         npm: {
           devDependencies: {
-            'ember-source': await getChannelURL('beta'),
+            'ember-source': 'beta',
             'ember-data': null,
             '@ember-data/store': 'beta',
             '@ember-data/debug': 'beta',
@@ -107,11 +96,11 @@ module.exports = async function () {
         name: 'ember-data-canary',
         npm: {
           devDependencies: {
-            'ember-source': 'latest',
+            'ember-source': 'alpha',
             'ember-data': null,
-            '@ember-data/store': 'latest',
-            '@ember-data/debug': null,
-            '@ember-data/model': 'latest',
+            '@ember-data/store': 'canary',
+            '@ember-data/debug': 'canary',
+            '@ember-data/model': 'canary',
             '@ember-data/serializer': null,
             '@ember-data/adapter': null,
             '@ember-data/record-data': null,
