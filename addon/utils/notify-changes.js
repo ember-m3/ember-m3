@@ -27,7 +27,8 @@ function flushPropChanges(store) {
   let changes = StoreToPropChanges.get(store) || [];
   changeProperties(() => {
     for (let i = 0; i < changes.length; i += 2) {
-      let [obj, change] = changes;
+      let obj = changes[i];
+      let change = changes[i + 1];
       notifyPropertyChange(obj, change);
     }
   });
