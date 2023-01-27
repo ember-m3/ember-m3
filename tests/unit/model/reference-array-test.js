@@ -5,6 +5,7 @@ import { run } from '@ember/runloop';
 import EmberObject, { get, set } from '@ember/object';
 import { resolve } from 'rsvp';
 import DefaultSchema from 'ember-m3/services/m3-schema';
+import { settled } from '@ember/test-helpers';
 
 function _resolve(urn) {
   let id = urn;
@@ -22,8 +23,8 @@ function _resolve(urn) {
 
 let computeAttributeReference = function computeAttributeReference(
   key,
-  value,
-  modelName,
+  _value,
+  _modelName,
   schemaInterface
 ) {
   let refValue = schemaInterface.getAttr(`*${key}`);
@@ -318,36 +319,37 @@ for (let testRun = 0; testRun < 2; testRun++) {
         });
       });
 
-      test('.setUnknownProperty updates cached RecordArrays in-place for given arrays and RecordArrays', function (assert) {
-        let model = run(() =>
-          this.store.push({
-            data: {
-              id: 'isbn:9780439708180',
+      test('.setUnknownProperty updates cached RecordArrays in-place for given arrays and RecordArrays', async function (assert) {
+        this.store.push({
+          data: {
+            id: 'isbn:9780439708180',
+            type: 'com.example.bookstore.Book',
+            attributes: {
+              name: `Harry Potter and the Sorcerer's Stone`,
+              '*relatedBooks': ['isbn:9780439064873', 'isbn:9780439136365'],
+              '*otherRecordArray': [],
+            },
+          },
+          included: [
+            {
+              id: 'isbn:9780439064873',
               type: 'com.example.bookstore.Book',
               attributes: {
-                name: `Harry Potter and the Sorcerer's Stone`,
-                '*relatedBooks': ['isbn:9780439064873', 'isbn:9780439136365'],
-                '*otherRecordArray': [],
+                name: `Harry Potter and the Chamber of Secrets`,
               },
             },
-            included: [
-              {
-                id: 'isbn:9780439064873',
-                type: 'com.example.bookstore.Book',
-                attributes: {
-                  name: `Harry Potter and the Chamber of Secrets`,
-                },
+            {
+              id: 'isbn:9780439136365',
+              type: 'com.example.bookstore.Book',
+              attributes: {
+                name: `Harry Potter and the Prisoner of Azkaban`,
               },
-              {
-                id: 'isbn:9780439136365',
-                type: 'com.example.bookstore.Book',
-                attributes: {
-                  name: `Harry Potter and the Prisoner of Azkaban`,
-                },
-              },
-            ],
-          })
-        );
+            },
+          ],
+        });
+
+        await settled();
+        let model = this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439708180');
 
         let relatedBooksRecordArray = get(model, 'relatedBooks');
         let otherRecordArray = get(model, 'otherRecordArray');
@@ -361,7 +363,9 @@ for (let testRun = 0; testRun < 2; testRun++) {
           'initially record array has the server-provided values'
         );
 
-        run(() => set(model, 'relatedBooks', relatedBooksPlainArray));
+        set(model, 'relatedBooks', relatedBooksPlainArray);
+        await settled();
+
         assert.deepEqual(
           get(model, 'relatedBooks').map((b) => get(b, 'id')),
           ['isbn:9780439136365'],
@@ -373,7 +377,9 @@ for (let testRun = 0; testRun < 2; testRun++) {
           'initial record array is re-used from plain array'
         );
 
-        run(() => set(model, 'relatedBooks', otherRecordArray));
+        set(model, 'relatedBooks', otherRecordArray);
+        await settled();
+
         assert.deepEqual(
           get(model, 'relatedBooks').map((b) => get(b, 'id')),
           [],
@@ -385,13 +391,18 @@ for (let testRun = 0; testRun < 2; testRun++) {
           'initial record array is re-used from record array'
         );
 
-        run(() => set(model, 'newRecordArray', relatedBooksRecordArray));
-        run(() => {
-          otherRecordArray.pushObject(
-            this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439064873')
-          );
-        });
-        run(() => set(model, 'newRecordArray', otherRecordArray));
+        set(model, 'newRecordArray', relatedBooksRecordArray);
+        await settled();
+
+        let otherBook = this.store.peekRecord('com.example.bookstore.Book', 'isbn:9780439064873');
+        assert.ok(otherBook, 'loaded book from included');
+
+        otherRecordArray.pushObject(otherBook);
+        await settled();
+
+        set(model, 'newRecordArray', otherRecordArray);
+        await settled();
+
         assert.deepEqual(
           get(model, 'newRecordArray').map((b) => get(b, 'id')),
           ['isbn:9780439064873'],
