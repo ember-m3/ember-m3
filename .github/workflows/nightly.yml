@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: '12.x' # min node version
+          node-version: '14.x' # min node version
       - name: yarn install
         run: yarn install --no-lockfile
       - name: test
@@ -27,12 +27,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        try-scenario: [default, beta-channel, canary-channel]
+        try-scenario: [ember-beta, ember-canary, ember-data-beta, ember-data-canary]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: '12.x'
+          node-version: '14.x'
       - name: yarn install
         run: yarn --frozen-lockfile --install
       - name: try ${{matrix.try-scenario}}
@@ -51,8 +51,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: '12.x' # min node version
+          node-version: '14.x' # min node version
       - name: yarn install
         run: yarn --frozen-lockfile --install
       - name: test:feature-flags
-        run: yarn run ember try:one ember-data-packages-canary --- ember test --query enableoptionalfeatures
+        run: yarn run ember try:one ember-data-canary --- ember test --query enableoptionalfeatures
