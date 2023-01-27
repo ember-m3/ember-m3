@@ -779,19 +779,9 @@ this.store.findRecord('com.example.bookstore.book', 1, { url: '/book/from/surpri
 
 ## Requirements
 
-ember-m3 supports three Ember.js and Ember Data versions
-
-- The [latest release](https://emberjs.com/releases/release/)
-- The [previous release](https://emberjs.com/releases/release/)
-- The current LTS version
-
-As of 30 April 2020 this means:
-
-- 3.18.x (the latest release)
-- 3.17.x (the previous release)
-- 3.16.x (the current LTS)
-
-On the build side, an [active version of node](https://nodejs.org/en/about/releases/) is required.
+* Ember >= 3.16.x < 4.x
+* Ember Data >= 3.16.x < 4.x
+* Node >= 14.x (i.e. an [active version](https://nodejs.org/en/about/releases/))
 
 ## Utilizing less of EmberData
 
