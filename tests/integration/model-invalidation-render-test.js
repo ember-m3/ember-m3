@@ -52,7 +52,7 @@ module('integration/model-invalidation-render', function (hooks) {
       'urn:bookstore:1'
     ));
     await render(hbs`
-      {{show-bookstore bookstore=bookstore}}
+      {{show-bookstore bookstore=this.bookstore}}
       <br>
       Customers: <span class=customers>{{bookstore.customers}}</span>
     `);
