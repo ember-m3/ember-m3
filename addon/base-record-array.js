@@ -58,6 +58,23 @@ if (CUSTOM_MODEL_CLASS) {
       if (index !== null) {
         receiver.replace(index, 1, [value]);
       } else {
+        if (typeof value === 'function') {
+          // TODO: we don't really need to ignore all functions
+          // We want to ignore the functions from Ember.A(proxy) as they will
+          // clobber our own implementations
+          //
+          // We have to do this because BaseRecordArray.create -> init ->
+          // setEmerArray occurs before the proxy can be created.
+          //
+          // Later, if a user Ember.A(recordArrayProxy) Ember.A will mistakenly
+          // think it's not an ember array and apply the NativeArray mixin to
+          // the proxy.
+          //
+          // We should stop extending EmberObject.extend(MutableArray), but we
+          // still need to prevent Ember.A from clobbering our own objectAt &c.
+          return true;
+        }
+
         Reflect.set(target.__recordArray, key, value);
       }
 
