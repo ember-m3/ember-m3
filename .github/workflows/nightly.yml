@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        try-scenario: [ember-beta, ember-canary, ember-data-beta, ember-data-canary]
+        try-scenario: [ember-beta, ember-alpha, ember-data-beta, ember-data-canary]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
