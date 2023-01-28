@@ -1,3 +1,18 @@
+
+## v6.0.0-alpha.1 (2023-01-28)
+
+#### :boom: Breaking Change
+* [#1711](https://github.com/hjdivad/ember-m3/pull/1711) Bump node to active (12 -> 14) ([@hjdivad](https://github.com/hjdivad))
+
+#### :house: Internal
+* [#1708](https://github.com/hjdivad/ember-m3/pull/1708) Bump deps + fix deprecations ([@hjdivad](https://github.com/hjdivad))
+* [#1692](https://github.com/hjdivad/ember-m3/pull/1692) Set ember edition to "octane" ([@nlfurniss](https://github.com/nlfurniss))
+
+#### Committers: 2
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- Nathaniel Furniss ([@nlfurniss](https://github.com/nlfurniss))
+
+
 ## v6 next
 
 #### 💥 Breaking Change
