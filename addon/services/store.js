@@ -9,7 +9,6 @@ import { dasherize } from '@ember/string';
 import { getOwner } from '@ember/application';
 import seenTypesPerStore from '../utils/seen-types-per-store';
 import { next } from '@ember/runloop';
-import { assign } from '@ember/polyfills';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
 import { HAS_RECORD_DATA_PACKAGE } from 'ember-m3/-infra/packages';
 import {
@@ -150,7 +149,7 @@ export default class M3Store extends Store {
     recordDataToQueryCache.set(recordData, this._queryCache);
     let modelName = identifier.type;
     if (get(this, '_schemaManager').includesModel(modelName)) {
-      let createOptions = assign({ _recordData: recordData, store: this }, createRecordArgs);
+      let createOptions = Object.assign({ _recordData: recordData, store: this }, createRecordArgs);
       // TODO remove the megamorphicModelFactory
       let record = MegamorphicModelFactory.create(createOptions);
       notificationManager.subscribe(identifier, (_identifier, value) => {
