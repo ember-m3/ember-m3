@@ -141,6 +141,14 @@ if (CUSTOM_MODEL_CLASS) {
       return record;
     }
 
+    get firstObject() {
+      return this.objectAt(0);
+    }
+
+    get lastObject() {
+      return this.objectAt(this.length - 1);
+    }
+
     _removeObject(object) {
       if (this._resolved) {
         let idx = this._objects.indexOf(object);
