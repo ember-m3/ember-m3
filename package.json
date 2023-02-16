@@ -46,7 +46,7 @@
     "build": "ember build",
     "format": "eslint --fix .",
     "lint": "yarn lint:js",
-    "lint:js": "eslint .",
+    "lint:js": "eslint --cache .",
     "start": "ember server --port=0",
     "test": "yarn test:ember",
     "test:production": "ember test -e production",
