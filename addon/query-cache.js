@@ -1,7 +1,6 @@
 import { Promise as RSVPPromise } from 'rsvp';
 import { assert } from '@ember/debug';
 import { get } from '@ember/object';
-import { assign } from '@ember/polyfills';
 
 import MegamorphicModel from './model';
 import M3QueryArray from './query-array';
@@ -268,7 +267,7 @@ export default class QueryCache {
 
       queryCache: this,
       query,
-      meta: assign({}, payload.meta),
+      meta: Object.assign({}, payload.meta),
     });
 
     if (CUSTOM_MODEL_CLASS) {
