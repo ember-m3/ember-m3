@@ -1,3 +1,9 @@
+## v6.0.0 (unreleased)
+
+#### 💥 Breaking Change
+
+* dropped support for ember-data versions < 3.28.0
+* per [ember 4 deprecation](https://deprecations.emberjs.com/v3.x/#toc_array-observers) array observers no longer supported on managed arrays
 
 ## v6.0.0-alpha.2 (2023-02-17)
 
@@ -13,13 +19,6 @@
 #### Committers: 2
 - David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
 - [@larry-x-yu](https://github.com/larry-x-yu)
-
-## v6 next
-
-#### 💥 Breaking Change
-
-* dropped support for ember-data versions < 3.28.0
-* per [ember 4 deprecation](https://deprecations.emberjs.com/v3.x/#toc_array-observers) array observers no longer supported on managed arrays
 
 ## v6.0.0-alpha.1 (2023-01-28)
 
