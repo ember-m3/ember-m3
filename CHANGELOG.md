@@ -1,3 +1,12 @@
+
+## v6.0.0-alpha.3 (2023-02-17)
+
+#### :bug: Bug Fix
+* [#1737](https://github.com/hjdivad/ember-m3/pull/1737) Fixed a m3-store initialization issue ([@larry-x-yu](https://github.com/larry-x-yu))
+
+#### Committers: 1
+- [@larry-x-yu](https://github.com/larry-x-yu)
+
 ## v6.0.0 (unreleased)
 
 #### 💥 Breaking Change
