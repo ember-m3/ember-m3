@@ -1,3 +1,19 @@
+
+## v6.0.0-alpha.2 (2023-02-17)
+
+#### :bug: Bug Fix
+* [#1733](https://github.com/hjdivad/ember-m3/pull/1733) Fix nested cache merging for projections ([@hjdivad](https://github.com/hjdivad))
+* [#1726](https://github.com/hjdivad/ember-m3/pull/1726) Fix 'firstObject/lastObject' properties in Ember 4 with native proxies ([@larry-x-yu](https://github.com/larry-x-yu))
+
+#### :house: Internal
+* [#1732](https://github.com/hjdivad/ember-m3/pull/1732) cache eslint ([@hjdivad](https://github.com/hjdivad))
+* [#1731](https://github.com/hjdivad/ember-m3/pull/1731) fix deprecations ([@hjdivad](https://github.com/hjdivad))
+* [#1713](https://github.com/hjdivad/ember-m3/pull/1713) Reduce dependabot clutter ([@hjdivad](https://github.com/hjdivad))
+
+#### Committers: 2
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- [@larry-x-yu](https://github.com/larry-x-yu)
+
 ## v6 next
 
 #### 💥 Breaking Change
