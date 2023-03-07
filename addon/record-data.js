@@ -550,6 +550,8 @@ export default class M3RecordData {
       return this._attributes[key];
     } else if (key in this._inFlightAttributes) {
       return this._inFlightAttributes[key];
+    } else if (this.__childRecordDatas && key in this.__childRecordDatas) {
+      return this.__childRecordDatas[key];
     } else {
       return this._data[key];
     }
@@ -1025,14 +1027,24 @@ export default class M3RecordData {
    * @return {M3RecordData} The child record data, which can be reused or undefined if there is none.
    */
   _getExistingChildRecordData(key, newValue) {
-    if (
-      !this.__childRecordDatas ||
-      !this.__childRecordDatas[key] ||
-      Array.isArray(this.__childRecordDatas[key])
-    ) {
+    if (!this.__childRecordDatas || Array.isArray(this.__childRecordDatas[key])) {
       return undefined;
     }
+
     let nested = this._childRecordDatas[key];
+    if (!nested) {
+      // Scan mapped keys for potential match
+      const keyAliases = this.schemaInterface?._refKeyDepkeyMap[key];
+      if (keyAliases) {
+        for (key of keyAliases) {
+          nested = this._childRecordDatas[key] || nested;
+        }
+      }
+    }
+
+    if (!nested) {
+      return undefined;
+    }
 
     // we need to compute the new nested type, hopefully it is not too slow
     let newNestedDef;
