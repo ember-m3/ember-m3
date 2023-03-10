@@ -51,6 +51,7 @@ module(`unit/model/reuse-child-record-data-issue`, function (hooks) {
       'urn:li:fsd_edgeInsightsAnalyticsCard:1234'
     );
 
+    debugger
     assert.equal(model.get('header.title.text'), 'Updated', `title to equal 'Updated'`);
   });
 });

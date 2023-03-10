@@ -34,6 +34,10 @@ function assertValidEmberData(project) {
 module.exports = {
   name: 'ember-m3',
 
+  isDevelopingAddon() {
+    return true;
+  },
+
   included() {
     this._super.included.call(this, ...arguments);
 

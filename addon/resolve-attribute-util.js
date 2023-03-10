@@ -13,6 +13,7 @@ import {
   resolveReferencesWithInternalModels,
 } from './utils/resolve';
 import { CUSTOM_MODEL_CLASS } from 'ember-m3/-infra/features';
+import M3RecordData from './record-data';
 
 let EmbeddedInternalModel;
 if (!CUSTOM_MODEL_CLASS) {
@@ -125,6 +126,15 @@ export function resolveRecordArray(store, record, key, references) {
  * 4. Array of nested models -> array of EmbeddedMegaMorphicModel
  */
 export function resolveValue(key, value, modelName, store, schema, record, parentIdx) {
+  if (value && value instanceof M3RecordData && value.id === 'nested') {
+    return EmbeddedMegamorphicModel.create({
+      store,
+      _parentModel: record,
+      _topModel: record._topModel,
+      _recordData: value,
+    });
+  }
+
   const recordData = recordDataFor(record);
   const schemaInterface = recordData.schemaInterface;
 

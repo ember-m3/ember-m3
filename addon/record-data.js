@@ -1027,7 +1027,11 @@ export default class M3RecordData {
    * @return {M3RecordData} The child record data, which can be reused or undefined if there is none.
    */
   _getExistingChildRecordData(key, newValue) {
-    if (!this.__childRecordDatas || Array.isArray(this.__childRecordDatas[key])) {
+    if (
+      !this.__childRecordDatas ||
+      // !this._childRecordDatas[key] ||
+      Array.isArray(this.__childRecordDatas[key])
+    ) {
       return undefined;
     }
 
@@ -1353,6 +1357,11 @@ export default class M3RecordData {
       });
     }
     return [];
+  }
+
+  // laryu: added for testing
+  unknownProperty(keyName) {
+    return this.getAttr(keyName);
   }
 
   toString() {
