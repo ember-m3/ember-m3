@@ -126,7 +126,7 @@ export function resolveRecordArray(store, record, key, references) {
  * 4. Array of nested models -> array of EmbeddedMegaMorphicModel
  */
 export function resolveValue(key, value, modelName, store, schema, record, parentIdx) {
-  if (value && value instanceof M3RecordData && value.id === 'nested') {
+  if (value && value instanceof M3RecordData) {
     return EmbeddedMegamorphicModel.create({
       store,
       _parentModel: record,
