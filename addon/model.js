@@ -13,6 +13,7 @@ import { assert, warn, deprecate } from '@ember/debug';
 import { readOnly } from '@ember/object/computed';
 import { recordDataToRecordMap } from './utils/caches';
 
+import M3RecordData from './record-data';
 import { recordDataFor } from './-private';
 import { resolveValue } from './resolve-attribute-util';
 import { computeAttributeReference, computeAttribute } from './utils/resolve';
@@ -568,6 +569,10 @@ export default class MegamorphicModel extends EmberObject {
         );
       }
     }
+    assert(
+      '[internal error]: ember-m3 returning record data instead of model or scalar',
+      !(returnValue instanceof M3RecordData)
+    );
     return returnValue;
   }
 
