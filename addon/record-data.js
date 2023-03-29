@@ -551,6 +551,18 @@ export default class M3RecordData {
     } else if (key in this._inFlightAttributes) {
       return this._inFlightAttributes[key];
     } else if (this.__childRecordDatas && key in this.__childRecordDatas) {
+      /**
+       * When it comes to updating a resolved value (either a M3RecordObject object or an array of them),
+       * the current implementation only updates the resolved value itself - the one kept in
+       * this.__childRecordDatas without first caching the changes in this._data.
+       * In most cases it works because the consumers would read the updated value from this._cache, which
+       * maintains a reference to the resolved object in this.__childRecordDatas.
+       *
+       * In certain cases whereas this._cache has been invalidated, the current implementation would try
+       * to resolve the value from this._data, which doesn't have the latest state, and therefore causing
+       * issues (reading stale data). Returning the resolved value from this.__childRecordDatas helps fix
+       * this use case.
+       */
       return this.__childRecordDatas[key];
     } else {
       return this._data[key];

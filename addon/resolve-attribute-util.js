@@ -115,6 +115,19 @@ export function resolveRecordArray(store, record, key, references) {
 }
 
 /**
+ * A shortcut function to creating an EmbeddedMegamorphicModel object
+ * without clobbering the code.
+ */
+function _createEmbeddedMegamorphicModel(store, record, value) {
+  return EmbeddedMegamorphicModel.create({
+    store,
+    _parentModel: record,
+    _topModel: record._topModel,
+    _recordData: value,
+  });
+}
+
+/**
  * There are two different type of values we have to worry about:
  * 1. References
  * 2. Nested Models
@@ -126,13 +139,16 @@ export function resolveRecordArray(store, record, key, references) {
  * 4. Array of nested models -> array of EmbeddedMegaMorphicModel
  */
 export function resolveValue(key, value, modelName, store, schema, record, parentIdx) {
+  // Handles the case whereas a RecordData#getAttr() returns a M3RecordData object
   if (value && value instanceof M3RecordData) {
-    return EmbeddedMegamorphicModel.create({
-      store,
-      _parentModel: record,
-      _topModel: record._topModel,
-      _recordData: value,
-    });
+    return _createEmbeddedMegamorphicModel(store, record, value);
+  }
+
+  // Handles the case whereas a RecordData#getAttr() returns an array of M3RecordData object(s)
+  if (Array.isArray(value) && value.length > 0 && value[0] instanceof M3RecordData) {
+    return value.map((m3RecordData) =>
+      _createEmbeddedMegamorphicModel(store, record, m3RecordData)
+    );
   }
 
   const recordData = recordDataFor(record);
