@@ -1244,6 +1244,14 @@ export default class M3RecordData {
       let reusableChild = this._getExistingChildRecordData(key, newValue);
       if (reusableChild) {
         nestedCallback(reusableChild, newValue);
+
+        /**
+         * data needs to be updated here; otherwise, `isEqual(data[key], newValue)`
+         * will report false even the value for the same key remains same next time
+         * the code does the same check.
+         */
+        data[key] = newValue;
+
         continue;
       }
       // not an embedded object, destroy the nested recordData
