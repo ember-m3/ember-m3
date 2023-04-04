@@ -19,6 +19,9 @@ class TestSchema extends DefaultSchema {
   includesModel(modelName) {
     return /^com.example.bookstore\./i.test(modelName);
   }
+  useNativeProperties() {
+    return true;
+  }
   computeAttribute(key, value, modelName, schemaInterface) {
     if (Array.isArray(value)) {
       let nested = value.map((v) => {
@@ -74,6 +77,18 @@ if (CUSTOM_MODEL_CLASS && HAS_NATIVE_PROXY) {
         `chapters's embedded records can resolve values`
       );
       chapters.push({ name: 'The Vanishing Glass' });
+
+      assert.equal(get(chapters, '0.name'), 'The Boy Who Lived', 'Ember.get(array, "0")');
+      assert.equal(
+        get(model, 'chapters.0.name'),
+        'The Boy Who Lived',
+        'Ember.get(model, "array.0")'
+      );
+      assert.equal(
+        get(model, 'chapters.0').name,
+        'The Boy Who Lived',
+        'Ember.get(model, "array.0")'
+      );
 
       let chapter2 = chapters[1];
       assert.equal(chapter2.constructor.isModel, true, 'new values can be resolved via push');
