@@ -964,7 +964,7 @@ export default class M3RecordData {
       );
     }
 
-    return new M3RecordData(
+    return this.storeWrapper.createNestedRecordData(
       modelName,
       id,
       null,
