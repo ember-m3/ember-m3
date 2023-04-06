@@ -951,10 +951,6 @@ export default class M3RecordData {
       // use the base model name if it is available, but otherwise just use the model name - it might be already
       // the base one
       let childBaseModelName = this._schema.computeBaseModelName(modelName) || modelName;
-      if (childBaseModelName) {
-        // this is userland API so we have to normalize the name via dasherization
-        childBaseModelName = dasherize(childBaseModelName);
-      }
       baseChildRecordData = this._baseRecordData._getChildRecordData(
         key,
         idx,
