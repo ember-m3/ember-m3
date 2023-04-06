@@ -1,10 +1,30 @@
-## v6.0.0 (unreleased)
+
+## v6.0.0 (2023-04-06)
 
 #### 💥 Breaking Change
 
+* [#1711](https://github.com/hjdivad/ember-m3/pull/1711) Bump node to active (12 -> 14) ([@hjdivad](https://github.com/hjdivad))
 * dropped support for ember-data versions < 3.28.0
 * per [ember 4 deprecation](https://deprecations.emberjs.com/v3.x/#toc_array-observers) array observers no longer supported on managed arrays
 
+#### :bug: Bug Fix
+* [#1737](https://github.com/hjdivad/ember-m3/pull/1737) Fixed a m3-store initialization issue ([@larry-x-yu](https://github.com/larry-x-yu))
+* [#1726](https://github.com/hjdivad/ember-m3/pull/1726) Fix 'firstObject/lastObject' properties in Ember 4 with native proxies ([@larry-x-yu](https://github.com/larry-x-yu))
+* ~[#1733](https://github.com/hjdivad/ember-m3/pull/1733) Fix nested cache merging for projections ([@hjdivad](https://github.com/hjdivad))~
+  - this fix was in 6.0.0-alpha.2 but is dropped from 6.0.0
+
+#### :house: Internal
+* [#1743](https://github.com/hjdivad/ember-m3/pull/1743) test array.0 explicitly ([@hjdivad](https://github.com/hjdivad))
+* [#1732](https://github.com/hjdivad/ember-m3/pull/1732) cache eslint ([@hjdivad](https://github.com/hjdivad))
+* [#1731](https://github.com/hjdivad/ember-m3/pull/1731) fix deprecations ([@hjdivad](https://github.com/hjdivad))
+* [#1713](https://github.com/hjdivad/ember-m3/pull/1713) Reduce dependabot clutter ([@hjdivad](https://github.com/hjdivad))
+* [#1708](https://github.com/hjdivad/ember-m3/pull/1708) Bump deps + fix deprecations ([@hjdivad](https://github.com/hjdivad))
+* [#1692](https://github.com/hjdivad/ember-m3/pull/1692) Set ember edition to "octane" ([@nlfurniss](https://github.com/nlfurniss))
+
+#### Committers: 3
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- [@larry-x-yu](https://github.com/larry-x-yu)
+- Nathaniel Furniss ([@nlfurniss](https://github.com/nlfurniss))
 
 ## v6.0.0-alpha.3 (2023-02-17)
 
