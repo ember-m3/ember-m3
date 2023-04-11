@@ -84,6 +84,11 @@ for (let testRun = 0; testRun < 2; testRun++) {
             return this.recordDataFor(...arguments);
           },
 
+          // see addon/store.js#createRecordDataFor
+          createNestedRecordData(...args) {
+            return new M3RecordData(...args);
+          },
+
           recordDataFor(modelName, id, clientId) {
             let key = recordDataKey({ modelName, id });
             return (

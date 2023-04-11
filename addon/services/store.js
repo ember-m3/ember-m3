@@ -90,6 +90,10 @@ export default class M3Store extends Store {
 
   createRecordDataFor(modelName, id, clientId, storeWrapper) {
     let schemaManager = get(this, '_schemaManager');
+    storeWrapper.createNestedRecordData = function (...args) {
+      return new M3RecordData(...args);
+    };
+
     if (schemaManager.includesModel(modelName)) {
       seenTypesPerStore.get(this).add(modelName);
 
