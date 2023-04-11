@@ -1,4 +1,19 @@
 
+
+## v6.0.1 (2023-04-11)
+
+#### :rocket: Enhancement
+* [#1745](https://github.com/hjdivad/ember-m3/pull/1745) feat: side-channel for nested record datas ([@hjdivad](https://github.com/hjdivad))
+
+#### :bug: Bug Fix
+* [#1744](https://github.com/hjdivad/ember-m3/pull/1744) Fixed a gap in merging update ([@larry-x-yu](https://github.com/larry-x-yu))
+* [#1749](https://github.com/hjdivad/ember-m3/pull/1749) Fix nested cache merging for projections ([@hjdivad](https://github.com/hjdivad))
+
+#### Committers: 2
+- David J. Hamilton ([@hjdivad](https://github.com/hjdivad))
+- [@larry-x-yu](https://github.com/larry-x-yu)
+
+
 ## v6.0.0 (2023-04-06)
 
 #### 💥 Breaking Change
