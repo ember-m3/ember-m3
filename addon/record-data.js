@@ -1017,23 +1017,6 @@ export default class M3RecordData {
   }
 
   /**
-   * Returns the derived model name of 'modelName'.
-   *
-   * As ember-m3 always gets the child record data from its _baseRecordData, whose `modelName`
-   * was set to the base model name when being created. This is not always working in certain
-   * cases, as m3 may not have a model definition for the base type. This method would give the
-   * consumers a chance to return the correct model name for this particular record data.
-   *
-   * @param {string} modelName the model name of to find the derived model name for
-   * @param {DefaultSchema | undefined} schema the schema object that defines modelName or its derived
-   * @returns {string | undefined} the derived model name if applicable; otherwise modelName
-   */
-  // eslint-disable-next-line no-unused-vars
-  getDerivedModelName(modelName, schema) {
-    return modelName;
-  }
-
-  /**
    * Returns an existing child recordData, which can be reused for merging updates or undefined if
    * there is no such child recordData.
    *
@@ -1051,11 +1034,16 @@ export default class M3RecordData {
     }
     let nested = this._childRecordDatas[key];
 
-    const modelName = this.getDerivedModelName(this.modelName, this._schema?.schema);
     // we need to compute the new nested type, hopefully it is not too slow
     let newNestedDef;
     if (this._schema.useComputeAttribute()) {
-      newNestedDef = computeAttribute(key, newValue, modelName, this.schemaInterface, this._schema);
+      newNestedDef = computeAttribute(
+        key,
+        newValue,
+        this.modelName,
+        this.schemaInterface,
+        this._schema
+      );
     } else {
       newNestedDef = computeNestedModel(
         key,
@@ -1069,6 +1057,7 @@ export default class M3RecordData {
     let newType = newNestedDef && newNestedDef.type && dasherize(newNestedDef.type);
 
     /**
+     * This is a workaround for now.
      * As m3 always get the existing child record data from _baseRecordData, thus it
      * makes sense to use the base model name if it is available; Otherwise just use
      * the model name - it might be already the base one
