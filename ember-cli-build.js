@@ -7,7 +7,7 @@ const getDebugMacros = require('./src/debug-macros').debugMacros;
 
 function hasDataPackage() {
   try {
-    // eslint-disable-next-line node/no-missing-require
+    // eslint-disable-next-line node/no-missing-require, node/no-extraneous-require
     require.resolve('ember-data');
     return true;
   } catch (e) {
