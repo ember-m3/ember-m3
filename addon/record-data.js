@@ -1017,6 +1017,36 @@ export default class M3RecordData {
   }
 
   /**
+   * Checks if 2 types are equal
+   *
+   * @param {string} existingType existing type to compare to
+   * @param {string} newType new type to compare
+   * @returns {boolean} true if they/their base types are equal or both are none; otherwise false;
+   */
+  _isSameType(existingType, newType) {
+    if (isNone(newType) && isNone(existingType)) {
+      return true;
+    }
+
+    let childBaseModelName;
+    if (newType) {
+      childBaseModelName = this._schema.computeBaseModelName(newType);
+      if (childBaseModelName) {
+        newType = dasherize(childBaseModelName);
+      }
+    }
+
+    if (existingType) {
+      childBaseModelName = this._schema.computeBaseModelName(existingType);
+      if (childBaseModelName) {
+        existingType = dasherize(existingType);
+      }
+    }
+
+    return newType === existingType;
+  }
+
+  /**
    * Returns an existing child recordData, which can be reused for merging updates or undefined if
    * there is no such child recordData.
    *
@@ -1062,14 +1092,7 @@ export default class M3RecordData {
      * makes sense to use the base model name if it is available; Otherwise just use
      * the model name - it might be already the base one
      */
-    let childBaseModelName = (newType && this._schema.computeBaseModelName(newType)) || newType;
-    if (childBaseModelName) {
-      // this is userland API so we have to normalize the name via dasherization
-      newType = dasherize(childBaseModelName);
-    }
-
-    let isSameType = newType === nested.modelName || (isNone(newType) && isNone(nested.modelName));
-
+    let isSameType = this._isSameType(nested.modelName, newType);
     let newId = newNestedDef && newNestedDef.id;
     let isSameId = newId === nested.id || (isNone(newId) && isNone(nested.id));
 
