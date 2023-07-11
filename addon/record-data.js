@@ -1055,6 +1055,19 @@ export default class M3RecordData {
     }
 
     let newType = newNestedDef && newNestedDef.type && dasherize(newNestedDef.type);
+
+    /**
+     * This is a workaround for now.
+     * As m3 always get the existing child record data from _baseRecordData, thus it
+     * makes sense to use the base model name if it is available; Otherwise just use
+     * the model name - it might be already the base one
+     */
+    let childBaseModelName = (newType && this._schema.computeBaseModelName(newType)) || newType;
+    if (childBaseModelName) {
+      // this is userland API so we have to normalize the name via dasherization
+      newType = dasherize(childBaseModelName);
+    }
+
     let isSameType = newType === nested.modelName || (isNone(newType) && isNone(nested.modelName));
 
     let newId = newNestedDef && newNestedDef.id;
