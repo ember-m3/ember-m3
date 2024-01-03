@@ -22,8 +22,6 @@ export function initialize(application) {
   // it is done by the meta package
   // but it should be done by the store package
   // https://github.com/emberjs/data/issues/7158
-  application.inject('route', 'store', 'service:store');
-  application.inject('controller', 'store', 'service:store');
   initializeDebugAdapter(application);
 }
 
