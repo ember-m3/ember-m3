@@ -1,5 +1,18 @@
 
 
+
+## v6.1.3 (2024-01-09)
+
+#### :rocket: Enhancement
+* [#1754](https://github.com/hjdivad/ember-m3/pull/1754) Remove Implicit Injections in m3-store ([@nlfurniss](https://github.com/nlfurniss))
+
+#### :bug: Bug Fix
+* [#1750](https://github.com/hjdivad/ember-m3/pull/1750) fix: use base model name for type comparison ([@larry-x-yu](https://github.com/larry-x-yu))
+
+#### Committers: 2
+- Nathaniel Furniss ([@nlfurniss](https://github.com/nlfurniss))
+- [@larry-x-yu](https://github.com/larry-x-yu)
+
 ## v6.0.1 (2023-04-11)
 
 #### :rocket: Enhancement
