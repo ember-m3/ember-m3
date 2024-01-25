@@ -6680,10 +6680,10 @@ humanize-ms@^1.2.1:
   dependencies:
     ms "^2.0.0"
 
-husky@^7.0.4:
-  version "7.0.4"
-  resolved "https://registry.yarnpkg.com/husky/-/husky-7.0.4.tgz#242048245dc49c8fb1bf0cc7cfb98dd722531535"
-  integrity sha512-vbaCKN2QLtP/vD4yvs6iz6hBEo6wkSzs8HpRah1Z6aGmF2KW5PdYuAd7uX5a+OyBZHBhd+TFLqgjUgytQr4RvQ==
+husky@^9.0.5:
+  version "9.0.5"
+  resolved "https://registry.yarnpkg.com/husky/-/husky-9.0.5.tgz#b01f5bcd5ca2230c5b29b0c891a9699bebefc4ab"
+  integrity sha512-/EX48XLor4FczjgdJjwK4qMETrJxJqF4rkgo+NUeK8b2F4TV6s5QxAuG2JZfxm4b9WnrgBGS7bA/JK+H5CKg+A==
 
 iconv-lite@0.4.24, iconv-lite@^0.4.24:
   version "0.4.24"
