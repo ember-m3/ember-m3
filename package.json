@@ -103,7 +103,7 @@
     "eslint-plugin-ember": "^7.11.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.0.0",
-    "husky": "^7.0.4",
+    "husky": "^9.0.6",
     "lint-staged": "^12.3.2",
     "loader.js": "^4.2.3",
     "moment": "^2.29.4",
