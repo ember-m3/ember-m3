@@ -100,7 +100,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        try-scenario: [ember-lts, ember-lts-1, ember-data-lts-3-x]
+        try-scenario: [ember-lts, ember-data-4-1, ember-data-3-x-source-4-lts, ember-data-3-x-source-4-8, ember-data-lts-3-x]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1

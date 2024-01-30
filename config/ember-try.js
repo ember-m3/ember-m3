@@ -8,8 +8,8 @@ module.exports = async function () {
         name: 'ember-data-lts-3-x',
         npm: {
           devDependencies: {
-            'ember-source': '~3.28.11',
-            'ember-data': '~3.28.11',
+            'ember-source': '~3.28.12',
+            'ember-data': '~3.28.13',
             '@ember-data/store': null,
             '@ember-data/debug': null,
             '@ember-data/model': null,
@@ -21,10 +21,49 @@ module.exports = async function () {
         },
       },
       {
-        name: 'ember-lts-1',
+        name: 'ember-data-3-x-source-4-lts',
         npm: {
           devDependencies: {
-            'ember-source': '~4.4.0',
+            'ember-source': '~4.12.0',
+            'ember-data': '~3.28.13',
+            '@ember-data/store': null,
+            '@ember-data/debug': null,
+            '@ember-data/model': null,
+            '@ember-data/serializer': null,
+            '@ember-data/adapter': null,
+            '@ember-data/record-data': null,
+            'ember-inflector': null,
+          },
+        },
+      },
+      {
+        name: 'ember-data-3-x-source-4-8',
+        npm: {
+          devDependencies: {
+            'ember-source': '~4.8.0',
+            'ember-data': '~3.28.13',
+            '@ember-data/store': null,
+            '@ember-data/debug': null,
+            '@ember-data/model': null,
+            '@ember-data/serializer': null,
+            '@ember-data/adapter': null,
+            '@ember-data/record-data': null,
+            'ember-inflector': null,
+          },
+        },
+      },
+      {
+        name: 'ember-data-4-1',
+        npm: {
+          devDependencies: {
+            'ember-data': '~4.1.0',
+            '@ember-data/store': null,
+            '@ember-data/debug': null,
+            '@ember-data/model': null,
+            '@ember-data/serializer': null,
+            '@ember-data/adapter': null,
+            '@ember-data/record-data': null,
+            'ember-inflector': null,
           },
         },
       },
@@ -32,7 +71,7 @@ module.exports = async function () {
         name: 'ember-lts',
         npm: {
           devDependencies: {
-            'ember-source': '~4.8.0',
+            'ember-source': '~4.12.0',
           },
         },
       },
