@@ -1,6 +1,16 @@
 
 
 
+
+## v6.1.4 (2024-01-31)
+
+#### :house: Internal
+* [#1767](https://github.com/ember-m3/ember-m3/pull/1767) Ember-Data 4.4 Support ([@elwayman02](https://github.com/elwayman02))
+
+#### Committers: 1
+- Jordan Hawker ([@elwayman02](https://github.com/elwayman02))
+
+
 ## v6.1.3 (2024-01-09)
 
 #### :rocket: Enhancement
