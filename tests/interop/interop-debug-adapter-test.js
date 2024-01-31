@@ -432,6 +432,8 @@ if (DEBUG) {
           },
         },
       });
+
+      await settled();
     });
 
     test('watchModelTypes keeps track of modelTypes and clears them out on release', async function (assert) {
