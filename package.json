@@ -71,9 +71,9 @@
   "devDependencies": {
     "@commitlint/cli": "^16.1.0",
     "@commitlint/travis-cli": "^16.0.3",
-    "@ember-data/debug": "3.28.3",
-    "@ember-data/model": "3.28.3",
-    "@ember-data/store": "3.28.3",
+    "@ember-data/debug": "~4.4.0",
+    "@ember-data/model": "~4.4.0",
+    "@ember-data/store": "~4.4.0",
     "@ember/optional-features": "^2.0.0",
     "@ember/test-helpers": "^2.9.3",
     "@glimmer/component": "^1.1.2",
@@ -96,7 +96,7 @@
     "ember-qunit": "^6.1.1",
     "ember-resolver": "^10.0.0",
     "ember-sinon": "^5.0.0",
-    "ember-source": "^4.4.0",
+    "ember-source": "^4.12.0",
     "ember-try": "^2.0.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
@@ -149,7 +149,7 @@
   },
   "volta": {
     "node": "14.18.1",
-    "yarn": "1.22.10"
+    "yarn": "1.22.19"
   },
   "ember": {
     "edition": "octane"
