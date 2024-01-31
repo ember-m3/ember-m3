@@ -106,7 +106,7 @@
     "husky": "^7.0.4",
     "lint-staged": "^12.3.2",
     "loader.js": "^4.2.3",
-    "moment": "^2.29.4",
+    "moment": "^2.30.1",
     "pretender": "^3.4.7",
     "prettier": "^2.5.1",
     "qunit": "^2.19.4",
