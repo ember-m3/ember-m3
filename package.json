@@ -69,7 +69,7 @@
     "semver": "^7.5.2"
   },
   "devDependencies": {
-    "@commitlint/cli": "^16.1.0",
+    "@commitlint/cli": "^18.6.1",
     "@commitlint/travis-cli": "^16.0.3",
     "@ember-data/debug": "~4.4.0",
     "@ember-data/model": "~4.4.0",
