@@ -70,7 +70,7 @@
   },
   "devDependencies": {
     "@commitlint/cli": "^16.1.0",
-    "@commitlint/travis-cli": "^16.0.3",
+    "@commitlint/travis-cli": "^19.2.2",
     "@ember-data/debug": "~4.4.0",
     "@ember-data/model": "~4.4.0",
     "@ember-data/store": "~4.4.0",
