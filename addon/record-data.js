@@ -909,15 +909,35 @@ export default class M3RecordData {
       if (!childRecordDatas) {
         childRecordDatas = this._childRecordDatas[key] = [];
       }
-      childRecordData = childRecordDatas[idx];
-      if (!childRecordData) {
-        childRecordData = childRecordDatas[idx] = this._createChildRecordData(
-          key,
-          idx,
-          modelName,
-          id
-        );
-      }
+
+      /**
+       * @hjdavid, @rwjblue, the change may cause unintended side effects please review!!!
+       *
+       * The index based way of resolving array members seems to be broken when it comes
+       * to nested arrays.
+       *
+       * The issue is: it tries to use an item's index in the subarray as the index into
+       * its parent 'childRecordDatas'. For example, if you have a nested array like below:
+       *
+       * ```js
+       * [
+       *    [{name: 'one'}],
+       *    [{name: 'two'}],
+       * ]
+       * ```
+       * If we use the index based lookup, the following would happen:
+       * 1. When item {name: 'one'} is resolved, childRecordDatas = [0: resolved value for {name: 'one'}]
+       * 2. When it comes to {name: 'two'}, it first uses its index within the second array, which is 0,
+       * to get the existing value from childRecordDatas, then updates it with a newly created childRecordData.
+       * As a result, the resolved value for the {name: 'one'} is overwritten silently. The end result is:
+       * the last item always wins, which seems to be both incorrect and undesirable.
+       *
+       * The proposed change is:
+       * Instead of overwriting existing entries using the wrong index, we always append the resolved values to
+       * childRecordDatas.
+       */
+      childRecordData = this._createChildRecordData(key, idx, modelName, id);
+      childRecordDatas.push(childRecordData);
     } else {
       childRecordData = this._childRecordDatas[key];
       if (!childRecordData) {
