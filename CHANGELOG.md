@@ -2,6 +2,16 @@
 
 
 
+
+## v6.1.5 (2025-03-19)
+
+#### :house: Internal
+* [#1828](https://github.com/ember-m3/ember-m3/pull/1828) add `@ember/string` to dependencies ([@yangpiao](https://github.com/yangpiao))
+
+#### Committers: 1
+- Yang ([@yangpiao](https://github.com/yangpiao))
+
+
 ## v6.1.4 (2024-01-31)
 
 #### :house: Internal
