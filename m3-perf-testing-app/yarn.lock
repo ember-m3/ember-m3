@@ -1952,6 +1952,13 @@
   dependencies:
     ember-cli-babel "^7.4.0"
 
+"@ember/string@^3.1.1":
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/@ember/string/-/string-3.1.1.tgz#0a5ac0d1e4925259e41d5c8d55ef616117d47ff0"
+  integrity sha512-UbXJ+k3QOrYN4SRPHgXCqYIJ+yWWUg1+vr0H4DhdQPTy8LJfyqwZ2tc5uqpSSnEXE+/1KopHBE5J8GDagAg5cg==
+  dependencies:
+    ember-cli-babel "^7.26.6"
+
 "@ember/test-helpers@^2.2.5":
   version "2.2.8"
   resolved "https://registry.yarnpkg.com/@ember/test-helpers/-/test-helpers-2.2.8.tgz#3f1c1ab828098e4a6a6209b7c28b124ac614a73f"
@@ -6063,7 +6070,7 @@ ember-compatibility-helpers@^1.1.2, ember-compatibility-helpers@^1.2.0, ember-co
     fs-extra "^9.1.0"
     semver "^5.4.1"
 
-ember-compatibility-helpers@^1.2.6:
+ember-compatibility-helpers@^1.2.7:
   version "1.2.7"
   resolved "https://registry.yarnpkg.com/ember-compatibility-helpers/-/ember-compatibility-helpers-1.2.7.tgz#b4f138bba844f8f38f0b8f4d7e928841cd5e6591"
   integrity sha512-BtkjulweiXo9c3yVWrtexw2dTmBrvavD/xixNC6TKOBdrixUwU+6nuOO9dufDWsMxoid7MvtmDpzc9+mE8PdaA==
@@ -6146,11 +6153,12 @@ ember-load-initializers@^2.1.2:
 "ember-m3@file:..":
   version "6.1.4"
   dependencies:
+    "@ember/string" "^3.1.1"
     babel-plugin-debug-macros "^0.3.4"
     broccoli-funnel "^3.0.8"
     ember-cli-babel "^7.26.11"
     ember-cli-version-checker "^5.1.2"
-    ember-compatibility-helpers "^1.2.6"
+    ember-compatibility-helpers "^1.2.7"
     semver "^7.5.2"
 
 ember-maybe-import-regenerator@^0.1.6:
@@ -7199,9 +7207,9 @@ flush-write-stream@^1.0.0:
     readable-stream "^2.3.6"
 
 follow-redirects@^1.0.0:
-  version "1.15.5"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.5.tgz#54d4d6d062c0fa7d9d17feb008461550e3ba8020"
-  integrity sha512-vSFWUON1B+yAw1VN4xMfxgn5fTUiaOzAJCKBwIIgT/+7CuGy9+r+5gITvP62j3RmaD5Ph65UaERdOSRGUzZtgw==
+  version "1.15.9"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.9.tgz#a604fa10e443bf98ca94228d9eebcc2e8a2c8ee1"
+  integrity sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==
 
 for-in@^1.0.2:
   version "1.0.2"
