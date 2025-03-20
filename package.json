@@ -79,7 +79,7 @@
     "@ember/test-helpers": "^2.9.3",
     "@glimmer/component": "^1.1.2",
     "@malleatus/nyx": "^0.3.0",
-    "@octokit/rest": "^19.0.7",
+    "@octokit/rest": "^21.1.1",
     "babel-eslint": "^10.1.0",
     "broccoli-asset-rev": "^3.0.0",
     "ember-auto-import": "^2.7.2",
