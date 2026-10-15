@@ -1,4 +1,4 @@
-import { A, isArray } from '@ember/array';
+import { isArray } from '@ember/array';
 import DataAdapter from '@ember/debug/data-adapter';
 import { get, defineProperty } from '@ember/object';
 import { inject } from '@ember/service';
@@ -99,7 +99,7 @@ export default class M3DebugAdapter extends DataAdapter {
       modelTypes.push({ klass: name, name });
     });
 
-    return A(modelTypes);
+    return modelTypes;
   }
 
   /**
@@ -270,7 +270,7 @@ export default class M3DebugAdapter extends DataAdapter {
 
     this.typesAddedCallback = typesAdded;
     this.typesUpdatedCallback = typesUpdated;
-    this.localReleaseMethods = A();
+    this.localReleaseMethods = [];
 
     modelTypes.forEach((type) => this.seenTypesInAdapter.add(type.name));
     let typesToSend = modelTypes.map((type) => this.processAddedType(type.name));
@@ -278,12 +278,17 @@ export default class M3DebugAdapter extends DataAdapter {
 
     let release = () => {
       this.localReleaseMethods.forEach((fn) => fn());
-      this.releaseMethods.removeObject(release);
+      // `releaseMethods` is a native array in ember-source 7.5+ (RFC 1114).
+      // The Ember array methods on it go away in ember-source 8.0.0.
+      const index = this.releaseMethods.indexOf(release);
+      if (index !== -1) {
+        this.releaseMethods.splice(index, 1);
+      }
 
       // Clear out the model types in seenTypesInAdapter so they can be added again if the inspector is re-opened
       this.seenTypesInAdapter.clear();
     };
-    this.releaseMethods.pushObject(release);
+    this.releaseMethods.push(release);
     return release;
   }
 }
